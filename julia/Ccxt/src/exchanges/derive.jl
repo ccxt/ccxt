@@ -801,14 +801,34 @@ function setSandboxMode(self::Derive, enable)
     self.options[Symbol("sandboxMode")] = enable;
 
 end
-function fetchTime(self::Derive, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.derive.xyz/reference/post_public-get-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Derive; params=Dict())
     response = Base.fetch(self.publicPostGetTime(params));
     return safeInteger(response, "result")
 
 end
-function fetchCurrencies(self::Derive, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.derive.xyz/reference/post_public-get-all-currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Derive; params=Dict())
     tokenResponse = Base.fetch(self.publicGetGetAllCurrencies(params));
-    currencies = self.safeList(tokenResponse, "result", []);
+    currencies = self.safeList(tokenResponse, "result", defaultValue = []);
     return self.parseCurrencies(currencies)
 
 end
@@ -839,46 +859,56 @@ function parseCurrency(self::Derive, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Derive, params=Dict())
-    spotMarketsPromise = self.fetchSpotMarkets(params);
-    swapMarketsPromise = self.fetchSwapMarkets(params);
-    optionMarketsPromise = self.fetchOptionMarkets(params);
+"""
+retrieves data on all markets for bybit
+see: https://docs.derive.xyz/reference/post_public-get-all-instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Derive; params=Dict())
+    spotMarketsPromise = self.fetchSpotMarkets(params = params);
+    swapMarketsPromise = self.fetchSwapMarkets(params = params);
+    optionMarketsPromise = self.fetchOptionMarkets(params = params);
     (spotMarkets, swapMarkets, optionMarkets) = (Base.fetch(asyncmap(Base.fetch, [spotMarketsPromise, swapMarketsPromise, optionMarketsPromise])));
     result = arrayConcat(spotMarkets, swapMarkets);
     result = arrayConcat(result, optionMarkets);
     return result
 
 end
-function fetchSpotMarkets(self::Derive, params=Dict())
+function fetchSpotMarkets(self::Derive; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("expired") => false,
         Symbol("instrument_type") => "erc20"
     );
     response = Base.fetch(self.publicPostGetAllInstruments(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "instruments", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "instruments", defaultValue = []);
     return self.parseMarkets(data)
 
 end
-function fetchSwapMarkets(self::Derive, params=Dict())
+function fetchSwapMarkets(self::Derive; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("expired") => false,
         Symbol("instrument_type") => "perp"
     );
     response = Base.fetch(self.publicPostGetAllInstruments(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "instruments", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "instruments", defaultValue = []);
     return self.parseMarkets(data)
 
 end
-function fetchOptionMarkets(self::Derive, params=Dict())
+function fetchOptionMarkets(self::Derive; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("expired") => false,
         Symbol("instrument_type") => "option"
     );
     response = Base.fetch(self.publicPostGetAllInstruments(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "instruments", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "instruments", defaultValue = []);
     return self.parseMarkets(data)
 
 end
@@ -939,7 +969,7 @@ function parseMarket(self::Derive, market)
     end
     contractSize = functions.ccxtruthy((spot)) ? nothing : 1;
     isContract = (@functions.ccxt_or(swap, option));
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -992,7 +1022,18 @@ function parseMarket(self::Derive, market)
 ))
 
 end
-function fetchTicker(self::Derive, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.derive.xyz/reference/post_public-get-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Derive, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1001,14 +1042,14 @@ function fetchTicker(self::Derive, symbol, params=Dict())
         Symbol("instrument_name") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicPostGetTicker(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTicker(data, market)
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(data, market = market)
 
 end
-function parseTicker(self::Derive, ticker, market=nothing)
+function parseTicker(self::Derive, ticker; market=nothing)
     marketId = safeString(ticker, "instrument_name");
     timestamp = self.safeIntegerOmitZero(ticker, "timestamp");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     stats = self.safeDict(ticker, "stats");
     change = safeString(stats, "percent_change");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1034,10 +1075,24 @@ function parseTicker(self::Derive, ticker, market=nothing)
     Symbol("indexPrice") => safeString(ticker, "index_price"),
     Symbol("markPrice") => safeString(ticker, "mark_price"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Derive, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.derive.xyz/reference/post_public-get-trade-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Derive, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1062,12 +1117,12 @@ function fetchTrades(self::Derive, symbol, since=nothing, limit=nothing, params=
         request[Symbol("to_timestamp")] = until;
     end
     response = Base.fetch(self.publicPostGetTradeHistory(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "trades", []);
-    return self.parseTrades(data, market, since, limit)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "trades", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function parseTrades(self::Derive, trades, market=nothing, since=nothing, limit=nothing, params=Dict())
+function parseTrades(self::Derive, trades; market=nothing, since=nothing, limit=nothing, params=Dict())
     tradesArray = toArray(trades);
     result = [];
     i = 0
@@ -1078,19 +1133,19 @@ function parseTrades(self::Derive, trades, market=nothing, since=nothing, limit=
         if functions.ccxtruthy(@functions.ccxt_and(isFetchTrades, (liquidityRole == "maker")))
             i += 1; continue
         end
-        parsed = self.parseTrade(rawTrade, market);
+        parsed = self.parseTrade(rawTrade, market = market);
         trade = extend(parsed, params);
         push!(result, trade);
         i += 1
     end
     result = sortBy2(result, "timestamp", "id");
     symbol = safeString(market, "symbol");
-    return self.filterBySymbolSinceLimit(result, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(result, symbol = symbol, since = since, limit = limit)
 
 end
-function parseTrade(self::Derive, trade, market=nothing)
+function parseTrade(self::Derive, trade; market=nothing)
     marketId = safeString(trade, "instrument_name");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     timestamp = safeInteger(trade, "timestamp");
     fee = Dict{Symbol, Any}(
         Symbol("currency") => "USDC",
@@ -1110,10 +1165,23 @@ function parseTrade(self::Derive, trade, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchFundingRateHistory(self::Derive, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of funding rate structures to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Derive; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1130,8 +1198,8 @@ function fetchFundingRateHistory(self::Derive, symbol=nothing, since=nothing, li
         request[Symbol("to_timestamp")] = until;
     end
     response = Base.fetch(self.publicPostGetFundingRateHistory(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "funding_rate_history", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "funding_rate_history", defaultValue = []);
     rates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -1147,16 +1215,27 @@ function fetchFundingRateHistory(self::Derive, symbol=nothing, since=nothing, li
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function fetchFundingRate(self::Derive, symbol, params=Dict())
-    response = Base.fetch(self.fetchFundingRateHistory(symbol, nothing, 1, params));
+"""
+fetch the current funding rate
+see: https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Derive, symbol; params=Dict())
+    response = Base.fetch(self.fetchFundingRateHistory(symbol = symbol, since = nothing, limit = 1, params = params));
     data = self.safeDict(response, 0);
     return self.parseFundingRate(data)
 
 end
-function parseFundingRate(self::Derive, contract, market=nothing)
+function parseFundingRate(self::Derive, contract; market=nothing)
     symbol = safeString(contract, "symbol");
     fundingTimestamp = safeInteger(contract, "timestamp");
     return Dict{Symbol, Any}(
@@ -1183,7 +1262,7 @@ function parseFundingRate(self::Derive, contract, market=nothing)
 end
 function hashOrderMessage(self::Derive, order)
     accountHash = hash(self.ethAbiEncode(["bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"], order), keccak, "binary");
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     DOMAIN_SEPARATOR = functions.ccxtruthy((sandboxMode)) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
     binaryDomainSeparator = self.base16ToBinary(DOMAIN_SEPARATOR);
     prefix = self.base16ToBinary("1901");
@@ -1217,11 +1296,33 @@ function signMessage(self::Derive, message, privateKey)
     return self.signHash(self.hashMessage(message), functions.ccxt_slice(privateKey, -64))
 
 end
-function parseUnits(self::Derive, num, dec="1000000000000000000")
+function parseUnits(self::Derive, num; dec="1000000000000000000")
     return stringMul(num, dec)
 
 end
-function createOrder(self::Derive, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.derive.xyz/reference/post_private-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.max_fee`::float, optional: *required* the maximum fee you are willing to pay for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Derive, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1231,7 +1332,7 @@ function createOrder(self::Derive, symbol, type_var, side, amount, price=nothing
     end
     subaccountId = nothing;
     (subaccountId, params) = self.handleDeriveSubaccountId("createOrder", params);
-    test = self.safeBool(params, "test", false);
+    test = self.safeBool(params, "test", defaultValue = false);
     reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only");
     timeInForce = safeStringLower2(params, "timeInForce", "time_in_force");
     postOnly = self.safeBool(params, "postOnly");
@@ -1240,7 +1341,7 @@ function createOrder(self::Derive, symbol, type_var, side, amount, price=nothing
     nonce = milliseconds();
     signatureExpiry = safeInteger(params, "signature_expiry_sec", seconds() + 7776000);
     ACTION_TYPEHASH = self.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     TRADE_MODULE_ADDRESS = functions.ccxtruthy((sandboxMode)) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
     priceString = numberToString(price);
     maxFee = nothing;
@@ -1306,14 +1407,31 @@ function createOrder(self::Derive, symbol, type_var, side, amount, price=nothing
     result = self.safeDict(response, "result");
     rawOrder = self.safeDict(result, "raw_data");
     if functions.ccxtruthy(rawOrder == nothing)
-        rawOrder = self.safeDict(result, "order", Dict{Symbol, Any}());
+        rawOrder = self.safeDict(result, "order", defaultValue = Dict{Symbol, Any}());
     end
-    order = self.parseOrder(rawOrder, market);
+    order = self.parseOrder(rawOrder, market = market);
     order[Symbol("type")] = type_var;
     return order
 
 end
-function editOrder(self::Derive, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://docs.derive.xyz/reference/post_private-replace
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Derive, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1326,9 +1444,9 @@ function editOrder(self::Derive, id, symbol, type_var, side, amount=nothing, pri
     orderType = lowercase(type_var);
     orderSide = lowercase(side);
     nonce = milliseconds();
-    signatureExpiry = self.safeNumber(params, "signature_expiry_sec", seconds() + 7776000);
+    signatureExpiry = self.safeNumber(params, "signature_expiry_sec", defaultNumber = seconds() + 7776000);
     ACTION_TYPEHASH = self.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     TRADE_MODULE_ADDRESS = functions.ccxtruthy((sandboxMode)) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
     priceString = numberToString(price);
     maxFeeString = safeString(params, "max_fee", "0");
@@ -1369,12 +1487,26 @@ function editOrder(self::Derive, id, symbol, type_var, side, amount=nothing, pri
     params = omit(params, ["reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"]);
     response = Base.fetch(self.privatePostReplace(extend(request, params)));
     result = self.safeDict(response, "result");
-    rawOrder = self.safeDict(result, "order", Dict{Symbol, Any}());
-    order = self.parseOrder(rawOrder, market);
+    rawOrder = self.safeDict(result, "order", defaultValue = Dict{Symbol, Any}());
+    order = self.parseOrder(rawOrder, market = market);
     return order
 
 end
-function cancelOrder(self::Derive, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.derive.xyz/reference/post_private-cancel
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Derive, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -1382,7 +1514,7 @@ function cancelOrder(self::Derive, id, symbol=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    isTrigger = self.safeBool2(params, "trigger", "stop", false);
+    isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     subaccountId = nothing;
     (subaccountId, params) = self.handleDeriveSubaccountId("cancelOrder", params);
     params = omit(params, ["trigger", "stop"]);
@@ -1408,14 +1540,27 @@ function cancelOrder(self::Derive, id, symbol=nothing, params=Dict())
     extendParams = Dict{Symbol, Any}(
         Symbol("symbol") => symbol
     );
-    order = self.safeDict(response, "result", Dict{Symbol, Any}());
+    order = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     if functions.ccxtruthy(isByClientOrder)
         extendParams[Symbol("client_order_id")] = clientOrderIdExchangeSpecific;
     end
-    return extend(self.parseOrder(order, market), extendParams)
+    return extend(self.parseOrder(order, market = market), extendParams)
 
 end
-function cancelAllOrders(self::Derive, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://docs.derive.xyz/reference/post_private-cancel-by-instrument
+see: https://docs.derive.xyz/reference/post_private-cancel-all
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Derive; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1439,16 +1584,32 @@ function cancelAllOrders(self::Derive, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchOrders(self::Derive, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.derive.xyz/reference/post_private-get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Derive; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchOrders", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = 500))
     end
-    isTrigger = self.safeBool2(params, "trigger", "stop", false);
+    isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     params = omit(params, ["trigger", "stop"]);
     subaccountId = nothing;
     (subaccountId, params) = self.handleDeriveSubaccountId("fetchOrders", params);
@@ -1478,38 +1639,80 @@ function fetchOrders(self::Derive, symbol=nothing, since=nothing, limit=nothing,
                 return []
         end
     end
-    orders = self.safeList(data, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(data, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Derive, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.derive.xyz/reference/post_private-get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Derive; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     extendedParams = extend(params, Dict{Symbol, Any}(
         Symbol("status") => "open"
     ));
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extendedParams))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extendedParams))
 
 end
-function fetchClosedOrders(self::Derive, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.derive.xyz/reference/post_private-get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Derive; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     extendedParams = extend(params, Dict{Symbol, Any}(
         Symbol("status") => "filled"
     ));
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extendedParams))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extendedParams))
 
 end
-function fetchCanceledOrders(self::Derive, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://docs.derive.xyz/reference/post_private-get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Derive; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     extendedParams = extend(params, Dict{Symbol, Any}(
         Symbol("status") => "cancelled"
     ));
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extendedParams))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extendedParams))
 
 end
 function parseTimeInForce(self::Derive, timeInForce)
@@ -1536,7 +1739,7 @@ function parseOrderStatus(self::Derive, status)
     return status
 
 end
-function parseOrder(self::Derive, rawOrder, market=nothing)
+function parseOrder(self::Derive, rawOrder; market=nothing)
     order = self.safeDict(rawOrder, "data");
     if functions.ccxtruthy(order == nothing)
         order = rawOrder;
@@ -1545,7 +1748,7 @@ function parseOrder(self::Derive, rawOrder, market=nothing)
     orderId = safeString(order, "order_id");
     marketId = safeString(order, "instrument_name");
     if functions.ccxtruthy(marketId != nothing)
-        market = self.safeMarket(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = market);
     end
     symbol = safeString(market, "symbol");
     price = safeString(order, "limit_price");
@@ -1607,10 +1810,25 @@ function parseOrder(self::Derive, rawOrder, market=nothing)
         Symbol("currency") => "USDC"
     ),
     Symbol("info") => order
-), market)
+), market = market)
 
 end
-function fetchOrderTrades(self::Derive, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://docs.derive.xyz/reference/post_private-get-trade-history
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Derive, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1632,19 +1850,34 @@ function fetchOrderTrades(self::Derive, id, symbol=nothing, since=nothing, limit
         request[Symbol("from_timestamp")] = since;
     end
     response = Base.fetch(self.privatePostGetTradeHistory(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    trades = self.safeList(result, "trades", []);
-    return self.parseTrades(trades, market, since, limit, params)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    trades = self.safeList(result, "trades", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit, params = params)
 
 end
-function fetchMyTrades(self::Derive, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.derive.xyz/reference/post_private-get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch trades with pagination
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Derive; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = 500))
     end
     subaccountId = nothing;
     (subaccountId, params) = self.handleDeriveSubaccountId("fetchMyTrades", params);
@@ -1663,7 +1896,7 @@ function fetchMyTrades(self::Derive, symbol=nothing, since=nothing, limit=nothin
         request[Symbol("from_timestamp")] = since;
     end
     response = Base.fetch(self.privatePostGetTradeHistory(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     page = safeInteger(params, "page");
     if functions.ccxtruthy(page != nothing)
         pagination = self.safeDict(result, "pagination");
@@ -1672,11 +1905,23 @@ function fetchMyTrades(self::Derive, symbol=nothing, since=nothing, limit=nothin
                 return []
         end
     end
-    trades = self.safeList(result, "trades", []);
-    return self.parseTrades(trades, market, since, limit, params)
+    trades = self.safeList(result, "trades", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit, params = params)
 
 end
-function fetchPositions(self::Derive, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.derive.xyz/reference/post_private-get-positions
+
+# Arguments
+- `symbols`::array, optional: not used by fetchPositions ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Derive; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1687,14 +1932,14 @@ function fetchPositions(self::Derive, symbols=nothing, params=Dict())
     );
     params = omit(params, ["subaccount_id"]);
     response = Base.fetch(self.privatePostGetPositions(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    positions = self.safeList(result, "positions", []);
-    return self.parsePositions(positions, symbols)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    positions = self.safeList(result, "positions", defaultValue = []);
+    return self.parsePositions(positions, symbols = symbols)
 
 end
-function parsePosition(self::Derive, position, market=nothing)
+function parsePosition(self::Derive, position; market=nothing)
     contract = safeString(position, "instrument_name");
-    market = self.safeMarket(contract, market);
+    market = self.safeMarket(marketId = contract, market = market);
     size_var = safeString(position, "amount");
     side = nothing;
     if functions.ccxtruthy(stringGt(size_var, "0"))
@@ -1739,14 +1984,28 @@ function parsePosition(self::Derive, position, market=nothing)
 ))
 
 end
-function fetchFundingHistory(self::Derive, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.derive.xyz/reference/post_private-get-funding-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Derive; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingHistory", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = 500))
     end
     subaccountId = nothing;
     (subaccountId, params) = self.handleDeriveSubaccountId("fetchFundingHistory", params);
@@ -1765,7 +2024,7 @@ function fetchFundingHistory(self::Derive, symbol=nothing, since=nothing, limit=
         request[Symbol("page_size")] = limit;
     end
     response = Base.fetch(self.privatePostGetFundingHistory(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     page = safeInteger(params, "page");
     if functions.ccxtruthy(page != nothing)
         pagination = self.safeDict(result, "pagination");
@@ -1774,13 +2033,13 @@ function fetchFundingHistory(self::Derive, symbol=nothing, since=nothing, limit=
                 return []
         end
     end
-    events = self.safeList(result, "events", []);
-    return self.parseIncomes(events, market, since, limit)
+    events = self.safeList(result, "events", defaultValue = []);
+    return self.parseIncomes(events, market = market, since = since, limit = limit)
 
 end
-function parseIncome(self::Derive, income, market=nothing)
+function parseIncome(self::Derive, income; market=nothing)
     marketId = safeString(income, "instrument_name");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     rate = safeString(income, "funding");
     code = self.safeCurrencyCode("USDC");
     timestamp = safeInteger(income, "timestamp");
@@ -1796,7 +2055,17 @@ function parseIncome(self::Derive, income, market=nothing)
 )
 
 end
-function fetchBalance(self::Derive, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.derive.xyz/reference/post_private-get-all-portfolios
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Derive; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1817,7 +2086,7 @@ function parseBalance(self::Derive, response)
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         subaccount = get(response, i + 1, nothing);
-        collaterals = self.safeList(subaccount, "collaterals", []);
+        collaterals = self.safeList(subaccount, "collaterals", defaultValue = []);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(collaterals)))
             balance = get(collaterals, j + 1, nothing);
@@ -1840,7 +2109,21 @@ function parseBalance(self::Derive, response)
     return self.safeBalance(result)
 
 end
-function fetchDeposits(self::Derive, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.derive.xyz/reference/post_private-get-deposit-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Derive; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1854,12 +2137,26 @@ function fetchDeposits(self::Derive, code=nothing, since=nothing, limit=nothing,
     end
     response = Base.fetch(self.privatePostGetDepositHistory(extend(request, params)));
     currency = self.safeCurrency(code);
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    events = self.safeList(result, "events", []);
-    return self.parseTransactions(events, currency, since, limit, params)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    events = self.safeList(result, "events", defaultValue = []);
+    return self.parseTransactions(events, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchWithdrawals(self::Derive, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.derive.xyz/reference/post_private-get-withdrawal-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Derive; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1873,12 +2170,12 @@ function fetchWithdrawals(self::Derive, code=nothing, since=nothing, limit=nothi
     end
     response = Base.fetch(self.privatePostGetWithdrawalHistory(extend(request, params)));
     currency = self.safeCurrency(code);
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    events = self.safeList(result, "events", []);
-    return self.parseTransactions(events, currency, since, limit, params)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    events = self.safeList(result, "events", defaultValue = []);
+    return self.parseTransactions(events, currency = currency, since = since, limit = limit, params = params)
 
 end
-function parseTransaction(self::Derive, transaction, currency=nothing)
+function parseTransaction(self::Derive, transaction; currency=nothing)
     code = safeString(transaction, "asset");
     timestamp = safeInteger(transaction, "timestamp");
     txId = safeString(transaction, "tx_hash");
@@ -1960,7 +2257,7 @@ function handleErrors(self::Derive, httpCode, reason, url, method, headers, body
     return nothing
 
 end
-function sign(self::Derive, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Derive, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", path);
     if functions.ccxtruthy(method == "POST")
         headers = Dict{Symbol, Any}(
@@ -1990,455 +2287,455 @@ Base.getproperty(self::Derive, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetGetAllCurrencies(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_all_currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_all_currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostBuildRegisterSessionKeyTx(self::Derive, params=Dict(), context=Dict())
-    return request(self, "build_register_session_key_tx", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "build_register_session_key_tx"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostRegisterSessionKey(self::Derive, params=Dict(), context=Dict())
-    return request(self, "register_session_key", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "register_session_key"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostDeregisterSessionKey(self::Derive, params=Dict(), context=Dict())
-    return request(self, "deregister_session_key", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "deregister_session_key"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostLogin(self::Derive, params=Dict(), context=Dict())
-    return request(self, "login", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "login"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostStatistics(self::Derive, params=Dict(), context=Dict())
-    return request(self, "statistics", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "statistics"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetAllCurrencies(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_all_currencies", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_all_currencies"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetCurrency(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_currency", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_currency"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetInstrument(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_instrument", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_instrument"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetAllInstruments(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_all_instruments", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_all_instruments"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetInstruments(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_instruments", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_instruments"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetTicker(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_ticker", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_ticker"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetLatestSignedFeeds(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_latest_signed_feeds", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_latest_signed_feeds"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetOptionSettlementPrices(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_option_settlement_prices", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_option_settlement_prices"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetSpotFeedHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_spot_feed_history", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_spot_feed_history"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetSpotFeedHistoryCandles(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_spot_feed_history_candles", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_spot_feed_history_candles"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetFundingRateHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_funding_rate_history", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_funding_rate_history"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetTradeHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_trade_history", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_trade_history"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetOptionSettlementHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_option_settlement_history", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_option_settlement_history"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetLiquidationHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_liquidation_history", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_liquidation_history"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetInterestRateHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_interest_rate_history", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_interest_rate_history"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetTransaction(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_transaction", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_transaction"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetMargin(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_margin", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_margin"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostMarginWatch(self::Derive, params=Dict(), context=Dict())
-    return request(self, "margin_watch", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin_watch"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostValidateInviteCode(self::Derive, params=Dict(), context=Dict())
-    return request(self, "validate_invite_code", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "validate_invite_code"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetPoints(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_points", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_points"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetAllPoints(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_all_points", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_all_points"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetPointsLeaderboard(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_points_leaderboard", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_points_leaderboard"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetDescendantTree(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_descendant_tree", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_descendant_tree"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetTreeRoots(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_tree_roots", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_tree_roots"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetSwellPercentPoints(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_swell_percent_points", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_swell_percent_points"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetVaultAssets(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_vault_assets", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_vault_assets"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetEtherfiEffectiveBalances(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_etherfi_effective_balances", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_etherfi_effective_balances"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetKelpEffectiveBalances(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_kelp_effective_balances", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_kelp_effective_balances"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetBridgeBalances(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_bridge_balances", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_bridge_balances"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetEthenaParticipants(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_ethena_participants", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_ethena_participants"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetVaultShare(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_vault_share", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_vault_share"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetVaultStatistics(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_vault_statistics", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_vault_statistics"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetVaultBalances(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_vault_balances", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_vault_balances"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostEstimateIntegratorPoints(self::Derive, params=Dict(), context=Dict())
-    return request(self, "estimate_integrator_points", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "estimate_integrator_points"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostCreateSubaccountDebug(self::Derive, params=Dict(), context=Dict())
-    return request(self, "create_subaccount_debug", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "create_subaccount_debug"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostDepositDebug(self::Derive, params=Dict(), context=Dict())
-    return request(self, "deposit_debug", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "deposit_debug"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostWithdrawDebug(self::Derive, params=Dict(), context=Dict())
-    return request(self, "withdraw_debug", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw_debug"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostSendQuoteDebug(self::Derive, params=Dict(), context=Dict())
-    return request(self, "send_quote_debug", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "send_quote_debug"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostExecuteQuoteDebug(self::Derive, params=Dict(), context=Dict())
-    return request(self, "execute_quote_debug", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "execute_quote_debug"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetInviteCode(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_invite_code", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_invite_code"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostRegisterInvite(self::Derive, params=Dict(), context=Dict())
-    return request(self, "register_invite", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "register_invite"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetTime(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_time", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_time"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetLiveIncidents(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_live_incidents", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_live_incidents"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetMakerPrograms(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_maker_programs", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_maker_programs"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetMakerProgramScores(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_maker_program_scores", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_maker_program_scores"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetAccount(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_account", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_account"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCreateSubaccount(self::Derive, params=Dict(), context=Dict())
-    return request(self, "create_subaccount", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "create_subaccount"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetSubaccount(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_subaccount", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_subaccount"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetSubaccounts(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_subaccounts", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_subaccounts"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetAllPortfolios(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_all_portfolios", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_all_portfolios"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostChangeSubaccountLabel(self::Derive, params=Dict(), context=Dict())
-    return request(self, "change_subaccount_label", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "change_subaccount_label"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetNotificationsv(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_notificationsv", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_notificationsv"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUpdateNotifications(self::Derive, params=Dict(), context=Dict())
-    return request(self, "update_notifications", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "update_notifications"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeposit(self::Derive, params=Dict(), context=Dict())
-    return request(self, "deposit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deposit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdraw(self::Derive, params=Dict(), context=Dict())
-    return request(self, "withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransferErc20(self::Derive, params=Dict(), context=Dict())
-    return request(self, "transfer_erc20", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer_erc20"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransferPosition(self::Derive, params=Dict(), context=Dict())
-    return request(self, "transfer_position", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer_position"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransferPositions(self::Derive, params=Dict(), context=Dict())
-    return request(self, "transfer_positions", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer_positions"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrder(self::Derive, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostReplace(self::Derive, params=Dict(), context=Dict())
-    return request(self, "replace", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "replace"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderDebug(self::Derive, params=Dict(), context=Dict())
-    return request(self, "order_debug", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order_debug"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOrder(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOrders(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOpenOrders(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_open_orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_open_orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancel(self::Derive, params=Dict(), context=Dict())
-    return request(self, "cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelByLabel(self::Derive, params=Dict(), context=Dict())
-    return request(self, "cancel_by_label", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_by_label"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelByNonce(self::Derive, params=Dict(), context=Dict())
-    return request(self, "cancel_by_nonce", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_by_nonce"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelByInstrument(self::Derive, params=Dict(), context=Dict())
-    return request(self, "cancel_by_instrument", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_by_instrument"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelAll(self::Derive, params=Dict(), context=Dict())
-    return request(self, "cancel_all", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_all"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelTriggerOrder(self::Derive, params=Dict(), context=Dict())
-    return request(self, "cancel_trigger_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_trigger_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOrderHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_order_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_order_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetTradeHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_trade_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_trade_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetDepositHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_deposit_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_deposit_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetWithdrawalHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_withdrawal_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_withdrawal_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSendRfq(self::Derive, params=Dict(), context=Dict())
-    return request(self, "send_rfq", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "send_rfq"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelRfq(self::Derive, params=Dict(), context=Dict())
-    return request(self, "cancel_rfq", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_rfq"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelBatchRfqs(self::Derive, params=Dict(), context=Dict())
-    return request(self, "cancel_batch_rfqs", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_batch_rfqs"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetRfqs(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_rfqs", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_rfqs"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPollRfqs(self::Derive, params=Dict(), context=Dict())
-    return request(self, "poll_rfqs", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "poll_rfqs"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSendQuote(self::Derive, params=Dict(), context=Dict())
-    return request(self, "send_quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "send_quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelQuote(self::Derive, params=Dict(), context=Dict())
-    return request(self, "cancel_quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelBatchQuotes(self::Derive, params=Dict(), context=Dict())
-    return request(self, "cancel_batch_quotes", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_batch_quotes"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetQuotes(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_quotes", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_quotes"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPollQuotes(self::Derive, params=Dict(), context=Dict())
-    return request(self, "poll_quotes", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "poll_quotes"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExecuteQuote(self::Derive, params=Dict(), context=Dict())
-    return request(self, "execute_quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "execute_quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqGetBestQuote(self::Derive, params=Dict(), context=Dict())
-    return request(self, "rfq_get_best_quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq_get_best_quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetMargin(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetCollaterals(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_collaterals", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_collaterals"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetPositions(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_positions", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_positions"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOptionSettlementHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_option_settlement_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_option_settlement_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetSubaccountValueHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_subaccount_value_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_subaccount_value_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExpiredAndCancelledHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "expired_and_cancelled_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "expired_and_cancelled_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetFundingHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_funding_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_funding_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetInterestHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_interest_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_interest_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetErc20TransferHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_erc20_transfer_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_erc20_transfer_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetLiquidationHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_liquidation_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_liquidation_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLiquidate(self::Derive, params=Dict(), context=Dict())
-    return request(self, "liquidate", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "liquidate"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetLiquidatorHistory(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_liquidator_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_liquidator_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSessionKeys(self::Derive, params=Dict(), context=Dict())
-    return request(self, "session_keys", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "session_keys"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEditSessionKey(self::Derive, params=Dict(), context=Dict())
-    return request(self, "edit_session_key", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "edit_session_key"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRegisterScopedSessionKey(self::Derive, params=Dict(), context=Dict())
-    return request(self, "register_scoped_session_key", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "register_scoped_session_key"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetMmpConfig(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_mmp_config", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_mmp_config"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSetMmpConfig(self::Derive, params=Dict(), context=Dict())
-    return request(self, "set_mmp_config", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "set_mmp_config"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostResetMmp(self::Derive, params=Dict(), context=Dict())
-    return request(self, "reset_mmp", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "reset_mmp"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSetCancelOnDisconnect(self::Derive, params=Dict(), context=Dict())
-    return request(self, "set_cancel_on_disconnect", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "set_cancel_on_disconnect"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetInviteCode(self::Derive, params=Dict(), context=Dict())
-    return request(self, "get_invite_code", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_invite_code"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRegisterInvite(self::Derive, params=Dict(), context=Dict())
-    return request(self, "register_invite", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "register_invite"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Derive(; kwargs...)
@@ -2502,3 +2799,368 @@ function Derive(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Derive_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.derive.xyz/reference/post_public-get-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Derive_fetchTime
+
+function __ccxt_doc_Derive_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.derive.xyz/reference/post_public-get-all-currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Derive_fetchCurrencies
+
+function __ccxt_doc_Derive_fetchMarkets() end
+"""
+retrieves data on all markets for bybit
+see: https://docs.derive.xyz/reference/post_public-get-all-instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Derive_fetchMarkets
+
+function __ccxt_doc_Derive_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.derive.xyz/reference/post_public-get-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Derive_fetchTicker
+
+function __ccxt_doc_Derive_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.derive.xyz/reference/post_public-get-trade-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Derive_fetchTrades
+
+function __ccxt_doc_Derive_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of funding rate structures to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Derive_fetchFundingRateHistory
+
+function __ccxt_doc_Derive_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Derive_fetchFundingRate
+
+function __ccxt_doc_Derive_createOrder() end
+"""
+create a trade order
+see: https://docs.derive.xyz/reference/post_private-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.max_fee`::float, optional: *required* the maximum fee you are willing to pay for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Derive_createOrder
+
+function __ccxt_doc_Derive_editOrder() end
+"""
+edit a trade order
+see: https://docs.derive.xyz/reference/post_private-replace
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Derive_editOrder
+
+function __ccxt_doc_Derive_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.derive.xyz/reference/post_private-cancel
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Derive_cancelOrder
+
+function __ccxt_doc_Derive_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://docs.derive.xyz/reference/post_private-cancel-by-instrument
+see: https://docs.derive.xyz/reference/post_private-cancel-all
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Derive_cancelAllOrders
+
+function __ccxt_doc_Derive_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.derive.xyz/reference/post_private-get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Derive_fetchOrders
+
+function __ccxt_doc_Derive_fetchOpenOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.derive.xyz/reference/post_private-get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Derive_fetchOpenOrders
+
+function __ccxt_doc_Derive_fetchClosedOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.derive.xyz/reference/post_private-get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Derive_fetchClosedOrders
+
+function __ccxt_doc_Derive_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://docs.derive.xyz/reference/post_private-get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Derive_fetchCanceledOrders
+
+function __ccxt_doc_Derive_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://docs.derive.xyz/reference/post_private-get-trade-history
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Derive_fetchOrderTrades
+
+function __ccxt_doc_Derive_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.derive.xyz/reference/post_private-get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch trades with pagination
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Derive_fetchMyTrades
+
+function __ccxt_doc_Derive_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.derive.xyz/reference/post_private-get-positions
+
+# Arguments
+- `symbols`::array, optional: not used by fetchPositions ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Derive_fetchPositions
+
+function __ccxt_doc_Derive_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.derive.xyz/reference/post_private-get-funding-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Derive_fetchFundingHistory
+
+function __ccxt_doc_Derive_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.derive.xyz/reference/post_private-get-all-portfolios
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Derive_fetchBalance
+
+function __ccxt_doc_Derive_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.derive.xyz/reference/post_private-get-deposit-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Derive_fetchDeposits
+
+function __ccxt_doc_Derive_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.derive.xyz/reference/post_private-get-withdrawal-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_id`::string, optional: *required* the subaccount id
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Derive_fetchWithdrawals

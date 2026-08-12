@@ -844,7 +844,17 @@ function nonce(self::Bitrue, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function fetchStatus(self::Bitrue, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Bitrue; params=Dict())
     response = Base.fetch(self.spotV1PublicGetPing(params));
     keys_var = objectKeys(response);
     keysLength = length(keys_var);
@@ -858,14 +868,33 @@ function fetchStatus(self::Bitrue, params=Dict())
 )
 
 end
-function fetchTime(self::Bitrue, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Bitrue; params=Dict())
     response = Base.fetch(self.spotV1PublicGetTime(params));
     return safeInteger(response, "serverTime")
 
 end
-function fetchCurrencies(self::Bitrue, params=Dict())
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bitrue; params=Dict())
     response = Base.fetch(self.spotV1PublicGetExchangeInfo(params));
-    coins = self.safeList(response, "coins", []);
+    coins = self.safeList(response, "coins", defaultValue = []);
     return self.parseCurrencies(coins)
 
 end
@@ -873,13 +902,13 @@ function parseCurrency(self::Bitrue, rawCurrency)
     id = safeString(rawCurrency, "coin");
     name = safeString(rawCurrency, "coinFulName");
     code = self.safeCurrencyCode(id);
-    networkDetails = self.safeList(rawCurrency, "chainDetail", []);
+    networkDetails = self.safeList(rawCurrency, "chainDetail", defaultValue = []);
     networks = Dict{Symbol, Any}();
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkDetails)))
         entry = get(networkDetails, j + 1, nothing);
         networkId = safeString(entry, "chain");
-        network = self.networkIdToCode(networkId, code);
+        network = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(network != nothing)
             networks[Symbol(network)] = Dict{Symbol, Any}(
                 Symbol("info") => entry,
@@ -922,15 +951,27 @@ function parseCurrency(self::Bitrue, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Bitrue, params=Dict())
+"""
+retrieves data on all markets for bitrue
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+see: https://www.bitrue.com/api-docs#current-open-contract
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitrue; params=Dict())
     promisesRaw = [];
     types = nothing;
     defaultTypes = ["spot", "linear", "inverse"];
     fetchMarketsOptions = self.safeDict(self.options, "fetchMarkets");
     if functions.ccxtruthy(fetchMarketsOptions != nothing)
-        types = self.safeList(fetchMarketsOptions, "types", defaultTypes);
+        types = self.safeList(fetchMarketsOptions, "types", defaultValue = defaultTypes);
     else
-        types = self.safeList(self.options, "fetchMarkets", defaultTypes);
+        types = self.safeList(self.options, "fetchMarkets", defaultValue = defaultTypes);
     end
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(types)))
@@ -998,11 +1039,11 @@ function parseMarket(self::Bitrue, market)
     if functions.ccxtruthy(settle != nothing)
         symbol += string(":", settle);
     end
-    filters = self.safeList(market, "filters", []);
+    filters = self.safeList(market, "filters", defaultValue = []);
     filtersByType = indexBy(filters, "filterType");
     status = safeString(market, "status");
-    priceFilter = self.safeDict(filtersByType, "PRICE_FILTER", Dict{Symbol, Any}());
-    amountFilter = self.safeDict(filtersByType, "LOT_SIZE", Dict{Symbol, Any}());
+    priceFilter = self.safeDict(filtersByType, "PRICE_FILTER", defaultValue = Dict{Symbol, Any}());
+    amountFilter = self.safeDict(filtersByType, "LOT_SIZE", defaultValue = Dict{Symbol, Any}());
     defaultPricePrecision = safeString(market, "pricePrecision");
     defaultAmountPrecision = safeString(market, "quantityPrecision");
     pricePrecision = safeString(priceFilter, "priceScale", defaultPricePrecision);
@@ -1017,7 +1058,7 @@ function parseMarket(self::Bitrue, market)
         minCost = self.safeNumber(market, "minOrderMoney");
     end
     isSpot = (type_var == "spot");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("lowercaseId") => lowercaseId,
     Symbol("symbol") => symbol,
@@ -1043,8 +1084,8 @@ function parseMarket(self::Bitrue, market)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(amountPrecision)),
-        Symbol("price") => self.parseNumber(self.parsePrecision(pricePrecision))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = amountPrecision)),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = pricePrecision))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -1093,23 +1134,37 @@ function parseBalance(self::Bitrue, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bitrue, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
+see: https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'future', 'delivery', 'spot', 'swap'
+- `params.subType`::string, optional: 'linear', 'inverse'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bitrue; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchBalance", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchBalance", market = nothing, params = params);
     response = nothing;
     result = nothing;
     if functions.ccxtruthy(type_var == "swap")
         if functions.ccxtruthy(@functions.ccxt_and(subType != nothing, subType == "inverse"))
             response = Base.fetch(self.dapiV2PrivateGetAccount(params));
-            result = self.safeDict(response, "data", Dict{Symbol, Any}());
+            result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         else
             response = Base.fetch(self.fapiV2PrivateGetAccount(params));
-            result = self.safeDict(response, "data", Dict{Symbol, Any}());
+            result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         end
     else
         response = Base.fetch(self.spotV1PrivateGetAccount(params));
@@ -1118,7 +1173,21 @@ function fetchBalance(self::Bitrue, params=Dict())
     return self.parseBalance(result)
 
 end
-function fetchOrderBook(self::Bitrue, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
+see: https://www.bitrue.com/api-docs#order-book
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitrue, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1154,13 +1223,13 @@ function fetchOrderBook(self::Bitrue, symbol, limit=nothing, params=Dict())
         throw(NotSupported(string(self.id, " fetchOrderBook only support spot & swap markets")));
     end
     timestamp = safeInteger2(response, "time", "lastUpdateId");
-    orderbook = self.parseOrderBook(response, symbol, timestamp);
+    orderbook = self.parseOrderBook(response, symbol, timestamp = timestamp);
     orderbook[Symbol("nonce")] = safeInteger(response, "lastUpdateId");
     return orderbook
 
 end
-function parseTicker(self::Bitrue, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Bitrue, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     last_var = safeString2(ticker, "lastPrice", "last");
     timestamp = safeInteger(ticker, "time");
     percentage = nothing;
@@ -1190,10 +1259,23 @@ function parseTicker(self::Bitrue, ticker, market=nothing)
     Symbol("baseVolume") => safeString2(ticker, "volume", "vol"),
     Symbol("quoteVolume") => safeString(ticker, "quoteVolume"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bitrue, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+see: https://www.bitrue.com/api-docs#ticker
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bitrue, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1215,23 +1297,39 @@ function fetchTicker(self::Bitrue, symbol, params=Dict())
             Symbol("symbol") => get(market, Symbol("id"), nothing)
         );
         response = Base.fetch(self.spotV1PublicGetTicker24hr(extend(request, params)));
-        data = self.safeDict(response, 0, Dict{Symbol, Any}());
+        data = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
     else
         throw(NotSupported(string(self.id, " fetchTicker only support spot & swap markets")));
     end
-    return self.parseTicker(data, market)
+    return self.parseTicker(data, market = market)
 
 end
-function fetchOHLCV(self::Bitrue, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#kline-data
+see: https://www.bitrue.com/api_docs_includes_file/futures/index.html#kline-candlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bitrue, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    timeframes = self.safeDict(self.options, "timeframes", Dict{Symbol, Any}());
+    timeframes = self.safeDict(self.options, "timeframes", defaultValue = Dict{Symbol, Any}());
     response = nothing;
     data = [];
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
-        timeframesFuture = self.safeDict(timeframes, "future", Dict{Symbol, Any}());
+        timeframesFuture = self.safeDict(timeframes, "future", defaultValue = Dict{Symbol, Any}());
         request = Dict{Symbol, Any}(
             Symbol("contractName") => get(market, Symbol("id"), nothing),
             Symbol("interval") => safeString(timeframesFuture, timeframe, "1min")
@@ -1246,7 +1344,7 @@ function fetchOHLCV(self::Bitrue, symbol, timeframe="1m", since=nothing, limit=n
         end
         data = response;
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-        timeframesSpot = self.safeDict(timeframes, "spot", Dict{Symbol, Any}());
+        timeframesSpot = self.safeDict(timeframes, "spot", defaultValue = Dict{Symbol, Any}());
         request = Dict{Symbol, Any}(
             Symbol("symbol") => get(market, Symbol("id"), nothing),
             Symbol("scale") => safeString(timeframesSpot, timeframe, "1m")
@@ -1260,14 +1358,14 @@ function fetchOHLCV(self::Bitrue, symbol, timeframe="1m", since=nothing, limit=n
             request[Symbol("fromIdx")] = until;
         end
         response = Base.fetch(self.spotV1PublicGetMarketKline(extend(request, params)));
-        data = self.safeList(response, "data", []);
+        data = self.safeList(response, "data", defaultValue = []);
     else
         throw(NotSupported(string(self.id, " fetchOHLCV only support spot & swap markets")));
     end
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Bitrue, ohlcv, market=nothing)
+function parseOHLCV(self::Bitrue, ohlcv; market=nothing)
     timestamp = safeTimestamp(ohlcv, "i");
     if functions.ccxtruthy(timestamp == nothing)
         timestamp = safeInteger(ohlcv, "idx");
@@ -1275,11 +1373,24 @@ function parseOHLCV(self::Bitrue, ohlcv, market=nothing)
     return [timestamp, self.safeNumber2(ohlcv, "o", "open"), self.safeNumber2(ohlcv, "h", "high"), self.safeNumber2(ohlcv, "l", "low"), self.safeNumber2(ohlcv, "c", "close"), self.safeNumber2(ohlcv, "v", "vol")]
 
 end
-function fetchBidsAsks(self::Bitrue, symbols=nothing, params=Dict())
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
+see: https://www.bitrue.com/api-docs#ticker
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchBidsAsks(self::Bitrue; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, false);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = false);
     first_var = safeString(symbols, 0);
     market = self.market(first_var);
     response = nothing;
@@ -1302,14 +1413,27 @@ function fetchBidsAsks(self::Bitrue, symbols=nothing, params=Dict())
     end
     data = Dict{Symbol, Any}();
     data[Symbol(market[Symbol("id")])] = response;
-    return self.parseTickers(data, symbols)
+    return self.parseTickers(data, symbols = symbols)
 
 end
-function fetchTickers(self::Bitrue, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+see: https://www.bitrue.com/api-docs#ticker
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bitrue; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = [];
     data = [];
     request = Dict{Symbol, Any}();
@@ -1326,7 +1450,7 @@ function fetchTickers(self::Bitrue, symbols=nothing, params=Dict())
             throw(NotSupported(string(self.id, " fetchTickers only support spot & swap markets")));
         end
     else
-        (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", nothing, params);
+        (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = nothing, params = params);
         if functions.ccxtruthy(type_var != "spot")
             throw(NotSupported(string(self.id, " fetchTickers only support spot when symbols are not proved")));
         end
@@ -1336,24 +1460,24 @@ function fetchTickers(self::Bitrue, symbols=nothing, params=Dict())
     tickers = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
-        ticker = self.safeDict(data, i, Dict{Symbol, Any}());
+        ticker = self.safeDict(data, i, defaultValue = Dict{Symbol, Any}());
         marketId = safeString(ticker, "symbol");
         if functions.ccxtruthy(marketId == nothing)
             i += 1; continue
         end
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
         tickers[Symbol(market[Symbol("id")])] = ticker;
         i += 1
     end
-    return self.parseTickers(tickers, symbols)
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function parseTrade(self::Bitrue, trade, market=nothing)
+function parseTrade(self::Bitrue, trade; market=nothing)
     timestamp = safeInteger2(trade, "ctime", "time");
     priceString = safeString(trade, "price");
     amountString = safeString(trade, "qty");
     marketId = safeString2(trade, "symbol", "contractName");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     orderId = safeString(trade, "orderId");
     id = safeString2(trade, "id", "tradeId");
     side = nothing;
@@ -1391,10 +1515,23 @@ function parseTrade(self::Bitrue, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bitrue, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bitrue, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1411,7 +1548,7 @@ function fetchTrades(self::Bitrue, symbol, since=nothing, limit=nothing, params=
     else
         throw(NotSupported(string(self.id, " fetchTrades only support spot markets")));
     end
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Bitrue, status)
@@ -1429,10 +1566,10 @@ function parseOrderStatus(self::Bitrue, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Bitrue, order, market=nothing)
+function parseOrder(self::Bitrue, order; market=nothing)
     status = self.parseOrderStatus(safeString2(order, "status", "orderStatus"));
     marketId = safeString(order, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     filled = safeString(order, "executedQty");
     timestamp = nothing;
     lastTradeTimestamp = nothing;
@@ -1459,7 +1596,7 @@ function parseOrder(self::Bitrue, order, market=nothing)
     id = safeString(order, "orderId");
     type_var = safeStringLower(order, "type");
     side = safeStringLower(order, "side");
-    fills = self.safeList(order, "fills", []);
+    fills = self.safeList(order, "fills", defaultValue = []);
     clientOrderId = safeString(order, "clientOrderId");
     timeInForce = safeString(order, "timeInForce");
     postOnly = @functions.ccxt_or(@functions.ccxt_or((type_var == "limit_maker"), (timeInForce == "GTX")), (type_var == "post_only"));
@@ -1489,10 +1626,23 @@ function parseOrder(self::Bitrue, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => nothing,
     Symbol("trades") => fills
-), market)
+), market = market)
 
 end
-function createMarketBuyOrderWithCost(self::Bitrue, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Bitrue, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1501,10 +1651,35 @@ function createMarketBuyOrderWithCost(self::Bitrue, symbol, cost, params=Dict())
         throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports swap orders only")));
     end
     params[Symbol("createMarketBuyOrderRequiresPrice")] = false;
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = params))
 
 end
-function createOrder(self::Bitrue, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#new-order-trade
+see: https://www.bitrue.com/api_docs_includes_file/futures/index.html#new-order-trade-hmac-sha256
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: *spot only* the price at which a trigger order is triggered at
+- `params.clientOrderId`::string, optional: a unique id for the order, automatically generated if not sent
+- `params.leverage`::decimal, optional: in future order, the leverage value of the order should consistent with the user contract configuration, default is 1
+- `params.timeInForce`::string, optional: 'fok', 'ioc' or 'po'
+- `params.postOnly`::bool, optional: default false
+- `params.reduceOnly`::bool, optional: default false EXCHANGE SPECIFIC PARAMETERS
+- `params.icebergQty`::decimal, optional:
+- `params.recvWindow`::long, optional:
+- `params.cost`::float, optional: *swap market buy only* the quote quantity that can be used as an alternative for the amount
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bitrue, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1525,7 +1700,7 @@ function createOrder(self::Bitrue, symbol, type_var, side, amount, price=nothing
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         isMarket = uppercaseType == "MARKET";
         timeInForce = safeStringLower(params, "timeInForce");
-        postOnly = self.isPostOnly(isMarket, nothing, params);
+        postOnly = self.isPostOnly(isMarket, nothing, params = params);
         if functions.ccxtruthy(postOnly)
             request[Symbol("type")] = "POST_ONLY";
         elseif functions.ccxtruthy(timeInForce == "fok")
@@ -1538,7 +1713,7 @@ function createOrder(self::Bitrue, symbol, type_var, side, amount, price=nothing
         end
         request[Symbol("contractName")] = get(market, Symbol("id"), nothing);
         createMarketBuyOrderRequiresPrice = true;
-        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
         if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(isMarket, (side == "buy")), createMarketBuyOrderRequiresPrice))
             cost = safeString(params, "cost");
             params = omit(params, "cost");
@@ -1567,7 +1742,7 @@ function createOrder(self::Bitrue, symbol, type_var, side, amount, price=nothing
         elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             response = Base.fetch(self.dapiV2PrivatePostOrder(extend(request, params)));
         end
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         request[Symbol("quantity")] = self.amountToPrecision(symbol, amount);
@@ -1590,10 +1765,23 @@ function createOrder(self::Bitrue, symbol, type_var, side, amount, price=nothing
     else
         throw(NotSupported(string(self.id, " createOrder only support spot & swap markets")));
     end
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function fetchOrder(self::Bitrue, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#query-order-user_data
+see: https://www.bitrue.com/api_docs_includes_file/futures/index.html#query-order-user_data-hmac-sha256
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bitrue, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -1622,7 +1810,7 @@ function fetchOrder(self::Bitrue, id, symbol=nothing, params=Dict())
         elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             response = Base.fetch(self.dapiV2PrivateGetOrder(extend(request, params)));
         end
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         request[Symbol("orderId")] = id;
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
@@ -1631,10 +1819,23 @@ function fetchOrder(self::Bitrue, id, symbol=nothing, params=Dict())
     else
         throw(NotSupported(string(self.id, " fetchOrder only support spot & swap markets")));
     end
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function fetchClosedOrders(self::Bitrue, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#all-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Bitrue; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchClosedOrders() requires a symbol argument")));
     end
@@ -1655,10 +1856,24 @@ function fetchClosedOrders(self::Bitrue, symbol=nothing, since=nothing, limit=no
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.spotV1PrivateGetAllOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Bitrue, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#current-open-orders-user_data
+see: https://www.bitrue.com/api_docs_includes_file/futures/index.html#cancel-all-open-orders-trade-hmac-sha256
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bitrue; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument")));
     end
@@ -1676,7 +1891,7 @@ function fetchOpenOrders(self::Bitrue, symbol=nothing, since=nothing, limit=noth
         elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             response = Base.fetch(self.dapiV2PrivateGetOpenOrders(extend(request, params)));
         end
-        data = self.safeList(response, "data", []);
+        data = self.safeList(response, "data", defaultValue = []);
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.spotV1PrivateGetOpenOrders(extend(request, params)));
@@ -1684,10 +1899,24 @@ function fetchOpenOrders(self::Bitrue, symbol=nothing, since=nothing, limit=noth
     else
         throw(NotSupported(string(self.id, " fetchOpenOrders only support spot & swap markets")));
     end
-    return self.parseOrders(data, market, since, limit)
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function cancelOrder(self::Bitrue, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
+see: https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bitrue, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -1716,7 +1945,7 @@ function cancelOrder(self::Bitrue, id, symbol=nothing, params=Dict())
         elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             response = Base.fetch(self.dapiV2PrivatePostCancel(extend(request, params)));
         end
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.spotV1PrivateDeleteOrder(extend(request, params)));
@@ -1724,10 +1953,23 @@ function cancelOrder(self::Bitrue, id, symbol=nothing, params=Dict())
     else
         throw(NotSupported(string(self.id, " cancelOrder only support spot & swap markets")));
     end
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function cancelAllOrders(self::Bitrue, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function cancelAllOrders(self::Bitrue; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1743,14 +1985,28 @@ function cancelAllOrders(self::Bitrue, symbol=nothing, params=Dict())
         elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             response = Base.fetch(self.dapiV2PrivatePostAllOpenOrders(extend(request, params)));
         end
-        data = self.safeList(response, "data", []);
+        data = self.safeList(response, "data", defaultValue = []);
     else
         throw(NotSupported(string(self.id, " cancelAllOrders only support future markets")));
     end
-    return self.parseOrders(data, market)
+    return self.parseOrders(data, market = market)
 
 end
-function fetchMyTrades(self::Bitrue, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#account-trade-list-user_data
+see: https://www.bitrue.com/api_docs_includes_file/futures/index.html#account-trade-list-user_data-hmac-sha256
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bitrue; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1777,7 +2033,7 @@ function fetchMyTrades(self::Bitrue, symbol=nothing, since=nothing, limit=nothin
         elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             response = Base.fetch(self.dapiV2PrivateGetMyTrades(extend(request, params)));
         end
-        data = self.safeList(response, "data", []);
+        data = self.safeList(response, "data", defaultValue = []);
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.spotV2PrivateGetMyTrades(extend(request, params)));
@@ -1785,10 +2041,23 @@ function fetchMyTrades(self::Bitrue, symbol=nothing, since=nothing, limit=nothin
     else
         throw(NotSupported(string(self.id, " fetchMyTrades only support spot & swap markets")));
     end
-    return self.parseTrades(data, market, since, limit)
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchDeposits(self::Bitrue, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bitrue; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchDeposits() requires a code argument")));
     end
@@ -1807,11 +2076,24 @@ function fetchDeposits(self::Bitrue, code=nothing, since=nothing, limit=nothing,
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.spotV1PrivateGetDepositHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Bitrue, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bitrue; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchWithdrawals() requires a code argument")));
     end
@@ -1830,11 +2112,11 @@ function fetchWithdrawals(self::Bitrue, code=nothing, since=nothing, limit=nothi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.spotV1PrivateGetWithdrawHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency)
 
 end
-function parseTransactionStatusByType(self::Bitrue, status, type_var=nothing)
+function parseTransactionStatusByType(self::Bitrue, status; type_var=nothing)
     statusesByType = Dict{Symbol, Any}(
         Symbol("deposit") => Dict{Symbol, Any}(
             Symbol("0") => "pending",
@@ -1846,11 +2128,11 @@ function parseTransactionStatusByType(self::Bitrue, status, type_var=nothing)
             Symbol("6") => "canceled"
         )
     );
-    statuses = self.safeDict(statusesByType, type_var, Dict{Symbol, Any}());
+    statuses = self.safeDict(statusesByType, type_var, defaultValue = Dict{Symbol, Any}());
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Bitrue, transaction, currency=nothing)
+function parseTransaction(self::Bitrue, transaction; currency=nothing)
     id = safeString2(transaction, "id", "withdrawId");
     tagType = safeString(transaction, "tagType");
     addressTo = safeString(transaction, "addressTo");
@@ -1875,7 +2157,7 @@ function parseTransaction(self::Bitrue, transaction, currency=nothing)
     payAmount = (ccxt_in("payAmount", transaction));
     ctime = (ccxt_in("ctime", transaction));
     type_var = functions.ccxtruthy((@functions.ccxt_or(payAmount, ctime))) ? "withdrawal" : "deposit";
-    status = self.parseTransactionStatusByType(safeString(transaction, "status"), type_var);
+    status = self.parseTransactionStatusByType(safeString(transaction, "status"), type_var = type_var);
     amount = self.safeNumber(transaction, "amount");
     network = nothing;
     currencyId = safeString2(transaction, "symbol", "coin");
@@ -1887,7 +2169,7 @@ function parseTransaction(self::Bitrue, transaction, currency=nothing)
             network = uppercase(networkId);
         end
     end
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     feeCost = self.safeNumber(transaction, "fee");
     fee = nothing;
     if functions.ccxtruthy(feeCost != nothing)
@@ -1920,9 +2202,23 @@ function parseTransaction(self::Bitrue, transaction, currency=nothing)
 )
 
 end
-function withdraw(self::Bitrue, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bitrue, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1935,18 +2231,18 @@ function withdraw(self::Bitrue, code, amount, address, tag=nothing, params=Dict(
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("chainName")] = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        request[Symbol("chainName")] = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     end
     if functions.ccxtruthy(tag != nothing)
         request[Symbol("tag")] = tag;
     end
     response = Base.fetch(self.spotV1PrivatePostWithdrawCommit(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransaction(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(data, currency = currency)
 
 end
-function parseDepositWithdrawFee(self::Bitrue, fee, currency=nothing)
-    chainDetails = self.safeList(fee, "chainDetail", []);
+function parseDepositWithdrawFee(self::Bitrue, fee; currency=nothing)
+    chainDetails = self.safeList(fee, "chainDetail", defaultValue = []);
     chainDetailLength = length(chainDetails);
     result = Dict{Symbol, Any}(
         Symbol("info") => fee,
@@ -1966,7 +2262,7 @@ function parseDepositWithdrawFee(self::Bitrue, fee, currency=nothing)
             chainDetail = get(chainDetails, i + 1, nothing);
             networkId = safeString(chainDetail, "chain");
             currencyCode = safeString(currency, "code");
-            networkCode = self.networkIdToCode(networkId, currencyCode);
+            networkCode = self.networkIdToCode(networkId = networkId, currencyCode = currencyCode);
             if functions.ccxtruthy(networkCode != nothing)
                 result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                     Symbol("deposit") => Dict{Symbol, Any}(
@@ -1990,16 +2286,27 @@ function parseDepositWithdrawFee(self::Bitrue, fee, currency=nothing)
     return result
 
 end
-function fetchDepositWithdrawFees(self::Bitrue, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Bitrue; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.spotV1PublicGetExchangeInfo(params));
     coins = self.safeList(response, "coins");
-    return self.parseDepositWithdrawFees(coins, codes, "coin")
+    return self.parseDepositWithdrawFees(coins, codes = codes, currencyIdKey = "coin")
 
 end
-function parseTransfer(self::Bitrue, transfer, currency=nothing)
+function parseTransfer(self::Bitrue, transfer; currency=nothing)
     transferType = safeString(transfer, "transferType");
     fromAccount = nothing;
     toAccount = nothing;
@@ -2022,7 +2329,23 @@ function parseTransfer(self::Bitrue, transfer, currency=nothing)
 )
 
 end
-function fetchTransfers(self::Bitrue, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+- `params.type`::string, optional: transfer type wallet_to_contract or contract_to_wallet
+
+# Returns
+- a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+"""
+function fetchTransfers(self::Bitrue; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2050,16 +2373,31 @@ function fetchTransfers(self::Bitrue, code=nothing, since=nothing, limit=nothing
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.fapiV2PrivateGetFuturesTransferHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransfers(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransfers(data, currency = currency, since = since, limit = limit)
 
 end
-function transfer(self::Bitrue, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+"""
+function transfer(self::Bitrue, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    accountTypes = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountTypes = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(accountTypes, fromAccount, fromAccount);
     toId = safeString(accountTypes, toAccount, toAccount);
     request = Dict{Symbol, Any}(
@@ -2068,11 +2406,24 @@ function transfer(self::Bitrue, code, amount, fromAccount, toAccount, params=Dic
         Symbol("transferType") => string(fromId, "_to_", toId)
     );
     response = Base.fetch(self.fapiV2PrivatePostFuturesTransfer(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransfer(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransfer(data, currency = currency)
 
 end
-function setLeverage(self::Bitrue, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Bitrue, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -2099,7 +2450,7 @@ function setLeverage(self::Bitrue, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function parseMarginModification(self::Bitrue, data, market=nothing)
+function parseMarginModification(self::Bitrue, data; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => data,
     Symbol("symbol") => safeString(market, "symbol"),
@@ -2114,7 +2465,20 @@ function parseMarginModification(self::Bitrue, data, market=nothing)
 )
 
 end
-function setMargin(self::Bitrue, symbol, amount, params=Dict())
+"""
+Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+see: https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to set margin in
+- `amount`::float: the amount to set the margin to
+- `params`::object, optional: parameters specific to the exchange API endpoint
+
+# Returns
+- A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+"""
+function setMargin(self::Bitrue, symbol, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2132,10 +2496,10 @@ function setMargin(self::Bitrue, symbol, amount, params=Dict())
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
         response = Base.fetch(self.dapiV2PrivatePostPositionMargin(extend(request, params)));
     end
-    return self.parseMarginModification(response, market)
+    return self.parseMarginModification(response, market = market)
 
 end
-function sign(self::Bitrue, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitrue, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     type_var = safeString(api, 0);
     version = safeString(api, 1);
     access = safeString(api, 2);
@@ -2235,7 +2599,7 @@ function handleErrors(self::Bitrue, code, reason, url, method, headers, body, re
     if functions.ccxtruthy(response == nothing)
             return nothing
     end
-    success = self.safeBool(response, "success", true);
+    success = self.safeBool(response, "success", defaultValue = true);
     if functions.ccxtruthy(!functions.ccxtruthy(success))
         messageInner = safeString(response, "msg");
         parsedMessage = nothing;
@@ -2274,12 +2638,12 @@ function handleErrors(self::Bitrue, code, reason, url, method, headers, body, re
     return nothing
 
 end
-function calculateRateLimiterCost(self::Bitrue, api, method, path, params, config=Dict())
+function calculateRateLimiterCost(self::Bitrue, api, method, path, params; config=Dict())
     if functions.ccxtruthy(@functions.ccxt_and((ccxt_in("noSymbol", config)), !functions.ccxtruthy((ccxt_in("symbol", params)))))
             return get(config, Symbol("noSymbol"), nothing)
     elseif functions.ccxtruthy(@functions.ccxt_and((ccxt_in("byLimit", config)), (ccxt_in("limit", params))))
         limit = get(params, Symbol("limit"), nothing);
-        byLimit = self.safeList(config, "byLimit", []);
+        byLimit = self.safeList(config, "byLimit", defaultValue = []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(byLimit)))
             entry = get(byLimit, i + 1, nothing);
@@ -2299,263 +2663,263 @@ Base.getproperty(self::Bitrue, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function spotKlinePublicGetPublicJson(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "public.json", ["spot", "kline", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public.json"; api=["spot", "kline", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotKlinePublicGetPublicCurrencyJson(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "public{currency}.json", ["spot", "kline", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public{currency}.json"; api=["spot", "kline", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetPing(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ping", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetTime(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "time", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetExchangeInfo(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "exchangeInfo"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetDepth(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "depth", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "trades", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetHistoricalTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalTrades"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetAggTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "aggTrades", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "aggTrades"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetTicker24hr(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/24hr"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetTickerPrice(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ticker/price", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetTickerBookTicker(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ticker/bookTicker", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/bookTicker"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetMarketKline(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "market/kline", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/kline"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetOpenOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "openOrders", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetAllOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "allOrders", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "allOrders"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetAccount(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "account", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetMyTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "myTrades", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "myTrades"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetEtfNetValueSymbol(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "etf/net-value/{symbol}", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "etf/net-value/{symbol}"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetWithdrawHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "withdraw/history", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraw/history"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetDepositHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "deposit/history", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit/history"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostWithdrawCommit(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "withdraw/commit", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw/commit"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateDeleteOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["spot", "v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["spot", "v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV2PrivateGetMyTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "myTrades", ["spot", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "myTrades"; api=["spot", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV1PublicGetPing(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ping", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api=["fapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV1PublicGetTime(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "time", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api=["fapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV1PublicGetContracts(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "contracts", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "contracts"; api=["fapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV1PublicGetDepth(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "depth", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api=["fapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV1PublicGetTicker(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ticker", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api=["fapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV1PublicGetKlines(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "klines", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "klines"; api=["fapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivateGetMyTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "myTrades", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "myTrades"; api=["fapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivateGetOpenOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "openOrders", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api=["fapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivateGetOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["fapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivateGetAccount(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "account", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api=["fapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivateGetLeverageBracket(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "leverageBracket", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "leverageBracket"; api=["fapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivateGetCommissionRate(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "commissionRate", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "commissionRate"; api=["fapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivateGetFuturesTransferHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "futures_transfer_history", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures_transfer_history"; api=["fapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivateGetForceOrdersHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "forceOrdersHistory", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "forceOrdersHistory"; api=["fapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivatePostPositionMargin(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "positionMargin", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "positionMargin"; api=["fapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivatePostLevelEdit(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "level_edit", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "level_edit"; api=["fapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivatePostCancel(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "cancel", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel"; api=["fapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivatePostOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["fapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivatePostAllOpenOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "allOpenOrders", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "allOpenOrders"; api=["fapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiV2PrivatePostFuturesTransfer(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "futures_transfer", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures_transfer"; api=["fapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV1PublicGetPing(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ping", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api=["dapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV1PublicGetTime(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "time", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api=["dapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV1PublicGetContracts(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "contracts", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "contracts"; api=["dapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV1PublicGetDepth(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "depth", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api=["dapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV1PublicGetTicker(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ticker", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api=["dapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV1PublicGetKlines(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "klines", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "klines"; api=["dapi", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivateGetMyTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "myTrades", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "myTrades"; api=["dapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivateGetOpenOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "openOrders", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api=["dapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivateGetOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["dapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivateGetAccount(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "account", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api=["dapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivateGetLeverageBracket(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "leverageBracket", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "leverageBracket"; api=["dapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivateGetCommissionRate(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "commissionRate", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "commissionRate"; api=["dapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivateGetFuturesTransferHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "futures_transfer_history", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures_transfer_history"; api=["dapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivateGetForceOrdersHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "forceOrdersHistory", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "forceOrdersHistory"; api=["dapi", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivatePostPositionMargin(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "positionMargin", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "positionMargin"; api=["dapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivatePostLevelEdit(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "level_edit", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "level_edit"; api=["dapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivatePostCancel(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "cancel", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel"; api=["dapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivatePostOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["dapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivatePostAllOpenOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "allOpenOrders", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "allOpenOrders"; api=["dapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiV2PrivatePostFuturesTransfer(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "futures_transfer", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures_transfer"; api=["dapi", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitrue(; kwargs...)
@@ -2619,3 +2983,450 @@ function Bitrue(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitrue_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Bitrue_fetchStatus
+
+function __ccxt_doc_Bitrue_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Bitrue_fetchTime
+
+function __ccxt_doc_Bitrue_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bitrue_fetchCurrencies
+
+function __ccxt_doc_Bitrue_fetchMarkets() end
+"""
+retrieves data on all markets for bitrue
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+see: https://www.bitrue.com/api-docs#current-open-contract
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitrue_fetchMarkets
+
+function __ccxt_doc_Bitrue_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
+see: https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'future', 'delivery', 'spot', 'swap'
+- `params.subType`::string, optional: 'linear', 'inverse'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bitrue_fetchBalance
+
+function __ccxt_doc_Bitrue_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
+see: https://www.bitrue.com/api-docs#order-book
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitrue_fetchOrderBook
+
+function __ccxt_doc_Bitrue_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+see: https://www.bitrue.com/api-docs#ticker
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitrue_fetchTicker
+
+function __ccxt_doc_Bitrue_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#kline-data
+see: https://www.bitrue.com/api_docs_includes_file/futures/index.html#kline-candlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bitrue_fetchOHLCV
+
+function __ccxt_doc_Bitrue_fetchBidsAsks() end
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
+see: https://www.bitrue.com/api-docs#ticker
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitrue_fetchBidsAsks
+
+function __ccxt_doc_Bitrue_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+see: https://www.bitrue.com/api-docs#ticker
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitrue_fetchTickers
+
+function __ccxt_doc_Bitrue_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bitrue_fetchTrades
+
+function __ccxt_doc_Bitrue_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitrue_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Bitrue_createOrder() end
+"""
+create a trade order
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#new-order-trade
+see: https://www.bitrue.com/api_docs_includes_file/futures/index.html#new-order-trade-hmac-sha256
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: *spot only* the price at which a trigger order is triggered at
+- `params.clientOrderId`::string, optional: a unique id for the order, automatically generated if not sent
+- `params.leverage`::decimal, optional: in future order, the leverage value of the order should consistent with the user contract configuration, default is 1
+- `params.timeInForce`::string, optional: 'fok', 'ioc' or 'po'
+- `params.postOnly`::bool, optional: default false
+- `params.reduceOnly`::bool, optional: default false EXCHANGE SPECIFIC PARAMETERS
+- `params.icebergQty`::decimal, optional:
+- `params.recvWindow`::long, optional:
+- `params.cost`::float, optional: *swap market buy only* the quote quantity that can be used as an alternative for the amount
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitrue_createOrder
+
+function __ccxt_doc_Bitrue_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#query-order-user_data
+see: https://www.bitrue.com/api_docs_includes_file/futures/index.html#query-order-user_data-hmac-sha256
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitrue_fetchOrder
+
+function __ccxt_doc_Bitrue_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#all-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitrue_fetchClosedOrders
+
+function __ccxt_doc_Bitrue_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#current-open-orders-user_data
+see: https://www.bitrue.com/api_docs_includes_file/futures/index.html#cancel-all-open-orders-trade-hmac-sha256
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitrue_fetchOpenOrders
+
+function __ccxt_doc_Bitrue_cancelOrder() end
+"""
+cancels an open order
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
+see: https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitrue_cancelOrder
+
+function __ccxt_doc_Bitrue_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Bitrue_cancelAllOrders
+
+function __ccxt_doc_Bitrue_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.bitrue.com/api_docs_includes_file/spot/index.html#account-trade-list-user_data
+see: https://www.bitrue.com/api_docs_includes_file/futures/index.html#account-trade-list-user_data-hmac-sha256
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitrue_fetchMyTrades
+
+function __ccxt_doc_Bitrue_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitrue_fetchDeposits
+
+function __ccxt_doc_Bitrue_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitrue_fetchWithdrawals
+
+function __ccxt_doc_Bitrue_withdraw() end
+"""
+make a withdrawal
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitrue_withdraw
+
+function __ccxt_doc_Bitrue_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitrue_fetchDepositWithdrawFees
+
+function __ccxt_doc_Bitrue_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+- `params.type`::string, optional: transfer type wallet_to_contract or contract_to_wallet
+
+# Returns
+- a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+"""
+__ccxt_doc_Bitrue_fetchTransfers
+
+function __ccxt_doc_Bitrue_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+"""
+__ccxt_doc_Bitrue_transfer
+
+function __ccxt_doc_Bitrue_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bitrue_setLeverage
+
+function __ccxt_doc_Bitrue_setMargin() end
+"""
+Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+see: https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
+see: https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to set margin in
+- `amount`::float: the amount to set the margin to
+- `params`::object, optional: parameters specific to the exchange API endpoint
+
+# Returns
+- A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+"""
+__ccxt_doc_Bitrue_setMargin

@@ -983,22 +983,42 @@ function createExpiredOptionMarket(self::Deribit, symbol)
 )
 
 end
-function safeMarket(self::Deribit, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
+function safeMarket(self::Deribit; marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = @functions.ccxt_and((marketId != nothing), (@functions.ccxt_or((endswith(marketId, "-C")), (endswith(marketId, "-P")))));
     if functions.ccxtruthy(@functions.ccxt_and(isOption, (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
-    return safeMarket(self.parent, marketId, market, delimiter, marketType)
+    return safeMarket(self.parent, marketId = marketId, market = market, delimiter = delimiter, marketType = marketType)
 
 end
-function fetchTime(self::Deribit, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.deribit.com/#public-get_time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Deribit; params=Dict())
     response = Base.fetch(self.publicGetGetTime(params));
     return safeInteger(response, "result")
 
 end
-function fetchCurrencies(self::Deribit, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.deribit.com/#public-get_currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Deribit; params=Dict())
     response = Base.fetch(self.publicGetGetCurrencies(params));
-    data = self.safeList(response, "result", []);
+    data = self.safeList(response, "result", defaultValue = []);
     return self.parseCurrencies(data)
 
 end
@@ -1034,14 +1054,24 @@ function parseCurrency(self::Deribit, rawCurrency)
 ))
 
 end
-function codeFromOptions(self::Deribit, methodName, params=Dict())
+function codeFromOptions(self::Deribit, methodName; params=Dict())
     defaultCode = safeValue(self.options, "code", "BTC");
     options = safeValue(self.options, methodName, Dict{Symbol, Any}());
     code = safeValue(options, "code", defaultCode);
     return safeValue(params, "code", code)
 
 end
-function fetchStatus(self::Deribit, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.deribit.com/#public-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Deribit; params=Dict())
     response = Base.fetch(self.publicGetStatus(params));
     result = safeValue(response, "result");
     locked = safeString(result, "locked");
@@ -1055,7 +1085,17 @@ function fetchStatus(self::Deribit, params=Dict())
 )
 
 end
-function fetchAccounts(self::Deribit, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://docs.deribit.com/#private-get_subaccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Deribit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1073,12 +1113,23 @@ function parseAccount(self::Deribit, account)
 )
 
 end
-function fetchMarkets(self::Deribit, params=Dict())
+"""
+retrieves data on all markets for deribit
+see: https://docs.deribit.com/#public-get_currencies
+see: https://docs.deribit.com/#public-get_instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Deribit; params=Dict())
     instrumentsResponses = [];
     result = [];
     parsedMarkets = Dict{Symbol, Any}();
     fetchAllMarkets = nothing;
-    (fetchAllMarkets, params) = self.handleOptionAndParams(params, "fetchMarkets", "fetchAllMarkets", true);
+    (fetchAllMarkets, params) = self.handleOptionAndParams(params, "fetchMarkets", "fetchAllMarkets", defaultValue = true);
     if functions.ccxtruthy(fetchAllMarkets)
         instrumentsResponse = Base.fetch(self.publicGetGetInstruments(params));
                 push!(instrumentsResponses, instrumentsResponse);
@@ -1231,7 +1282,7 @@ function parseBalance(self::Deribit, balance)
     );
     summaries = [];
     if functions.ccxtruthy(ccxt_in("summaries", balance))
-        summaries = self.safeList(balance, "summaries", []);
+        summaries = self.safeList(balance, "summaries", defaultValue = []);
     else
         summaries = [balance];
     end
@@ -1252,7 +1303,19 @@ function parseBalance(self::Deribit, balance)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Deribit, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.deribit.com/#private-get_account_summary
+see: https://docs.deribit.com/#private-get_account_summaries
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string, optional: unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Deribit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1268,11 +1331,22 @@ function fetchBalance(self::Deribit, params=Dict())
     else
         response = Base.fetch(self.privateGetGetAccountSummary(extend(request, params)));
     end
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parseBalance(result)
 
 end
-function createDepositAddress(self::Deribit, code, params=Dict())
+"""
+create a currency deposit address
+see: https://docs.deribit.com/#private-create_deposit_address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Deribit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1283,7 +1357,7 @@ function createDepositAddress(self::Deribit, code, params=Dict())
     response = Base.fetch(self.privateGetCreateDepositAddress(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     address = safeString(result, "address");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("currency") => code,
     Symbol("address") => address,
@@ -1293,7 +1367,18 @@ function createDepositAddress(self::Deribit, code, params=Dict())
 )
 
 end
-function fetchDepositAddress(self::Deribit, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.deribit.com/#private-get_current_deposit_address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Deribit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1304,7 +1389,7 @@ function fetchDepositAddress(self::Deribit, code, params=Dict())
     response = Base.fetch(self.privateGetGetCurrentDepositAddress(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     address = safeString(result, "address");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
@@ -1314,10 +1399,10 @@ function fetchDepositAddress(self::Deribit, code, params=Dict())
 )
 
 end
-function parseTicker(self::Deribit, ticker, market=nothing)
+function parseTicker(self::Deribit, ticker; market=nothing)
     timestamp = safeInteger2(ticker, "timestamp", "creation_timestamp");
     marketId = safeString(ticker, "instrument_name");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     last_var = safeString2(ticker, "last_price", "last");
     stats = safeValue(ticker, "stats", ticker);
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1343,10 +1428,21 @@ function parseTicker(self::Deribit, ticker, market=nothing)
     Symbol("markPrice") => safeString(ticker, "mark_price"),
     Symbol("indexPrice") => safeString(ticker, "index_price"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Deribit, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.deribit.com/#public-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Deribit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1355,15 +1451,27 @@ function fetchTicker(self::Deribit, symbol, params=Dict())
         Symbol("instrument_name") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTicker(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTicker(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(result, market = market)
 
 end
-function fetchTickers(self::Deribit, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.deribit.com/#public-get_book_summary_by_currency
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string, optional: *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Deribit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     code = safeString2(params, "code", "currency");
     type_var = nothing;
     params = omit(params, ["code"]);
@@ -1406,7 +1514,7 @@ function fetchTickers(self::Deribit, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.publicGetGetBookSummaryByCurrency(extend(request, params)));
-    result = self.safeList(response, "result", []);
+    result = self.safeList(response, "result", defaultValue = []);
     tickers = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
@@ -1417,17 +1525,33 @@ function fetchTickers(self::Deribit, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    return self.filterByArrayTickers(tickers, "symbol", symbols)
+    return self.filterByArrayTickers(tickers, "symbol", values = symbols)
 
 end
-function fetchOHLCV(self::Deribit, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.deribit.com/#public-get_tradingview_chart_data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: whether to paginate the results, set to false by default
+- `params.until`::int, optional: the latest time in ms to fetch ohlcv for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Deribit, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 5000))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1458,18 +1582,18 @@ function fetchOHLCV(self::Deribit, symbol, timeframe="1m", since=nothing, limit=
     end
     response = Base.fetch(self.publicGetGetTradingviewChartData(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    ohlcvs = self.convertTradingViewToOHLCV(result, "ticks", "open", "high", "low", "close", "volume", true);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    ohlcvs = self.convertTradingViewToOHLCV(result, timestamp = "ticks", open = "open", high = "high", low = "low", close = "close", volume = "volume", ms = true);
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseTrade(self::Deribit, trade, market=nothing)
+function parseTrade(self::Deribit, trade; market=nothing)
     id = safeString(trade, "trade_id");
     marketId = safeString(trade, "instrument_name");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     timestamp = safeInteger(trade, "timestamp");
     side = safeString(trade, "direction");
     priceString = safeString(trade, "price");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     amount = safeString(trade, "amount");
     cost = stringMul(amount, priceString);
     if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
@@ -1504,10 +1628,25 @@ function parseTrade(self::Deribit, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => cost,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Deribit, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol.
+see: https://docs.deribit.com/#public-get_last_trades_by_instrument
+see: https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Deribit, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1534,15 +1673,25 @@ function fetchTrades(self::Deribit, symbol, since=nothing, limit=nothing, params
         response = Base.fetch(self.publicGetGetLastTradesByInstrumentAndTime(extend(request, params)));
     end
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    trades = self.safeList(result, "trades", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(result, "trades", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFees(self::Deribit, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://docs.deribit.com/#private-get_account_summary
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Deribit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    code = self.codeFromOptions("fetchTradingFees", params);
+    code = self.codeFromOptions("fetchTradingFees", params = params);
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("id"), nothing),
@@ -1612,7 +1761,19 @@ function fetchTradingFees(self::Deribit, params=Dict())
     return parsedFees
 
 end
-function fetchOrderBook(self::Deribit, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.deribit.com/#public-get_order_book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Deribit, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1627,7 +1788,7 @@ function fetchOrderBook(self::Deribit, symbol, limit=nothing, params=Dict())
     result = safeValue(response, "result", Dict{Symbol, Any}());
     timestamp = safeInteger(result, "timestamp");
     nonce = safeInteger(result, "change_id");
-    orderbook = self.parseOrderBook(result, get(market, Symbol("symbol"), nothing), timestamp);
+    orderbook = self.parseOrderBook(result, get(market, Symbol("symbol"), nothing), timestamp = timestamp);
     orderbook[Symbol("nonce")] = nonce;
     return orderbook
 
@@ -1662,9 +1823,9 @@ function parseOrderType(self::Deribit, orderType)
     return safeString(orderTypes, orderType, orderType)
 
 end
-function parseOrder(self::Deribit, order, market=nothing)
+function parseOrder(self::Deribit, order; market=nothing)
     marketId = safeString(order, "instrument_name");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(order, "creation_timestamp");
     lastUpdate = safeInteger(order, "last_update_timestamp");
     id = safeString(order, "order_id");
@@ -1726,10 +1887,22 @@ function parseOrder(self::Deribit, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => fee,
     Symbol("trades") => trades
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Deribit, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.deribit.com/#private-get_order_state
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Deribit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1741,11 +1914,29 @@ function fetchOrder(self::Deribit, id, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     response = Base.fetch(self.privateGetGetOrderState(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(result, market = market)
 
 end
-function createOrder(self::Deribit, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.deribit.com/#private-buy
+see: https://docs.deribit.com/#private-sell
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency.
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::string, optional: the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
+- `params.trailingAmount`::float, optional: the quote amount to trail away from the current market price
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Deribit, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1775,7 +1966,7 @@ function createOrder(self::Deribit, symbol, type_var, side, amount, price=nothin
     isLimitOrder = @functions.ccxt_or(@functions.ccxt_or((type_var == "limit"), isStopLimit), isTakeLimit);
     isMarketOrder = @functions.ccxt_or(@functions.ccxt_or((type_var == "market"), isStopMarket), isTakeMarket);
     exchangeSpecificPostOnly = safeValue(params, "post_only");
-    postOnly = self.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, params);
+    postOnly = self.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, params = params);
     if functions.ccxtruthy(isLimitOrder)
         request[Symbol("type")] = "limit";
         request[Symbol("price")] = self.priceToPrecision(symbol, price);
@@ -1833,10 +2024,27 @@ function createOrder(self::Deribit, symbol, type_var, side, amount, price=nothin
     order = safeValue(result, "order");
     trades = safeValue(result, "trades", []);
     order[Symbol("trades")] = trades;
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function editOrder(self::Deribit, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://docs.deribit.com/#private-edit
+
+# Arguments
+- `id`::string: edit order id
+- `symbol`::string, optional: unified symbol of the market to edit an order in
+- `type`::string, optional: 'market' or 'limit'
+- `side`::string, optional: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency.
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trailingAmount`::float, optional: the quote amount to trail away from the current market price
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Deribit, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(amount == nothing)
         throw(ArgumentsRequired(string(self.id, " editOrder() requires an amount argument")));
     end
@@ -1864,7 +2072,19 @@ function editOrder(self::Deribit, id, symbol, type_var, side, amount=nothing, pr
     return self.parseOrder(order)
 
 end
-function cancelOrder(self::Deribit, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.deribit.com/#private-cancel
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Deribit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1872,11 +2092,23 @@ function cancelOrder(self::Deribit, id, symbol=nothing, params=Dict())
         Symbol("order_id") => id
     );
     response = Base.fetch(self.privateGetCancel(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(result)
 
 end
-function cancelAllOrders(self::Deribit, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://docs.deribit.com/#private-cancel_all
+see: https://docs.deribit.com/#private-cancel_all_by_instrument
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Deribit; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1894,7 +2126,21 @@ function cancelAllOrders(self::Deribit, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchOpenOrders(self::Deribit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.deribit.com/#private-get_open_orders_by_currency
+see: https://docs.deribit.com/#private-get_open_orders_by_instrument
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Deribit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1902,7 +2148,7 @@ function fetchOpenOrders(self::Deribit, symbol=nothing, since=nothing, limit=not
     market = nothing;
     response = nothing;
     if functions.ccxtruthy(symbol == nothing)
-        code = self.codeFromOptions("fetchOpenOrders", params);
+        code = self.codeFromOptions("fetchOpenOrders", params = params);
         currency = self.currency(code);
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
         response = Base.fetch(self.privateGetGetOpenOrdersByCurrency(extend(request, params)));
@@ -1911,11 +2157,25 @@ function fetchOpenOrders(self::Deribit, symbol=nothing, since=nothing, limit=not
         request[Symbol("instrument_name")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.privateGetGetOpenOrdersByInstrument(extend(request, params)));
     end
-    result = self.safeList(response, "result", []);
-    return self.parseOrders(result, market, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOrders(result, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Deribit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.deribit.com/#private-get_order_history_by_currency
+see: https://docs.deribit.com/#private-get_order_history_by_instrument
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Deribit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1928,7 +2188,7 @@ function fetchClosedOrders(self::Deribit, symbol=nothing, since=nothing, limit=n
         request[Symbol("count")] = 1000;
     end
     if functions.ccxtruthy(symbol == nothing)
-        code = self.codeFromOptions("fetchClosedOrders", params);
+        code = self.codeFromOptions("fetchClosedOrders", params = params);
         currency = self.currency(code);
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
         response = Base.fetch(self.privateGetGetOrderHistoryByCurrency(extend(request, params)));
@@ -1937,11 +2197,25 @@ function fetchClosedOrders(self::Deribit, symbol=nothing, since=nothing, limit=n
         request[Symbol("instrument_name")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.privateGetGetOrderHistoryByInstrument(extend(request, params)));
     end
-    result = self.safeList(response, "result", []);
-    return self.parseOrders(result, market, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOrders(result, market = market, since = since, limit = limit)
 
 end
-function fetchOrderTrades(self::Deribit, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://docs.deribit.com/#private-get_user_trades_by_order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Deribit, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1949,11 +2223,27 @@ function fetchOrderTrades(self::Deribit, id, symbol=nothing, since=nothing, limi
         Symbol("order_id") => id
     );
     response = Base.fetch(self.privateGetGetUserTradesByOrder(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseTrades(result, nothing, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseTrades(result, market = nothing, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Deribit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.deribit.com/#private-get_user_trades_by_currency
+see: https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
+see: https://docs.deribit.com/#private-get_user_trades_by_instrument
+see: https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Deribit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1966,7 +2256,7 @@ function fetchMyTrades(self::Deribit, symbol=nothing, since=nothing, limit=nothi
     end
     response = nothing;
     if functions.ccxtruthy(symbol == nothing)
-        code = self.codeFromOptions("fetchMyTrades", params);
+        code = self.codeFromOptions("fetchMyTrades", params = params);
         currency = self.currency(code);
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
         if functions.ccxtruthy(since == nothing)
@@ -1986,11 +2276,24 @@ function fetchMyTrades(self::Deribit, symbol=nothing, since=nothing, limit=nothi
         end
     end
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    trades = self.safeList(result, "trades", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(result, "trades", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchDeposits(self::Deribit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.deribit.com/#private-get_deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Deribit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchDeposits() requires a currency code argument")));
     end
@@ -2006,11 +2309,24 @@ function fetchDeposits(self::Deribit, code=nothing, since=nothing, limit=nothing
     end
     response = Base.fetch(self.privateGetGetDeposits(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "data", []);
-    return self.parseTransactions(data, currency, since, limit, params)
+    data = self.safeList(result, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchWithdrawals(self::Deribit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.deribit.com/#private-get_withdrawals
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Deribit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchWithdrawals() requires a currency code argument")));
     end
@@ -2026,8 +2342,8 @@ function fetchWithdrawals(self::Deribit, code=nothing, since=nothing, limit=noth
     end
     response = Base.fetch(self.privateGetGetWithdrawals(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "data", []);
-    return self.parseTransactions(data, currency, since, limit, params)
+    data = self.safeList(result, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit, params = params)
 
 end
 function parseTransactionStatus(self::Deribit, status)
@@ -2038,9 +2354,9 @@ function parseTransactionStatus(self::Deribit, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Deribit, transaction, currency=nothing)
+function parseTransaction(self::Deribit, transaction; currency=nothing)
     currencyId = safeString(transaction, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeInteger2(transaction, "created_timestamp", "received_timestamp");
     updated = safeInteger(transaction, "updated_timestamp");
     status = self.parseTransactionStatus(safeString(transaction, "state"));
@@ -2079,9 +2395,9 @@ function parseTransaction(self::Deribit, transaction, currency=nothing)
 )
 
 end
-function parsePosition(self::Deribit, position, market=nothing)
+function parsePosition(self::Deribit, position; market=nothing)
     contract = safeString(position, "instrument_name");
-    market = self.safeMarket(contract, market);
+    market = self.safeMarket(marketId = contract, market = market);
     side = safeString(position, "direction");
     side = functions.ccxtruthy((side == "buy")) ? "long" : "short";
     unrealizedPnl = safeString(position, "floating_profit_loss");
@@ -2121,7 +2437,18 @@ function parsePosition(self::Deribit, position, market=nothing)
 ))
 
 end
-function fetchPosition(self::Deribit, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://docs.deribit.com/#private-get_position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Deribit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2130,11 +2457,25 @@ function fetchPosition(self::Deribit, symbol, params=Dict())
         Symbol("instrument_name") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetGetPosition(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parsePosition(result)
 
 end
-function fetchPositions(self::Deribit, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.deribit.com/#private-get_positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.currency`::string, optional: currency code filter for positions
+- `params.kind`::string, optional: market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+- `params.subaccount_id`::int, optional: the user id for the subaccount
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Deribit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2147,10 +2488,21 @@ function fetchPositions(self::Deribit, symbols=nothing, params=Dict())
     end
     response = Base.fetch(self.privateGetGetPositions(extend(request, params)));
     result = self.safeList(response, "result");
-    return self.parsePositions(result, symbols)
+    return self.parsePositions(result, symbols = symbols)
 
 end
-function fetchVolatilityHistory(self::Deribit, code, params=Dict())
+"""
+fetch the historical volatility of an option market based on an underlying asset
+see: https://docs.deribit.com/#public-get_historical_volatility
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
+"""
+function fetchVolatilityHistory(self::Deribit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2180,7 +2532,20 @@ function parseVolatilityHistory(self::Deribit, volatility)
     return result
 
 end
-function fetchTransfers(self::Deribit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://docs.deribit.com/#private-get_transfers
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Deribit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchTransfers() requires a currency code argument")));
     end
@@ -2196,11 +2561,26 @@ function fetchTransfers(self::Deribit, code=nothing, since=nothing, limit=nothin
     end
     response = Base.fetch(self.privateGetGetTransfers(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    transfers = self.safeList(result, "data", []);
-    return self.parseTransfers(transfers, currency, since, limit, params)
+    transfers = self.safeList(result, "data", defaultValue = []);
+    return self.parseTransfers(transfers, currency = currency, since = since, limit = limit, params = params)
 
 end
-function transfer(self::Deribit, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.deribit.com/#private-submit_transfer_to_user
+see: https://docs.deribit.com/#private-submit_transfer_to_subaccount
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Deribit, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2222,11 +2602,11 @@ function transfer(self::Deribit, code, amount, fromAccount, toAccount, params=Di
     else
         response = Base.fetch(self.privateGetSubmitTransferToSubaccount(extend(request, params)));
     end
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTransfer(result, currency)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransfer(result, currency = currency)
 
 end
-function parseTransfer(self::Deribit, transfer, currency=nothing)
+function parseTransfer(self::Deribit, transfer; currency=nothing)
     timestamp = safeInteger(transfer, "created_timestamp");
     status = safeString(transfer, "state");
     account = safeString(transfer, "other_side");
@@ -2237,7 +2617,7 @@ function parseTransfer(self::Deribit, transfer, currency=nothing)
     Symbol("id") => safeString(transfer, "id"),
     Symbol("status") => self.parseTransferStatus(status),
     Symbol("amount") => self.safeNumber(transfer, "amount"),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("fromAccount") => functions.ccxtruthy(direction != "payment") ? account : nothing,
     Symbol("toAccount") => functions.ccxtruthy(direction == "payment") ? account : nothing,
     Symbol("timestamp") => timestamp,
@@ -2255,9 +2635,23 @@ function parseTransferStatus(self::Deribit, status)
     return safeString(statuses, status, status)
 
 end
-function withdraw(self::Deribit, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://docs.deribit.com/#private-withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Deribit, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2271,10 +2665,10 @@ function withdraw(self::Deribit, code, amount, address, tag=nothing, params=Dict
         request[Symbol("tfa")] = totp(self.twofa);
     end
     response = Base.fetch(self.privateGetWithdraw(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseDepositWithdrawFee(self::Deribit, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Deribit, fee; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("withdraw") => Dict{Symbol, Any}(
@@ -2289,16 +2683,40 @@ function parseDepositWithdrawFee(self::Deribit, fee, currency=nothing)
 )
 
 end
-function fetchDepositWithdrawFees(self::Deribit, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://docs.deribit.com/#public-get_currencies
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Deribit; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetGetCurrencies(params));
-    data = self.safeList(response, "result", []);
-    return self.parseDepositWithdrawFees(data, codes, "currency")
+    data = self.safeList(response, "result", defaultValue = []);
+    return self.parseDepositWithdrawFees(data, codes = codes, currencyIdKey = "currency")
 
 end
-function fetchFundingRate(self::Deribit, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://docs.deribit.com/#public-get_funding_rate_value
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.start_timestamp`::int, optional: fetch funding rate starting from this timestamp
+- `params.end_timestamp`::int, optional: fetch funding rate ending at this timestamp
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Deribit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2310,10 +2728,25 @@ function fetchFundingRate(self::Deribit, symbol, params=Dict())
         Symbol("end_timestamp") => time
     );
     response = Base.fetch(self.publicGetGetFundingRateValue(extend(request, params)));
-    return self.parseFundingRate(response, market)
+    return self.parseFundingRate(response, market = market)
 
 end
-function fetchFundingRateHistory(self::Deribit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the current funding rate
+see: https://docs.deribit.com/#public-get_funding_rate_history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding rate history for
+- `limit`::int, optional: the maximum number of entries to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: fetch funding rate ending at this timestamp
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRateHistory(self::Deribit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2323,9 +2756,9 @@ function fetchFundingRateHistory(self::Deribit, symbol=nothing, since=nothing, l
     maxEntriesPerRequest = 744;
     eachItemDuration = "1h";
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, extend(params, Dict{Symbol, Any}(
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = eachItemDuration, params = extend(params, Dict{Symbol, Any}(
     Symbol("isDeribitPaginationCall") => true
-)), maxEntriesPerRequest))
+)), maxEntriesPerRequest = maxEntriesPerRequest))
     end
     duration = self.parseTimeframe(eachItemDuration) * 1000;
     time = milliseconds();
@@ -2360,20 +2793,20 @@ function fetchFundingRateHistory(self::Deribit, symbol=nothing, since=nothing, l
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
         fr = get(result, i + 1, nothing);
-        rate = self.parseFundingRate(fr, market);
+        rate = self.parseFundingRate(fr, market = market);
         push!(rates, rate);
         i += 1
     end
-    return self.filterBySymbolSinceLimit(rates, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(rates, symbol = symbol, since = since, limit = limit)
 
 end
-function parseFundingRate(self::Deribit, contract, market=nothing)
+function parseFundingRate(self::Deribit, contract; market=nothing)
     timestamp = safeInteger(contract, "timestamp");
     datetime = self.iso8601(timestamp);
     result = self.safeNumber2(contract, "result", "interest_8h");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("markPrice") => nothing,
     Symbol("indexPrice") => self.safeNumber(contract, "index_price"),
     Symbol("interestRate") => nothing,
@@ -2393,14 +2826,28 @@ function parseFundingRate(self::Deribit, contract, market=nothing)
 )
 
 end
-function fetchLiquidations(self::Deribit, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the public liquidations of a trading pair
+see: https://docs.deribit.com/#public-get_last_settlements_by_currency
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the deribit api endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchLiquidations(self::Deribit, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLiquidations", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nothing))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchLiquidations", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "continuation", cursorSent = "continuation", cursorIncrement = nothing))
     end
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
@@ -2421,7 +2868,7 @@ function fetchLiquidations(self::Deribit, symbol, since=nothing, limit=nothing, 
     cursor = safeString(result, "continuation");
     settlements = safeValue(result, "settlements", []);
     settlementsWithCursor = self.addPaginationCursorToResult(cursor, settlements);
-    return self.parseLiquidations(settlementsWithCursor, market, since, limit)
+    return self.parseLiquidations(settlementsWithCursor, market = market, since = since, limit = limit)
 
 end
 function addPaginationCursorToResult(self::Deribit, cursor, data)
@@ -2439,7 +2886,20 @@ function addPaginationCursorToResult(self::Deribit, cursor, data)
     return data
 
 end
-function fetchMyLiquidations(self::Deribit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the users liquidated positions
+see: https://docs.deribit.com/#private-get_settlement_history_by_instrument
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the deribit api endpoint
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchMyLiquidations(self::Deribit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyLiquidations() requires a symbol argument")));
     end
@@ -2462,15 +2922,15 @@ function fetchMyLiquidations(self::Deribit, symbol=nothing, since=nothing, limit
     end
     response = Base.fetch(self.privateGetGetSettlementHistoryByInstrument(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    settlements = self.safeList(result, "settlements", []);
-    return self.parseLiquidations(settlements, market, since, limit)
+    settlements = self.safeList(result, "settlements", defaultValue = []);
+    return self.parseLiquidations(settlements, market = market, since = since, limit = limit)
 
 end
-function parseLiquidation(self::Deribit, liquidation, market=nothing)
+function parseLiquidation(self::Deribit, liquidation; market=nothing)
     timestamp = safeInteger(liquidation, "timestamp");
     return self.safeLiquidation(Dict{Symbol, Any}(
     Symbol("info") => liquidation,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("contracts") => nothing,
     Symbol("contractSize") => self.safeNumber(market, "contractSize"),
     Symbol("price") => nothing,
@@ -2481,7 +2941,18 @@ function parseLiquidation(self::Deribit, liquidation, market=nothing)
 ))
 
 end
-function fetchGreeks(self::Deribit, symbol, params=Dict())
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://docs.deribit.com/#public-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchGreeks(self::Deribit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2491,13 +2962,13 @@ function fetchGreeks(self::Deribit, symbol, params=Dict())
     );
     response = Base.fetch(self.publicGetTicker(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    return self.parseGreeks(result, market)
+    return self.parseGreeks(result, market = market)
 
 end
-function parseGreeks(self::Deribit, greeks, market=nothing)
+function parseGreeks(self::Deribit, greeks; market=nothing)
     timestamp = safeInteger(greeks, "timestamp");
     marketId = safeString(greeks, "instrument_name");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     stats = safeValue(greeks, "greeks", Dict{Symbol, Any}());
     return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -2522,7 +2993,18 @@ function parseGreeks(self::Deribit, greeks, market=nothing)
 )
 
 end
-function fetchOption(self::Deribit, symbol, params=Dict())
+"""
+fetches option data that is commonly found in an option chain
+see: https://docs.deribit.com/#public-get_book_summary_by_instrument
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+function fetchOption(self::Deribit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2531,12 +3013,23 @@ function fetchOption(self::Deribit, symbol, params=Dict())
         Symbol("instrument_name") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetGetBookSummaryByInstrument(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    chain = self.safeDict(result, 0, Dict{Symbol, Any}());
-    return self.parseOption(chain, nothing, market)
+    result = self.safeList(response, "result", defaultValue = []);
+    chain = self.safeDict(result, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOption(chain, currency = nothing, market = market)
 
 end
-function fetchOptionChain(self::Deribit, code, params=Dict())
+"""
+fetches data for an underlying asset that is commonly found in an option chain
+see: https://docs.deribit.com/#public-get_book_summary_by_currency
+
+# Arguments
+- `code`::string: base currency to fetch an option chain for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+function fetchOptionChain(self::Deribit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2546,15 +3039,15 @@ function fetchOptionChain(self::Deribit, code, params=Dict())
         Symbol("kind") => "option"
     );
     response = Base.fetch(self.publicGetGetBookSummaryByCurrency(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseOptionChain(result, "base_currency", "instrument_name")
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOptionChain(result, currencyKey = "base_currency", symbolKey = "instrument_name")
 
 end
-function parseOption(self::Deribit, chain, currency=nothing, market=nothing)
+function parseOption(self::Deribit, chain; currency=nothing, market=nothing)
     marketId = safeString(chain, "instrument_name");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     currencyId = safeString(chain, "base_currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeInteger(chain, "timestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => chain,
@@ -2577,7 +3070,18 @@ function parseOption(self::Deribit, chain, currency=nothing, market=nothing)
 )
 
 end
-function fetchOpenInterest(self::Deribit, symbol, params=Dict())
+"""
+Retrieves the open interest of a symbol
+see: https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Deribit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2589,15 +3093,15 @@ function fetchOpenInterest(self::Deribit, symbol, params=Dict())
         Symbol("instrument_name") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetGetBookSummaryByInstrument(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    data = self.safeDict(result, 0, Dict{Symbol, Any}());
-    return self.parseOpenInterest(data, market)
+    result = self.safeList(response, "result", defaultValue = []);
+    data = self.safeDict(result, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOpenInterest(data, market = market)
 
 end
-function parseOpenInterest(self::Deribit, interest, market=nothing)
+function parseOpenInterest(self::Deribit, interest; market=nothing)
     timestamp = safeInteger(interest, "creation_timestamp");
     marketId = safeString(interest, "instrument_name");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     openInterest = self.safeNumber(interest, "open_interest");
     openInterestAmount = nothing;
     openInterestValue = nothing;
@@ -2607,20 +3111,20 @@ function parseOpenInterest(self::Deribit, interest, market=nothing)
         openInterestValue = openInterest;
     end
     return self.safeOpenInterest(Dict{Symbol, Any}(
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("openInterestAmount") => openInterestAmount,
     Symbol("openInterestValue") => openInterestValue,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
 function nonce(self::Deribit, )
     return milliseconds()
 
 end
-function sign(self::Deribit, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Deribit, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     request = string("/", "api/", self.version, "/", api, "/", path);
     if functions.ccxtruthy(api == "public")
         if functions.ccxtruthy(length(objectKeys(params)))
@@ -2672,491 +3176,491 @@ Base.getproperty(self::Deribit, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetAuth(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "auth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetExchangeToken(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "exchange_token", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange_token"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetForkToken(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "fork_token", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "fork_token"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSetHeartbeat(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_heartbeat", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "set_heartbeat"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDisableHeartbeat(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "disable_heartbeat", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "disable_heartbeat"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetTime(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetHello(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "hello", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "hello"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetStatus(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "status", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "status"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTest(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "test", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "test"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSubscribe(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "subscribe", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "subscribe"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUnsubscribe(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "unsubscribe", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "unsubscribe"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUnsubscribeAll(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "unsubscribe_all", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "unsubscribe_all"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetAnnouncements(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_announcements", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_announcements"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetBookSummaryByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_book_summary_by_currency", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_book_summary_by_currency"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetBookSummaryByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_book_summary_by_instrument", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_book_summary_by_instrument"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetContractSize(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_contract_size", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_contract_size"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetCurrencies(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetDeliveryPrices(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_delivery_prices", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_delivery_prices"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetFundingChartData(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_funding_chart_data", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_funding_chart_data"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetFundingRateHistory(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_funding_rate_history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_funding_rate_history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetFundingRateValue(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_funding_rate_value", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_funding_rate_value"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetHistoricalVolatility(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_historical_volatility", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_historical_volatility"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetIndex(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_index", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_index"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetIndexPrice(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_index_price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_index_price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetIndexPriceNames(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_index_price_names", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_index_price_names"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_instrument", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_instrument"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetInstruments(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_instruments", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_instruments"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetLastSettlementsByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_settlements_by_currency", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_last_settlements_by_currency"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetLastSettlementsByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_settlements_by_instrument", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_last_settlements_by_instrument"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetLastTradesByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_trades_by_currency", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_last_trades_by_currency"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetLastTradesByCurrencyAndTime(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_trades_by_currency_and_time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_last_trades_by_currency_and_time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetLastTradesByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_trades_by_instrument", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_last_trades_by_instrument"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetLastTradesByInstrumentAndTime(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_trades_by_instrument_and_time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_last_trades_by_instrument_and_time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetMarkPriceHistory(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_mark_price_history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_mark_price_history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetOrderBook(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_order_book", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_order_book"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetTradeVolumes(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_trade_volumes", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_trade_volumes"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetTradingviewChartData(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_tradingview_chart_data", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_tradingview_chart_data"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetVolatilityIndexData(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_volatility_index_data", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_volatility_index_data"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLogout(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "logout", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "logout"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetEnableCancelOnDisconnect(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "enable_cancel_on_disconnect", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "enable_cancel_on_disconnect"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDisableCancelOnDisconnect(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "disable_cancel_on_disconnect", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "disable_cancel_on_disconnect"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetCancelOnDisconnect(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_cancel_on_disconnect", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_cancel_on_disconnect"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubscribe(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "subscribe", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subscribe"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnsubscribe(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "unsubscribe", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unsubscribe"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnsubscribeAll(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "unsubscribe_all", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unsubscribe_all"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetChangeApiKeyName(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "change_api_key_name", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "change_api_key_name"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetChangeScopeInApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "change_scope_in_api_key", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "change_scope_in_api_key"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetChangeSubaccountName(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "change_subaccount_name", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "change_subaccount_name"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCreateApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "create_api_key", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "create_api_key"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCreateSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "create_subaccount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "create_subaccount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDisableApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "disable_api_key", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "disable_api_key"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDisableTfaForSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "disable_tfa_for_subaccount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "disable_tfa_for_subaccount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetEnableAffiliateProgram(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "enable_affiliate_program", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "enable_affiliate_program"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetEnableApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "enable_api_key", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "enable_api_key"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAccessLog(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_access_log", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_access_log"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAccountSummary(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_account_summary", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_account_summary"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAccountSummaries(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_account_summaries", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_account_summaries"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAffiliateProgramInfo(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_affiliate_program_info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_affiliate_program_info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetEmailLanguage(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_email_language", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_email_language"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetNewAnnouncements(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_new_announcements", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_new_announcements"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetPortfolioMargins(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_portfolio_margins", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_portfolio_margins"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetPosition(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_position", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_position"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetPositions(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetSubaccounts(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_subaccounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_subaccounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetSubaccountsDetails(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_subaccounts_details", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_subaccounts_details"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetTransactionLog(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_transaction_log", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_transaction_log"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetListApiKeys(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "list_api_keys", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "list_api_keys"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRemoveApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "remove_api_key", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "remove_api_key"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRemoveSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "remove_subaccount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "remove_subaccount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetResetApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "reset_api_key", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "reset_api_key"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSetAnnouncementAsRead(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_announcement_as_read", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "set_announcement_as_read"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSetApiKeyAsDefault(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_api_key_as_default", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "set_api_key_as_default"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSetEmailForSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_email_for_subaccount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "set_email_for_subaccount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSetEmailLanguage(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_email_language", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "set_email_language"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSetPasswordForSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_password_for_subaccount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "set_password_for_subaccount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetToggleNotificationsFromSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "toggle_notifications_from_subaccount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "toggle_notifications_from_subaccount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetToggleSubaccountLogin(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "toggle_subaccount_login", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "toggle_subaccount_login"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExecuteBlockTrade(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "execute_block_trade", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "execute_block_trade"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetBlockTrade(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_block_trade", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_block_trade"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetLastBlockTradesByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_block_trades_by_currency", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_last_block_trades_by_currency"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetInvalidateBlockTradeSignature(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "invalidate_block_trade_signature", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "invalidate_block_trade_signature"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetVerifyBlockTrade(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "verify_block_trade", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "verify_block_trade"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBuy(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "buy", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "buy"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSell(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "sell", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sell"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetEdit(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "edit", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "edit"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetEditByLabel(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "edit_by_label", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "edit_by_label"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCancel(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cancel"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCancelAll(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_all", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cancel_all"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCancelAllByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_all_by_currency", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cancel_all_by_currency"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCancelAllByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_all_by_instrument", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cancel_all_by_instrument"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCancelByLabel(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_by_label", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cancel_by_label"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetClosePosition(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "close_position", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "close_position"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetMargins(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_margins", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_margins"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetMmpConfig(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_mmp_config", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_mmp_config"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOpenOrdersByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_open_orders_by_currency", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_open_orders_by_currency"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOpenOrdersByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_open_orders_by_instrument", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_open_orders_by_instrument"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOrderHistoryByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_order_history_by_currency", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_order_history_by_currency"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOrderHistoryByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_order_history_by_instrument", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_order_history_by_instrument"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOrderMarginByIds(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_order_margin_by_ids", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_order_margin_by_ids"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOrderState(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_order_state", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_order_state"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetStopOrderHistory(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_stop_order_history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_stop_order_history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetTriggerOrderHistory(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_trigger_order_history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_trigger_order_history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserTradesByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_user_trades_by_currency", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_user_trades_by_currency"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserTradesByCurrencyAndTime(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_user_trades_by_currency_and_time", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_user_trades_by_currency_and_time"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserTradesByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_user_trades_by_instrument", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_user_trades_by_instrument"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserTradesByInstrumentAndTime(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_user_trades_by_instrument_and_time", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_user_trades_by_instrument_and_time"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserTradesByOrder(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_user_trades_by_order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_user_trades_by_order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetResetMmp(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "reset_mmp", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "reset_mmp"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSetMmpConfig(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_mmp_config", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "set_mmp_config"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetSettlementHistoryByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_settlement_history_by_instrument", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_settlement_history_by_instrument"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetSettlementHistoryByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_settlement_history_by_currency", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_settlement_history_by_currency"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCancelTransferById(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_transfer_by_id", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cancel_transfer_by_id"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCancelWithdrawal(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_withdrawal", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cancel_withdrawal"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCreateDepositAddress(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "create_deposit_address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "create_deposit_address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetCurrentDepositAddress(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_current_deposit_address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_current_deposit_address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetDeposits(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_deposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_deposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetTransfers(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_transfers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_transfers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetWithdrawals(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_withdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "get_withdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubmitTransferToSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "submit_transfer_to_subaccount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "submit_transfer_to_subaccount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubmitTransferToUser(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "submit_transfer_to_user", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "submit_transfer_to_user"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdraw(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "withdraw", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraw"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Deribit(; kwargs...)
@@ -3220,3 +3724,629 @@ function Deribit(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Deribit_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.deribit.com/#public-get_time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Deribit_fetchTime
+
+function __ccxt_doc_Deribit_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.deribit.com/#public-get_currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Deribit_fetchCurrencies
+
+function __ccxt_doc_Deribit_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.deribit.com/#public-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Deribit_fetchStatus
+
+function __ccxt_doc_Deribit_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://docs.deribit.com/#private-get_subaccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Deribit_fetchAccounts
+
+function __ccxt_doc_Deribit_fetchMarkets() end
+"""
+retrieves data on all markets for deribit
+see: https://docs.deribit.com/#public-get_currencies
+see: https://docs.deribit.com/#public-get_instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Deribit_fetchMarkets
+
+function __ccxt_doc_Deribit_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.deribit.com/#private-get_account_summary
+see: https://docs.deribit.com/#private-get_account_summaries
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string, optional: unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Deribit_fetchBalance
+
+function __ccxt_doc_Deribit_createDepositAddress() end
+"""
+create a currency deposit address
+see: https://docs.deribit.com/#private-create_deposit_address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Deribit_createDepositAddress
+
+function __ccxt_doc_Deribit_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.deribit.com/#private-get_current_deposit_address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Deribit_fetchDepositAddress
+
+function __ccxt_doc_Deribit_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.deribit.com/#public-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Deribit_fetchTicker
+
+function __ccxt_doc_Deribit_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.deribit.com/#public-get_book_summary_by_currency
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string, optional: *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Deribit_fetchTickers
+
+function __ccxt_doc_Deribit_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.deribit.com/#public-get_tradingview_chart_data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: whether to paginate the results, set to false by default
+- `params.until`::int, optional: the latest time in ms to fetch ohlcv for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Deribit_fetchOHLCV
+
+function __ccxt_doc_Deribit_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol.
+see: https://docs.deribit.com/#public-get_last_trades_by_instrument
+see: https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Deribit_fetchTrades
+
+function __ccxt_doc_Deribit_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://docs.deribit.com/#private-get_account_summary
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Deribit_fetchTradingFees
+
+function __ccxt_doc_Deribit_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.deribit.com/#public-get_order_book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Deribit_fetchOrderBook
+
+function __ccxt_doc_Deribit_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.deribit.com/#private-get_order_state
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deribit_fetchOrder
+
+function __ccxt_doc_Deribit_createOrder() end
+"""
+create a trade order
+see: https://docs.deribit.com/#private-buy
+see: https://docs.deribit.com/#private-sell
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency.
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::string, optional: the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
+- `params.trailingAmount`::float, optional: the quote amount to trail away from the current market price
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deribit_createOrder
+
+function __ccxt_doc_Deribit_editOrder() end
+"""
+edit a trade order
+see: https://docs.deribit.com/#private-edit
+
+# Arguments
+- `id`::string: edit order id
+- `symbol`::string, optional: unified symbol of the market to edit an order in
+- `type`::string, optional: 'market' or 'limit'
+- `side`::string, optional: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency.
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trailingAmount`::float, optional: the quote amount to trail away from the current market price
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deribit_editOrder
+
+function __ccxt_doc_Deribit_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.deribit.com/#private-cancel
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deribit_cancelOrder
+
+function __ccxt_doc_Deribit_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://docs.deribit.com/#private-cancel_all
+see: https://docs.deribit.com/#private-cancel_all_by_instrument
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deribit_cancelAllOrders
+
+function __ccxt_doc_Deribit_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.deribit.com/#private-get_open_orders_by_currency
+see: https://docs.deribit.com/#private-get_open_orders_by_instrument
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deribit_fetchOpenOrders
+
+function __ccxt_doc_Deribit_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.deribit.com/#private-get_order_history_by_currency
+see: https://docs.deribit.com/#private-get_order_history_by_instrument
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deribit_fetchClosedOrders
+
+function __ccxt_doc_Deribit_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://docs.deribit.com/#private-get_user_trades_by_order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Deribit_fetchOrderTrades
+
+function __ccxt_doc_Deribit_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.deribit.com/#private-get_user_trades_by_currency
+see: https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
+see: https://docs.deribit.com/#private-get_user_trades_by_instrument
+see: https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Deribit_fetchMyTrades
+
+function __ccxt_doc_Deribit_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.deribit.com/#private-get_deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Deribit_fetchDeposits
+
+function __ccxt_doc_Deribit_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.deribit.com/#private-get_withdrawals
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Deribit_fetchWithdrawals
+
+function __ccxt_doc_Deribit_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://docs.deribit.com/#private-get_position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Deribit_fetchPosition
+
+function __ccxt_doc_Deribit_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.deribit.com/#private-get_positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.currency`::string, optional: currency code filter for positions
+- `params.kind`::string, optional: market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+- `params.subaccount_id`::int, optional: the user id for the subaccount
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Deribit_fetchPositions
+
+function __ccxt_doc_Deribit_fetchVolatilityHistory() end
+"""
+fetch the historical volatility of an option market based on an underlying asset
+see: https://docs.deribit.com/#public-get_historical_volatility
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
+"""
+__ccxt_doc_Deribit_fetchVolatilityHistory
+
+function __ccxt_doc_Deribit_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://docs.deribit.com/#private-get_transfers
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Deribit_fetchTransfers
+
+function __ccxt_doc_Deribit_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.deribit.com/#private-submit_transfer_to_user
+see: https://docs.deribit.com/#private-submit_transfer_to_subaccount
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Deribit_transfer
+
+function __ccxt_doc_Deribit_withdraw() end
+"""
+make a withdrawal
+see: https://docs.deribit.com/#private-withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Deribit_withdraw
+
+function __ccxt_doc_Deribit_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://docs.deribit.com/#public-get_currencies
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Deribit_fetchDepositWithdrawFees
+
+function __ccxt_doc_Deribit_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://docs.deribit.com/#public-get_funding_rate_value
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.start_timestamp`::int, optional: fetch funding rate starting from this timestamp
+- `params.end_timestamp`::int, optional: fetch funding rate ending at this timestamp
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Deribit_fetchFundingRate
+
+function __ccxt_doc_Deribit_fetchFundingRateHistory() end
+"""
+fetch the current funding rate
+see: https://docs.deribit.com/#public-get_funding_rate_history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding rate history for
+- `limit`::int, optional: the maximum number of entries to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: fetch funding rate ending at this timestamp
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Deribit_fetchFundingRateHistory
+
+function __ccxt_doc_Deribit_fetchLiquidations() end
+"""
+retrieves the public liquidations of a trading pair
+see: https://docs.deribit.com/#public-get_last_settlements_by_currency
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the deribit api endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Deribit_fetchLiquidations
+
+function __ccxt_doc_Deribit_fetchMyLiquidations() end
+"""
+retrieves the users liquidated positions
+see: https://docs.deribit.com/#private-get_settlement_history_by_instrument
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the deribit api endpoint
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Deribit_fetchMyLiquidations
+
+function __ccxt_doc_Deribit_fetchGreeks() end
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://docs.deribit.com/#public-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Deribit_fetchGreeks
+
+function __ccxt_doc_Deribit_fetchOption() end
+"""
+fetches option data that is commonly found in an option chain
+see: https://docs.deribit.com/#public-get_book_summary_by_instrument
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+__ccxt_doc_Deribit_fetchOption
+
+function __ccxt_doc_Deribit_fetchOptionChain() end
+"""
+fetches data for an underlying asset that is commonly found in an option chain
+see: https://docs.deribit.com/#public-get_book_summary_by_currency
+
+# Arguments
+- `code`::string: base currency to fetch an option chain for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+__ccxt_doc_Deribit_fetchOptionChain
+
+function __ccxt_doc_Deribit_fetchOpenInterest() end
+"""
+Retrieves the open interest of a symbol
+see: https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Deribit_fetchOpenInterest

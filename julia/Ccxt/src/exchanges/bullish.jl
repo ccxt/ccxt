@@ -665,12 +665,32 @@ function describe(self::Bullish, )
 ))
 
 end
-function fetchTime(self::Bullish, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Bullish; params=Dict())
     response = Base.fetch(self.publicGetV1Time(params));
     return safeInteger(response, "timestamp")
 
 end
-function fetchCurrencies(self::Bullish, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bullish; params=Dict())
     response = Base.fetch(self.publicGetV1Assets(params));
     return self.parseCurrencies(response)
 
@@ -688,7 +708,7 @@ function parseCurrency(self::Bullish, rawCurrency)
     Symbol("deposit") => nothing,
     Symbol("withdraw") => nothing,
     Symbol("fee") => self.safeNumber(rawCurrency, "minFee"),
-    Symbol("precision") => self.parseNumber(self.parsePrecision(precision)),
+    Symbol("precision") => self.parseNumber(self.parsePrecision(precision = precision)),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("amount") => Dict{Symbol, Any}(
             Symbol("min") => nothing,
@@ -705,7 +725,17 @@ function parseCurrency(self::Bullish, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Bullish, params=Dict())
+"""
+retrieves data on all markets for ace
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bullish; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
@@ -733,7 +763,7 @@ function parseMarket(self::Bullish, market)
     maxCostLimit = safeString(market, "maxCostLimit");
     settleId = safeString(market, "settlementAssetSymbol");
     settle = self.safeCurrencyCode(settleId);
-    type_var = self.parseMarketType(safeString(market, "marketType"), "spot");
+    type_var = self.parseMarketType(type_var = safeString(market, "marketType"), defaultType = "spot");
     spot = false;
     swap = false;
     future = false;
@@ -773,7 +803,7 @@ function parseMarket(self::Bullish, market)
             end
         end
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -817,11 +847,11 @@ function parseMarket(self::Bullish, market)
         )
     ),
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(amountPrecision)),
-        Symbol("price") => self.parseNumber(self.parsePrecision(pricePrecision)),
-        Symbol("cost") => self.parseNumber(self.parsePrecision(costPrecision)),
-        Symbol("base") => self.parseNumber(self.parsePrecision(basePrecision)),
-        Symbol("quote") => self.parseNumber(self.parsePrecision(quotePrecision))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = amountPrecision)),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = pricePrecision)),
+        Symbol("cost") => self.parseNumber(self.parsePrecision(precision = costPrecision)),
+        Symbol("base") => self.parseNumber(self.parsePrecision(precision = basePrecision)),
+        Symbol("quote") => self.parseNumber(self.parsePrecision(precision = quotePrecision))
     ),
     Symbol("active") => self.safeBool(market, "marketEnabled"),
     Symbol("created") => nothing,
@@ -829,7 +859,7 @@ function parseMarket(self::Bullish, market)
 ))
 
 end
-function parseMarketType(self::Bullish, type_var=nothing, defaultType=nothing)
+function parseMarketType(self::Bullish; type_var=nothing, defaultType=nothing)
     types = Dict{Symbol, Any}(
         Symbol("SPOT") => "spot",
         Symbol("PERPETUAL") => "swap",
@@ -839,7 +869,19 @@ function parseMarketType(self::Bullish, type_var=nothing, defaultType=nothing)
     return safeString(types, type_var, defaultType)
 
 end
-function fetchOrderBook(self::Bullish, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/orderbook/hybrid
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (not used by bullish)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bullish, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -849,10 +891,26 @@ function fetchOrderBook(self::Bullish, symbol, limit=nothing, params=Dict())
     );
     response = Base.fetch(self.publicGetV1MarketsSymbolOrderbookHybrid(extend(request, params)));
     timestamp = safeInteger(response, "timestamp");
-    return self.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity")
+    return self.parseOrderBook(response, symbol, timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "priceLevelQuantity")
 
 end
-function fetchTrades(self::Bullish, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/trades
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-symbol-/trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bullish, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -860,24 +918,41 @@ function fetchTrades(self::Bullish, symbol, since=nothing, limit=nothing, params
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-        params = self.handlePaginationParams("fetchTrades", since, params);
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params, maxLimit))
+        params = self.handlePaginationParams("fetchTrades", since = since, params = params);
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    params = self.handleSinceAndUntil(since, params);
+    params = self.handleSinceAndUntil(since = since, params = params);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("_pageSize")] = self.getClosestLimit(limit);
     end
     response = Base.fetch(self.publicGetV1HistoryMarketsSymbolTrades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Bullish, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.orderId`::string, optional: the order id to fetch trades for
+- `params.clientOrderId`::string, optional: the client order id to fetch trades for
+- `params.tradingAccountId`::string, optional: the trading account id to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bullish; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
     request = Dict{Symbol, Any}(
         Symbol("tradingAccountId") => tradingAccountId
     );
@@ -893,19 +968,34 @@ function fetchMyTrades(self::Bullish, symbol=nothing, since=nothing, limit=nothi
         paginate = false;
         (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
         if functions.ccxtruthy(paginate)
-            params = self.handlePaginationParams("fetchMyTrades", since, params);
-                return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+            params = self.handlePaginationParams("fetchMyTrades", since = since, params = params);
+                return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 100))
         end
-        params = self.handleSinceAndUntil(since, params);
+        params = self.handleSinceAndUntil(since = since, params = params);
         if functions.ccxtruthy(limit != nothing)
             request[Symbol("_pageSize")] = self.getClosestLimit(limit);
         end
         response = Base.fetch(self.privateGetV1HistoryTrades(extend(request, params)));
     end
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrderTrades(self::Bullish, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: the client order id to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Bullish, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -915,12 +1005,12 @@ function fetchOrderTrades(self::Bullish, id, symbol=nothing, since=nothing, limi
     Symbol("orderId") => id
 ), params);
     end
-    return Base.fetch(self.fetchMyTrades(symbol, since, limit, params))
+    return Base.fetch(self.fetchMyTrades(symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function parseTrade(self::Bullish, trade, market=nothing)
+function parseTrade(self::Bullish, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger(trade, "createdAtTimestamp");
     price = safeString(trade, "price");
@@ -958,10 +1048,21 @@ function parseTrade(self::Bullish, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bullish, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bullish, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -970,12 +1071,12 @@ function fetchTicker(self::Bullish, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetV1MarketsSymbolTick(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function parseTicker(self::Bullish, ticker, market=nothing)
+function parseTicker(self::Bullish, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(ticker, "createdAtTimestamp");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -999,12 +1100,12 @@ function parseTicker(self::Bullish, ticker, market=nothing)
     Symbol("quoteVolume") => safeString(ticker, "quoteVolume"),
     Symbol("markPrice") => safeString(ticker, "markPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function safeDeterministicCall(self::Bullish, method, symbol=nothing, since=nothing, limit=nothing, timeframe=nothing, params=Dict())
+function safeDeterministicCall(self::Bullish, method; symbol=nothing, since=nothing, limit=nothing, timeframe=nothing, params=Dict())
     maxRetries = nothing;
-    (maxRetries, params) = self.handleOptionAndParams(params, method, "maxRetries", 3);
+    (maxRetries, params) = self.handleOptionAndParams(params, method, "maxRetries", defaultValue = 3);
     errors = 0;
     params = omit(params, "until");
     while functions.ccxtruthy(functions.ccxt_le(errors, maxRetries))
@@ -1028,7 +1129,23 @@ function safeDeterministicCall(self::Bullish, method, symbol=nothing, since=noth
     return []
 
 end
-function fetchOHLCV(self::Bullish, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/candle
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest entry
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bullish, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1037,7 +1154,7 @@ function fetchOHLCV(self::Bullish, symbol, timeframe="1m", since=nothing, limit=
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -1064,14 +1181,27 @@ function fetchOHLCV(self::Bullish, symbol, timeframe="1m", since=nothing, limit=
     request[Symbol("createdAtDatetime[lte]")] = self.iso8601(until);
     response = Base.fetch(self.publicGetV1MarketsSymbolCandle(extend(request, params)));
     ohlcvs = toArray(response);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Bullish, ohlcv, market=nothing)
+function parseOHLCV(self::Bullish, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "createdAtTimestamp"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchFundingRateHistory(self::Bullish, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-symbol-/funding-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
+- `limit`::int, optional: the maximum amount of funding rate structures to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Bullish; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -1082,8 +1212,8 @@ function fetchFundingRateHistory(self::Bullish, symbol=nothing, since=nothing, l
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-        params = self.handlePaginationParams("fetchFundingRateHistory", since, params);
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, params, maxLimit))
+        params = self.handlePaginationParams("fetchFundingRateHistory", since = since, params = params);
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
@@ -1095,7 +1225,7 @@ function fetchFundingRateHistory(self::Bullish, symbol=nothing, since=nothing, l
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("_pageSize")] = self.getClosestLimit(limit);
     end
-    params = self.handleSinceAndUntil(since, params, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]");
+    params = self.handleSinceAndUntil(since = since, params = params, sinceKey = "updatedAtDatetime[gte]", untilKey = "updatedAtDatetime[lte]");
     response = Base.fetch(self.publicGetV1HistoryMarketsSymbolFundingRate(extend(request, params)));
     rates = [];
     result = toArray(response);
@@ -1113,16 +1243,36 @@ function fetchFundingRateHistory(self::Bullish, symbol=nothing, since=nothing, l
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function fetchOrders(self::Bullish, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve (5, 25, 50, 100, default is 25)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order to fetch
+- `params.tradingAccountId`::string, optional: the trading account id (mandatory parameter)
+- `params.orderId`::string, optional: the id of the order to fetch for
+- `params.clientOrderId`::string, optional: the client id of the order to fetch for
+- `params.status`::string, optional: filter by order status, 'OPEN', 'CANCELLED', 'CLOSED', 'REJECTED'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Bullish; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
-    paginate = self.safeBool(params, "paginate", false);
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
+    paginate = self.safeBool(params, "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-        params = self.handlePaginationParams("fetchOrders", since, params);
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, 100))
+        params = self.handlePaginationParams("fetchOrders", since = since, params = params);
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 100))
     end
     market = nothing;
     request = Dict{Symbol, Any}(
@@ -1132,12 +1282,12 @@ function fetchOrders(self::Bullish, symbol=nothing, since=nothing, limit=nothing
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
-    params = self.handleSinceAndUntil(since, params);
+    params = self.handleSinceAndUntil(since = since, params = params);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("_pageSize")] = self.getClosestLimit(limit);
     end
     method = "privateGetV2HistoryOrders";
-    (method, params) = self.handleOptionAndParams(params, "fetchOrders", "method", method);
+    (method, params) = self.handleOptionAndParams(params, "fetchOrders", "method", defaultValue = method);
     response = [];
     if functions.ccxtruthy(method == "privateGetV2Orders")
         response = Base.fetch(self.privateGetV2Orders(extend(request, params)));
@@ -1146,10 +1296,10 @@ function fetchOrders(self::Bullish, symbol=nothing, since=nothing, limit=nothing
     else
         throw(BadRequest(string(self.id, " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\"")));
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function handlePaginationParams(self::Bullish, method, since=nothing, params=Dict())
+function handlePaginationParams(self::Bullish, method; since=nothing, params=Dict())
     ninetyDays = 90 * 24 * 60 * 60 * 1000;
     now = milliseconds();
     allowedSince = now - ninetyDays;
@@ -1169,7 +1319,7 @@ function handlePaginationParams(self::Bullish, method, since=nothing, params=Dic
     return params
 
 end
-function handleSinceAndUntil(self::Bullish, since=nothing, params=Dict(), sinceKey="createdAtDatetime[gte]", untilKey="createdAtDatetime[lte]")
+function handleSinceAndUntil(self::Bullish; since=nothing, params=Dict(), sinceKey="createdAtDatetime[gte]", untilKey="createdAtDatetime[lte]")
     until = safeInteger(params, "until");
     if functions.ccxtruthy(@functions.ccxt_or((since != nothing), (until != nothing)))
         timeDelta = 7 * 24 * 60 * 60 * 1000;
@@ -1206,40 +1356,109 @@ function getClosestLimit(self::Bullish, limit)
     return pageSize
 
 end
-function fetchOpenOrders(self::Bullish, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string: the trading account id (mandatory parameter)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bullish; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "OPEN"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchCanceledOrders(self::Bullish, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the canceled orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of canceled orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string, optional: the trading account id (mandatory parameter)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Bullish; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "CANCELLED",
         Symbol("method") => "privateGetV2Orders"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchClosedOrders(self::Bullish, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the closed orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of closed orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string: the trading account id (mandatory parameter)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Bullish; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "CLOSED",
         Symbol("method") => "privateGetV2Orders"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchCanceledAndClosedOrders(self::Bullish, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+
+# Arguments
+- `symbol`::string: unified market symbol of the closed orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of closed orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string, optional: the trading account id (mandatory parameter)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Bullish; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "CLOSED",
         Symbol("method") => "privateGetV2HistoryOrders"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchOrder(self::Bullish, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v2/orders/-orderId-
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.traidingAccountId`::string, optional: the trading account id (mandatory parameter)
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bullish, id; symbol=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
@@ -1249,12 +1468,33 @@ function fetchOrder(self::Bullish, id, symbol=nothing, params=Dict())
         Symbol("tradingAccountId") => tradingAccountId
     );
     response = Base.fetch(self.privateGetV2OrdersOrderId(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createOrder(self::Bullish, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/orders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'STOP_LIMIT' or 'POST_ONLY'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a custom client order id
+- `params.triggerPrice`::float, optional: the price at which a stop order is triggered at
+- `params.timeInForce`::string, optional: the time in force for the order, either 'GTC' (Good Till Cancelled) or 'IOC' (Immediate or Cancel), default is 'GTC'
+- `params.allowBorrow`::bool, optional: if true, the order will be allowed to borrow assets to fulfill the order (default is false)
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately (default is false)
+- `params.traidingAccountId`::string: the trading account id (mandatory parameter)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bullish, symbol, type_var, side, amount; price=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("commandType") => "V3CreateOrder",
@@ -1265,12 +1505,12 @@ function createOrder(self::Bullish, symbol, type_var, side, amount, price=nothin
     );
     isMarketOrder = (@functions.ccxt_or((type_var == "market"), type_var == "MARKET"));
     postOnly = false;
-    (postOnly, params) = self.handlePostOnly(isMarketOrder, type_var == "POST_ONLY", params);
+    (postOnly, params) = self.handlePostOnly(isMarketOrder, type_var == "POST_ONLY", params = params);
     if functions.ccxtruthy(postOnly)
         type_var = "POST_ONLY";
     end
     timeInForce = "GTC";
-    (timeInForce, params) = self.handleOptionAndParams(params, "createOrder", "timeInForce", timeInForce);
+    (timeInForce, params) = self.handleOptionAndParams(params, "createOrder", "timeInForce", defaultValue = timeInForce);
     params[Symbol("timeInForce")] =     uppercase(timeInForce);
     if functions.ccxtruthy(!functions.ccxtruthy(isMarketOrder))
         request[Symbol("price")] = self.priceToPrecision(symbol, price);
@@ -1286,12 +1526,31 @@ function createOrder(self::Bullish, symbol, type_var, side, amount, price=nothin
     end
     request[Symbol("type")] =     uppercase(type_var);
     response = Base.fetch(self.privatePostV2Orders(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function editOrder(self::Bullish, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade limit order
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-amend
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market to create an order in
+- `type`::string, optional: 'limit' or 'POST_ONLY'
+- `side`::string, optional: not used by bullish editOrder
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price for the order, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.traidingAccountId`::string, optional: the trading account id (mandatory parameter)
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately (default is false)
+- `params.clientOrderId`::string, optional: a unique identifier for the order, automatically generated if not sent
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Bullish, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("commandType") => "V1AmendOrder",
@@ -1305,7 +1564,7 @@ function editOrder(self::Bullish, id, symbol, type_var, side, amount=nothing, pr
     if functions.ccxtruthy(type_var != nothing)
         request[Symbol("type")] =         uppercase(type_var);
     end
-    postOnly = self.safeBool(params, "postOnly", false);
+    postOnly = self.safeBool(params, "postOnly", defaultValue = false);
     if functions.ccxtruthy(postOnly)
         params = omit(params, "postOnly");
         request[Symbol("type")] = "POST_ONLY";
@@ -1317,12 +1576,26 @@ function editOrder(self::Bullish, id, symbol, type_var, side, amount=nothing, pr
         request[Symbol("price")] = self.priceToPrecision(symbol, price);
     end
     response = Base.fetch(self.privatePostV2Command(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Bullish, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
+
+# Arguments
+- `id`::string, optional: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.commandType`::string: the command type, default is 'V3CancelOrder' (mandatory parameter)
+- `params.traidingAccountId`::string, optional: the trading account id (mandatory parameter)
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bullish, id; symbol=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -1334,12 +1607,24 @@ function cancelOrder(self::Bullish, id, symbol=nothing, params=Dict())
         Symbol("orderId") => id
     );
     response = Base.fetch(self.privatePostV2Command(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelAllOrders(self::Bullish, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
+
+# Arguments
+- `symbol`::string, optional: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.traidingAccountId`::string: the trading account id (mandatory parameter)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bullish; symbol=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
     request = Dict{Symbol, Any}(
         Symbol("tradingAccountId") => tradingAccountId
     );
@@ -1353,15 +1638,15 @@ function cancelAllOrders(self::Bullish, symbol=nothing, params=Dict())
     end
     response = Base.fetch(self.privatePostV2Command(extend(request, params)));
     orders = [response];
-    return self.parseOrders(orders, market)
+    return self.parseOrders(orders, market = market)
 
 end
-function parseOrder(self::Bullish, order, market=nothing)
+function parseOrder(self::Bullish, order; market=nothing)
     marketId = safeString(order, "symbol");
     if functions.ccxtruthy(market == nothing)
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
     end
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     id = safeString(order, "orderId");
     timestamp = safeInteger(order, "createdAtTimestamp");
     type_var = safeString(order, "type");
@@ -1408,7 +1693,7 @@ function parseOrder(self::Bullish, order, market=nothing)
     Symbol("fee") => fee,
     Symbol("info") => order,
     Symbol("average") => average
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Bullish, status)
@@ -1431,7 +1716,20 @@ function parseOrderType(self::Bullish, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function fetchDepositsWithdrawals(self::Bullish, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/transactions
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Bullish; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
     request = Dict{Symbol, Any}();
     (request, params) = self.handleUntilOption("createdAtDatetime[lte]", request, params);
@@ -1443,15 +1741,32 @@ function fetchDepositsWithdrawals(self::Bullish, code=nothing, since=nothing, li
         request[Symbol("createdAtDatetime[gte]")] = self.iso8601(since);
     end
     response = Base.fetch(self.privateGetV1WalletsTransactions(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    return self.parseTransactions(data, currency, since, limit)
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function withdraw(self::Bullish, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/wallets/withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string, optional:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timestamp`::string: the timestamp of the withdrawal request (mandatory)
+- `params.nonce`::string: the nonce of the withdrawal request (mandatory)
+- `params.network`::string: network for withdraw (mandatory)
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bullish, code, amount, address; tag=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -1465,15 +1780,15 @@ function withdraw(self::Bullish, code, amount, address, tag=nothing, params=Dict
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("network")] = self.networkCodeToId(networkCode, code);
+        request[Symbol("network")] = self.networkCodeToId(networkCode, currencyCode = code);
     else
         throw(ArgumentsRequired(string(self.id, " withdraw() requires a network parameter")));
     end
     response = Base.fetch(self.privatePostV1WalletsWithdrawal(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseTransaction(self::Bullish, transaction, currency=nothing)
+function parseTransaction(self::Bullish, transaction; currency=nothing)
     id = safeString(transaction, "custodyTransactionId");
     type_var = safeString(transaction, "direction");
     timestamp = self.parse8601(safeString(transaction, "createdAtDateTime"));
@@ -1484,10 +1799,10 @@ function parseTransaction(self::Bullish, transaction, currency=nothing)
     address = safeString(transactionDetails, "address");
     amount = self.safeNumber(transaction, "quantity");
     currencyId = safeString(transaction, "symbol");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     status = safeString(transaction, "status");
-    sources = self.safeList(transactionDetails, "sources", []);
-    source = self.safeDict(sources, 0, Dict{Symbol, Any}());
+    sources = self.safeList(transactionDetails, "sources", defaultValue = []);
+    source = self.safeDict(sources, 0, defaultValue = Dict{Symbol, Any}());
     sourceAddress = safeString(source, "address");
     fee = Dict{Symbol, Any}(
         Symbol("currency") => nothing,
@@ -1504,7 +1819,7 @@ function parseTransaction(self::Bullish, transaction, currency=nothing)
     Symbol("txid") => txid,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("network") => self.networkIdToCode(network, code),
+    Symbol("network") => self.networkIdToCode(networkId = network, currencyCode = code),
     Symbol("addressFrom") => sourceAddress,
     Symbol("address") => address,
     Symbol("addressTo") => address,
@@ -1541,7 +1856,7 @@ function parseTransactionStatus(self::Bullish, status)
     return safeString(statuses, status, status)
 
 end
-function loadAccount(self::Bullish, params=Dict())
+function loadAccount(self::Bullish; params=Dict())
     tradingAccountId = nothing;
     (tradingAccountId, params) = self.handleOptionAndParams(params, "loadAccount", "tradingAccountId");
     if functions.ccxtruthy(tradingAccountId == nothing)
@@ -1566,10 +1881,20 @@ function loadAccount(self::Bullish, params=Dict())
     return tradingAccountId
 
 end
-function fetchAccounts(self::Bullish, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--trading-accounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Bullish; params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
     response = Base.fetch(self.privateGetV1AccountsTradingAccounts(params));
-    return self.parseAccounts(response, params)
+    return self.parseAccounts(response, params = params)
 
 end
 function parseAccount(self::Bullish, account)
@@ -1581,7 +1906,19 @@ function parseAccount(self::Bullish, account)
 )
 
 end
-function fetchDepositAddress(self::Bullish, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/deposit-instructions/crypto/-symbol-
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: network for deposit address
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bullish, code; params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -1590,7 +1927,7 @@ function fetchDepositAddress(self::Bullish, code, params=Dict())
     response = Base.fetch(self.privateGetV1WalletsDepositInstructionsCryptoSymbol(extend(request, params)));
     safeResponse = toArray(response);
     len = length(safeResponse);
-    data = self.safeDict(safeResponse, 0, Dict{Symbol, Any}());
+    data = self.safeDict(safeResponse, 0, defaultValue = Dict{Symbol, Any}());
     network = nothing;
     (network, params) = self.handleNetworkCodeAndParams(params);
     networkDefinedByUser = network != nothing;
@@ -1601,9 +1938,9 @@ function fetchDepositAddress(self::Bullish, code, params=Dict())
         if functions.ccxtruthy(network != nothing)
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(safeResponse)))
-                entry = self.safeDict(safeResponse, i, Dict{Symbol, Any}());
+                entry = self.safeDict(safeResponse, i, defaultValue = Dict{Symbol, Any}());
                 networkId = safeString(entry, "network");
-                networkCode = self.networkIdToCode(networkId, code);
+                networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
                 if functions.ccxtruthy(network == networkCode)
                     data = entry;
                     break
@@ -1616,25 +1953,38 @@ function fetchDepositAddress(self::Bullish, code, params=Dict())
             end
         end
     end
-    return self.parseDepositAddress(data, currency)
+    return self.parseDepositAddress(data, currency = currency)
 
 end
-function parseDepositAddress(self::Bullish, depositAddress, currency=nothing)
+function parseDepositAddress(self::Bullish, depositAddress; currency=nothing)
     id = safeString(depositAddress, "symbol");
     network = safeString(depositAddress, "network");
-    code = self.safeCurrencyCode(id, currency);
+    code = self.safeCurrencyCode(id, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(network, code),
+    Symbol("network") => self.networkIdToCode(networkId = network, currencyCode = code),
     Symbol("address") => safeString(depositAddress, "address"),
     Symbol("tag") => nothing
 )
 
 end
-function fetchBalance(self::Bullish, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset/-symbol-
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string: the trading account id (mandatory parameter)
+- `params.code`::string, optional: unified currency code, default is undefined
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bullish; params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
     request = Dict{Symbol, Any}(
         Symbol("tradingAccountId") => tradingAccountId
     );
@@ -1681,19 +2031,31 @@ function parseBalance(self::Bullish, response)
     return self.safeBalance(result)
 
 end
-function fetchPositions(self::Bullish, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/derivatives-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string: the trading account id
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Bullish; symbols=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
     request = Dict{Symbol, Any}(
         Symbol("tradingAccountId") => tradingAccountId
     );
     response = Base.fetch(self.privateGetV1DerivativesPositions(extend(request, params)));
-    results = self.parsePositions(response, symbols);
-    return self.filterByArrayPositions(results, "symbol", symbols, false)
+    results = self.parsePositions(response, symbols = symbols);
+    return self.filterByArrayPositions(results, "symbol", values = symbols, indexed = false)
 
 end
-function parsePosition(self::Bullish, position, market=nothing)
-    market = self.safeMarket(safeString(position, "symbol"), market);
+function parsePosition(self::Bullish, position; market=nothing)
+    market = self.safeMarket(marketId = safeString(position, "symbol"), market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger(position, "createdAtTimestamp");
     side = safeString(position, "side");
@@ -1736,15 +2098,30 @@ function parsePositionSide(self::Bullish, side)
     return safeString(sides, side, side)
 
 end
-function fetchTransfers(self::Bullish, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/transfer
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int: the latest time in ms to fetch transfers for (default time now)
+- `params.tradingAccountId`::string: the trading account id
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Bullish; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
     maxLimit = 100;
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate");
     if functions.ccxtruthy(paginate)
-        params = self.handlePaginationParams("fetchTransfers", since, params);
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
+        params = self.handlePaginationParams("fetchTransfers", since = since, params = params);
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", symbol = code, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}(
         Symbol("tradingAccountId") => tradingAccountId
@@ -1761,15 +2138,29 @@ function fetchTransfers(self::Bullish, code=nothing, since=nothing, limit=nothin
     Symbol("until") => now
 ));
     end
-    params = self.handleSinceAndUntil(since, params);
+    params = self.handleSinceAndUntil(since = since, params = params);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("_pageSize")] = self.getClosestLimit(limit);
     end
     response = Base.fetch(self.privateGetV1HistoryTransfer(extend(request, params)));
-    return self.parseTransfers(response, currency, since, limit)
+    return self.parseTransfers(response, currency = currency, since = since, limit = limit)
 
 end
-function transfer(self::Bullish, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/command-commandType-V1TransferAsset
+
+# Arguments
+- `code`::string: unified currency codeåå
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account ID to transfer from
+- `toAccount`::string: account ID to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Bullish, code, amount, fromAccount, toAccount; params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -1780,9 +2171,9 @@ function transfer(self::Bullish, code, amount, fromAccount, toAccount, params=Di
         Symbol("toTradingAccountId") => toAccount
     );
     response = Base.fetch(self.privatePostV2Command(extend(request, params)));
-    transferOptions = self.safeDict(self.options, "transfer", Dict{Symbol, Any}());
-    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", true);
-    transfer = self.parseTransfer(response, currency);
+    transferOptions = self.safeDict(self.options, "transfer", defaultValue = Dict{Symbol, Any}());
+    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", defaultValue = true);
+    transfer = self.parseTransfer(response, currency = currency);
     if functions.ccxtruthy(fillResponseFromRequest)
         transfer[Symbol("fromAccount")] = fromAccount;
         transfer[Symbol("toAccount")] = toAccount;
@@ -1792,7 +2183,7 @@ function transfer(self::Bullish, code, amount, fromAccount, toAccount, params=Di
     return transfer
 
 end
-function parseTransfer(self::Bullish, transfer, currency=nothing)
+function parseTransfer(self::Bullish, transfer; currency=nothing)
     timestamp = safeInteger(transfer, "createdAtTimestamp");
     currencyId = safeString(transfer, "assetSymbol");
     status = safeString(transfer, "status");
@@ -1803,7 +2194,7 @@ function parseTransfer(self::Bullish, transfer, currency=nothing)
     Symbol("id") => safeString(transfer, "requestId"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(transfer, "quantity"),
     Symbol("fromAccount") => safeString(transfer, "fromTradingAccountId"),
     Symbol("toAccount") => safeString(transfer, "toTradingAccountId"),
@@ -1822,9 +2213,24 @@ function parseTransferStatus(self::Bullish, status)
     return safeString(statuses, status, status)
 
 end
-function fetchBorrowRateHistory(self::Bullish, code, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves a history of a currencies borrow interest rate at specific time slots
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/borrow-interest
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: timestamp for the earliest borrow rate
+- `limit`::int, optional: the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int: the latest time in ms to fetch entries for
+- `params.tradingAccountId`::string: the trading account id
+
+# Returns
+- an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchBorrowRateHistory(self::Bullish, code; since=nothing, limit=nothing, params=Dict())
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.handleToken()]));
-    tradingAccountId = Base.fetch(self.loadAccount(params));
+    tradingAccountId = Base.fetch(self.loadAccount(params = params));
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("assetSymbol") => get(currency, Symbol("id"), nothing),
@@ -1846,11 +2252,11 @@ function fetchBorrowRateHistory(self::Bullish, code, since=nothing, limit=nothin
     return self.parseBorrowRateHistory(response, code, since, limit)
 
 end
-function parseBorrowRate(self::Bullish, info, currency=nothing)
+function parseBorrowRate(self::Bullish, info; currency=nothing)
     timestamp = safeInteger(info, "createdAtTimestamp");
     currencyId = safeString(info, "assetSymbol");
     return Dict{Symbol, Any}(
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("rate") => self.safeNumber(info, "borrowedQuantity"),
     Symbol("period") => 86400000,
     Symbol("timestamp") => timestamp,
@@ -1863,7 +2269,18 @@ function getTimestamp(self::Bullish, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function fetchOpenInterest(self::Bullish, symbol, params=Dict())
+"""
+fetches the open interest of a specific market
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the open interest for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchOpenInterest(self::Bullish, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1872,10 +2289,10 @@ function fetchOpenInterest(self::Bullish, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetV1MarketsSymbolTick(extend(request, params)));
-    return self.parseOpenInterest(response, market)
+    return self.parseOpenInterest(response, market = market)
 
 end
-function parseOpenInterest(self::Bullish, interest, market=nothing)
+function parseOpenInterest(self::Bullish, interest; market=nothing)
     openInterest = safeString(interest, "openInterest");
     return self.safeOpenInterest(Dict{Symbol, Any}(
     Symbol("info") => interest,
@@ -1886,10 +2303,10 @@ function parseOpenInterest(self::Bullish, interest, market=nothing)
     Symbol("datetime") => safeString(interest, "createdAtDatetime"),
     Symbol("baseVolume") => openInterest,
     Symbol("quoteVolume") => nothing
-), market)
+), market = market)
 
 end
-function sign(self::Bullish, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bullish, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     request = omit(params, self.extractParams(path));
     endpoint = string("/", self.implodeParams(path, params));
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), endpoint);
@@ -1948,7 +2365,17 @@ function sign(self::Bullish, path, api="public", method="GET", params=Dict(), he
 )
 
 end
-function signIn(self::Bullish, params=Dict())
+"""
+sign in, must be called prior to using other authenticated methods
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--add-authenticated-request-header
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from exchange
+"""
+function signIn(self::Bullish; params=Dict())
     response = Base.fetch(self.privateGetV1UsersHmacLogin(params));
     token = safeString(response, "token");
     authorizer = safeString(response, "authorizer");
@@ -1958,7 +2385,7 @@ function signIn(self::Bullish, params=Dict())
     return token
 
 end
-function handleToken(self::Bullish, params=Dict())
+function handleToken(self::Bullish; params=Dict())
     now = milliseconds();
     token = self.token;
     tokenExpires = safeInteger(self.options, "tokenExpires");
@@ -1999,235 +2426,235 @@ Base.getproperty(self::Bullish, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetV1Nonce(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/nonce", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/nonce"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1Time(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1Assets(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/assets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/assets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1AssetsSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/assets/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/assets/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1Markets(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1MarketsSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/markets/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1HistoryMarketsSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/markets/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/history/markets/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1MarketsSymbolOrderbookHybrid(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets/{symbol}/orderbook/hybrid", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/markets/{symbol}/orderbook/hybrid"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1MarketsSymbolTrades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets/{symbol}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/markets/{symbol}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1MarketsSymbolTick(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets/{symbol}/tick", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/markets/{symbol}/tick"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1MarketsSymbolCandle(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets/{symbol}/candle", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/markets/{symbol}/candle"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1HistoryMarketsSymbolTrades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/markets/{symbol}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/history/markets/{symbol}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1HistoryMarketsSymbolFundingRate(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/markets/{symbol}/funding-rate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/history/markets/{symbol}/funding-rate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1IndexPrices(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/index-prices", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/index-prices"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1IndexPricesAssetSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/index-prices/{assetSymbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/index-prices/{assetSymbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1ExpiryPricesSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/expiry-prices/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/expiry-prices/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1OptionLadder(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/option-ladder", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/option-ladder"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1OptionLadderSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/option-ladder/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/option-ladder/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2Orders(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2HistoryOrders(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/history/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/history/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2OrdersOrderId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/orders/{orderId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/orders/{orderId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2AmmInstructions(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/amm-instructions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/amm-instructions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2AmmInstructionsInstructionId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/amm-instructions/{instructionId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/amm-instructions/{instructionId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1WalletsTransactions(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/transactions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/wallets/transactions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1WalletsLimitsSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/limits/{symbol}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/wallets/limits/{symbol}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1WalletsDepositInstructionsCryptoSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/deposit-instructions/crypto/{symbol}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/wallets/deposit-instructions/crypto/{symbol}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1WalletsWithdrawalInstructionsCryptoSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/withdrawal-instructions/crypto/{symbol}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/wallets/withdrawal-instructions/crypto/{symbol}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1WalletsDepositInstructionsFiatSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/deposit-instructions/fiat/{symbol}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/wallets/deposit-instructions/fiat/{symbol}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1WalletsWithdrawalInstructionsFiatSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/withdrawal-instructions/fiat/{symbol}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/wallets/withdrawal-instructions/fiat/{symbol}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1WalletsSelfHostedVerificationAttempts(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/self-hosted/verification-attempts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/wallets/self-hosted/verification-attempts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1Trades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1HistoryTrades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/history/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1TradesTradeId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/trades/{tradeId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trades/{tradeId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1TradesClientOrderIdClientOrderId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/trades/client-order-id/{clientOrderId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trades/client-order-id/{clientOrderId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AccountsAsset(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/accounts/asset", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/accounts/asset"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AccountsAssetSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/accounts/asset/{symbol}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/accounts/asset/{symbol}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1UsersLogout(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/users/logout", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/users/logout"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1UsersHmacLogin(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/users/hmac/login", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/users/hmac/login"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AccountsTradingAccounts(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/accounts/trading-accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/accounts/trading-accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AccountsTradingAccountsTradingAccountId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/accounts/trading-accounts/{tradingAccountId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/accounts/trading-accounts/{tradingAccountId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1DerivativesPositions(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/derivatives-positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/derivatives-positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1HistoryDerivativesSettlement(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/derivatives-settlement", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/history/derivatives-settlement"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1HistoryTransfer(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/transfer", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/history/transfer"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1HistoryBorrowInterest(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/borrow-interest", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/history/borrow-interest"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2MmpConfiguration(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/mmp-configuration", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mmp-configuration"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2OtcTrades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/otc-trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/otc-trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2OtcTradesOtcTradeId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/otc-trades/{otcTradeId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/otc-trades/{otcTradeId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2OtcTradesUnconfirmedTrade(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/otc-trades/unconfirmed-trade", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/otc-trades/unconfirmed-trade"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2Orders(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2Command(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/command", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/command"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2AmmInstructions(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/amm-instructions", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/amm-instructions"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1WalletsWithdrawal(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/wallets/withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2UsersLogin(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/users/login", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/users/login"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1SimulatePortfolioMargin(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/simulate-portfolio-margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/simulate-portfolio-margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1WalletsSelfHostedInitiate(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/self-hosted/initiate", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/wallets/self-hosted/initiate"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2MmpConfiguration(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/mmp-configuration", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mmp-configuration"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2OtcTrades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/otc-trades", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/otc-trades"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2OtcCommand(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/otc-command", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/otc-command"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bullish(; kwargs...)
@@ -2291,3 +2718,525 @@ function Bullish(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bullish_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Bullish_fetchTime
+
+function __ccxt_doc_Bullish_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bullish_fetchCurrencies
+
+function __ccxt_doc_Bullish_fetchMarkets() end
+"""
+retrieves data on all markets for ace
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bullish_fetchMarkets
+
+function __ccxt_doc_Bullish_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/orderbook/hybrid
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (not used by bullish)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bullish_fetchOrderBook
+
+function __ccxt_doc_Bullish_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/trades
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-symbol-/trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bullish_fetchTrades
+
+function __ccxt_doc_Bullish_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.orderId`::string, optional: the order id to fetch trades for
+- `params.clientOrderId`::string, optional: the client order id to fetch trades for
+- `params.tradingAccountId`::string, optional: the trading account id to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bullish_fetchMyTrades
+
+function __ccxt_doc_Bullish_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: the client order id to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bullish_fetchOrderTrades
+
+function __ccxt_doc_Bullish_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bullish_fetchTicker
+
+function __ccxt_doc_Bullish_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/candle
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest entry
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bullish_fetchOHLCV
+
+function __ccxt_doc_Bullish_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-symbol-/funding-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
+- `limit`::int, optional: the maximum amount of funding rate structures to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Bullish_fetchFundingRateHistory
+
+function __ccxt_doc_Bullish_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve (5, 25, 50, 100, default is 25)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order to fetch
+- `params.tradingAccountId`::string, optional: the trading account id (mandatory parameter)
+- `params.orderId`::string, optional: the id of the order to fetch for
+- `params.clientOrderId`::string, optional: the client id of the order to fetch for
+- `params.status`::string, optional: filter by order status, 'OPEN', 'CANCELLED', 'CLOSED', 'REJECTED'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bullish_fetchOrders
+
+function __ccxt_doc_Bullish_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string: the trading account id (mandatory parameter)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bullish_fetchOpenOrders
+
+function __ccxt_doc_Bullish_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the canceled orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of canceled orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string, optional: the trading account id (mandatory parameter)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bullish_fetchCanceledOrders
+
+function __ccxt_doc_Bullish_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the closed orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of closed orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string: the trading account id (mandatory parameter)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bullish_fetchClosedOrders
+
+function __ccxt_doc_Bullish_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+
+# Arguments
+- `symbol`::string: unified market symbol of the closed orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of closed orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string, optional: the trading account id (mandatory parameter)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bullish_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Bullish_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v2/orders/-orderId-
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.traidingAccountId`::string, optional: the trading account id (mandatory parameter)
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bullish_fetchOrder
+
+function __ccxt_doc_Bullish_createOrder() end
+"""
+create a trade order
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/orders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'STOP_LIMIT' or 'POST_ONLY'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a custom client order id
+- `params.triggerPrice`::float, optional: the price at which a stop order is triggered at
+- `params.timeInForce`::string, optional: the time in force for the order, either 'GTC' (Good Till Cancelled) or 'IOC' (Immediate or Cancel), default is 'GTC'
+- `params.allowBorrow`::bool, optional: if true, the order will be allowed to borrow assets to fulfill the order (default is false)
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately (default is false)
+- `params.traidingAccountId`::string: the trading account id (mandatory parameter)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bullish_createOrder
+
+function __ccxt_doc_Bullish_editOrder() end
+"""
+edit a trade limit order
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-amend
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market to create an order in
+- `type`::string, optional: 'limit' or 'POST_ONLY'
+- `side`::string, optional: not used by bullish editOrder
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price for the order, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.traidingAccountId`::string, optional: the trading account id (mandatory parameter)
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately (default is false)
+- `params.clientOrderId`::string, optional: a unique identifier for the order, automatically generated if not sent
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bullish_editOrder
+
+function __ccxt_doc_Bullish_cancelOrder() end
+"""
+cancels an open order
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
+
+# Arguments
+- `id`::string, optional: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.commandType`::string: the command type, default is 'V3CancelOrder' (mandatory parameter)
+- `params.traidingAccountId`::string, optional: the trading account id (mandatory parameter)
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bullish_cancelOrder
+
+function __ccxt_doc_Bullish_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
+
+# Arguments
+- `symbol`::string, optional: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.traidingAccountId`::string: the trading account id (mandatory parameter)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bullish_cancelAllOrders
+
+function __ccxt_doc_Bullish_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/transactions
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bullish_fetchDepositsWithdrawals
+
+function __ccxt_doc_Bullish_withdraw() end
+"""
+make a withdrawal
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/wallets/withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string, optional:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timestamp`::string: the timestamp of the withdrawal request (mandatory)
+- `params.nonce`::string: the nonce of the withdrawal request (mandatory)
+- `params.network`::string: network for withdraw (mandatory)
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bullish_withdraw
+
+function __ccxt_doc_Bullish_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--trading-accounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Bullish_fetchAccounts
+
+function __ccxt_doc_Bullish_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/deposit-instructions/crypto/-symbol-
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: network for deposit address
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bullish_fetchDepositAddress
+
+function __ccxt_doc_Bullish_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset/-symbol-
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string: the trading account id (mandatory parameter)
+- `params.code`::string, optional: unified currency code, default is undefined
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bullish_fetchBalance
+
+function __ccxt_doc_Bullish_fetchPositions() end
+"""
+fetch all open positions
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/derivatives-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.tradingAccountId`::string: the trading account id
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bullish_fetchPositions
+
+function __ccxt_doc_Bullish_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/transfer
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int: the latest time in ms to fetch transfers for (default time now)
+- `params.tradingAccountId`::string: the trading account id
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bullish_fetchTransfers
+
+function __ccxt_doc_Bullish_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/command-commandType-V1TransferAsset
+
+# Arguments
+- `code`::string: unified currency codeåå
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account ID to transfer from
+- `toAccount`::string: account ID to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bullish_transfer
+
+function __ccxt_doc_Bullish_fetchBorrowRateHistory() end
+"""
+retrieves a history of a currencies borrow interest rate at specific time slots
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/borrow-interest
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: timestamp for the earliest borrow rate
+- `limit`::int, optional: the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int: the latest time in ms to fetch entries for
+- `params.tradingAccountId`::string: the trading account id
+
+# Returns
+- an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Bullish_fetchBorrowRateHistory
+
+function __ccxt_doc_Bullish_fetchOpenInterest() end
+"""
+fetches the open interest of a specific market
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the open interest for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bullish_fetchOpenInterest
+
+function __ccxt_doc_Bullish_signIn() end
+"""
+sign in, must be called prior to using other authenticated methods
+see: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--add-authenticated-request-header
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from exchange
+"""
+__ccxt_doc_Bullish_signIn

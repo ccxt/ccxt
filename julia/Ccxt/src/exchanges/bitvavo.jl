@@ -581,12 +581,32 @@ function describe(self::Bitvavo, )
 ))
 
 end
-function fetchTime(self::Bitvavo, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.bitvavo.com/docs/rest-api/get-server-time/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Bitvavo; params=Dict())
     response = Base.fetch(self.publicGetTime(params));
     return safeInteger(response, "time")
 
 end
-function fetchMarkets(self::Bitvavo, params=Dict())
+"""
+retrieves data on all markets for bitvavo
+see: https://docs.bitvavo.com/docs/rest-api/get-markets/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitvavo; params=Dict())
     response = Base.fetch(self.publicGetMarkets(params));
     return self.parseMarkets(response)
 
@@ -603,7 +623,7 @@ function parseMarkets(self::Bitvavo, markets)
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
         status = safeString(market, "status");
-        push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -630,9 +650,9 @@ function parseMarkets(self::Bitvavo, markets)
     Symbol("taker") => get(get(fees, Symbol("trading"), nothing), Symbol("taker"), nothing),
     Symbol("maker") => get(get(fees, Symbol("trading"), nothing), Symbol("maker"), nothing),
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "quantityDecimals"))),
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quantityDecimals"))),
         Symbol("price") => self.safeNumber(market, "tickSize"),
-        Symbol("cost") => self.parseNumber(self.parsePrecision(safeString(market, "notionalDecimals")))
+        Symbol("cost") => self.parseNumber(self.parsePrecision(precision = safeString(market, "notionalDecimals")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -660,18 +680,28 @@ function parseMarkets(self::Bitvavo, markets)
     return result
 
 end
-function fetchCurrencies(self::Bitvavo, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.bitvavo.com/docs/rest-api/get-asset-data/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bitvavo; params=Dict())
     response = Base.fetch(self.publicGetAssets(params));
     return self.parseCurrencies(response)
 
 end
 function parseCurrency(self::Bitvavo, rawCurrency)
-    fiatCurrencies = self.handleOption("fetchCurrencies", "fiatCurrencies", []);
+    fiatCurrencies = self.handleOption("fetchCurrencies", "fiatCurrencies", defaultValue = []);
     id = safeString(rawCurrency, "symbol");
     code = self.safeCurrencyCode(id);
     isFiat = inArray(code, fiatCurrencies);
     networks = Dict{Symbol, Any}();
-    networksArray = self.safeList(rawCurrency, "networks", []);
+    networksArray = self.safeList(rawCurrency, "networks", defaultValue = []);
     deposit = safeString(rawCurrency, "depositStatus") == "OK";
     withdrawal = safeString(rawCurrency, "withdrawalStatus") == "OK";
     active = @functions.ccxt_and(deposit, withdrawal);
@@ -681,7 +711,7 @@ function parseCurrency(self::Bitvavo, rawCurrency)
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networksArray)))
         networkId = get(networksArray, j + 1, nothing);
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("info") => rawCurrency,
@@ -691,7 +721,7 @@ function parseCurrency(self::Bitvavo, rawCurrency)
                 Symbol("deposit") => deposit,
                 Symbol("withdraw") => withdrawal,
                 Symbol("fee") => withdrawFee,
-                Symbol("precision") => self.parseNumber(self.parsePrecision(precision)),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision = precision)),
                 Symbol("limits") => Dict{Symbol, Any}(
                     Symbol("withdraw") => Dict{Symbol, Any}(
                         Symbol("min") => minWithdraw,
@@ -731,7 +761,18 @@ function parseCurrency(self::Bitvavo, rawCurrency)
 ))
 
 end
-function fetchTicker(self::Bitvavo, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bitvavo, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -740,12 +781,12 @@ function fetchTicker(self::Bitvavo, symbol, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTicker24h(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function parseTicker(self::Bitvavo, ticker, market=nothing)
+function parseTicker(self::Bitvavo, ticker; market=nothing)
     marketId = safeString(ticker, "market");
-    symbol = self.safeSymbol(marketId, market, "-");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "-");
     timestamp = safeInteger(ticker, "timestamp");
     last_var = safeString(ticker, "last");
     baseVolume = safeString(ticker, "volume");
@@ -772,18 +813,44 @@ function parseTicker(self::Bitvavo, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Bitvavo, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bitvavo; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetTicker24h(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function fetchTrades(self::Bitvavo, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.bitvavo.com/docs/rest-api/get-trades/
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bitvavo, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -791,7 +858,7 @@ function fetchTrades(self::Bitvavo, symbol, since=nothing, limit=nothing, params
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing)
@@ -804,17 +871,17 @@ function fetchTrades(self::Bitvavo, symbol, since=nothing, limit=nothing, params
     end
     (request, params) = self.handleUntilOption("end", request, params);
     response = Base.fetch(self.publicGetMarketTrades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Bitvavo, trade, market=nothing)
+function parseTrade(self::Bitvavo, trade; market=nothing)
     priceString = safeString(trade, "price");
     amountString = safeString(trade, "amount");
     timestamp = safeInteger(trade, "timestamp");
     side = safeString(trade, "side");
     id = safeString2(trade, "id", "fillId");
     marketId = safeString(trade, "market");
-    symbol = self.safeSymbol(marketId, market, "-");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "-");
     taker = safeValue(trade, "taker");
     takerOrMaker = nothing;
     if functions.ccxtruthy(taker != nothing)
@@ -845,10 +912,20 @@ function parseTrade(self::Bitvavo, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTradingFees(self::Bitvavo, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://docs.bitvavo.com/docs/rest-api/get-account-fees/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Bitvavo; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -856,7 +933,7 @@ function fetchTradingFees(self::Bitvavo, params=Dict())
     return self.parseTradingFees(response)
 
 end
-function parseTradingFees(self::Bitvavo, fees, market=nothing)
+function parseTradingFees(self::Bitvavo, fees; market=nothing)
     feesValue = safeValue(fees, "fees");
     maker = self.safeNumber(feesValue, "maker");
     taker = self.safeNumber(feesValue, "taker");
@@ -877,7 +954,18 @@ function parseTradingFees(self::Bitvavo, fees, market=nothing)
     return result
 
 end
-function fetchTradingFee(self::Bitvavo, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://docs.bitvavo.com/docs/rest-api/get-market-fees/
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Bitvavo, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -886,13 +974,13 @@ function fetchTradingFee(self::Bitvavo, symbol, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetAccountFees(extend(request, params)));
-    return self.parseTradingFee(response, market)
+    return self.parseTradingFee(response, market = market)
 
 end
-function parseTradingFee(self::Bitvavo, fee, market=nothing)
+function parseTradingFee(self::Bitvavo, fee; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("maker") => self.safeNumber(fee, "maker"),
     Symbol("taker") => self.safeNumber(fee, "taker"),
     Symbol("percentage") => true,
@@ -900,7 +988,19 @@ function parseTradingFee(self::Bitvavo, fee, market=nothing)
 )
 
 end
-function fetchOrderBook(self::Bitvavo, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.bitvavo.com/docs/rest-api/get-order-book/
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitvavo, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -917,11 +1017,11 @@ function fetchOrderBook(self::Bitvavo, symbol, limit=nothing, params=Dict())
     return orderbook
 
 end
-function parseOHLCV(self::Bitvavo, ohlcv, market=nothing)
+function parseOHLCV(self::Bitvavo, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCVRequest(self::Bitvavo, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+function fetchOHLCVRequest(self::Bitvavo, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing),
@@ -944,7 +1044,23 @@ function fetchOHLCVRequest(self::Bitvavo, symbol, timeframe="1m", since=nothing,
     return extend(request, params)
 
 end
-function fetchOHLCV(self::Bitvavo, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bitvavo, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -952,11 +1068,11 @@ function fetchOHLCV(self::Bitvavo, symbol, timeframe="1m", since=nothing, limit=
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 1440))
     end
-    request = self.fetchOHLCVRequest(symbol, timeframe, since, limit, params);
+    request = self.fetchOHLCVRequest(symbol, timeframe = timeframe, since = since, limit = limit, params = params);
     response = Base.fetch(self.publicGetMarketCandles(request));
-    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
 function parseBalance(self::Bitvavo, response)
@@ -981,7 +1097,17 @@ function parseBalance(self::Bitvavo, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bitvavo, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.bitvavo.com/docs/rest-api/get-account-balance/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bitvavo; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -989,12 +1115,22 @@ function fetchBalance(self::Bitvavo, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchAccounts(self::Bitvavo, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+"""
+function fetchAccounts(self::Bitvavo; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetSubaccounts(params));
-    accounts = self.safeList(response, "items", []);
+    accounts = self.safeList(response, "items", defaultValue = []);
     return self.parseAccounts(accounts)
 
 end
@@ -1007,7 +1143,23 @@ function parseAccount(self::Bitvavo, account)
 )
 
 end
-function transfer(self::Bitvavo, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between the master account and a subaccount
+see: https://docs.bitvavo.com/docs/institutional-api/create-transfer/
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from, either 'master' or the subaccount id
+- `toAccount`::string: account to transfer to, either 'master' or the subaccount id
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccountId`::string, optional: the unique identifier for the subaccount
+- `params.clientRequestId`::string, optional: client defined unique id
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Bitvavo, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1043,10 +1195,25 @@ function transfer(self::Bitvavo, code, amount, fromAccount, toAccount, params=Di
         Symbol("amount") => self.currencyToPrecision(code, amount)
     );
     response = Base.fetch(self.privatePostSubaccountsTransfers(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function fetchTransfers(self::Bitvavo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://docs.bitvavo.com/docs/institutional-api/get-transfers/
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccountId`::string, optional: the unique identifier for the subaccount
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Bitvavo; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1068,11 +1235,23 @@ function fetchTransfers(self::Bitvavo, code=nothing, since=nothing, limit=nothin
     end
     (request, params) = self.handleUntilOption("end", request, params);
     response = Base.fetch(self.privateGetSubaccountsTransfers(extend(request, params)));
-    items = self.safeList(response, "items", []);
-    return self.parseTransfers(items, currency, since, limit)
+    items = self.safeList(response, "items", defaultValue = []);
+    return self.parseTransfers(items, currency = currency, since = since, limit = limit)
 
 end
-function fetchTransfer(self::Bitvavo, id, code=nothing, params=Dict())
+"""
+fetches a transfer
+see: https://docs.bitvavo.com/docs/institutional-api/get-transfer/
+
+# Arguments
+- `id`::string: transfer id
+- `code`::string, optional: unified currency code of the currency transferred
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfer(self::Bitvavo, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1084,7 +1263,7 @@ function fetchTransfer(self::Bitvavo, id, code=nothing, params=Dict())
         Symbol("transferId") => id
     );
     response = Base.fetch(self.privateGetSubaccountsTransfersTransferId(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
 function parseTransferStatus(self::Bitvavo, status)
@@ -1096,9 +1275,9 @@ function parseTransferStatus(self::Bitvavo, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransfer(self::Bitvavo, transfer, currency=nothing)
+function parseTransfer(self::Bitvavo, transfer; currency=nothing)
     currencyId = safeString(transfer, "symbol");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     subaccountId = safeString(transfer, "subaccountId");
     direction = safeString(transfer, "direction");
     fromAccount = nothing;
@@ -1127,7 +1306,18 @@ function parseTransfer(self::Bitvavo, transfer, currency=nothing)
 )
 
 end
-function fetchDepositAddress(self::Bitvavo, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.bitvavo.com/docs/rest-api/get-deposit-data/
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bitvavo, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1138,7 +1328,7 @@ function fetchDepositAddress(self::Bitvavo, code, params=Dict())
     response = Base.fetch(self.privateGetDeposit(extend(request, params)));
     address = safeString(response, "address");
     tag = safeString(response, "paymentId");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
@@ -1148,7 +1338,7 @@ function fetchDepositAddress(self::Bitvavo, code, params=Dict())
 )
 
 end
-function createOrderRequest(self::Bitvavo, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Bitvavo, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1165,7 +1355,7 @@ function createOrderRequest(self::Bitvavo, symbol, type_var, side, amount, price
     isLimitOrder = @functions.ccxt_or(@functions.ccxt_or((type_var == "limit"), (type_var == "stopLossLimit")), (type_var == "takeProfitLimit"));
     timeInForce = safeString(params, "timeInForce");
     triggerPrice = safeStringN(params, ["triggerPrice", "stopPrice", "triggerAmount"]);
-    postOnly = self.isPostOnly(isMarketOrder, false, params);
+    postOnly = self.isPostOnly(isMarketOrder, false, params = params);
     stopLossPrice = safeValue(params, "stopLossPrice");
     takeProfitPrice = safeValue(params, "takeProfitPrice");
     params = omit(params, ["timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"]);
@@ -1233,17 +1423,43 @@ function createOrderRequest(self::Bitvavo, symbol, type_var, side, amount, price
     return extend(request, params)
 
 end
-function createOrder(self::Bitvavo, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.bitvavo.com/docs/rest-api/create-order/
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "PO"
+- `params.stopPrice`::float, optional: Alias for triggerPrice
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: If true, the order will only be posted to the order book and not executed immediately
+- `params.stopLossPrice`::float, optional: The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price at which a take profit order is triggered at
+- `params.triggerType`::string, optional: "price"
+- `params.triggerReference`::string, optional: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
+- `params.selfTradePrevention`::string, optional: one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
+- `params.disableMarketProtection`::bool, optional: don't cancel if the next fill price is 10% worse than the best fill price
+- `params.responseRequired`::bool, optional: Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bitvavo, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = Base.fetch(self.privatePostOrder(request));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function editOrderRequest(self::Bitvavo, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+function editOrderRequest(self::Bitvavo, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     market = self.market(symbol);
     amountRemaining = self.safeNumber(params, "amountRemaining");
@@ -1280,17 +1496,33 @@ function editOrderRequest(self::Bitvavo, id, symbol, type_var, side, amount=noth
     return request
 
 end
-function editOrder(self::Bitvavo, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://docs.bitvavo.com/docs/rest-api/update-order/
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float, optional: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Bitvavo, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.editOrderRequest(id, symbol, type_var, side, amount, price, params);
+    request = self.editOrderRequest(id, symbol, type_var, side, amount = amount, price = price, params = params);
     response = Base.fetch(self.privatePutOrder(request));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrderRequest(self::Bitvavo, id, symbol=nothing, params=Dict())
+function cancelOrderRequest(self::Bitvavo, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -1312,17 +1544,40 @@ function cancelOrderRequest(self::Bitvavo, id, symbol=nothing, params=Dict())
     return extend(request, params)
 
 end
-function cancelOrder(self::Bitvavo, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.bitvavo.com/docs/rest-api/cancel-order/
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bitvavo, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.cancelOrderRequest(id, symbol, params);
+    request = self.cancelOrderRequest(id, symbol = symbol, params = params);
     response = Base.fetch(self.privateDeleteOrder(request));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelAllOrders(self::Bitvavo, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://docs.bitvavo.com/docs/rest-api/cancel-orders/
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bitvavo; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1340,10 +1595,22 @@ function cancelAllOrders(self::Bitvavo, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890")));
     end
     response = Base.fetch(self.privateDeleteOrders(extend(request, params)));
-    return self.parseOrders(response, market)
+    return self.parseOrders(response, market = market)
 
 end
-function cancelAllOrdersAfter(self::Bitvavo, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://docs.bitvavo.com/docs/rest-api/cancel-orders-after/
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.codGroupId`::int, optional: your identifier for a group of orders, default is 1
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Bitvavo, timeout; params=Dict())
     if functions.ccxtruthy(functions.ccxt_gt(timeout, 300000))
         throw(BadRequest(string(self.id, " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")));
     end
@@ -1354,7 +1621,7 @@ function cancelAllOrdersAfter(self::Bitvavo, timeout, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     codGroupId = nothing;
-    (codGroupId, params) = self.handleOptionAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1);
+    (codGroupId, params) = self.handleOptionAndParams(params, "cancelAllOrdersAfter", "codGroupId", defaultValue = 1);
     request = Dict{Symbol, Any}(
         Symbol("codGroupId") => codGroupId,
         Symbol("expiryAfterSeconds") => functions.ccxtruthy((functions.ccxt_gt(timeout, 0))) ? self.parseToInt(timeout / 1000) : 0
@@ -1363,7 +1630,19 @@ function cancelAllOrdersAfter(self::Bitvavo, timeout, params=Dict())
     return response
 
 end
-function fetchOrder(self::Bitvavo, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.bitvavo.com/docs/rest-api/get-order/
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bitvavo, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -1379,10 +1658,10 @@ function fetchOrder(self::Bitvavo, id, symbol=nothing, params=Dict())
         request[Symbol("orderId")] = id;
     end
     response = Base.fetch(self.privateGetOrder(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOrdersRequest(self::Bitvavo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrdersRequest(self::Bitvavo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing)
@@ -1397,7 +1676,22 @@ function fetchOrdersRequest(self::Bitvavo, symbol=nothing, since=nothing, limit=
     return extend(request, params)
 
 end
-function fetchOrders(self::Bitvavo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.bitvavo.com/docs/rest-api/get-orders/
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Bitvavo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -1407,15 +1701,28 @@ function fetchOrders(self::Bitvavo, symbol=nothing, since=nothing, limit=nothing
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = self.market(symbol);
-    request = self.fetchOrdersRequest(symbol, since, limit, params);
+    request = self.fetchOrdersRequest(symbol = symbol, since = since, limit = limit, params = params);
     response = Base.fetch(self.privateGetOrders(request));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Bitvavo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.bitvavo.com/docs/rest-api/get-open-orders/
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bitvavo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1426,7 +1733,7 @@ function fetchOpenOrders(self::Bitvavo, symbol=nothing, since=nothing, limit=not
         request[Symbol("market")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetOrdersOpen(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Bitvavo, status)
@@ -1448,11 +1755,11 @@ function parseOrderStatus(self::Bitvavo, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Bitvavo, order, market=nothing)
+function parseOrder(self::Bitvavo, order; market=nothing)
     id = safeString(order, "orderId");
     timestamp = safeInteger(order, "created");
     marketId = safeString(order, "market");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     symbol = get(market, Symbol("symbol"), nothing);
     status = self.parseOrderStatus(safeString(order, "status"));
     side = safeString(order, "side");
@@ -1502,10 +1809,10 @@ function parseOrder(self::Bitvavo, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => fee,
     Symbol("trades") => rawTrades
-), market)
+), market = market)
 
 end
-function fetchMyTradesRequest(self::Bitvavo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchMyTradesRequest(self::Bitvavo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing)
@@ -1520,7 +1827,22 @@ function fetchMyTradesRequest(self::Bitvavo, symbol=nothing, since=nothing, limi
     return extend(request, params)
 
 end
-function fetchMyTrades(self::Bitvavo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.bitvavo.com/docs/rest-api/get-trade-history/
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bitvavo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -1530,15 +1852,30 @@ function fetchMyTrades(self::Bitvavo, symbol=nothing, since=nothing, limit=nothi
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = self.market(symbol);
-    request = self.fetchMyTradesRequest(symbol, since, limit, params);
+    request = self.fetchMyTradesRequest(symbol = symbol, since = since, limit = limit, params = params);
     response = Base.fetch(self.privateGetTrades(request));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchLedger(self::Bitvavo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://docs.bitvavo.com/docs/rest-api/get-transaction-history/
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+- `params.page`::int, optional: the page number for the transaction history
+
+# Returns
+- a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+"""
+function fetchLedger(self::Bitvavo; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1555,8 +1892,8 @@ function fetchLedger(self::Bitvavo, code=nothing, since=nothing, limit=nothing, 
     end
     (request, params) = self.handleUntilOption("toDate", request, params);
     response = Base.fetch(self.privateGetAccountHistory(extend(request, params)));
-    items = self.safeList(response, "items", []);
-    return self.parseLedger(items, currency, since, limit)
+    items = self.safeList(response, "items", defaultValue = []);
+    return self.parseLedger(items, currency = currency, since = since, limit = limit)
 
 end
 function parseLedgerEntryType(self::Bitvavo, type_var)
@@ -1572,7 +1909,7 @@ function parseLedgerEntryType(self::Bitvavo, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Bitvavo, item, currency=nothing)
+function parseLedgerEntry(self::Bitvavo, item; currency=nothing)
     rawType = safeString(item, "type");
     type_var = self.parseLedgerEntryType(rawType);
     currencyId = safeString(item, "receivedCurrency");
@@ -1584,7 +1921,7 @@ function parseLedgerEntry(self::Bitvavo, item, currency=nothing)
         direction = "out";
     end
     code = self.safeCurrencyCode(currencyId);
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     timestamp = self.parse8601(safeString(item, "executedAt"));
     fee = nothing;
     feeCost = safeString(item, "feesAmount");
@@ -1612,10 +1949,10 @@ function parseLedgerEntry(self::Bitvavo, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => "ok",
     Symbol("fee") => fee
-), currency)
+), currency = currency)
 
 end
-function withdrawRequest(self::Bitvavo, code, amount, address, tag=nothing, params=Dict())
+function withdrawRequest(self::Bitvavo, code, amount, address; tag=nothing, params=Dict())
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(currency, Symbol("id"), nothing),
@@ -1628,19 +1965,33 @@ function withdrawRequest(self::Bitvavo, code, amount, address, tag=nothing, para
     return extend(request, params)
 
 end
-function withdraw(self::Bitvavo, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bitvavo, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    request = self.withdrawRequest(code, amount, address, tag, params);
+    request = self.withdrawRequest(code, amount, address, tag = tag, params = params);
     response = Base.fetch(self.privatePostWithdrawal(request));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function fetchWithdrawalsRequest(self::Bitvavo, code=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchWithdrawalsRequest(self::Bitvavo; code=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -1656,22 +2007,35 @@ function fetchWithdrawalsRequest(self::Bitvavo, code=nothing, since=nothing, lim
     return extend(request, params)
 
 end
-function fetchWithdrawals(self::Bitvavo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.bitvavo.com/docs/rest-api/get-withdrawal-history/
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bitvavo; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    request = self.fetchWithdrawalsRequest(code, since, limit, params);
+    request = self.fetchWithdrawalsRequest(code = code, since = since, limit = limit, params = params);
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
     response = Base.fetch(self.privateGetWithdrawalHistory(request));
-    return self.parseTransactions(response, currency, since, limit, Dict{Symbol, Any}(
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => "withdrawal"
 ))
 
 end
-function fetchDepositsRequest(self::Bitvavo, code=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchDepositsRequest(self::Bitvavo; code=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -1687,17 +2051,30 @@ function fetchDepositsRequest(self::Bitvavo, code=nothing, since=nothing, limit=
     return extend(request, params)
 
 end
-function fetchDeposits(self::Bitvavo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.bitvavo.com/docs/rest-api/get-deposit-history/
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bitvavo; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    request = self.fetchDepositsRequest(code, since, limit, params);
+    request = self.fetchDepositsRequest(code = code, since = since, limit = limit, params = params);
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
     response = Base.fetch(self.privateGetDepositHistory(request));
-    return self.parseTransactions(response, currency, since, limit, Dict{Symbol, Any}(
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => "deposit"
 ))
 
@@ -1717,11 +2094,11 @@ function parseTransactionStatus(self::Bitvavo, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Bitvavo, transaction, currency=nothing)
+function parseTransaction(self::Bitvavo, transaction; currency=nothing)
     id = nothing;
     timestamp = safeInteger(transaction, "timestamp");
     currencyId = safeString(transaction, "symbol");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     status = self.parseTransactionStatus(safeString(transaction, "status"));
     amount = self.safeNumber(transaction, "amount");
     address = safeString(transaction, "address");
@@ -1765,7 +2142,7 @@ function parseTransaction(self::Bitvavo, transaction, currency=nothing)
 )
 
 end
-function parseDepositWithdrawFee(self::Bitvavo, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Bitvavo, fee; currency=nothing)
     result = Dict{Symbol, Any}(
         Symbol("info") => fee,
         Symbol("withdraw") => Dict{Symbol, Any}(
@@ -1784,7 +2161,7 @@ function parseDepositWithdrawFee(self::Bitvavo, fee, currency=nothing)
     if functions.ccxtruthy(networkId == "Mainnet")
         networkId = currencyCode;
     end
-    networkCode = self.networkIdToCode(networkId, currencyCode);
+    networkCode = self.networkIdToCode(networkId = networkId, currencyCode = currencyCode);
     if functions.ccxtruthy(networkCode != nothing)
         result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
             Symbol("deposit") => get(result, Symbol("deposit"), nothing),
@@ -1794,15 +2171,26 @@ function parseDepositWithdrawFee(self::Bitvavo, fee, currency=nothing)
     return result
 
 end
-function fetchDepositWithdrawFees(self::Bitvavo, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://docs.bitvavo.com/docs/rest-api/get-asset-data/
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Bitvavo; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetAssets(params));
-    return self.parseDepositWithdrawFees(response, codes, "symbol")
+    return self.parseDepositWithdrawFees(response, codes = codes, currencyIdKey = "symbol")
 
 end
-function sign(self::Bitvavo, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitvavo, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     query = omit(params, self.extractParams(path));
     url = string("/", self.version, "/", self.implodeParams(path, params));
     getOrDelete = @functions.ccxt_or((method == "GET"), (method == "DELETE"));
@@ -1858,7 +2246,7 @@ function handleErrors(self::Bitvavo, httpCode, reason, url, method, headers, bod
     return nothing
 
 end
-function calculateRateLimiterCost(self::Bitvavo, api, method, path, params, config=Dict())
+function calculateRateLimiterCost(self::Bitvavo, api, method, path, params; config=Dict())
     if functions.ccxtruthy(@functions.ccxt_and((ccxt_in("noMarket", config)), !functions.ccxtruthy((ccxt_in("market", params)))))
             return get(config, Symbol("noMarket"), nothing)
     end
@@ -1872,167 +2260,167 @@ Base.getproperty(self::Bitvavo, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarketBook(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "{market}/book", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{market}/book"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetReportMarketBook(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "report/{market}/book", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "report/{market}/book"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketTrades(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "{market}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{market}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetReportMarketTrades(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "report/{market}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "report/{market}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerPrice(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerBook(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "ticker/book", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/book"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketCandles(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "{market}/candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{market}/candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker24h(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "ticker/24h", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/24h"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTime(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarkets(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssets(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "assets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "assets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrder(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersOpen(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "ordersOpen", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "ordersOpen"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTrades(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrders(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeposit(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "deposit", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDepositHistory(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "depositHistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "depositHistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawalHistory(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "withdrawalHistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawalHistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccount(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBalance(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStakingBalance(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "stakingBalance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "stakingBalance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountFees(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "account/fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountHistory(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubaccounts(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "subaccounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subaccounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubaccountsTransfers(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subaccounts/transfers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubaccountsTransfersTransferId(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfers/{transferId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subaccounts/transfers/{transferId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetInstitutionalSubaccountsBalance(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "institutional/subaccounts/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "institutional/subaccounts/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetInstitutionalSubaccountsHistory(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "institutional/subaccounts/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "institutional/subaccounts/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetInstitutionalSubaccountsOrdersOpen(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "institutional/subaccounts/orders/open", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "institutional/subaccounts/orders/open"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrder(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelOrdersAfter(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "cancelOrdersAfter", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelOrdersAfter"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawal(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCryptoWithdrawal(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "crypto/withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "crypto/withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubaccounts(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "subaccounts", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "subaccounts"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubaccountsTransfers(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfers", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "subaccounts/transfers"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOrder(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "order", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrder(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrders(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteAtomicOrders(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "atomic/orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "atomic/orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteInstitutionalSubaccountsOrder(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "institutional/subaccounts/order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "institutional/subaccounts/order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteInstitutionalSubaccountsOrders(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "institutional/subaccounts/orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "institutional/subaccounts/orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitvavo(; kwargs...)
@@ -2096,3 +2484,483 @@ function Bitvavo(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitvavo_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.bitvavo.com/docs/rest-api/get-server-time/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Bitvavo_fetchTime
+
+function __ccxt_doc_Bitvavo_fetchMarkets() end
+"""
+retrieves data on all markets for bitvavo
+see: https://docs.bitvavo.com/docs/rest-api/get-markets/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitvavo_fetchMarkets
+
+function __ccxt_doc_Bitvavo_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.bitvavo.com/docs/rest-api/get-asset-data/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bitvavo_fetchCurrencies
+
+function __ccxt_doc_Bitvavo_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitvavo_fetchTicker
+
+function __ccxt_doc_Bitvavo_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitvavo_fetchTickers
+
+function __ccxt_doc_Bitvavo_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.bitvavo.com/docs/rest-api/get-trades/
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bitvavo_fetchTrades
+
+function __ccxt_doc_Bitvavo_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://docs.bitvavo.com/docs/rest-api/get-account-fees/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Bitvavo_fetchTradingFees
+
+function __ccxt_doc_Bitvavo_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://docs.bitvavo.com/docs/rest-api/get-market-fees/
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitvavo_fetchTradingFee
+
+function __ccxt_doc_Bitvavo_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.bitvavo.com/docs/rest-api/get-order-book/
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitvavo_fetchOrderBook
+
+function __ccxt_doc_Bitvavo_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bitvavo_fetchOHLCV
+
+function __ccxt_doc_Bitvavo_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.bitvavo.com/docs/rest-api/get-account-balance/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bitvavo_fetchBalance
+
+function __ccxt_doc_Bitvavo_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+"""
+__ccxt_doc_Bitvavo_fetchAccounts
+
+function __ccxt_doc_Bitvavo_transfer() end
+"""
+transfer currency internally between the master account and a subaccount
+see: https://docs.bitvavo.com/docs/institutional-api/create-transfer/
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from, either 'master' or the subaccount id
+- `toAccount`::string: account to transfer to, either 'master' or the subaccount id
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccountId`::string, optional: the unique identifier for the subaccount
+- `params.clientRequestId`::string, optional: client defined unique id
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bitvavo_transfer
+
+function __ccxt_doc_Bitvavo_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://docs.bitvavo.com/docs/institutional-api/get-transfers/
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccountId`::string, optional: the unique identifier for the subaccount
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bitvavo_fetchTransfers
+
+function __ccxt_doc_Bitvavo_fetchTransfer() end
+"""
+fetches a transfer
+see: https://docs.bitvavo.com/docs/institutional-api/get-transfer/
+
+# Arguments
+- `id`::string: transfer id
+- `code`::string, optional: unified currency code of the currency transferred
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bitvavo_fetchTransfer
+
+function __ccxt_doc_Bitvavo_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.bitvavo.com/docs/rest-api/get-deposit-data/
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bitvavo_fetchDepositAddress
+
+function __ccxt_doc_Bitvavo_createOrder() end
+"""
+create a trade order
+see: https://docs.bitvavo.com/docs/rest-api/create-order/
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "PO"
+- `params.stopPrice`::float, optional: Alias for triggerPrice
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: If true, the order will only be posted to the order book and not executed immediately
+- `params.stopLossPrice`::float, optional: The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price at which a take profit order is triggered at
+- `params.triggerType`::string, optional: "price"
+- `params.triggerReference`::string, optional: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
+- `params.selfTradePrevention`::string, optional: one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
+- `params.disableMarketProtection`::bool, optional: don't cancel if the next fill price is 10% worse than the best fill price
+- `params.responseRequired`::bool, optional: Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitvavo_createOrder
+
+function __ccxt_doc_Bitvavo_editOrder() end
+"""
+edit a trade order
+see: https://docs.bitvavo.com/docs/rest-api/update-order/
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float, optional: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitvavo_editOrder
+
+function __ccxt_doc_Bitvavo_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.bitvavo.com/docs/rest-api/cancel-order/
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitvavo_cancelOrder
+
+function __ccxt_doc_Bitvavo_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://docs.bitvavo.com/docs/rest-api/cancel-orders/
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitvavo_cancelAllOrders
+
+function __ccxt_doc_Bitvavo_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://docs.bitvavo.com/docs/rest-api/cancel-orders-after/
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.codGroupId`::int, optional: your identifier for a group of orders, default is 1
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Bitvavo_cancelAllOrdersAfter
+
+function __ccxt_doc_Bitvavo_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.bitvavo.com/docs/rest-api/get-order/
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitvavo_fetchOrder
+
+function __ccxt_doc_Bitvavo_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.bitvavo.com/docs/rest-api/get-orders/
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitvavo_fetchOrders
+
+function __ccxt_doc_Bitvavo_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.bitvavo.com/docs/rest-api/get-open-orders/
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitvavo_fetchOpenOrders
+
+function __ccxt_doc_Bitvavo_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.bitvavo.com/docs/rest-api/get-trade-history/
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitvavo_fetchMyTrades
+
+function __ccxt_doc_Bitvavo_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://docs.bitvavo.com/docs/rest-api/get-transaction-history/
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+- `params.page`::int, optional: the page number for the transaction history
+
+# Returns
+- a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+"""
+__ccxt_doc_Bitvavo_fetchLedger
+
+function __ccxt_doc_Bitvavo_withdraw() end
+"""
+make a withdrawal
+see: https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitvavo_withdraw
+
+function __ccxt_doc_Bitvavo_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.bitvavo.com/docs/rest-api/get-withdrawal-history/
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitvavo_fetchWithdrawals
+
+function __ccxt_doc_Bitvavo_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.bitvavo.com/docs/rest-api/get-deposit-history/
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitvavo_fetchDeposits
+
+function __ccxt_doc_Bitvavo_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://docs.bitvavo.com/docs/rest-api/get-asset-data/
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitvavo_fetchDepositWithdrawFees

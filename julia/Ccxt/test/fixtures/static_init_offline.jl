@@ -79,7 +79,7 @@ function static_init_offline(id::AbstractString, cls)
         :expires => 999999999999999,
         :leverageBrackets => Dict{Symbol,Any}(),
     ))
-    Ccxt.setMarkets(ex, markets, currencies)
+    Ccxt.setMarkets(ex, markets; currencies=currencies)
     ex.currencies = currencies
     return ex
 end

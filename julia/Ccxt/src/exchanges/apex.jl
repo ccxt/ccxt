@@ -418,9 +418,19 @@ function describe(self::Apex, )
 ))
 
 end
-function fetchTime(self::Apex, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Apex; params=Dict())
     response = Base.fetch(self.publicGetV3Time(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return safeInteger(data, "time")
 
 end
@@ -439,12 +449,22 @@ function parseBalance(self::Apex, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Apex, params=Dict())
+"""
+query for account info
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Apex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetV3AccountBalance(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseBalance(data)
 
 end
@@ -458,22 +478,42 @@ function parseAccount(self::Apex, account)
 )
 
 end
-function fetchAccount(self::Apex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchAccount(self::Apex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetV3Account(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseAccount(data)
 
 end
-function fetchCurrencies(self::Apex, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Apex; params=Dict())
     response = Base.fetch(self.publicGetV3Symbols(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    spotConfig = self.safeDict(data, "spotConfig", Dict{Symbol, Any}());
-    multiChain = self.safeDict(spotConfig, "multiChain", Dict{Symbol, Any}());
-    rows = self.safeList(spotConfig, "assets", []);
-    chains = self.safeList(multiChain, "chains", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    spotConfig = self.safeDict(data, "spotConfig", defaultValue = Dict{Symbol, Any}());
+    multiChain = self.safeDict(spotConfig, "multiChain", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(spotConfig, "assets", defaultValue = []);
+    chains = self.safeList(multiChain, "chains", defaultValue = []);
     self.options[Symbol("_temp_currencies_chains")] = chains;
     result = self.parseCurrencies(rows);
     delete!(self.options, :_temp_currencies_chains);
@@ -489,14 +529,14 @@ function parseCurrency(self::Apex, currency)
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = get(chains, j + 1, nothing);
-        tokens = self.safeList(chain, "tokens", []);
+        tokens = self.safeList(chain, "tokens", defaultValue = []);
         f = 0
         while functions.ccxtruthy(functions.ccxt_lt(f, length(tokens)))
             token = get(tokens, f + 1, nothing);
             tokenName = safeString(token, "token");
             if functions.ccxtruthy(tokenName == currencyId)
                 networkId = safeString(chain, "chainId");
-                networkCode = self.networkIdToCode(networkId, code);
+                networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
                 if functions.ccxtruthy(networkCode != nothing)
                     networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                         Symbol("info") => chain,
@@ -506,7 +546,7 @@ function parseCurrency(self::Apex, currency)
                         Symbol("deposit") => !functions.ccxtruthy(self.safeBool(chain, "depositDisable")),
                         Symbol("withdraw") => self.safeBool(token, "withdrawEnable"),
                         Symbol("fee") => self.safeNumber(token, "minFee"),
-                        Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(token, "decimals"))),
+                        Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(token, "decimals"))),
                         Symbol("limits") => Dict{Symbol, Any}(
                             Symbol("withdraw") => Dict{Symbol, Any}(
                                 Symbol("min") => self.safeNumber(token, "minWithdraw"),
@@ -557,11 +597,21 @@ function parseCurrency(self::Apex, currency)
 ))
 
 end
-function fetchMarkets(self::Apex, params=Dict())
+"""
+retrieves data on all markets for apex
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Apex; params=Dict())
     response = Base.fetch(self.publicGetV3Symbols(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    contractConfig = self.safeDict(data, "contractConfig", Dict{Symbol, Any}());
-    perpetualContract = self.safeList(contractConfig, "perpetualContract", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    contractConfig = self.safeDict(data, "contractConfig", defaultValue = Dict{Symbol, Any}());
+    perpetualContract = self.safeList(contractConfig, "perpetualContract", defaultValue = []);
     return self.parseMarkets(perpetualContract)
 
 end
@@ -578,7 +628,7 @@ function parseMarket(self::Apex, market)
     expiry = 0;
     takerFee = self.parseNumber("0.0002");
     makerFee = self.parseNumber("0.0005");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("id2") => id2,
     Symbol("symbol") => symbol,
@@ -632,11 +682,11 @@ function parseMarket(self::Apex, market)
 ))
 
 end
-function parseTicker(self::Apex, ticker, market=nothing)
+function parseTicker(self::Apex, ticker; market=nothing)
     timestamp = milliseconds();
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market);
-    symbol = self.safeSymbol(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
+    symbol = self.safeSymbol(marketId, market = market);
     last_var = safeString(ticker, "lastPrice");
     percentage = safeString(ticker, "price24hPcnt");
     quoteVolume = safeString(ticker, "turnover24h");
@@ -666,10 +716,21 @@ function parseTicker(self::Apex, ticker, market=nothing)
     Symbol("markPrice") => safeString(ticker, "markPrice"),
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Apex, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Apex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -678,21 +739,47 @@ function fetchTicker(self::Apex, symbol, params=Dict())
         Symbol("symbol") => safeString(market, "id2")
     );
     response = Base.fetch(self.publicGetV3Ticker(extend(request, params)));
-    tickers = self.safeList(response, "data", []);
-    rawTicker = self.safeDict(tickers, 0, Dict{Symbol, Any}());
-    return self.parseTicker(rawTicker, market)
+    tickers = self.safeList(response, "data", defaultValue = []);
+    rawTicker = self.safeDict(tickers, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(rawTicker, market = market)
 
 end
-function fetchTickers(self::Apex, symbols=nothing, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+
+# Arguments
+- `symbols`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Apex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetV3DataAllTickerInfo(params));
-    tickers = self.safeList(response, "data", []);
-    return self.parseTickers(tickers, symbols)
+    tickers = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function fetchOHLCV(self::Apex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Apex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -705,21 +792,33 @@ function fetchOHLCV(self::Apex, symbol, timeframe="1m", since=nothing, limit=not
         limit = 200;
     end
     request[Symbol("limit")] = limit;
-    (request, params) = self.handleUntilOption("end", request, params, 0.001);
+    (request, params) = self.handleUntilOption("end", request, params, multiplier = 0.001);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start")] = floor(since / 1000);
     end
     response = Base.fetch(self.publicGetV3Klines(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    OHLCVs = self.safeList(data, safeString(market, "id2"), []);
-    return self.parseOHLCVs(OHLCVs, market, timeframe, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    OHLCVs = self.safeList(data, safeString(market, "id2"), defaultValue = []);
+    return self.parseOHLCVs(OHLCVs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Apex, ohlcv, market=nothing)
+function parseOHLCV(self::Apex, ohlcv; market=nothing)
     return [safeInteger2(ohlcv, "start", "t"), self.safeNumber2(ohlcv, "open", "o"), self.safeNumber2(ohlcv, "high", "h"), self.safeNumber2(ohlcv, "low", "l"), self.safeNumber2(ohlcv, "close", "c"), self.safeNumber2(ohlcv, "volume", "v")]
 
 end
-function fetchOrderBook(self::Apex, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Apex, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -732,14 +831,29 @@ function fetchOrderBook(self::Apex, symbol, limit=nothing, params=Dict())
     end
     request[Symbol("limit")] = limit;
     response = Base.fetch(self.publicGetV3Depth(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = milliseconds();
-    orderbook = self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp, "b", "a");
+    orderbook = self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "b", asksKey = "a");
     orderbook[Symbol("nonce")] = safeInteger(data, "u");
     return orderbook
 
 end
-function fetchTrades(self::Apex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Apex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -752,13 +866,13 @@ function fetchTrades(self::Apex, symbol, since=nothing, limit=nothing, params=Di
     end
     request[Symbol("limit")] = limit;
     response = Base.fetch(self.publicGetV3Trades(extend(request, params)));
-    trades = self.safeList(response, "data", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Apex, trade, market=nothing)
+function parseTrade(self::Apex, trade; market=nothing)
     marketId = safeString2(trade, "s", "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     id = safeString2(trade, "i", "id");
     timestamp = safeIntegerN(trade, ["t", "T", "createdAt"]);
     priceString = safeString2(trade, "p", "price");
@@ -780,10 +894,21 @@ function parseTrade(self::Apex, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchOpenInterest(self::Apex, symbol, params=Dict())
+"""
+retrieves the open interest of a contract trading pair
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Apex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -792,16 +917,16 @@ function fetchOpenInterest(self::Apex, symbol, params=Dict())
         Symbol("symbol") => safeString(market, "id2")
     );
     response = Base.fetch(self.publicGetV3Ticker(extend(request, params)));
-    tickers = self.safeList(response, "data", []);
-    rawTicker = self.safeDict(tickers, 0, Dict{Symbol, Any}());
-    return self.parseOpenInterest(rawTicker, market)
+    tickers = self.safeList(response, "data", defaultValue = []);
+    rawTicker = self.safeDict(tickers, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOpenInterest(rawTicker, market = market)
 
 end
-function parseOpenInterest(self::Apex, interest, market=nothing)
+function parseOpenInterest(self::Apex, interest; market=nothing)
     timestamp = milliseconds();
     marketId = safeString(interest, "symbol");
-    market = self.safeMarket(marketId, market);
-    symbol = self.safeSymbol(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
+    symbol = self.safeSymbol(marketId, market = market);
     return self.safeOpenInterest(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("openInterestAmount") => safeString(interest, "openInterest"),
@@ -809,10 +934,25 @@ function parseOpenInterest(self::Apex, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchFundingRateHistory(self::Apex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Apex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -838,8 +978,8 @@ function fetchFundingRateHistory(self::Apex, symbol=nothing, since=nothing, limi
     end
     response = Base.fetch(self.publicGetV3HistoryFunding(extend(request, params)));
     rates = [];
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    resultList = self.safeList(data, "historyFunds", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    resultList = self.safeList(data, "historyFunds", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(resultList)))
         entry = get(resultList, i + 1, nothing);
@@ -847,7 +987,7 @@ function fetchFundingRateHistory(self::Apex, symbol=nothing, since=nothing, limi
         marketId = safeString(entry, "symbol");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("fundingRate") => self.safeNumber(entry, "rate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
@@ -855,15 +995,15 @@ function fetchFundingRateHistory(self::Apex, symbol=nothing, since=nothing, limi
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function parseOrder(self::Apex, order, market=nothing)
+function parseOrder(self::Apex, order; market=nothing)
     timestamp = safeInteger(order, "createdAt");
     orderId = safeString(order, "id");
     clientOrderId = safeString(order, "clientId");
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     price = safeString(order, "price");
     amount = safeString(order, "size");
@@ -901,7 +1041,7 @@ function parseOrder(self::Apex, order, market=nothing)
         Symbol("currency") => get(market, Symbol("settleId"), nothing)
     ),
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseTimeInForce(self::Apex, timeInForce)
@@ -941,7 +1081,7 @@ function parseOrderType(self::Apex, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function safeMarket(self::Apex, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
+function safeMarket(self::Apex; marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     if functions.ccxtruthy(@functions.ccxt_and(market == nothing, marketId != nothing))
         marketsMap = self.markets;
         marketsById = self.markets_by_id;
@@ -962,7 +1102,7 @@ function safeMarket(self::Apex, marketId=nothing, market=nothing, delimiter=noth
             end
         end
     end
-    return safeMarket(self.parent, marketId, market, delimiter, marketType)
+    return safeMarket(self.parent, marketId = marketId, market = market, delimiter = delimiter, marketType = marketType)
 
 end
 function generateRandomClientIdOmni(self::Apex, _accountId)
@@ -997,7 +1137,29 @@ function getAccountId(self::Apex, )
     return get(self.options, Symbol("accountId"), nothing)
 
 end
-function createOrder(self::Apex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: The price a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price a take profit order is triggered at
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "POST_ONLY"
+- `params.postOnly`::bool, optional: true or false
+- `params.reduceOnly`::bool, optional: Ensures that the executed order does not flip the opened position.
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Apex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1012,7 +1174,7 @@ function createOrder(self::Apex, symbol, type_var, side, amount, price=nothing, 
     if functions.ccxtruthy(price != nothing)
         orderPrice = self.priceToPrecision(symbol, price);
     end
-    fees = self.safeDict(self.fees, "swap", Dict{Symbol, Any}());
+    fees = self.safeDict(self.fees, "swap", defaultValue = Dict{Symbol, Any}());
     taker = safeString(fees, "taker", "0.0005");
     maker = safeString(fees, "maker", "0.0002");
     limitFee = decimalToPrecision(stringAdd(stringMul(stringMul(orderPrice, orderSize), taker), numberToString(get(get(market, Symbol("precision"), nothing), Symbol("price"), nothing))), TRUNCATE, get(get(market, Symbol("precision"), nothing), Symbol("price"), nothing), self.precisionMode, self.paddingMode);
@@ -1032,7 +1194,7 @@ function createOrder(self::Apex, symbol, type_var, side, amount, price=nothing, 
         throw(ArgumentsRequired(string(self.id, " createOrder() requires a price argument for market orders")));
     end
     timeInForce = safeStringUpper(params, "timeInForce");
-    postOnly = self.isPostOnly(isMarket, nothing, params);
+    postOnly = self.isPostOnly(isMarket, nothing, params = params);
     if functions.ccxtruthy(timeInForce == nothing)
         timeInForce = "GOOD_TIL_CANCEL";
     end
@@ -1067,7 +1229,7 @@ function createOrder(self::Apex, symbol, type_var, side, amount, price=nothing, 
     if functions.ccxtruthy(triggerPrice != nothing)
         orderToSign[Symbol("triggerPrice")] = self.priceToPrecision(symbol, triggerPrice);
     end
-    signature = Base.fetch(self.getZKContractSignatureObj(self.remove0xPrefix(self.getSeeds()), orderToSign));
+    signature = Base.fetch(self.getZKContractSignatureObj(self.remove0xPrefix(self.getSeeds()), params = orderToSign));
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("side") => orderSide,
@@ -1085,31 +1247,45 @@ function createOrder(self::Apex, symbol, type_var, side, amount, price=nothing, 
     end
     request[Symbol("signature")] = signature;
     response = Base.fetch(self.privatePostV3Order(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function transfer(self::Apex, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transferId`::string, optional: UUID, which is unique across the platform
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Apex, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     configResponse = Base.fetch(self.publicGetV3Symbols(params));
-    configData = self.safeDict(configResponse, "data", Dict{Symbol, Any}());
-    contractConfig = self.safeDict(configData, "contractConfig", Dict{Symbol, Any}());
-    contractAssets = self.safeList(contractConfig, "assets", []);
-    spotConfig = self.safeDict(configData, "spotConfig", Dict{Symbol, Any}());
-    spotAssets = self.safeList(spotConfig, "assets", []);
-    globalConfig = self.safeDict(spotConfig, "global", Dict{Symbol, Any}());
+    configData = self.safeDict(configResponse, "data", defaultValue = Dict{Symbol, Any}());
+    contractConfig = self.safeDict(configData, "contractConfig", defaultValue = Dict{Symbol, Any}());
+    contractAssets = self.safeList(contractConfig, "assets", defaultValue = []);
+    spotConfig = self.safeDict(configData, "spotConfig", defaultValue = Dict{Symbol, Any}());
+    spotAssets = self.safeList(spotConfig, "assets", defaultValue = []);
+    globalConfig = self.safeDict(spotConfig, "global", defaultValue = Dict{Symbol, Any}());
     receiverAddress = safeString(globalConfig, "contractAssetPoolEthAddress", "");
     receiverZkAccountId = safeString(globalConfig, "contractAssetPoolZkAccountId", "");
     receiverSubAccountId = safeString(globalConfig, "contractAssetPoolSubAccount", "");
     receiverAccountId = safeString(globalConfig, "contractAssetPoolAccountId", "");
     accountResponse = Base.fetch(self.privateGetV3Account(params));
-    accountData = self.safeDict(accountResponse, "data", Dict{Symbol, Any}());
-    spotAccount = self.safeDict(accountData, "spotAccount", Dict{Symbol, Any}());
+    accountData = self.safeDict(accountResponse, "data", defaultValue = Dict{Symbol, Any}());
+    spotAccount = self.safeDict(accountData, "spotAccount", defaultValue = Dict{Symbol, Any}());
     zkAccountId = safeString(spotAccount, "zkAccountId", "");
     subAccountId = safeString(spotAccount, "defaultSubAccountId", "0");
-    subAccounts = self.safeList(spotAccount, "subAccounts", []);
+    subAccounts = self.safeList(spotAccount, "subAccounts", defaultValue = []);
     nonce = "0";
     if functions.ccxtruthy(functions.ccxt_gt(length(subAccounts), 0))
         nonce = safeString(get(subAccounts, 1, nothing), "nonce", "0");
@@ -1132,7 +1308,7 @@ function transfer(self::Apex, code, amount, fromAccount, toAccount, params=Dict(
         i += 1
     end
     tokenId = safeString(currency, "tokenId", "");
-    decimalsNum = self.safeNumber(currency, "decimals", 0);
+    decimalsNum = self.safeNumber(currency, "decimals", defaultNumber = 0);
     decimalsNumber = functions.ccxtruthy((decimalsNum == nothing)) ? 0 : decimalsNum;
     mathPowResult = (pow(10, decimalsNumber));
     amountNumber = self.parseToInt(amount * mathPowResult);
@@ -1159,7 +1335,7 @@ function transfer(self::Apex, code, amount, fromAccount, toAccount, params=Dict(
             Symbol("timestampSeconds") => expireTime,
             Symbol("isContract") => true
         );
-        signature = Base.fetch(self.getZKTransferSignatureObj(self.remove0xPrefix(self.getSeeds()), orderToSign));
+        signature = Base.fetch(self.getZKTransferSignatureObj(self.remove0xPrefix(self.getSeeds()), params = orderToSign));
         request = Dict{Symbol, Any}(
             Symbol("amount") => amount,
             Symbol("expireTime") => expireTime,
@@ -1169,10 +1345,10 @@ function transfer(self::Apex, code, amount, fromAccount, toAccount, params=Dict(
             Symbol("ethAddress") => ethAddress
         );
         response = Base.fetch(self.privatePostV3ContractTransferOut(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         currentTime = milliseconds();
         parsedAmount = self.parseNumber(amount);
-            return extend(self.parseTransfer(data, self.currency(code)), Dict{Symbol, Any}(
+            return extend(self.parseTransfer(data, currency = self.currency(code)), Dict{Symbol, Any}(
     Symbol("timestamp") => currentTime,
     Symbol("datetime") => self.iso8601(currentTime),
     Symbol("amount") => parsedAmount,
@@ -1191,7 +1367,7 @@ function transfer(self::Apex, code, amount, fromAccount, toAccount, params=Dict(
             Symbol("nonce") => finalNonce,
             Symbol("timestampSeconds") => timestampSeconds
         );
-        signature = Base.fetch(self.getZKTransferSignatureObj(self.remove0xPrefix(self.getSeeds()), orderToSign));
+        signature = Base.fetch(self.getZKTransferSignatureObj(self.remove0xPrefix(self.getSeeds()), params = orderToSign));
         amountStr = string(amount);
         ts = timestampSeconds;
         request = Dict{Symbol, Any}(
@@ -1211,9 +1387,9 @@ function transfer(self::Apex, code, amount, fromAccount, toAccount, params=Dict(
             Symbol("nonce") => finalNonce
         );
         response = Base.fetch(self.privatePostV3TransferOut(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         currentTime = milliseconds();
-        return extend(self.parseTransfer(data, self.currency(code)), Dict{Symbol, Any}(
+        return extend(self.parseTransfer(data, currency = self.currency(code)), Dict{Symbol, Any}(
     Symbol("timestamp") => currentTime,
     Symbol("datetime") => self.iso8601(currentTime),
     Symbol("amount") => self.parseNumber(amount),
@@ -1223,7 +1399,7 @@ function transfer(self::Apex, code, amount, fromAccount, toAccount, params=Dict(
     end
 
 end
-function parseTransfer(self::Apex, transfer, currency=nothing)
+function parseTransfer(self::Apex, transfer; currency=nothing)
     currencyId = safeString(transfer, "coin");
     timestamp = safeInteger(transfer, "timestamp");
     fromAccount = safeString(transfer, "fromAccount");
@@ -1233,7 +1409,7 @@ function parseTransfer(self::Apex, transfer, currency=nothing)
     Symbol("id") => safeString2(transfer, "transferId", "id"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(transfer, "amount"),
     Symbol("fromAccount") => fromAccount,
     Symbol("toAccount") => toAccount,
@@ -1241,7 +1417,18 @@ function parseTransfer(self::Apex, transfer, currency=nothing)
 )
 
 end
-function cancelAllOrders(self::Apex, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Apex; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1252,11 +1439,23 @@ function cancelAllOrders(self::Apex, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostV3DeleteOpenOrders(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return [self.parseOrder(data, market)]
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return [self.parseOrder(data, market = market)]
 
 end
-function cancelOrder(self::Apex, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Apex, id; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     clientOrderId = safeStringN(params, ["clientId", "clientOrderId", "client_order_id"]);
     response = nothing;
@@ -1268,11 +1467,25 @@ function cancelOrder(self::Apex, id, symbol=nothing, params=Dict())
         request[Symbol("id")] = id;
         response = Base.fetch(self.privatePostV3DeleteOrder(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.safeOrder(data)
 
 end
-function fetchOrder(self::Apex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-id
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Apex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1287,20 +1500,52 @@ function fetchOrder(self::Apex, id, symbol=nothing, params=Dict())
         request[Symbol("id")] = id;
         response = Base.fetch(self.privateGetV3Order(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(data)
 
 end
-function fetchOpenOrders(self::Apex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Apex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetV3OpenOrders(params));
-    orders = self.safeList(response, "data", []);
-    return self.parseOrders(orders, nothing, since, limit)
+    orders = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(orders, market = nothing, since = since, limit = limit)
 
 end
-function fetchOrders(self::Apex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user *classic accounts only*
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve, default 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::object, optional: end time, ms
+- `params.status`::bool, optional: "PENDING", "OPEN", "FILLED", "CANCELED", "EXPIRED", "UNTRIGGERED"
+- `params.side`::bool, optional: BUY or SELL
+- `params.type`::string, optional: "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
+- `params.orderType`::string, optional: "ACTIVE","CONDITION","HISTORY"
+- `params.page`::bool, optional: Page numbers start from 0
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Apex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1322,12 +1567,26 @@ function fetchOrders(self::Apex, symbol=nothing, since=nothing, limit=nothing, p
         params = omit(params, ["endTime", "endTimeExclusive", "until"]);
     end
     response = Base.fetch(self.privateGetV3HistoryOrders(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOrderTrades(self::Apex, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Apex, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1340,12 +1599,29 @@ function fetchOrderTrades(self::Apex, id, symbol=nothing, since=nothing, limit=n
     end
     params = omit(params, ["clientOrderId", "clientId"]);
     response = Base.fetch(self.privateGetV3OrderFills(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "orders", []);
-    return self.parseTrades(orders, nothing, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "orders", defaultValue = []);
+    return self.parseTrades(orders, market = nothing, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Apex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user *classic accounts only*
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve, default 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::object, optional: end time
+- `params.side`::bool, optional: BUY or SELL
+- `params.orderType`::string, optional: "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
+- `params.page`::bool, optional: Page numbers start from 0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Apex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1367,12 +1643,28 @@ function fetchMyTrades(self::Apex, symbol=nothing, since=nothing, limit=nothing,
         params = omit(params, ["endTime", "endTimeExclusive", "until"]);
     end
     response = Base.fetch(self.privateGetV3Fills(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "orders", []);
-    return self.parseTrades(orders, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "orders", defaultValue = []);
+    return self.parseTrades(orders, market = market, since = since, limit = limit)
 
 end
-function fetchFundingHistory(self::Apex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user *classic accounts only*
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve, default 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::object, optional: end time, ms
+- `params.side`::bool, optional: BUY or SELL
+- `params.page`::bool, optional: Page numbers start from 0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Apex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1394,19 +1686,19 @@ function fetchFundingHistory(self::Apex, symbol=nothing, since=nothing, limit=no
         request[Symbol("endTimeExclusive")] = endTimeExclusive;
     end
     response = Base.fetch(self.privateGetV3Funding(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    fundingValues = self.safeList(data, "fundingValues", []);
-    return self.parseIncomes(fundingValues, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    fundingValues = self.safeList(data, "fundingValues", defaultValue = []);
+    return self.parseIncomes(fundingValues, market = market, since = since, limit = limit)
 
 end
-function parseIncome(self::Apex, income, market=nothing)
+function parseIncome(self::Apex, income; market=nothing)
     marketId = safeString(income, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
     code = "USDT";
     timestamp = safeInteger(income, "fundingTime");
     return Dict{Symbol, Any}(
     Symbol("info") => income,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("code") => code,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -1416,7 +1708,19 @@ function parseIncome(self::Apex, income, market=nothing)
 )
 
 end
-function setLeverage(self::Apex, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Apex, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -1431,23 +1735,34 @@ function setLeverage(self::Apex, leverage, symbol=nothing, params=Dict())
         Symbol("initialMarginRate") => initialMarginRate
     );
     response = Base.fetch(self.privatePostV3SetInitialMarginRate(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return data
 
 end
-function fetchPositions(self::Apex, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Apex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetV3Account(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    positions = self.safeList(data, "positions", []);
-    return self.parsePositions(positions, symbols)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    positions = self.safeList(data, "positions", defaultValue = []);
+    return self.parsePositions(positions, symbols = symbols)
 
 end
-function parsePosition(self::Apex, position, market=nothing)
+function parsePosition(self::Apex, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     side = safeStringLower(position, "side");
     quantity = safeString(position, "size");
@@ -1484,7 +1799,7 @@ function parsePosition(self::Apex, position, market=nothing)
 ))
 
 end
-function sign(self::Apex, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Apex, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(self.implodeHostname(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing)), "/", path);
     headers = Dict{Symbol, Any}(
         Symbol("User-Agent") => "apex-CCXT",
@@ -1546,111 +1861,111 @@ Base.getproperty(self::Apex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetV3Symbols(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/symbols", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/symbols"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV3HistoryFunding(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/history-funding", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/history-funding"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV3Ticker(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV3Klines(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/klines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/klines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV3Trades(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV3Depth(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV3Time(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV3DataAllTickerInfo(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/data/all-ticker-info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/data/all-ticker-info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3Account(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3AccountBalance(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/account-balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account-balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3Fills(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3OrderFills(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/order-fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/order-fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3Order(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3HistoryOrders(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/history-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/history-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3OrderByClientOrderId(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/order-by-client-order-id", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/order-by-client-order-id"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3Funding(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/funding", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/funding"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3HistoricalPnl(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/historical-pnl", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/historical-pnl"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3OpenOrders(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/open-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/open-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3Transfers(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/transfers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/transfers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV3Transfer(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/transfer", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/transfer"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV3DeleteOpenOrders(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/delete-open-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/delete-open-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV3DeleteClientOrderId(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/delete-client-order-id", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/delete-client-order-id"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV3DeleteOrder(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/delete-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/delete-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV3Order(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV3SetInitialMarginRate(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/set-initial-margin-rate", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/set-initial-margin-rate"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV3TransferOut(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/transfer-out", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/transfer-out"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV3ContractTransferOut(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/contract-transfer-out", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/contract-transfer-out"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Apex(; kwargs...)
@@ -1714,3 +2029,392 @@ function Apex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Apex_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Apex_fetchTime
+
+function __ccxt_doc_Apex_fetchBalance() end
+"""
+query for account info
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Apex_fetchBalance
+
+function __ccxt_doc_Apex_fetchAccount() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Apex_fetchAccount
+
+function __ccxt_doc_Apex_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Apex_fetchCurrencies
+
+function __ccxt_doc_Apex_fetchMarkets() end
+"""
+retrieves data on all markets for apex
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Apex_fetchMarkets
+
+function __ccxt_doc_Apex_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Apex_fetchTicker
+
+function __ccxt_doc_Apex_fetchTickers() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+
+# Arguments
+- `symbols`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Apex_fetchTickers
+
+function __ccxt_doc_Apex_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Apex_fetchOHLCV
+
+function __ccxt_doc_Apex_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Apex_fetchOrderBook
+
+function __ccxt_doc_Apex_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Apex_fetchTrades
+
+function __ccxt_doc_Apex_fetchOpenInterest() end
+"""
+retrieves the open interest of a contract trading pair
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Apex_fetchOpenInterest
+
+function __ccxt_doc_Apex_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Apex_fetchFundingRateHistory
+
+function __ccxt_doc_Apex_createOrder() end
+"""
+create a trade order
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: The price a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price a take profit order is triggered at
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "POST_ONLY"
+- `params.postOnly`::bool, optional: true or false
+- `params.reduceOnly`::bool, optional: Ensures that the executed order does not flip the opened position.
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Apex_createOrder
+
+function __ccxt_doc_Apex_transfer() end
+"""
+transfer currency internally between wallets on the same account
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transferId`::string, optional: UUID, which is unique across the platform
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Apex_transfer
+
+function __ccxt_doc_Apex_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Apex_cancelAllOrders
+
+function __ccxt_doc_Apex_cancelOrder() end
+"""
+cancels an open order
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Apex_cancelOrder
+
+function __ccxt_doc_Apex_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-id
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Apex_fetchOrder
+
+function __ccxt_doc_Apex_fetchOpenOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Apex_fetchOpenOrders
+
+function __ccxt_doc_Apex_fetchOrders() end
+"""
+fetches information on multiple orders made by the user *classic accounts only*
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve, default 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::object, optional: end time, ms
+- `params.status`::bool, optional: "PENDING", "OPEN", "FILLED", "CANCELED", "EXPIRED", "UNTRIGGERED"
+- `params.side`::bool, optional: BUY or SELL
+- `params.type`::string, optional: "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
+- `params.orderType`::string, optional: "ACTIVE","CONDITION","HISTORY"
+- `params.page`::bool, optional: Page numbers start from 0
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Apex_fetchOrders
+
+function __ccxt_doc_Apex_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Apex_fetchOrderTrades
+
+function __ccxt_doc_Apex_fetchMyTrades() end
+"""
+fetches information on multiple orders made by the user *classic accounts only*
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve, default 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::object, optional: end time
+- `params.side`::bool, optional: BUY or SELL
+- `params.orderType`::string, optional: "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
+- `params.page`::bool, optional: Page numbers start from 0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Apex_fetchMyTrades
+
+function __ccxt_doc_Apex_fetchFundingHistory() end
+"""
+fetches information on multiple orders made by the user *classic accounts only*
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve, default 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::object, optional: end time, ms
+- `params.side`::bool, optional: BUY or SELL
+- `params.page`::bool, optional: Page numbers start from 0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Apex_fetchFundingHistory
+
+function __ccxt_doc_Apex_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Apex_setLeverage
+
+function __ccxt_doc_Apex_fetchPositions() end
+"""
+fetch all open positions
+see: https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Apex_fetchPositions

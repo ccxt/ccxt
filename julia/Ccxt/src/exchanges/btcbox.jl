@@ -278,11 +278,20 @@ function describe(self::Btcbox, )
 ))
 
 end
-function fetchMarkets(self::Btcbox, params=Dict())
+"""
+retrieves data on all markets for ace
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Btcbox; params=Dict())
     promise1 = self.publicGetTickers();
     promise2 = self.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true);
     (response1, response2) = (Base.fetch(asyncmap(Base.fetch, [promise1, promise2])));
-    result2Data = self.safeDict(response2, "data", Dict{Symbol, Any}());
+    result2Data = self.safeDict(response2, "data", defaultValue = Dict{Symbol, Any}());
     marketIds = objectKeys(response1);
     markets = [];
     i = 0
@@ -293,12 +302,12 @@ function fetchMarkets(self::Btcbox, params=Dict())
         quote_var = safeString(symbolParts, 1, "");
         quoteId = lowercase(quote_var);
         id = lowercase(baseCurr);
-        res = self.safeDict(response1, marketId, Dict{Symbol, Any}());
+        res = self.safeDict(response1, marketId, defaultValue = Dict{Symbol, Any}());
         symbol = string(baseCurr, "/", quote_var);
         fee = functions.ccxtruthy((id == "BTC")) ? self.parseNumber("0.0005") : self.parseNumber("0.0010");
-        details = self.safeDict(result2Data, id, Dict{Symbol, Any}());
-        tradeDetails = self.safeDict(details, "trade", Dict{Symbol, Any}());
-        push!(markets, self.safeMarketStructure(Dict{Symbol, Any}(
+        details = self.safeDict(result2Data, id, defaultValue = Dict{Symbol, Any}());
+        tradeDetails = self.safeDict(details, "trade", defaultValue = Dict{Symbol, Any}());
+        push!(markets, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("uppercaseId") => nothing,
     Symbol("symbol") => symbol,
@@ -343,7 +352,7 @@ function fetchMarkets(self::Btcbox, params=Dict())
         )
     ),
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(tradeDetails, "pricedecimal"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(tradeDetails, "pricedecimal"))),
         Symbol("amount") => nothing
     ),
     Symbol("active") => safeString(tradeDetails, "enable") == "1",
@@ -361,7 +370,7 @@ function parseMarket(self::Btcbox, market)
     quoteId = safeString(market, "quote");
     quote_var = self.safeCurrencyCode(quoteId);
     symbol = string(base, "/", quote_var);
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => safeString(market, "symbol"),
     Symbol("uppercaseId") => nothing,
     Symbol("symbol") => symbol,
@@ -404,8 +413,8 @@ function parseMarket(self::Btcbox, market)
         )
     ),
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "quotePrecision"))),
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "basePrecision")))
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quotePrecision"))),
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "basePrecision")))
     ),
     Symbol("active") => nothing,
     Symbol("created") => nothing,
@@ -436,7 +445,17 @@ function parseBalance(self::Btcbox, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Btcbox, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://blog.btcbox.jp/en/archives/8762#toc13
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Btcbox; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -444,7 +463,19 @@ function fetchBalance(self::Btcbox, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Btcbox, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://blog.btcbox.jp/en/archives/8762#toc6
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Btcbox, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -458,8 +489,8 @@ function fetchOrderBook(self::Btcbox, symbol, limit=nothing, params=Dict())
     return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing))
 
 end
-function parseTicker(self::Btcbox, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Btcbox, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     last_var = safeString(ticker, "last");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -482,10 +513,21 @@ function parseTicker(self::Btcbox, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "vol"),
     Symbol("quoteVolume") => safeString(ticker, "volume"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Btcbox, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://blog.btcbox.jp/en/archives/8762#toc5
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Btcbox, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -496,20 +538,30 @@ function fetchTicker(self::Btcbox, symbol, params=Dict())
         request[Symbol("coin")] = get(market, Symbol("baseId"), nothing);
     end
     response = Base.fetch(self.publicGetTicker(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchTickers(self::Btcbox, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Btcbox; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetTickers(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function parseTrade(self::Btcbox, trade, market=nothing)
+function parseTrade(self::Btcbox, trade; market=nothing)
     timestamp = safeTimestamp(trade, "date");
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     id = safeString(trade, "tid");
     priceString = safeString(trade, "price");
     amountString = safeString(trade, "amount");
@@ -529,10 +581,23 @@ function parseTrade(self::Btcbox, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => nothing,
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Btcbox, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://blog.btcbox.jp/en/archives/8762#toc7
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Btcbox, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -543,10 +608,25 @@ function fetchTrades(self::Btcbox, symbol, since=nothing, limit=nothing, params=
         request[Symbol("coin")] = get(market, Symbol("baseId"), nothing);
     end
     response = Base.fetch(self.publicGetOrders(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function createOrder(self::Btcbox, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://blog.btcbox.jp/en/archives/8762#toc18
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Btcbox, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -558,10 +638,22 @@ function createOrder(self::Btcbox, symbol, type_var, side, amount, price=nothing
         Symbol("coin") => get(market, Symbol("baseId"), nothing)
     );
     response = Base.fetch(self.privatePostTradeAdd(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Btcbox, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://blog.btcbox.jp/en/archives/8762#toc17
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Btcbox, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -574,7 +666,7 @@ function cancelOrder(self::Btcbox, id, symbol=nothing, params=Dict())
         Symbol("coin") => get(market, Symbol("baseId"), nothing)
     );
     response = Base.fetch(self.privatePostTradeCancel(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
 function parseOrderStatus(self::Btcbox, status)
@@ -591,7 +683,7 @@ function parseOrderStatus(self::Btcbox, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Btcbox, order, market=nothing)
+function parseOrder(self::Btcbox, order; market=nothing)
     id = safeString(order, "id");
     datetimeString = safeString(order, "datetime");
     timestamp = nothing;
@@ -608,7 +700,7 @@ function parseOrder(self::Btcbox, order, market=nothing)
         end
     end
     trades = nothing;
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     side = safeString(order, "type");
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -632,10 +724,22 @@ function parseOrder(self::Btcbox, order, market=nothing)
     Symbol("fee") => nothing,
     Symbol("info") => order,
     Symbol("average") => nothing
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Btcbox, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://blog.btcbox.jp/en/archives/8762#toc16
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Btcbox, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -648,10 +752,10 @@ function fetchOrder(self::Btcbox, id, symbol=nothing, params=Dict())
         Symbol("coin") => get(market, Symbol("baseId"), nothing)
     ), params);
     response = Base.fetch(self.privatePostTradeView(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOrdersByType(self::Btcbox, type_var, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrdersByType(self::Btcbox, type_var; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -664,7 +768,7 @@ function fetchOrdersByType(self::Btcbox, type_var, symbol=nothing, since=nothing
         Symbol("coin") => get(market, Symbol("baseId"), nothing)
     );
     response = Base.fetch(self.privatePostTradeList(extend(request, params)));
-    orders = self.parseOrders(response, market, since, limit);
+    orders = self.parseOrders(response, market = market, since = since, limit = limit);
     if functions.ccxtruthy(type_var == "open")
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
@@ -676,19 +780,45 @@ function fetchOrdersByType(self::Btcbox, type_var, symbol=nothing, since=nothing
     return orders
 
 end
-function fetchOrders(self::Btcbox, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByType("all", symbol, since, limit, params))
+"""
+fetches information on multiple orders made by the user
+see: https://blog.btcbox.jp/en/archives/8762#toc15
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Btcbox; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByType("all", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOpenOrders(self::Btcbox, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByType("open", symbol, since, limit, params))
+"""
+fetch all unfilled currently open orders
+see: https://blog.btcbox.jp/en/archives/8762#toc15
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Btcbox; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByType("open", symbol = symbol, since = since, limit = limit, params = params))
 
 end
 function nonce(self::Btcbox, )
     return milliseconds()
 
 end
-function sign(self::Btcbox, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Btcbox, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol("rest"), nothing), "/", self.version, "/", path);
     if functions.ccxtruthy(api == "public")
         if functions.ccxtruthy(length(objectKeys(params)))
@@ -736,8 +866,8 @@ function handleErrors(self::Btcbox, httpCode, reason, url, method, headers, body
     throw(ExchangeError(feedback));
 
 end
-function request(self::Btcbox, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing, config=Dict())
-    response = Base.fetch(self.fetch2(path, api, method, params, headers, body, config));
+function request(self::Btcbox, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing, config=Dict())
+    response = Base.fetch(self.fetch2(path, api = api, method = method, params = params, headers = headers, body = body, config = config));
     if functions.ccxtruthy(isa(response, AbstractString))
         response = self.strip(response);
         if functions.ccxtruthy(!functions.ccxtruthy(self.isJsonEncodedObject(response)))
@@ -755,47 +885,47 @@ Base.getproperty(self::Btcbox, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetDepth(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrders(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "orders", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickers(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBalance(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "balance", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "balance"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeAdd(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "trade_add", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade_add"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancel(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "trade_cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade_cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeList(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "trade_list", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade_list"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeView(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "trade_view", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade_view"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWallet(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "wallet", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wallet"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function webApiGetAjaxCoinCoinInfo(self::Btcbox, params=Dict(), context=Dict())
-    return request(self, "ajax/coin/coinInfo", "webApi", "GET", params, nothing, nothing, Dict())
+    return request(self, "ajax/coin/coinInfo"; api="webApi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Btcbox(; kwargs...)
@@ -859,3 +989,168 @@ function Btcbox(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Btcbox_fetchMarkets() end
+"""
+retrieves data on all markets for ace
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Btcbox_fetchMarkets
+
+function __ccxt_doc_Btcbox_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://blog.btcbox.jp/en/archives/8762#toc13
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Btcbox_fetchBalance
+
+function __ccxt_doc_Btcbox_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://blog.btcbox.jp/en/archives/8762#toc6
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Btcbox_fetchOrderBook
+
+function __ccxt_doc_Btcbox_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://blog.btcbox.jp/en/archives/8762#toc5
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Btcbox_fetchTicker
+
+function __ccxt_doc_Btcbox_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Btcbox_fetchTickers
+
+function __ccxt_doc_Btcbox_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://blog.btcbox.jp/en/archives/8762#toc7
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Btcbox_fetchTrades
+
+function __ccxt_doc_Btcbox_createOrder() end
+"""
+create a trade order
+see: https://blog.btcbox.jp/en/archives/8762#toc18
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcbox_createOrder
+
+function __ccxt_doc_Btcbox_cancelOrder() end
+"""
+cancels an open order
+see: https://blog.btcbox.jp/en/archives/8762#toc17
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcbox_cancelOrder
+
+function __ccxt_doc_Btcbox_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://blog.btcbox.jp/en/archives/8762#toc16
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcbox_fetchOrder
+
+function __ccxt_doc_Btcbox_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://blog.btcbox.jp/en/archives/8762#toc15
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcbox_fetchOrders
+
+function __ccxt_doc_Btcbox_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://blog.btcbox.jp/en/archives/8762#toc15
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcbox_fetchOpenOrders

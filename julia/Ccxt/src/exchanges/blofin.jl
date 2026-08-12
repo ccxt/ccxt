@@ -770,9 +770,19 @@ function describe(self::Blofin, )
 ))
 
 end
-function fetchMarkets(self::Blofin, params=Dict())
+"""
+retrieves data on all markets for blofin
+see: https://blofin.com/docs#get-instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Blofin; params=Dict())
     response = Base.fetch(self.publicGetMarketInstruments(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseMarkets(data)
 
 end
@@ -798,7 +808,7 @@ function parseMarket(self::Blofin, market)
     strikePrice = nothing;
     optionType = nothing;
     tickSize = safeString(market, "tickSize");
-    fees = self.safeDict2(self.fees, type_var, "trading", Dict{Symbol, Any}());
+    fees = self.safeDict2(self.fees, type_var, "trading", defaultValue = Dict{Symbol, Any}());
     taker = self.safeNumber(fees, "taker");
     maker = self.safeNumber(fees, "maker");
     maxLeverage = safeString(market, "maxLeverage", "100");
@@ -808,7 +818,7 @@ function parseMarket(self::Blofin, market)
     contractType = safeString(market, "contractType");
     maxLimitAmount = self.safeNumber(market, "maxLimitSize");
     maxSpotCost = self.safeNumber(market, "maxMarketSize");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -861,7 +871,19 @@ function parseMarket(self::Blofin, market)
 ))
 
 end
-function fetchOrderBook(self::Blofin, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://blofin.com/docs#get-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Blofin, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -874,20 +896,20 @@ function fetchOrderBook(self::Blofin, symbol, limit=nothing, params=Dict())
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.publicGetMarketBooks(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(first_var, "ts");
-    return self.parseOrderBook(first_var, symbol, timestamp)
+    return self.parseOrderBook(first_var, symbol, timestamp = timestamp)
 
 end
-function parseTicker(self::Blofin, ticker, market=nothing)
+function parseTicker(self::Blofin, ticker; market=nothing)
     timestamp = safeInteger(ticker, "ts");
     marketId = safeString(ticker, "instId");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     symbol = get(market, Symbol("symbol"), nothing);
     last_var = safeString(ticker, "last");
     open = safeString(ticker, "open24h");
-    spot = self.safeBool(market, "spot", false);
+    spot = self.safeBool(market, "spot", defaultValue = false);
     quoteVolume = functions.ccxtruthy(spot) ? safeString(ticker, "volCurrency24h") : nothing;
     baseVolume = safeString(ticker, "vol24h");
     high = safeString(ticker, "high24h");
@@ -915,10 +937,21 @@ function parseTicker(self::Blofin, ticker, market=nothing)
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("markPrice") => safeString(ticker, "markPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Blofin, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://blofin.com/docs#get-tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Blofin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -927,12 +960,24 @@ function fetchTicker(self::Blofin, symbol, params=Dict())
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketTickers(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTicker(first_var, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(first_var, market = market)
 
 end
-function fetchMarkPrice(self::Blofin, symbol, params=Dict())
+"""
+fetches mark price for the market
+see: https://docs.blofin.com/index.html#get-mark-price
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrice(self::Blofin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -941,25 +986,36 @@ function fetchMarkPrice(self::Blofin, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketMarkPrice(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTicker(first_var, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(first_var, market = market)
 
 end
-function fetchTickers(self::Blofin, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://blofin.com/docs#get-tickers
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Blofin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetMarketTickers(params));
-    tickers = self.safeList(response, "data", []);
-    return self.parseTickers(tickers, symbols)
+    tickers = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function parseTrade(self::Blofin, trade, market=nothing)
+function parseTrade(self::Blofin, trade; market=nothing)
     id = safeString(trade, "tradeId");
     marketId = safeString(trade, "instId");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger(trade, "ts");
     price = safeString2(trade, "price", "fillPrice");
@@ -1023,18 +1079,32 @@ function parseTrade(self::Blofin, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
     end
 
 end
-function fetchTrades(self::Blofin, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://blofin.com/docs#get-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Blofin, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchTrades", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "tradeId", cursorSent = "after", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1045,19 +1115,35 @@ function fetchTrades(self::Blofin, symbol, since=nothing, limit=nothing, params=
         request[Symbol("limit")] = limit;
     end
     method = nothing;
-    (method, params) = self.handleOptionAndParams(params, "fetchTrades", "method", "publicGetMarketTrades");
+    (method, params) = self.handleOptionAndParams(params, "fetchTrades", "method", defaultValue = "publicGetMarketTrades");
     if functions.ccxtruthy(method == "publicGetMarketTrades")
         response = Base.fetch(self.publicGetMarketTrades(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Blofin, ohlcv, market=nothing)
+function parseOHLCV(self::Blofin, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 6)]
 
 end
-function fetchOHLCV(self::Blofin, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://blofin.com/docs#get-candlesticks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Blofin, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1065,7 +1151,7 @@ function fetchOHLCV(self::Blofin, symbol, timeframe="1m", since=nothing, limit=n
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 100))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 100))
     end
     if functions.ccxtruthy(limit == nothing)
         limit = 100;
@@ -1081,11 +1167,26 @@ function fetchOHLCV(self::Blofin, symbol, timeframe="1m", since=nothing, limit=n
         params = omit(params, "until");
     end
     response = Base.fetch(self.publicGetMarketCandles(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchFundingRateHistory(self::Blofin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://blofin.com/docs#get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Blofin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -1095,7 +1196,7 @@ function fetchFundingRateHistory(self::Blofin, symbol=nothing, since=nothing, li
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params, maxEntriesPerRequest = 100))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1114,7 +1215,7 @@ function fetchFundingRateHistory(self::Blofin, symbol=nothing, since=nothing, li
     end
     response = Base.fetch(self.publicGetMarketFundingRateHistory(extend(request, params)));
     rates = [];
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         rate = get(data, i + 1, nothing);
@@ -1129,12 +1230,12 @@ function fetchFundingRateHistory(self::Blofin, symbol=nothing, since=nothing, li
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function parseFundingRate(self::Blofin, contract, market=nothing)
+function parseFundingRate(self::Blofin, contract; market=nothing)
     marketId = safeString(contract, "instId");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     fundingTime = safeInteger(contract, "fundingTime");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
@@ -1158,7 +1259,18 @@ function parseFundingRate(self::Blofin, contract, market=nothing)
 )
 
 end
-function fetchFundingRate(self::Blofin, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://blofin.com/docs#get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Blofin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1170,9 +1282,9 @@ function fetchFundingRate(self::Blofin, symbol, params=Dict())
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketFundingRate(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    entry = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseFundingRate(entry, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    entry = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(entry, market = market)
 
 end
 function parseBalanceByType(self::Blofin, response)
@@ -1188,9 +1300,9 @@ function parseBalance(self::Blofin, response)
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(data, "ts");
-    details = self.safeList(data, "details", []);
+    details = self.safeList(data, "details", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(details)))
         balance = get(details, i + 1, nothing);
@@ -1218,7 +1330,7 @@ function parseFundingBalance(self::Blofin, response)
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         balance = get(data, i + 1, nothing);
@@ -1234,10 +1346,10 @@ function parseFundingBalance(self::Blofin, response)
     return self.safeBalance(result)
 
 end
-function parseTradingFee(self::Blofin, fee, market=nothing)
+function parseTradingFee(self::Blofin, fee; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("maker") => self.parseNumber(stringNeg(safeString2(fee, "maker", "makerU"))),
     Symbol("taker") => self.parseNumber(stringNeg(safeString2(fee, "taker", "takerU"))),
     Symbol("percentage") => nothing,
@@ -1245,7 +1357,19 @@ function parseTradingFee(self::Blofin, fee, market=nothing)
 )
 
 end
-function fetchBalance(self::Blofin, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://blofin.com/docs#get-balance
+see: https://blofin.com/docs#get-futures-account-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Blofin; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1253,7 +1377,7 @@ function fetchBalance(self::Blofin, params=Dict())
     (accountType, params) = self.handleOptionAndParams2(params, "fetchBalance", "accountType", "type");
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(@functions.ccxt_and(accountType != nothing, accountType != "swap"))
-        options = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+        options = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
         parsedAccountType = safeString(options, accountType, accountType);
         request[Symbol("accountType")] = parsedAccountType;
         response = Base.fetch(self.privateGetAssetBalances(extend(request, params)));
@@ -1263,7 +1387,7 @@ function fetchBalance(self::Blofin, params=Dict())
     return self.parseBalanceByType(response)
 
 end
-function createOrderRequest(self::Blofin, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Blofin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1279,12 +1403,12 @@ function createOrderRequest(self::Blofin, symbol, type_var, side, amount, price=
         Symbol("brokerId") => safeString(self.options, "brokerId", "ec6dd3a7dd982d0b")
     );
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params, "cross");
+    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params, defaultValue = "cross");
     request[Symbol("marginMode")] = marginMode;
     triggerPriceAny = safeStringN(params, ["triggerPrice", "stopLossPrice", "takeProfitPrice"]);
     triggerPriceSlTp = safeString2(params, "stopLossPrice", "takeProfitPrice");
     timeInForce = safeString(params, "timeInForce", "GTC");
-    isHedged = self.safeBool(params, "hedged", false);
+    isHedged = self.safeBool(params, "hedged", defaultValue = false);
     if functions.ccxtruthy(isHedged)
         request[Symbol("positionSide")] = functions.ccxtruthy((side == "buy")) ? "long" : "short";
     end
@@ -1299,7 +1423,7 @@ function createOrderRequest(self::Blofin, symbol, type_var, side, amount, price=
         request[Symbol(key)] = self.priceToPrecision(symbol, price);
     end
     postOnly = false;
-    (postOnly, params) = self.handlePostOnly(isMarketOrder, type_var == "post_only", params);
+    (postOnly, params) = self.handlePostOnly(isMarketOrder, type_var == "post_only", params = params);
     if functions.ccxtruthy(postOnly)
         request[Symbol("type")] = "post_only";
     end
@@ -1347,7 +1471,7 @@ function parseOrderStatus(self::Blofin, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Blofin, order, market=nothing)
+function parseOrder(self::Blofin, order; market=nothing)
     id = safeStringN(order, ["tpslId", "orderId", "algoId"]);
     timestamp = safeInteger(order, "createTime");
     lastUpdateTimestamp = safeInteger(order, "updateTime");
@@ -1372,8 +1496,8 @@ function parseOrder(self::Blofin, order, market=nothing)
 
     end
     marketId = safeString(order, "instId");
-    market = self.safeMarket(marketId, market);
-    symbol = self.safeSymbol(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market);
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "-");
     filled = safeString(order, "filledSize");
     price = safeStringN(order, ["px", "price", "orderPrice"]);
     average = safeString(order, "averagePrice");
@@ -1435,10 +1559,42 @@ function parseOrder(self::Blofin, order, market=nothing)
     Symbol("fee") => fee,
     Symbol("trades") => nothing,
     Symbol("reduceOnly") => reduceOnly
-), market)
+), market = market)
 
 end
-function createOrder(self::Blofin, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://blofin.com/docs#place-order
+see: https://blofin.com/docs#place-tpsl-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::string, optional: the trigger price for a trigger order
+- `params.reduceOnly`::bool, optional: a mark to reduce the position size for margin, swap and future orders
+- `params.postOnly`::bool, optional: true to place a post only order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', default is 'cross'
+- `params.stopLossPrice`::float, optional: stop loss trigger price (will use privatePostTradeOrderTpsl)
+- `params.takeProfitPrice`::float, optional: take profit trigger price (will use privatePostTradeOrderTpsl)
+- `params.positionSide`::string, optional: *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+- `params.hedged`::bool, optional: if true, the positionSide will be set to long/short instead of net, default is false
+- `params.clientOrderId`::string, optional: a unique id for the order
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.takeProfit.price`::float, optional: take profit order price (if not provided the order will be a market order)
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.stopLoss.price`::float, optional: stop loss order price (if not provided the order will be a market order)
+- `params.tpsl`::float, optional: whether to force to send the order to the combined TPSL oco order endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Blofin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1447,7 +1603,7 @@ function createOrder(self::Blofin, symbol, type_var, side, amount, price=nothing
     isTakeProfitPriceDefined = safeString(params, "takeProfitPrice") != nothing;
     isTriggerOrder = safeString(params, "triggerPrice") != nothing;
     isTpslEndpoint = false;
-    (isTpslEndpoint, params) = self.handleOptionAndParams(params, "createOrder", "tpsl", false);
+    (isTpslEndpoint, params) = self.handleOptionAndParams(params, "createOrder", "tpsl", defaultValue = false);
     isCombinedSlTp = @functions.ccxt_or((@functions.ccxt_and(isStopLossPriceDefined, isTakeProfitPriceDefined)), isTpslEndpoint);
     isSlOrTp = @functions.ccxt_or(isStopLossPriceDefined, isTakeProfitPriceDefined);
     reduceOnly = self.safeBool(params, "reduceOnly");
@@ -1455,30 +1611,30 @@ function createOrder(self::Blofin, symbol, type_var, side, amount, price=nothing
         params[Symbol("reduceOnly")] = functions.ccxtruthy(reduceOnly) ? "true" : "false";
     end
     if functions.ccxtruthy(isCombinedSlTp)
-        tpslRequest = self.createTpslOrderRequest(symbol, type_var, side, amount, price, params);
+        tpslRequest = self.createTpslOrderRequest(symbol, type_var, side, amount = amount, price = price, params = params);
         response = Base.fetch(self.privatePostTradeOrderTpsl(tpslRequest));
     elseif functions.ccxtruthy(@functions.ccxt_or(isTriggerOrder, isSlOrTp))
-        triggerRequest = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+        triggerRequest = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
         response = Base.fetch(self.privatePostTradeOrderAlgo(triggerRequest));
     else
-        request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+        request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
         response = Base.fetch(self.privatePostTradeOrder(request));
     end
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(isCombinedSlTp, isSlOrTp), isTriggerOrder))
-        dataDict = self.safeDict(response, "data", Dict{Symbol, Any}());
-            return self.parseOrder(dataDict, market)
+        dataDict = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+            return self.parseOrder(dataDict, market = market)
     end
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     first_var = self.safeDict(data, 0);
-    order = self.parseOrder(first_var, market);
+    order = self.parseOrder(first_var, market = market);
     order[Symbol("type")] = type_var;
     order[Symbol("side")] = side;
     return order
 
 end
-function createTpslOrderRequest(self::Blofin, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+function createTpslOrderRequest(self::Blofin, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     market = self.market(symbol);
-    hedged = self.safeBool(params, "hedged", false);
+    hedged = self.safeBool(params, "hedged", defaultValue = false);
     positionSide = "net";
     if functions.ccxtruthy(hedged)
         positionSide = functions.ccxtruthy((side == "buy")) ? "short" : "long";
@@ -1488,7 +1644,7 @@ function createTpslOrderRequest(self::Blofin, symbol, type_var, side, amount=not
         Symbol("side") => side,
         Symbol("positionSide") => positionSide,
         Symbol("brokerId") => safeString(self.options, "brokerId", "ec6dd3a7dd982d0b"),
-        Symbol("reduceOnly") => self.safeBool(params, "reduceOnly", true)
+        Symbol("reduceOnly") => self.safeBool(params, "reduceOnly", defaultValue = true)
     );
     if functions.ccxtruthy(amount != nothing)
         request[Symbol("size")] = self.amountToPrecision(symbol, amount);
@@ -1530,7 +1686,22 @@ function createTpslOrderRequest(self::Blofin, symbol, type_var, side, amount=not
     return extend(request, params)
 
 end
-function cancelOrder(self::Blofin, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://blofin.com/docs#cancel-order
+see: https://blofin.com/docs#cancel-tpsl-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if cancelling a trigger/conditional
+- `params.tpsl`::bool, optional: True if cancelling a tpsl order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Blofin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -1541,8 +1712,8 @@ function cancelOrder(self::Blofin, id, symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
-    isTrigger = self.safeBool(params, "trigger", false);
-    isTpsl = self.safeBool2(params, "tpsl", "TPSL", false);
+    isTrigger = self.safeBool(params, "trigger", defaultValue = false);
+    isTpsl = self.safeBool2(params, "tpsl", "TPSL", defaultValue = false);
     clientOrderId = safeString(params, "clientOrderId");
     if functions.ccxtruthy(clientOrderId != nothing)
         request[Symbol("clientOrderId")] = clientOrderId;
@@ -1560,21 +1731,32 @@ function cancelOrder(self::Blofin, id, symbol=nothing, params=Dict())
     end
     query = omit(params, ["orderId", "clientOrderId", "stop", "trigger", "tpsl"]);
     if functions.ccxtruthy(isTpsl)
-        tpslResponse = Base.fetch(self.cancelOrders([id], symbol, params));
+        tpslResponse = Base.fetch(self.cancelOrders([id], symbol = symbol, params = params));
         first_var = self.safeDict(tpslResponse, 0);
             return first_var
     elseif functions.ccxtruthy(isTrigger)
         triggerResponse = Base.fetch(self.privatePostTradeCancelAlgo(extend(request, query)));
         triggerData = self.safeDict(triggerResponse, "data");
-        return self.parseOrder(triggerData, market)
+        return self.parseOrder(triggerData, market = market)
     end
     response = Base.fetch(self.privatePostTradeCancelOrder(extend(request, query)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     order = self.safeDict(data, 0);
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function createOrders(self::Blofin, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://blofin.com/docs#place-multiple-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Blofin, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1587,25 +1769,42 @@ function createOrders(self::Blofin, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         extendedParams = extend(orderParams, params);
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, extendedParams);
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = extendedParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
     response = Base.fetch(self.privatePostTradeBatchOrders(ordersRequests));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseOrders(data)
 
 end
-function fetchOpenOrders(self::Blofin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Fetch orders that are still open
+see: https://blofin.com/docs#get-active-orders
+see: https://blofin.com/docs#get-active-tpsl-orders
+see: https://docs.blofin.com/index.html#get-active-algo-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if fetching trigger or conditional orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Blofin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOpenOrders", symbol = symbol, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1616,10 +1815,10 @@ function fetchOpenOrders(self::Blofin, symbol=nothing, since=nothing, limit=noth
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    isTrigger = self.safeBoolN(params, ["stop", "trigger"], false);
-    isTpSl = self.safeBool2(params, "tpsl", "TPSL", false);
+    isTrigger = self.safeBoolN(params, ["stop", "trigger"], defaultValue = false);
+    isTpSl = self.safeBool2(params, "tpsl", "TPSL", defaultValue = false);
     method = nothing;
-    (method, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
+    (method, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "method", defaultValue = "privateGetTradeOrdersPending");
     query = omit(params, ["method", "stop", "trigger", "tpsl", "TPSL"]);
     if functions.ccxtruthy(@functions.ccxt_or(isTpSl, (method == "privateGetTradeOrdersTpslPending")))
         response = Base.fetch(self.privateGetTradeOrdersTpslPending(extend(request, query)));
@@ -1629,18 +1828,35 @@ function fetchOpenOrders(self::Blofin, symbol=nothing, since=nothing, limit=noth
     else
         response = Base.fetch(self.privateGetTradeOrdersPending(extend(request, query)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Blofin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://blofin.com/docs#get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: Timestamp in ms of the latest time to retrieve trades for
+- `params.type`::string, optional: 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
+- `params.instId`::string, optional: *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT')
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Blofin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1653,25 +1869,40 @@ function fetchMyTrades(self::Blofin, symbol=nothing, since=nothing, limit=nothin
         request[Symbol("limit")] = limit;
     end
     type_var = "swap";
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params, type_var);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params, defaultValue = type_var);
     if functions.ccxtruthy(type_var == "spot")
         request[Symbol("instType")] = "SPOT";
         response = Base.fetch(self.privateGetSpotTradeFillsHistory(extend(request, params)));
     else
         response = Base.fetch(self.privateGetTradeFillsHistory(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchDeposits(self::Blofin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://blofin.com/docs#get-deposite-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Blofin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", symbol = code, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -1687,18 +1918,33 @@ function fetchDeposits(self::Blofin, code=nothing, since=nothing, limit=nothing,
     end
     (request, params) = self.handleUntilOption("after", request, params);
     response = Base.fetch(self.privateGetAssetDepositHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit, params)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchWithdrawals(self::Blofin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://blofin.com/docs#get-withdraw-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Blofin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", symbol = code, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -1714,18 +1960,34 @@ function fetchWithdrawals(self::Blofin, code=nothing, since=nothing, limit=nothi
     end
     (request, params) = self.handleUntilOption("after", request, params);
     response = Base.fetch(self.privateGetAssetWithdrawalHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit, params)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchLedger(self::Blofin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://blofin.com/docs#get-funds-transfer-history
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Blofin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", symbol = code, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(limit != nothing)
@@ -1738,11 +2000,11 @@ function fetchLedger(self::Blofin, code=nothing, since=nothing, limit=nothing, p
     end
     (request, params) = self.handleUntilOption("end", request, params);
     response = Base.fetch(self.privateGetAssetBills(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseLedger(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLedger(data, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Blofin, transaction, currency=nothing)
+function parseTransaction(self::Blofin, transaction; currency=nothing)
     type_var = nothing;
     id = nothing;
     status = nothing;
@@ -1834,10 +2096,10 @@ function parseLedgerEntryType(self::Blofin, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Blofin, item, currency=nothing)
+function parseLedgerEntry(self::Blofin, item; currency=nothing)
     currencyId = safeString(item, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     timestamp = safeInteger(item, "ts");
     return self.safeLedgerEntry(Dict{Symbol, Any}(
     Symbol("info") => item,
@@ -1855,7 +2117,7 @@ function parseLedgerEntry(self::Blofin, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => "ok",
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
 function parseIds(self::Blofin, ids)
@@ -1866,7 +2128,20 @@ function parseIds(self::Blofin, ids)
     end
 
 end
-function cancelOrders(self::Blofin, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://blofin.com/docs#cancel-multiple-orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/trigger order
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Blofin, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -1875,7 +2150,7 @@ function cancelOrders(self::Blofin, ids, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     request = [];
-    method = self.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders");
+    method = self.handleOption("cancelOrders", "method", defaultValue = "privatePostTradeCancelBatchOrders");
     clientOrderIds = self.parseIds(safeValue(params, "clientOrderId"));
     tpslIds = self.parseIds(safeValue(params, "tpslId"));
     trigger = self.safeBoolN(params, ["stop", "trigger", "tpsl"]);
@@ -1926,16 +2201,30 @@ function cancelOrders(self::Blofin, ids, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.privatePostTradeCancelBatchOrders(request));
     end
-    ordersData = self.safeList(response, "data", []);
-    return self.parseOrders(ordersData, market, nothing, nothing, params)
+    ordersData = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(ordersData, market = market, since = nothing, limit = nothing, params = params)
 
 end
-function transfer(self::Blofin, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://blofin.com/docs#funds-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from (funding, swap, copy_trading, earn)
+- `toAccount`::string: account to transfer to (funding, swap, copy_trading, earn)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Blofin, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(accountsByType, fromAccount, fromAccount);
     toId = safeString(accountsByType, toAccount, toAccount);
     request = Dict{Symbol, Any}(
@@ -1945,11 +2234,11 @@ function transfer(self::Blofin, code, amount, fromAccount, toAccount, params=Dic
         Symbol("toAccount") => toId
     );
     response = Base.fetch(self.privatePostAssetTransfer(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransfer(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransfer(data, currency = currency)
 
 end
-function parseTransfer(self::Blofin, transfer, currency=nothing)
+function parseTransfer(self::Blofin, transfer; currency=nothing)
     id = safeString(transfer, "transferId");
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
@@ -1964,7 +2253,19 @@ function parseTransfer(self::Blofin, transfer, currency=nothing)
 )
 
 end
-function fetchPosition(self::Blofin, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://blofin.com/docs#get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.instType`::string, optional: MARGIN, SWAP, FUTURES, OPTION
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Blofin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1973,26 +2274,54 @@ function fetchPosition(self::Blofin, symbol, params=Dict())
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetAccountPositions(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     position = self.safeDict(data, 0);
     if functions.ccxtruthy(position == nothing)
         throw(NullResponse(string(self.id, " fetchPosition() returned empty position")));
     end
-    return self.parsePosition(position, market)
+    return self.parsePosition(position, market = market)
 
 end
-function fetchPositions(self::Blofin, symbols=nothing, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://blofin.com/docs#get-positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.instType`::string, optional: MARGIN, SWAP, FUTURES, OPTION
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Blofin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.privateGetAccountPositions(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = self.parsePositions(data);
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function fetchPositionsHistory(self::Blofin, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://docs.blofin.com/index.html#get-positions-history
+
+# Arguments
+- `symbols`::array, optional: unified contract symbols
+- `since`::int, optional: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+- `limit`::int, optional: the maximum amount of records to fetch, default=20, max=100
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+- `params.productType`::string, optional: USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsHistory(self::Blofin; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2013,14 +2342,14 @@ function fetchPositionsHistory(self::Blofin, symbols=nothing, since=nothing, lim
     end
     (request, params) = self.handleUntilOption("end", request, params);
     response = Base.fetch(self.privateGetAccountPositionsHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    positions = self.parsePositions(data, symbols, params);
-    return self.filterBySinceLimit(positions, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    positions = self.parsePositions(data, symbols = symbols, params = params);
+    return self.filterBySinceLimit(positions, since = since, limit = limit)
 
 end
-function parsePosition(self::Blofin, position, market=nothing)
+function parsePosition(self::Blofin, position; market=nothing)
     marketId = safeString(position, "instId");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     pos = safeString(position, "positions");
     contractsAbs = stringAbs(pos);
@@ -2109,7 +2438,19 @@ function parsePosition(self::Blofin, position, market=nothing)
 ))
 
 end
-function fetchLeverages(self::Blofin, symbols=nothing, params=Dict())
+"""
+fetch the set leverage for all contract markets
+see: https://docs.blofin.com/index.html#get-multiple-leverage
+
+# Arguments
+- `symbols`::array: a list of unified market symbols, required on blofin
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverages(self::Blofin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2117,14 +2458,14 @@ function fetchLeverages(self::Blofin, symbols=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " fetchLeverages() requires a symbols argument")));
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchLeverages", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchLeverages", params = params);
     if functions.ccxtruthy(marginMode == nothing)
         marginMode = safeString(params, "marginMode", "cross");
     end
     if functions.ccxtruthy(@functions.ccxt_and((marginMode != "cross"), (marginMode != "isolated")))
         throw(BadRequest(string(self.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")));
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     symbolsList = symbols;
     instIds = "";
     i = 0
@@ -2143,16 +2484,28 @@ function fetchLeverages(self::Blofin, symbols=nothing, params=Dict())
         Symbol("marginMode") => marginMode
     );
     response = Base.fetch(self.privateGetAccountBatchLeverageInfo(extend(request, params)));
-    leverages = self.safeList(response, "data", []);
-    return self.parseLeverages(leverages, symbols, "instId")
+    leverages = self.safeList(response, "data", defaultValue = []);
+    return self.parseLeverages(leverages, symbols = symbols, symbolKey = "instId")
 
 end
-function fetchLeverage(self::Blofin, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://docs.blofin.com/index.html#get-leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Blofin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchLeverage", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchLeverage", params = params);
     if functions.ccxtruthy(marginMode == nothing)
         marginMode = safeString(params, "marginMode", "cross");
     end
@@ -2165,23 +2518,37 @@ function fetchLeverage(self::Blofin, symbol, params=Dict())
         Symbol("marginMode") => marginMode
     );
     response = Base.fetch(self.privateGetAccountLeverageInfo(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Blofin, leverage, market=nothing)
+function parseLeverage(self::Blofin, leverage; market=nothing)
     marketId = safeString(leverage, "instId");
     leverageValue = safeInteger(leverage, "leverage");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => safeStringLower(leverage, "marginMode"),
     Symbol("longLeverage") => leverageValue,
     Symbol("shortLeverage") => leverageValue
 )
 
 end
-function setLeverage(self::Blofin, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://blofin.com/docs#set-leverage
+
+# Arguments
+- `leverage`::int: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+- `params.positionSide`::string, optional: 'long' or 'short' - required for hedged mode in isolated margin
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Blofin, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -2193,7 +2560,7 @@ function setLeverage(self::Blofin, leverage, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params, "cross");
+    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params, defaultValue = "cross");
     if functions.ccxtruthy(@functions.ccxt_and((marginMode != "cross"), (marginMode != "isolated")))
         throw(BadRequest(string(self.id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")));
     end
@@ -2206,14 +2573,31 @@ function setLeverage(self::Blofin, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function closePosition(self::Blofin, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a market
+see: https://blofin.com/docs#close-positions
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: 'buy' or 'sell', leave as undefined in net mode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique identifier for the order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', default is 'cross;
+- `params.code`::string, optional: *required in the case of closing cross MARGIN position for Single-currency margin* margin currency EXCHANGE SPECIFIC PARAMETERS
+- `params.autoCxl`::bool, optional: whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
+- `params.tag`::string, optional: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closePosition(self::Blofin, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     clientOrderId = safeString(params, "clientOrderId");
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("closePosition", params, "cross");
+    (marginMode, params) = self.handleMarginModeAndParams("closePosition", params = params, defaultValue = "cross");
     request = Dict{Symbol, Any}(
         Symbol("instId") => get(market, Symbol("id"), nothing),
         Symbol("marginMode") => marginMode
@@ -2225,14 +2609,30 @@ function closePosition(self::Blofin, symbol, side=nothing, params=Dict())
     return self.safeDict(response, "data")
 
 end
-function fetchClosedOrders(self::Blofin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://blofin.com/docs#get-order-history
+see: https://blofin.com/docs#get-tpsl-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of  orde structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if fetching trigger or conditional orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Blofin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol = symbol, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -2246,30 +2646,41 @@ function fetchClosedOrders(self::Blofin, symbol=nothing, since=nothing, limit=no
     if functions.ccxtruthy(since != nothing)
         request[Symbol("begin")] = since;
     end
-    isTrigger = self.safeBoolN(params, ["stop", "trigger", "tpsl", "TPSL"], false);
+    isTrigger = self.safeBoolN(params, ["stop", "trigger", "tpsl", "TPSL"], defaultValue = false);
     method = nothing;
-    (method, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
+    (method, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "method", defaultValue = "privateGetTradeOrdersHistory");
     query = omit(params, ["method", "stop", "trigger", "tpsl", "TPSL"]);
     if functions.ccxtruthy(@functions.ccxt_or((isTrigger), (method == "privateGetTradeOrdersTpslHistory")))
         response = Base.fetch(self.privateGetTradeOrdersTpslHistory(extend(request, query)));
     else
         response = Base.fetch(self.privateGetTradeOrdersHistory(extend(request, query)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchMarginMode(self::Blofin, symbol, params=Dict())
+"""
+fetches the margin mode of a trading pair
+see: https://docs.blofin.com/index.html#get-margin-mode
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Blofin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     response = Base.fetch(self.privateGetAccountMarginMode(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginMode(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginMode(data, market = market)
 
 end
-function parseMarginMode(self::Blofin, marginMode, market=nothing)
+function parseMarginMode(self::Blofin, marginMode; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => marginMode,
     Symbol("symbol") => safeString(market, "symbol"),
@@ -2277,8 +2688,20 @@ function parseMarginMode(self::Blofin, marginMode, market=nothing)
 )
 
 end
-function setMarginMode(self::Blofin, marginMode, symbol=nothing, params=Dict())
-    self.checkRequiredArgument("setMarginMode", marginMode, "marginMode", ["cross", "isolated"]);
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://docs.blofin.com/index.html#set-margin-mode
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string, optional: unified market symbol (not used in blofin setMarginMode)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Blofin, marginMode; symbol=nothing, params=Dict())
+    self.checkRequiredArgument("setMarginMode", marginMode, "marginMode", options = ["cross", "isolated"]);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2290,13 +2713,24 @@ function setMarginMode(self::Blofin, marginMode, symbol=nothing, params=Dict())
         Symbol("marginMode") => marginMode
     );
     response = Base.fetch(self.privatePostAccountSetMarginMode(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginMode(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginMode(data, market = market)
 
 end
-function fetchPositionMode(self::Blofin, symbol=nothing, params=Dict())
+"""
+fetchs the position mode, hedged or one way
+see: https://docs.blofin.com/index.html#get-position-mode
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+function fetchPositionMode(self::Blofin; symbol=nothing, params=Dict())
     response = Base.fetch(self.privateGetAccountPositionMode(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     positionMode = safeString(data, "positionMode");
     return Dict{Symbol, Any}(
     Symbol("info") => data,
@@ -2304,29 +2738,52 @@ function fetchPositionMode(self::Blofin, symbol=nothing, params=Dict())
 )
 
 end
-function setPositionMode(self::Blofin, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://docs.blofin.com/index.html#set-position-mode
+
+# Arguments
+- `hedged`::bool: set to true to use hedged mode, false for one-way mode
+- `symbol`::string, optional: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Blofin, hedged; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("positionMode") => functions.ccxtruthy(hedged) ? "long_short_mode" : "net_mode"
     );
     return Base.fetch(self.privatePostAccountSetPositionMode(extend(request, params)))
 
 end
-function fetchPositionsADLRank(self::Blofin, symbols=nothing, params=Dict())
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://docs.blofin.com/index.html#get-positions
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+function fetchPositionsADLRank(self::Blofin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     response = Base.fetch(self.privateGetAccountPositions(params));
-    data = self.safeList(response, "data", []);
-    return self.parseADLRanks(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseADLRanks(data, symbols = symbols)
 
 end
-function parseADLRank(self::Blofin, info, market=nothing)
+function parseADLRank(self::Blofin, info; market=nothing)
     marketId = safeString(info, "instId");
     timestamp = self.safeIntegerOmitZero(info, "createTime");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("rank") => safeInteger(info, "adl"),
     Symbol("rating") => nothing,
     Symbol("percentage") => nothing,
@@ -2360,7 +2817,7 @@ function handleErrors(self::Blofin, httpCode, reason, url, method, headers, body
     return nothing
 
 end
-function sign(self::Blofin, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Blofin, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     request = string("/api/", self.version, "/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol("rest"), nothing), request);
@@ -2410,319 +2867,319 @@ Base.getproperty(self::Blofin, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarketInstruments(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/instruments", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/instruments"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketTickers(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketBooks(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/books", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/books"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketTrades(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketMarkPrice(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/mark-price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/mark-price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketFundingRate(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/funding-rate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/funding-rate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketFundingRateHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/funding-rate-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/funding-rate-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketCandles(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketIndexCandles(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/index-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/index-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketMarkPriceCandles(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/mark-price-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/mark-price-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketPositionTiers(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/position-tiers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/position-tiers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetBalances(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetBills(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/bills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/bills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetWithdrawalHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/withdrawal-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/withdrawal-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetDepositHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/deposit-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/deposit-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountConfig(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/config", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/config"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetCurrencies(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/currencies", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/currencies"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountBalance(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountPositions(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountPositionsHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/positions-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/positions-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountMarginMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/margin-mode", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/margin-mode"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountPositionMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/position-mode", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/position-mode"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountLeverageInfo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/leverage-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/leverage-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountBatchLeverageInfo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/batch-leverage-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/batch-leverage-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersPending(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrderDetail(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order-detail", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/order-detail"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersTpslPending(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-tpsl-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-tpsl-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrderTpslDetail(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order-tpsl-detail", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/order-tpsl-detail"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersAlgoPending(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-algo-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-algo-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersTpslHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-tpsl-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-tpsl-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersAlgoHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-algo-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-algo-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeFillsHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/fills-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/fills-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrderPriceRange(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order/price-range", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/order/price-range"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAffiliateBasic(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/basic", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "affiliate/basic"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAffiliateReferralCode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/referral-code", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "affiliate/referral-code"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAffiliateInvitees(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/invitees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "affiliate/invitees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAffiliateSubInvitees(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/sub-invitees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "affiliate/sub-invitees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAffiliateSubAffiliates(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/sub-affiliates", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "affiliate/sub-affiliates"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAffiliateInviteesDailyInfo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/invitees/daily/info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "affiliate/invitees/daily/info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingInstruments(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/instruments", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/instruments"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingConfig(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/config", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/config"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingAccountBalance(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/account/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingAccountPositionsByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/positions-by-order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/account/positions-by-order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingAccountPositionsDetailsByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/positions-details-by-order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/account/positions-details-by-order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingAccountPositionsByContract(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/positions-by-contract", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/account/positions-by-contract"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingAccountPositionMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/position-mode", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/account/position-mode"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingAccountLeverageInfo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/leverage-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/account/leverage-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingTradeOrdersPending(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/orders-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/orders-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingTradePendingTpslByContract(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/pending-tpsl-by-contract", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/pending-tpsl-by-contract"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingTradePositionHistoryByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/position-history-by-order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/position-history-by-order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingTradeOrdersHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/orders-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/orders-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingTradePendingTpslByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/pending-tpsl-by-order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/pending-tpsl-by-order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserQueryApikey(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "user/query-apikey", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/query-apikey"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotTradeFillsHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "spot/trade/fills-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/trade/fills-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetTransfer(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetDemoApplyMoney(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/demo-apply-money", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/demo-apply-money"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetMarginMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/set-margin-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-margin-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetPositionMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/set-position-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-position-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetLeverage(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/set-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeBatchOrders(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/batch-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/batch-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeOrderTpsl(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order-tpsl", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order-tpsl"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeOrderAlgo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancelOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancelBatchOrders(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-batch-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel-batch-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancelTpsl(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-tpsl", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel-tpsl"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancelAlgo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeClosePosition(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/close-position", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/close-position"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingAccountSetPositionMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/set-position-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/account/set-position-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingAccountSetLeverage(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/set-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/account/set-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingTradePlaceOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/place-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/place-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingTradeCancelOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/cancel-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/cancel-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingTradePlaceTpslByContract(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/place-tpsl-by-contract", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/place-tpsl-by-contract"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingTradeCancelTpslByContract(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/cancel-tpsl-by-contract", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/cancel-tpsl-by-contract"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingTradePlaceTpslByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/place-tpsl-by-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/place-tpsl-by-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingTradeCancelTpslByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/cancel-tpsl-by-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/cancel-tpsl-by-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingTradeClosePositionByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/close-position-by-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/close-position-by-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingTradeClosePositionByContract(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/close-position-by-contract", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/trade/close-position-by-contract"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Blofin(; kwargs...)
@@ -2786,3 +3243,561 @@ function Blofin(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Blofin_fetchMarkets() end
+"""
+retrieves data on all markets for blofin
+see: https://blofin.com/docs#get-instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Blofin_fetchMarkets
+
+function __ccxt_doc_Blofin_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://blofin.com/docs#get-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Blofin_fetchOrderBook
+
+function __ccxt_doc_Blofin_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://blofin.com/docs#get-tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Blofin_fetchTicker
+
+function __ccxt_doc_Blofin_fetchMarkPrice() end
+"""
+fetches mark price for the market
+see: https://docs.blofin.com/index.html#get-mark-price
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Blofin_fetchMarkPrice
+
+function __ccxt_doc_Blofin_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://blofin.com/docs#get-tickers
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Blofin_fetchTickers
+
+function __ccxt_doc_Blofin_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://blofin.com/docs#get-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Blofin_fetchTrades
+
+function __ccxt_doc_Blofin_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://blofin.com/docs#get-candlesticks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Blofin_fetchOHLCV
+
+function __ccxt_doc_Blofin_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://blofin.com/docs#get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Blofin_fetchFundingRateHistory
+
+function __ccxt_doc_Blofin_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://blofin.com/docs#get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Blofin_fetchFundingRate
+
+function __ccxt_doc_Blofin_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://blofin.com/docs#get-balance
+see: https://blofin.com/docs#get-futures-account-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Blofin_fetchBalance
+
+function __ccxt_doc_Blofin_createOrder() end
+"""
+create a trade order
+see: https://blofin.com/docs#place-order
+see: https://blofin.com/docs#place-tpsl-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::string, optional: the trigger price for a trigger order
+- `params.reduceOnly`::bool, optional: a mark to reduce the position size for margin, swap and future orders
+- `params.postOnly`::bool, optional: true to place a post only order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', default is 'cross'
+- `params.stopLossPrice`::float, optional: stop loss trigger price (will use privatePostTradeOrderTpsl)
+- `params.takeProfitPrice`::float, optional: take profit trigger price (will use privatePostTradeOrderTpsl)
+- `params.positionSide`::string, optional: *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+- `params.hedged`::bool, optional: if true, the positionSide will be set to long/short instead of net, default is false
+- `params.clientOrderId`::string, optional: a unique id for the order
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.takeProfit.price`::float, optional: take profit order price (if not provided the order will be a market order)
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.stopLoss.price`::float, optional: stop loss order price (if not provided the order will be a market order)
+- `params.tpsl`::float, optional: whether to force to send the order to the combined TPSL oco order endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blofin_createOrder
+
+function __ccxt_doc_Blofin_cancelOrder() end
+"""
+cancels an open order
+see: https://blofin.com/docs#cancel-order
+see: https://blofin.com/docs#cancel-tpsl-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if cancelling a trigger/conditional
+- `params.tpsl`::bool, optional: True if cancelling a tpsl order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blofin_cancelOrder
+
+function __ccxt_doc_Blofin_createOrders() end
+"""
+create a list of trade orders
+see: https://blofin.com/docs#place-multiple-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blofin_createOrders
+
+function __ccxt_doc_Blofin_fetchOpenOrders() end
+"""
+Fetch orders that are still open
+see: https://blofin.com/docs#get-active-orders
+see: https://blofin.com/docs#get-active-tpsl-orders
+see: https://docs.blofin.com/index.html#get-active-algo-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if fetching trigger or conditional orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blofin_fetchOpenOrders
+
+function __ccxt_doc_Blofin_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://blofin.com/docs#get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: Timestamp in ms of the latest time to retrieve trades for
+- `params.type`::string, optional: 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
+- `params.instId`::string, optional: *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT')
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Blofin_fetchMyTrades
+
+function __ccxt_doc_Blofin_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://blofin.com/docs#get-deposite-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Blofin_fetchDeposits
+
+function __ccxt_doc_Blofin_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://blofin.com/docs#get-withdraw-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Blofin_fetchWithdrawals
+
+function __ccxt_doc_Blofin_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://blofin.com/docs#get-funds-transfer-history
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Blofin_fetchLedger
+
+function __ccxt_doc_Blofin_cancelOrders() end
+"""
+cancel multiple orders
+see: https://blofin.com/docs#cancel-multiple-orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/trigger order
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blofin_cancelOrders
+
+function __ccxt_doc_Blofin_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://blofin.com/docs#funds-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from (funding, swap, copy_trading, earn)
+- `toAccount`::string: account to transfer to (funding, swap, copy_trading, earn)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Blofin_transfer
+
+function __ccxt_doc_Blofin_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://blofin.com/docs#get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.instType`::string, optional: MARGIN, SWAP, FUTURES, OPTION
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Blofin_fetchPosition
+
+function __ccxt_doc_Blofin_fetchPositions() end
+"""
+fetch data on a single open contract trade position
+see: https://blofin.com/docs#get-positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.instType`::string, optional: MARGIN, SWAP, FUTURES, OPTION
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Blofin_fetchPositions
+
+function __ccxt_doc_Blofin_fetchPositionsHistory() end
+"""
+fetches historical positions
+see: https://docs.blofin.com/index.html#get-positions-history
+
+# Arguments
+- `symbols`::array, optional: unified contract symbols
+- `since`::int, optional: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+- `limit`::int, optional: the maximum amount of records to fetch, default=20, max=100
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+- `params.productType`::string, optional: USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Blofin_fetchPositionsHistory
+
+function __ccxt_doc_Blofin_fetchLeverages() end
+"""
+fetch the set leverage for all contract markets
+see: https://docs.blofin.com/index.html#get-multiple-leverage
+
+# Arguments
+- `symbols`::array: a list of unified market symbols, required on blofin
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Blofin_fetchLeverages
+
+function __ccxt_doc_Blofin_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://docs.blofin.com/index.html#get-leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Blofin_fetchLeverage
+
+function __ccxt_doc_Blofin_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://blofin.com/docs#set-leverage
+
+# Arguments
+- `leverage`::int: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+- `params.positionSide`::string, optional: 'long' or 'short' - required for hedged mode in isolated margin
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Blofin_setLeverage
+
+function __ccxt_doc_Blofin_closePosition() end
+"""
+closes open positions for a market
+see: https://blofin.com/docs#close-positions
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: 'buy' or 'sell', leave as undefined in net mode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique identifier for the order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', default is 'cross;
+- `params.code`::string, optional: *required in the case of closing cross MARGIN position for Single-currency margin* margin currency EXCHANGE SPECIFIC PARAMETERS
+- `params.autoCxl`::bool, optional: whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
+- `params.tag`::string, optional: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Blofin_closePosition
+
+function __ccxt_doc_Blofin_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://blofin.com/docs#get-order-history
+see: https://blofin.com/docs#get-tpsl-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of  orde structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if fetching trigger or conditional orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blofin_fetchClosedOrders
+
+function __ccxt_doc_Blofin_fetchMarginMode() end
+"""
+fetches the margin mode of a trading pair
+see: https://docs.blofin.com/index.html#get-margin-mode
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Blofin_fetchMarginMode
+
+function __ccxt_doc_Blofin_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://docs.blofin.com/index.html#set-margin-mode
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string, optional: unified market symbol (not used in blofin setMarginMode)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Blofin_setMarginMode
+
+function __ccxt_doc_Blofin_fetchPositionMode() end
+"""
+fetchs the position mode, hedged or one way
+see: https://docs.blofin.com/index.html#get-position-mode
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+__ccxt_doc_Blofin_fetchPositionMode
+
+function __ccxt_doc_Blofin_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://docs.blofin.com/index.html#set-position-mode
+
+# Arguments
+- `hedged`::bool: set to true to use hedged mode, false for one-way mode
+- `symbol`::string, optional: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Blofin_setPositionMode
+
+function __ccxt_doc_Blofin_fetchPositionsADLRank() end
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://docs.blofin.com/index.html#get-positions
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+__ccxt_doc_Blofin_fetchPositionsADLRank

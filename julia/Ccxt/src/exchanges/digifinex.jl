@@ -797,9 +797,19 @@ function describe(self::Digifinex, )
 ))
 
 end
-function fetchCurrencies(self::Digifinex, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Digifinex; params=Dict())
     response = Base.fetch(self.publicSpotGetCurrencies(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     groupedById = groupBy(data, "currency");
     values_var = objectValues(groupedById);
     return self.parseCurrencies(values_var)
@@ -807,7 +817,7 @@ function fetchCurrencies(self::Digifinex, params=Dict())
 end
 function parseCurrency(self::Digifinex, rawCurrency)
     networkEntries = rawCurrency;
-    firstEntry = self.safeDict(networkEntries, 0, Dict{Symbol, Any}());
+    firstEntry = self.safeDict(networkEntries, 0, defaultValue = Dict{Symbol, Any}());
     id = safeString(firstEntry, "currency");
     code = self.safeCurrencyCode(id);
     networks = Dict{Symbol, Any}();
@@ -815,7 +825,7 @@ function parseCurrency(self::Digifinex, rawCurrency)
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkEntries)))
         networkEntry = get(networkEntries, j + 1, nothing);
         networkId = safeString2(networkEntry, "chain", "currency");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -848,18 +858,31 @@ function parseCurrency(self::Digifinex, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Digifinex, params=Dict())
+"""
+retrieves data on all markets for digifinex
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Digifinex; params=Dict())
     options = safeValue(self.options, "fetchMarkets", Dict{Symbol, Any}());
     method = safeString(options, "method", "fetch_markets_v2");
     if functions.ccxtruthy(method == "fetch_markets_v2")
-            return Base.fetch(self.fetchMarketsV2(params))
+            return Base.fetch(self.fetchMarketsV2(params = params))
     end
-    return Base.fetch(self.fetchMarketsV1(params))
+    return Base.fetch(self.fetchMarketsV1(params = params))
 
 end
-function fetchMarketsV2(self::Digifinex, params=Dict())
+function fetchMarketsV2(self::Digifinex; params=Dict())
     defaultType = safeString(self.options, "defaultType");
-    (marginMode, query) = self.handleMarginModeAndParams("fetchMarketsV2", params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchMarketsV2", params = params);
     promisesRaw = [];
     if functions.ccxtruthy(marginMode != nothing)
                 push!(promisesRaw, self.publicSpotGetMarginSymbols(query));
@@ -928,8 +951,8 @@ function fetchMarketsV2(self::Digifinex, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "amount_precision"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "price_precision")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "amount_precision"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "price_precision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -957,7 +980,7 @@ function fetchMarketsV2(self::Digifinex, params=Dict())
     return result
 
 end
-function fetchMarketsV1(self::Digifinex, params=Dict())
+function fetchMarketsV1(self::Digifinex; params=Dict())
     response = Base.fetch(self.publicSpotGetMarkets(params));
     markets = safeValue(response, "data", []);
     result = [];
@@ -996,8 +1019,8 @@ function fetchMarketsV1(self::Digifinex, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "price_precision"))),
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "volume_precision")))
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "price_precision"))),
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "volume_precision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -1047,13 +1070,25 @@ function parseBalance(self::Digifinex, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Digifinex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-account-assets
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#accountbalance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Digifinex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
-    (marginMode, query) = self.handleMarginModeAndParams("fetchBalance", params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchBalance", params = params);
     response = nothing;
     if functions.ccxtruthy(@functions.ccxt_or(marginMode != nothing, marketType == "margin"))
         marketType = "margin";
@@ -1073,12 +1108,25 @@ function fetchBalance(self::Digifinex, params=Dict())
     return self.parseBalance(balances)
 
 end
-function fetchOrderBook(self::Digifinex, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-orderbook
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Digifinex, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    (marketType, query) = self.handleMarketTypeAndParams("fetchOrderBook", market, params);
+    (marketType, query) = self.handleMarketTypeAndParams("fetchOrderBook", market = market, params = params);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
@@ -1100,21 +1148,33 @@ function fetchOrderBook(self::Digifinex, symbol, limit=nothing, params=Dict())
         orderBook = response;
         timestamp = safeTimestamp(response, "date");
     end
-    return self.parseOrderBook(orderBook, get(market, Symbol("symbol"), nothing), timestamp)
+    return self.parseOrderBook(orderBook, get(market, Symbol("symbol"), nothing), timestamp = timestamp)
 
 end
-function fetchTickers(self::Digifinex, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Digifinex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     first_var = safeString(symbols, 0);
     market = nothing;
     if functions.ccxtruthy(first_var != nothing)
         market = self.market(first_var);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     request = Dict{Symbol, Any}();
     response = nothing;
     if functions.ccxtruthy(type_var == "swap")
@@ -1137,10 +1197,22 @@ function fetchTickers(self::Digifinex, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchTicker(self::Digifinex, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Digifinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1169,15 +1241,15 @@ function fetchTicker(self::Digifinex, symbol, params=Dict())
     if functions.ccxtruthy(result == nothing)
         throw(NullResponse(string(self.id, " fetchTicker() returned empty response")));
     end
-    return self.parseTicker(result, market)
+    return self.parseTicker(result, market = market)
 
 end
-function parseTicker(self::Digifinex, ticker, market=nothing)
+function parseTicker(self::Digifinex, ticker; market=nothing)
     indexPrice = self.safeNumber(ticker, "index_price");
     marketType = functions.ccxtruthy((indexPrice != nothing)) ? "contract" : "spot";
     marketId = safeStringUpper2(ticker, "symbol", "instrument_id");
-    symbol = self.safeSymbol(marketId, market, nothing, marketType);
-    market = self.safeMarket(marketId, market, nothing, marketType);
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
     timestamp = safeTimestamp(ticker, "date");
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         timestamp = safeInteger(ticker, "timestamp");
@@ -1206,18 +1278,18 @@ function parseTicker(self::Digifinex, ticker, market=nothing)
     Symbol("markPrice") => safeString(ticker, "mark_price"),
     Symbol("indexPrice") => indexPrice,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function parseTrade(self::Digifinex, trade, market=nothing)
+function parseTrade(self::Digifinex, trade; market=nothing)
     id = safeString2(trade, "id", "trade_id");
     orderId = safeString(trade, "order_id");
     priceString = safeString(trade, "price");
     amountString = safeStringN(trade, ["amount", "volume", "size"]);
     marketId = safeStringUpper2(trade, "symbol", "instrument_id");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     if functions.ccxtruthy(market == nothing)
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
     end
     timestamp = safeTimestamp2(trade, "date", "timestamp");
     side = safeString2(trade, "type", "side");
@@ -1290,15 +1362,35 @@ function parseTrade(self::Digifinex, trade, market=nothing)
     Symbol("cost") => nothing,
     Symbol("takerOrMaker") => takerOrMaker,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTime(self::Digifinex, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-timestamp
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Digifinex; params=Dict())
     response = Base.fetch(self.publicSpotGetTime(params));
     return safeTimestamp(response, "server_time")
 
 end
-function fetchStatus(self::Digifinex, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-ping
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Digifinex; params=Dict())
     response = Base.fetch(self.publicSpotGetPing(params));
     code = safeInteger(response, "code");
     status = functions.ccxtruthy((code == 0)) ? "ok" : "maintenance";
@@ -1311,7 +1403,21 @@ function fetchStatus(self::Digifinex, params=Dict())
 )
 
 end
-function fetchTrades(self::Digifinex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-recent-trades
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#recenttrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Digifinex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1328,11 +1434,11 @@ function fetchTrades(self::Digifinex, symbol, since=nothing, limit=nothing, para
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.publicSpotGetTrades(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Digifinex, ohlcv, market=nothing)
+function parseOHLCV(self::Digifinex, ohlcv; market=nothing)
     if functions.ccxtruthy(self.safeBool(market, "swap"))
             return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
     else
@@ -1340,7 +1446,23 @@ function parseOHLCV(self::Digifinex, ohlcv, market=nothing)
     end
 
 end
-function fetchOHLCV(self::Digifinex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-candles-data
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#recentcandle
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Digifinex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1397,17 +1519,38 @@ function fetchOHLCV(self::Digifinex, symbol, timeframe="1m", since=nothing, limi
     else
         candles = safeValue(response, "data", []);
     end
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function createOrder(self::Digifinex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderplace
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: "GTC", "IOC", "FOK", or "PO"
+- `params.postOnly`::bool, optional: true or false
+- `params.reduceOnly`::bool, optional: true or false
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Digifinex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    marginResult = self.handleMarginModeAndParams("createOrder", params);
+    marginResult = self.handleMarginModeAndParams("createOrder", params = params);
     marginMode = get(marginResult, 1, nothing);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         response = Base.fetch(self.privateSwapPostTradeOrderPlace(request));
@@ -1421,7 +1564,7 @@ function createOrder(self::Digifinex, symbol, type_var, side, amount, price=noth
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " createOrder() returned empty response")));
     end
-    order = self.parseOrder(response, market);
+    order = self.parseOrder(response, market = market);
     order[Symbol("symbol")] = get(market, Symbol("symbol"), nothing);
     order[Symbol("type")] = type_var;
     order[Symbol("side")] = side;
@@ -1430,7 +1573,19 @@ function createOrder(self::Digifinex, symbol, type_var, side, amount, price=noth
     return order
 
 end
-function createOrders(self::Digifinex, orders, params=Dict())
+"""
+create a list of trade orders (all orders should be of the same symbol)
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-multiple-order
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Digifinex, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1453,7 +1608,7 @@ function createOrders(self::Digifinex, orders, params=Dict())
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
         orderParams = safeValue(rawOrder, "params", Dict{Symbol, Any}());
-        marginResult = self.handleMarginModeAndParams("createOrders", orderParams);
+        marginResult = self.handleMarginModeAndParams("createOrders", params = orderParams);
         currentMarginMode = get(marginResult, 1, nothing);
         if functions.ccxtruthy(currentMarginMode != nothing)
             if functions.ccxtruthy(marginMode == nothing)
@@ -1464,7 +1619,7 @@ function createOrders(self::Digifinex, orders, params=Dict())
                 end
             end
         end
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, orderParams);
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
@@ -1497,10 +1652,10 @@ function createOrders(self::Digifinex, orders, params=Dict())
         push!(result, individualOrder);
         i += 1
     end
-    return self.parseOrders(result, market)
+    return self.parseOrders(result, market = market)
 
 end
-function createOrderRequest(self::Digifinex, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Digifinex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1510,8 +1665,8 @@ function createOrderRequest(self::Digifinex, symbol, type_var, side, amount, pri
     market = self.market(symbol);
     marketType = nothing;
     marginMode = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("createOrderRequest", market, params);
-    (marginMode, params) = self.handleMarginModeAndParams("createOrderRequest", params);
+    (marketType, params) = self.handleMarketTypeAndParams("createOrderRequest", market = market, params = params);
+    (marginMode, params) = self.handleMarginModeAndParams("createOrderRequest", params = params);
     if functions.ccxtruthy(marginMode != nothing)
         marketType = "margin";
     end
@@ -1521,10 +1676,10 @@ function createOrderRequest(self::Digifinex, symbol, type_var, side, amount, pri
     isLimitOrder = (type_var == "limit");
     marketIdRequest = functions.ccxtruthy(swap) ? "instrument_id" : "symbol";
     request[Symbol(marketIdRequest)] = get(market, Symbol("id"), nothing);
-    postOnly = self.isPostOnly(isMarketOrder, false, params);
+    postOnly = self.isPostOnly(isMarketOrder, false, params = params);
     postOnlyParsed = nothing;
     if functions.ccxtruthy(swap)
-        reduceOnly = self.safeBool(params, "reduceOnly", false);
+        reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
         timeInForce = safeString(params, "timeInForce");
         orderType = nothing;
         if functions.ccxtruthy(side == "buy")
@@ -1567,7 +1722,7 @@ function createOrderRequest(self::Digifinex, symbol, type_var, side, amount, pri
         request[Symbol("type")] = string(side, suffix);
         quantity = nothing;
         createMarketBuyOrderRequiresPrice = true;
-        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
+        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrderRequest", "createMarketBuyOrderRequiresPrice", defaultValue = true);
         if functions.ccxtruthy(@functions.ccxt_and(isMarketOrder, (side == "buy")))
             cost = self.safeNumber(params, "cost");
             params = omit(params, "cost");
@@ -1601,7 +1756,19 @@ function createOrderRequest(self::Digifinex, symbol, type_var, side, amount, pri
     return extend(request, params)
 
 end
-function createMarketBuyOrderWithCost(self::Digifinex, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Digifinex, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1610,10 +1777,23 @@ function createMarketBuyOrderWithCost(self::Digifinex, symbol, cost, params=Dict
         throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
     end
     params[Symbol("createMarketBuyOrderRequiresPrice")] = false;
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = params))
 
 end
-function cancelOrder(self::Digifinex, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Digifinex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1623,7 +1803,7 @@ function cancelOrder(self::Digifinex, id, symbol=nothing, params=Dict())
     end
     id = string(id);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelOrder", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelOrder", market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("order_id") => id
     );
@@ -1635,7 +1815,7 @@ function cancelOrder(self::Digifinex, id, symbol=nothing, params=Dict())
     else
         request[Symbol("market")] = marketType;
     end
-    (marginMode, query) = self.handleMarginModeAndParams("cancelOrder", params);
+    (marginMode, query) = self.handleMarginModeAndParams("cancelOrder", params = params);
     response = nothing;
     if functions.ccxtruthy(@functions.ccxt_or(marginMode != nothing, marketType == "margin"))
         marketType = "margin";
@@ -1667,8 +1847,8 @@ function cancelOrder(self::Digifinex, id, symbol=nothing, params=Dict())
 
 end
 function parseCancelOrders(self::Digifinex, response)
-    success = self.safeList(response, "success", []);
-    error = self.safeList(response, "error", []);
+    success = self.safeList(response, "success", defaultValue = []);
+    error = self.safeList(response, "error", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(success)))
@@ -1694,7 +1874,19 @@ function parseCancelOrders(self::Digifinex, response)
     return result
 
 end
-function cancelOrders(self::Digifinex, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: not used by cancelOrders ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Digifinex, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1720,14 +1912,14 @@ function parseOrderStatus(self::Digifinex, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Digifinex, order, market=nothing)
+function parseOrder(self::Digifinex, order; market=nothing)
     timestamp = nothing;
     lastTradeTimestamp = nothing;
     timeInForce = nothing;
     type_var = nothing;
     side = safeString(order, "type");
     marketId = safeString2(order, "symbol", "instrument_id");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("type"), nothing) == "swap")
         orderType = safeInteger(order, "order_type");
@@ -1800,10 +1992,24 @@ function parseOrder(self::Digifinex, order, market=nothing)
         Symbol("cost") => self.safeNumber(order, "fee")
     ),
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function fetchOpenOrders(self::Digifinex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#current-active-orders
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#openorder
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Digifinex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1812,8 +2018,8 @@ function fetchOpenOrders(self::Digifinex, symbol=nothing, since=nothing, limit=n
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market, params);
-    (marginMode, query) = self.handleMarginModeAndParams("fetchOpenOrders", params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market = market, params = params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchOpenOrders", params = params);
     request = Dict{Symbol, Any}();
     swap = (marketType == "swap");
     if functions.ccxtruthy(swap)
@@ -1844,11 +2050,25 @@ function fetchOpenOrders(self::Digifinex, symbol=nothing, since=nothing, limit=n
         end
 
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchOrders(self::Digifinex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-all-orders-including-history-orders
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#historyorder
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Digifinex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1857,8 +2077,8 @@ function fetchOrders(self::Digifinex, symbol=nothing, since=nothing, limit=nothi
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrders", market, params);
-    (marginMode, query) = self.handleMarginModeAndParams("fetchOrders", params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOrders", market = market, params = params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchOrders", params = params);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(marketType == "swap")
         if functions.ccxtruthy(since != nothing)
@@ -1891,11 +2111,24 @@ function fetchOrders(self::Digifinex, symbol=nothing, since=nothing, limit=nothi
         end
 
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchOrder(self::Digifinex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-order-status
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderinfo
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Digifinex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1904,8 +2137,8 @@ function fetchOrder(self::Digifinex, id, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrder", market, params);
-    (marginMode, query) = self.handleMarginModeAndParams("fetchOrder", params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOrder", market = market, params = params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchOrder", params = params);
     request = Dict{Symbol, Any}(
         Symbol("order_id") => id
     );
@@ -1935,10 +2168,24 @@ function fetchOrder(self::Digifinex, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(order == nothing)
         throw(OrderNotFound(string(self.id, " fetchOrder() order ", id, " not found")));
     end
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function fetchMyTrades(self::Digifinex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#customer-39-s-trades
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#historytrade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Digifinex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1948,8 +2195,8 @@ function fetchMyTrades(self::Digifinex, symbol=nothing, since=nothing, limit=not
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
-    (marginMode, query) = self.handleMarginModeAndParams("fetchMyTrades", params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchMyTrades", params = params);
     if functions.ccxtruthy(marketType == "swap")
         if functions.ccxtruthy(since != nothing)
             request[Symbol("start_timestamp")] = since;
@@ -1982,8 +2229,8 @@ function fetchMyTrades(self::Digifinex, symbol=nothing, since=nothing, limit=not
 
     end
     responseRequest = functions.ccxtruthy((marketType == "swap")) ? "data" : "list";
-    data = self.safeList(response, responseRequest, []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, responseRequest, defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
 function parseLedgerEntryType(self::Digifinex, type_var)
@@ -1991,11 +2238,11 @@ function parseLedgerEntryType(self::Digifinex, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Digifinex, item, currency=nothing)
+function parseLedgerEntry(self::Digifinex, item; currency=nothing)
     type_var = self.parseLedgerEntryType(safeString2(item, "type", "finance_type"));
     currencyId = safeString2(item, "currency_mark", "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     amount = self.safeNumber2(item, "num", "change");
     after = self.safeNumber(item, "balance");
     timestamp = safeTimestamp(item, "time");
@@ -2018,17 +2265,31 @@ function parseLedgerEntry(self::Digifinex, item, currency=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
-function fetchLedger(self::Digifinex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Digifinex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchLedger", nothing, params);
-    (marginMode, query) = self.handleMarginModeAndParams("fetchLedger", params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchLedger", market = nothing, params = params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchLedger", params = params);
     if functions.ccxtruthy(marketType == "swap")
         if functions.ccxtruthy(since != nothing)
             request[Symbol("start_timestamp")] = since;
@@ -2069,10 +2330,10 @@ function fetchLedger(self::Digifinex, code=nothing, since=nothing, limit=nothing
         data = safeValue(response, "data", Dict{Symbol, Any}());
         ledger = safeValue(data, "finance", []);
     end
-    return self.parseLedger(ledger, currency, since, limit)
+    return self.parseLedger(ledger, currency = currency, since = since, limit = limit)
 
 end
-function parseDepositAddress(self::Digifinex, depositAddress, currency=nothing)
+function parseDepositAddress(self::Digifinex, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
     tag = safeString(depositAddress, "addressTag");
     currencyId = safeStringUpper(depositAddress, "currency");
@@ -2086,7 +2347,18 @@ function parseDepositAddress(self::Digifinex, depositAddress, currency=nothing)
 )
 
 end
-function fetchDepositAddress(self::Digifinex, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-address-inquiry
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Digifinex, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2096,7 +2368,7 @@ function fetchDepositAddress(self::Digifinex, code, params=Dict())
     );
     response = Base.fetch(self.privateSpotGetDepositAddress(extend(request, params)));
     data = safeValue(response, "data", []);
-    addresses = self.parseDepositAddresses(data, [get(currency, Symbol("code"), nothing)]);
+    addresses = self.parseDepositAddresses(data, codes = [get(currency, Symbol("code"), nothing)]);
     address = safeValue(addresses, code);
     if functions.ccxtruthy(address == nothing)
         throw(InvalidAddress(string(self.id, " fetchDepositAddress() did not return an address for ", code, " - create the deposit address in the user settings on the exchange website first.")));
@@ -2104,7 +2376,7 @@ function fetchDepositAddress(self::Digifinex, code, params=Dict())
     return address
 
 end
-function fetchTransactionsByType(self::Digifinex, type_var, code=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchTransactionsByType(self::Digifinex, type_var; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2123,18 +2395,44 @@ function fetchTransactionsByType(self::Digifinex, type_var, code=nothing, since=
     else
         response = Base.fetch(self.privateSpotGetWithdrawHistory(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit, Dict{Symbol, Any}(
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => type_var
 ))
 
 end
-function fetchDeposits(self::Digifinex, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchTransactionsByType("deposit", code, since, limit, params))
+"""
+fetch all deposits made to an account
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Digifinex; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchTransactionsByType("deposit", code = code, since = since, limit = limit, params = params))
 
 end
-function fetchWithdrawals(self::Digifinex, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchTransactionsByType("withdrawal", code, since, limit, params))
+"""
+fetch all withdrawals made from an account
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#withdrawal-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Digifinex; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchTransactionsByType("withdrawal", code = code, since = since, limit = limit, params = params))
 
 end
 function parseTransactionStatus(self::Digifinex, status)
@@ -2147,13 +2445,13 @@ function parseTransactionStatus(self::Digifinex, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Digifinex, transaction, currency=nothing)
+function parseTransaction(self::Digifinex, transaction; currency=nothing)
     id = safeString2(transaction, "id", "withdraw_id");
     address = safeString(transaction, "address");
     tag = safeString(transaction, "memo");
     txid = safeString(transaction, "hash");
     currencyId = safeStringUpper(transaction, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = self.parse8601(safeString(transaction, "created_date"));
     updated = self.parse8601(safeString(transaction, "finished_date"));
     status = self.parseTransactionStatus(safeString(transaction, "state"));
@@ -2198,10 +2496,10 @@ function parseTransferStatus(self::Digifinex, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransfer(self::Digifinex, transfer, currency=nothing)
+function parseTransfer(self::Digifinex, transfer; currency=nothing)
     fromAccount = nothing;
     toAccount = nothing;
-    data = self.safeDict(transfer, "data", transfer);
+    data = self.safeDict(transfer, "data", defaultValue = transfer);
     type_var = safeInteger(data, "type");
     if functions.ccxtruthy(type_var == 1)
         fromAccount = "spot";
@@ -2216,7 +2514,7 @@ function parseTransfer(self::Digifinex, transfer, currency=nothing)
     Symbol("id") => safeString(transfer, "transfer_id"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("currency") => self.safeCurrencyCode(safeString(data, "currency"), currency),
+    Symbol("currency") => self.safeCurrencyCode(safeString(data, "currency"), currency = currency),
     Symbol("amount") => self.safeNumber2(data, "amount", "transfer_amount"),
     Symbol("fromAccount") => fromAccount,
     Symbol("toAccount") => toAccount,
@@ -2224,7 +2522,22 @@ function parseTransfer(self::Digifinex, transfer, currency=nothing)
 )
 
 end
-function transfer(self::Digifinex, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#transfer-assets-among-accounts
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#accounttransfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'spot', 'swap', 'margin', 'OTC' - account to transfer from
+- `toAccount`::string: 'spot', 'swap', 'margin', 'OTC' - account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Digifinex, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2256,12 +2569,25 @@ function transfer(self::Digifinex, code, amount, fromAccount, toAccount, params=
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " transfer() returned empty response")));
     end
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function withdraw(self::Digifinex, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Digifinex, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2275,10 +2601,10 @@ function withdraw(self::Digifinex, code, amount, address, tag=nothing, params=Di
         request[Symbol("memo")] = tag;
     end
     response = Base.fetch(self.privateSpotPostWithdrawNew(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function fetchBorrowInterest(self::Digifinex, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchBorrowInterest(self::Digifinex; code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2290,18 +2616,18 @@ function fetchBorrowInterest(self::Digifinex, code=nothing, symbol=nothing, sinc
     end
     response = Base.fetch(self.privateSpotGetMarginPositions(extend(request, params)));
     rows = safeValue(response, "positions");
-    interest = self.parseBorrowInterests(rows, market);
-    return self.filterByCurrencySinceLimit(interest, code, since, limit)
+    interest = self.parseBorrowInterests(rows, market = market);
+    return self.filterByCurrencySinceLimit(interest, code = code, since = since, limit = limit)
 
 end
-function parseBorrowInterest(self::Digifinex, info, market=nothing)
+function parseBorrowInterest(self::Digifinex, info; market=nothing)
     marketId = safeString(info, "symbol");
     amountString = safeString(info, "amount");
     leverageString = safeString(info, "leverage_ratio");
     amountInvested = stringDiv(amountString, leverageString);
     amountBorrowed = stringSub(amountString, amountInvested);
     currency = functions.ccxtruthy((market == nothing)) ? nothing : get(market, Symbol("base"), nothing);
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => info,
     Symbol("symbol") => symbol,
@@ -2315,7 +2641,18 @@ function parseBorrowInterest(self::Digifinex, info, market=nothing)
 )
 
 end
-function fetchCrossBorrowRate(self::Digifinex, code, params=Dict())
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+"""
+function fetchCrossBorrowRate(self::Digifinex, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2332,10 +2669,20 @@ function fetchCrossBorrowRate(self::Digifinex, code, params=Dict())
         i += 1
     end
     currency = self.currency(code);
-    return self.parseBorrowRate(result, currency)
+    return self.parseBorrowRate(result, currency = currency)
 
 end
-function fetchCrossBorrowRates(self::Digifinex, params=Dict())
+"""
+fetch the borrow interest rates of all currencies
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchCrossBorrowRates(self::Digifinex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2344,11 +2691,11 @@ function fetchCrossBorrowRates(self::Digifinex, params=Dict())
     return self.parseBorrowRates(result, "currency")
 
 end
-function parseBorrowRate(self::Digifinex, info, currency=nothing)
+function parseBorrowRate(self::Digifinex, info; currency=nothing)
     timestamp = milliseconds();
     currencyId = safeString(info, "currency");
     return Dict{Symbol, Any}(
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("rate") => 0.001,
     Symbol("period") => 86400000,
     Symbol("timestamp") => timestamp,
@@ -2373,7 +2720,18 @@ function parseBorrowRates(self::Digifinex, info, codeKey)
     return result
 
 end
-function fetchFundingRate(self::Digifinex, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Digifinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2385,15 +2743,26 @@ function fetchFundingRate(self::Digifinex, symbol, params=Dict())
         Symbol("instrument_id") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicSwapGetPublicFundingRate(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseFundingRate(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(data, market = market)
 
 end
-function fetchFundingInterval(self::Digifinex, symbol, params=Dict())
-    return Base.fetch(self.fetchFundingRate(symbol, params))
+"""
+fetch the current funding rate interval
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingInterval(self::Digifinex, symbol; params=Dict())
+    return Base.fetch(self.fetchFundingRate(symbol, params = params))
 
 end
-function parseFundingRate(self::Digifinex, contract, market=nothing)
+function parseFundingRate(self::Digifinex, contract; market=nothing)
     marketId = safeString(contract, "instrument_id");
     timestamp = safeInteger(contract, "funding_time");
     nextTimestamp = safeInteger(contract, "next_funding_time");
@@ -2402,7 +2771,7 @@ function parseFundingRate(self::Digifinex, contract, market=nothing)
     millisecondsInterval = stringSub(nextFundingTimeString, fundingTimeString);
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("markPrice") => nothing,
     Symbol("indexPrice") => nothing,
     Symbol("interestRate") => nothing,
@@ -2433,7 +2802,20 @@ function parseFundingInterval(self::Digifinex, interval)
     return safeString(intervals, interval, interval)
 
 end
-function fetchFundingRateHistory(self::Digifinex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Digifinex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -2473,10 +2855,21 @@ function fetchFundingRateHistory(self::Digifinex, symbol=nothing, since=nothing,
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchTradingFee(self::Digifinex, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Digifinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2489,12 +2882,12 @@ function fetchTradingFee(self::Digifinex, symbol, params=Dict())
     );
     response = Base.fetch(self.privateSwapGetAccountTradingFeeRate(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    return self.parseTradingFee(data, market)
+    return self.parseTradingFee(data, market = market)
 
 end
-function parseTradingFee(self::Digifinex, fee, market=nothing)
+function parseTradingFee(self::Digifinex, fee; market=nothing)
     marketId = safeString(fee, "instrument_id");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => symbol,
@@ -2505,11 +2898,23 @@ function parseTradingFee(self::Digifinex, fee, market=nothing)
 )
 
 end
-function fetchPositions(self::Digifinex, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Digifinex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     market = nothing;
     marketType = nothing;
@@ -2526,8 +2931,8 @@ function fetchPositions(self::Digifinex, symbols=nothing, params=Dict())
         end
         market = self.market(symbol);
     end
-    (marketType, params) = self.handleMarketTypeAndParams("fetchPositions", market, params);
-    (marginMode, query) = self.handleMarginModeAndParams("fetchPositions", params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchPositions", market = market, params = params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchPositions", params = params);
     if functions.ccxtruthy(marginMode != nothing)
         marketType = "margin";
     end
@@ -2548,21 +2953,33 @@ function fetchPositions(self::Digifinex, symbols=nothing, params=Dict())
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
-        push!(result, self.parsePosition(get(positions, i + 1, nothing), market));
+        push!(result, self.parsePosition(get(positions, i + 1, nothing), market = market));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function fetchPosition(self::Digifinex, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Digifinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}();
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchPosition", market, params);
-    (marginMode, query) = self.handleMarginModeAndParams("fetchPosition", params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchPosition", market = market, params = params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchPosition", params = params);
     if functions.ccxtruthy(marginMode != nothing)
         marketType = "margin";
     end
@@ -2578,7 +2995,7 @@ function fetchPosition(self::Digifinex, symbol, params=Dict())
     end
     dataRequest = functions.ccxtruthy((marketType == "swap")) ? "data" : "positions";
     data = safeValue(response, dataRequest, []);
-    position = self.parsePosition(get(data, 1, nothing), market);
+    position = self.parsePosition(get(data, 1, nothing), market = market);
     if functions.ccxtruthy(marketType == "swap")
             return position
     else
@@ -2588,9 +3005,9 @@ function fetchPosition(self::Digifinex, symbol, params=Dict())
     end
 
 end
-function parsePosition(self::Digifinex, position, market=nothing)
+function parsePosition(self::Digifinex, position; market=nothing)
     marketId = safeString2(position, "instrument_id", "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     marginMode = safeString(position, "margin_mode");
     if functions.ccxtruthy(marginMode != nothing)
@@ -2634,7 +3051,21 @@ function parsePosition(self::Digifinex, position, market=nothing)
 ))
 
 end
-function setLeverage(self::Digifinex, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#setleverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: either 'cross' or 'isolated', default is cross
+- `params.side`::string, optional: either 'long' or 'short', required for isolated markets only
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Digifinex, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -2665,13 +3096,26 @@ function setLeverage(self::Digifinex, leverage, symbol=nothing, params=Dict())
             request[Symbol("side")] = side;
             params = omit(params, "side");
         else
-            self.checkRequiredArgument("setLeverage", side, "side", ["long", "short"]);
+            self.checkRequiredArgument("setLeverage", side, "side", options = ["long", "short"]);
         end
     end
     return Base.fetch(self.privateSwapPostAccountLeverage(extend(request, params)))
 
 end
-function fetchTransfers(self::Digifinex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the transfer history, only transfers between spot and swap accounts are supported
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Digifinex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2691,21 +3135,43 @@ function fetchTransfers(self::Digifinex, code=nothing, since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateSwapGetAccountTransferRecord(extend(request, params)));
-    transfers = self.safeList(response, "data", []);
-    return self.parseTransfers(transfers, currency, since, limit)
+    transfers = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransfers(transfers, currency = currency, since = since, limit = limit)
 
 end
-function fetchLeverageTiers(self::Digifinex, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, for different trade sizes
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+
+# Arguments
+- `symbols`::any: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Digifinex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicSwapGetPublicInstruments(params));
     data = safeValue(response, "data", []);
-    symbols = self.marketSymbols(symbols);
-    return self.parseLeverageTiers(data, symbols, "instrument_id")
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.parseLeverageTiers(data, symbols = symbols, marketIdKey = "instrument_id")
 
 end
-function fetchMarketLeverageTiers(self::Digifinex, symbol, params=Dict())
+"""
+retrieve information on the maximum leverage, for different trade sizes for a single market
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+function fetchMarketLeverageTiers(self::Digifinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2718,20 +3184,20 @@ function fetchMarketLeverageTiers(self::Digifinex, symbol, params=Dict())
     );
     response = Base.fetch(self.publicSwapGetPublicInstrument(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    return self.parseMarketLeverageTiers(data, market)
+    return self.parseMarketLeverageTiers(data, market = market)
 
 end
-function parseMarketLeverageTiers(self::Digifinex, info, market=nothing)
+function parseMarketLeverageTiers(self::Digifinex, info; market=nothing)
     tiers = [];
     brackets = safeValue(info, "open_max_limits", Dict{Symbol, Any}());
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(brackets)))
         tier = get(brackets, i + 1, nothing);
         marketId = safeString(info, "instrument_id");
-        market = self.safeMarket(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = market);
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => self.sum(i, 1),
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("currency") => get(market, Symbol("settle"), nothing),
     Symbol("minNotional") => nothing,
     Symbol("maxNotional") => self.safeNumber(tier, "max_limit"),
@@ -2744,11 +3210,11 @@ function parseMarketLeverageTiers(self::Digifinex, info, market=nothing)
     return tiers
 
 end
-function handleMarginModeAndParams(self::Digifinex, methodName, params=Dict(), defaultValue=nothing)
+function handleMarginModeAndParams(self::Digifinex, methodName; params=Dict(), defaultValue=nothing)
     defaultType = safeString(self.options, "defaultType");
-    isMargin = self.safeBool(params, "margin", false);
+    isMargin = self.safeBool(params, "margin", defaultValue = false);
     marginMode = nothing;
-    (marginMode, params) = handleMarginModeAndParams(self.parent, methodName, params, defaultValue);
+    (marginMode, params) = handleMarginModeAndParams(self.parent, methodName, params = params, defaultValue = defaultValue);
     if functions.ccxtruthy(marginMode != nothing)
         if functions.ccxtruthy(marginMode != "cross")
             throw(NotSupported(string(self.id, " only cross margin is supported")));
@@ -2761,18 +3227,29 @@ function handleMarginModeAndParams(self::Digifinex, methodName, params=Dict(), d
     return [marginMode, params]
 
 end
-function fetchDepositWithdrawFees(self::Digifinex, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+
+# Arguments
+- `codes`::any: not used by fetchDepositWithdrawFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Digifinex; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicSpotGetCurrencies(params));
     data = self.safeList(response, "data");
-    return self.parseDepositWithdrawFees(data, codes)
+    return self.parseDepositWithdrawFees(data, codes = codes)
 
 end
-function parseDepositWithdrawFees(self::Digifinex, response, codes=nothing, currencyIdKey=nothing)
+function parseDepositWithdrawFees(self::Digifinex, response; codes=nothing, currencyIdKey=nothing)
     depositWithdrawFees = Dict{Symbol, Any}();
-    codes = self.marketCodes(codes);
+    codes = self.marketCodes(codes = codes);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         entry = get(response, i + 1, nothing);
@@ -2797,7 +3274,7 @@ function parseDepositWithdrawFees(self::Digifinex, response, codes=nothing, curr
                 Symbol("percentage") => nothing
             );
             if functions.ccxtruthy(networkId != nothing)
-                networkCode = self.networkIdToCode(networkId, code);
+                networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
                 if functions.ccxtruthy(networkCode != nothing)
                     depositWithdrawFees[Symbol(code)][Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                         Symbol("withdraw") => withdrawResult,
@@ -2816,25 +3293,51 @@ function parseDepositWithdrawFees(self::Digifinex, response, codes=nothing, curr
     while functions.ccxtruthy(functions.ccxt_lt(i, length(depositWithdrawCodes)))
         code = get(depositWithdrawCodes, i + 1, nothing);
         currency = self.currency(code);
-        depositWithdrawFees[Symbol(code)] = self.assignDefaultDepositWithdrawFees(get(depositWithdrawFees, Symbol(code), nothing), currency);
+        depositWithdrawFees[Symbol(code)] = self.assignDefaultDepositWithdrawFees(get(depositWithdrawFees, Symbol(code), nothing), currency = currency);
         i += 1
     end
     return depositWithdrawFees
 
 end
-function addMargin(self::Digifinex, symbol, amount, params=Dict())
+"""
+add margin to a position
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string: the position side: 'long' or 'short'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Digifinex, symbol, amount; params=Dict())
     side = safeString(params, "side");
-    self.checkRequiredArgument("addMargin", side, "side", ["long", "short"]);
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, 1, params))
+    self.checkRequiredArgument("addMargin", side, "side", options = ["long", "short"]);
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, 1, params = params))
 
 end
-function reduceMargin(self::Digifinex, symbol, amount, params=Dict())
+"""
+remove margin from a position
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string: the position side: 'long' or 'short'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Digifinex, symbol, amount; params=Dict())
     side = safeString(params, "side");
-    self.checkRequiredArgument("reduceMargin", side, "side", ["long", "short"]);
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, 2, params))
+    self.checkRequiredArgument("reduceMargin", side, "side", options = ["long", "short"]);
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, 2, params = params))
 
 end
-function modifyMarginHelper(self::Digifinex, symbol, amount, type_var, params=Dict())
+function modifyMarginHelper(self::Digifinex, symbol, amount, type_var; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2850,17 +3353,17 @@ function modifyMarginHelper(self::Digifinex, symbol, amount, type_var, params=Di
     code = safeInteger(response, "code");
     status = functions.ccxtruthy((code == 0)) ? "ok" : "failed";
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    return extend(self.parseMarginModification(data, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(data, market = market), Dict{Symbol, Any}(
     Symbol("status") => status
 ))
 
 end
-function parseMarginModification(self::Digifinex, data, market=nothing)
+function parseMarginModification(self::Digifinex, data; market=nothing)
     marketId = safeString(data, "instrument_id");
     rawType = safeInteger(data, "type");
     return Dict{Symbol, Any}(
     Symbol("info") => data,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("type") => functions.ccxtruthy((rawType == 1)) ? "add" : "reduce",
     Symbol("marginMode") => "isolated",
     Symbol("amount") => self.safeNumber(data, "amount"),
@@ -2872,7 +3375,21 @@ function parseMarginModification(self::Digifinex, data, market=nothing)
 )
 
 end
-function fetchFundingHistory(self::Digifinex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#funding-fee
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding payment
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Digifinex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2890,17 +3407,17 @@ function fetchFundingHistory(self::Digifinex, symbol=nothing, since=nothing, lim
         request[Symbol("start_timestamp")] = since;
     end
     response = Base.fetch(self.privateSwapGetAccountFundingFee(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseIncomes(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseIncomes(data, market = market, since = since, limit = limit)
 
 end
-function parseIncome(self::Digifinex, income, market=nothing)
+function parseIncome(self::Digifinex, income; market=nothing)
     marketId = safeString(income, "instrument_id");
     currencyId = safeString(income, "currency");
     timestamp = safeInteger(income, "timestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => income,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("code") => self.safeCurrencyCode(currencyId),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -2909,7 +3426,19 @@ function parseIncome(self::Digifinex, income, market=nothing)
 )
 
 end
-function setMarginMode(self::Digifinex, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Digifinex, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -2928,7 +3457,7 @@ function setMarginMode(self::Digifinex, marginMode, symbol=nothing, params=Dict(
     return Base.fetch(self.privateSwapPostAccountPositionMode(extend(request, params)))
 
 end
-function sign(self::Digifinex, path, api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Digifinex, path; api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
     signed = get(api, 1, nothing) == "private";
     endpoint = get(api, 2, nothing);
     pathPart = functions.ccxtruthy((endpoint == "spot")) ? "/v3" : "/swap/v2";
@@ -3014,355 +3543,355 @@ Base.getproperty(self::Digifinex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicSpotGetMarketSymbols(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "{market}/symbols", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "{market}/symbols"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetKline(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "kline", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "kline"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetMarginCurrencies(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/currencies"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetMarginSymbols(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/symbols", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/symbols"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetMarkets(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "markets", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "markets"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetOrderBook(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "order_book", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order_book"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetPing(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "ping", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotSymbols(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "spot/symbols", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/symbols"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTime(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "time", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTrades(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "trades", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTradesSymbols(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "trades/symbols", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trades/symbols"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTicker(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "ticker", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetCurrencies(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicApiWeight(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/api_weight", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/api_weight"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicCandles(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/candles", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/candles"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicCandlesHistory(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/candles_history", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/candles_history"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicDepth(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/depth", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/depth"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicFundingRate(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/funding_rate", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/funding_rate"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicFundingRateHistory(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/funding_rate_history", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/funding_rate_history"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicInstrument(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/instrument", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/instrument"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicInstruments(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/instruments", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/instruments"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicTicker(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/ticker", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/ticker"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicTickers(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/tickers", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/tickers"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicTime(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/time", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/time"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetPublicTrades(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "public/trades", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/trades"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarketFinancelog(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "{market}/financelog", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "{market}/financelog"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarketMytrades(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "{market}/mytrades", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "{market}/mytrades"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarketOrder(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "{market}/order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "{market}/order"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarketOrderDetail(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "{market}/order/detail", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "{market}/order/detail"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarketOrderCurrent(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "{market}/order/current", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "{market}/order/current"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarketOrderHistory(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "{market}/order/history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "{market}/order/history"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarginAssets(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/assets"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarginFinancelog(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/financelog", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/financelog"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarginMytrades(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/mytrades", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/mytrades"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarginOrder(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/order"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarginOrderCurrent(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/order/current", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/order/current"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarginOrderHistory(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/order/history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/order/history"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetMarginPositions(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/positions", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/positions"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetOtcFinancelog(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "otc/financelog", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "otc/financelog"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotAssets(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "spot/assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/assets"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotFinancelog(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "spot/financelog", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/financelog"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotMytrades(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "spot/mytrades", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/mytrades"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotOrder(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "spot/order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/order"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotOrderCurrent(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "spot/order/current", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/order/current"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotOrderHistory(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "spot/order/history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/order/history"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetDepositAddress(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "deposit/address", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit/address"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetDepositHistory(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "deposit/history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit/history"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetWithdrawHistory(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "withdraw/history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraw/history"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostMarketOrderCancel(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "{market}/order/cancel", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "{market}/order/cancel"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostMarketOrderNew(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "{market}/order/new", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "{market}/order/new"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostMarketOrderBatchNew(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "{market}/order/batch_new", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "{market}/order/batch_new"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostMarginOrderCancel(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/order/cancel", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/order/cancel"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostMarginOrderNew(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/order/new", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/order/new"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostMarginPositionClose(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "margin/position/close", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/position/close"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotOrderCancel(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "spot/order/cancel", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/order/cancel"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotOrderNew(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "spot/order/new", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/order/new"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostTransfer(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostWithdrawNew(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "withdraw/new", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw/new"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostWithdrawCancel(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "withdraw/cancel", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw/cancel"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetAccountBalance(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "account/balance", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/balance"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetAccountPositions(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "account/positions", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/positions"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetAccountFinanceRecord(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "account/finance_record", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/finance_record"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetAccountTradingFeeRate(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "account/trading_fee_rate", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/trading_fee_rate"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetAccountTransferRecord(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "account/transfer_record", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/transfer_record"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetAccountFundingFee(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "account/funding_fee", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/funding_fee"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetTradeHistoryOrders(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "trade/history_orders", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/history_orders"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetTradeHistoryTrades(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "trade/history_trades", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/history_trades"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetTradeOpenOrders(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "trade/open_orders", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/open_orders"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetTradeOrderInfo(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "trade/order_info", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/order_info"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostAccountTransfer(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "account/transfer", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/transfer"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostAccountLeverage(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "account/leverage", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/leverage"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostAccountPositionMode(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "account/position_mode", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/position_mode"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostAccountPositionMargin(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "account/position_margin", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/position_margin"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostTradeBatchCancelOrder(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "trade/batch_cancel_order", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/batch_cancel_order"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostTradeBatchOrder(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "trade/batch_order", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/batch_order"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostTradeCancelOrder(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "trade/cancel_order", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel_order"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostTradeOrderPlace(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "trade/order_place", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order_place"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowSponsorOrder(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/sponsor_order", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/sponsor_order"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowCloseOrder(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/close_order", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/close_order"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowCancelOrder(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/cancel_order", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/cancel_order"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowUserCenterCurrent(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/user_center_current", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/user_center_current"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowUserCenterHistory(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/user_center_history", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/user_center_history"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowExpertCurrentOpenOrder(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/expert_current_open_order", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/expert_current_open_order"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowAddAlgo(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/add_algo", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/add_algo"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowCancelAlgo(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/cancel_algo", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/cancel_algo"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowAccountAvailable(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/account_available", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/account_available"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowPlanTask(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/plan_task", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/plan_task"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostFollowInstrumentList(self::Digifinex, params=Dict(), context=Dict())
-    return request(self, "follow/instrument_list", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "follow/instrument_list"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Digifinex(; kwargs...)
@@ -3426,3 +3955,660 @@ function Digifinex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Digifinex_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Digifinex_fetchCurrencies
+
+function __ccxt_doc_Digifinex_fetchMarkets() end
+"""
+retrieves data on all markets for digifinex
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Digifinex_fetchMarkets
+
+function __ccxt_doc_Digifinex_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-account-assets
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#accountbalance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Digifinex_fetchBalance
+
+function __ccxt_doc_Digifinex_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-orderbook
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Digifinex_fetchOrderBook
+
+function __ccxt_doc_Digifinex_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Digifinex_fetchTickers
+
+function __ccxt_doc_Digifinex_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Digifinex_fetchTicker
+
+function __ccxt_doc_Digifinex_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-timestamp
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Digifinex_fetchTime
+
+function __ccxt_doc_Digifinex_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-ping
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Digifinex_fetchStatus
+
+function __ccxt_doc_Digifinex_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-recent-trades
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#recenttrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Digifinex_fetchTrades
+
+function __ccxt_doc_Digifinex_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-candles-data
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#recentcandle
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Digifinex_fetchOHLCV
+
+function __ccxt_doc_Digifinex_createOrder() end
+"""
+create a trade order
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderplace
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: "GTC", "IOC", "FOK", or "PO"
+- `params.postOnly`::bool, optional: true or false
+- `params.reduceOnly`::bool, optional: true or false
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Digifinex_createOrder
+
+function __ccxt_doc_Digifinex_createOrders() end
+"""
+create a list of trade orders (all orders should be of the same symbol)
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-multiple-order
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Digifinex_createOrders
+
+function __ccxt_doc_Digifinex_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Digifinex_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Digifinex_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Digifinex_cancelOrder
+
+function __ccxt_doc_Digifinex_cancelOrders() end
+"""
+cancel multiple orders
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: not used by cancelOrders ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Digifinex_cancelOrders
+
+function __ccxt_doc_Digifinex_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#current-active-orders
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#openorder
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Digifinex_fetchOpenOrders
+
+function __ccxt_doc_Digifinex_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-all-orders-including-history-orders
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#historyorder
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Digifinex_fetchOrders
+
+function __ccxt_doc_Digifinex_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-order-status
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderinfo
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Digifinex_fetchOrder
+
+function __ccxt_doc_Digifinex_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#customer-39-s-trades
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#historytrade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Digifinex_fetchMyTrades
+
+function __ccxt_doc_Digifinex_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Digifinex_fetchLedger
+
+function __ccxt_doc_Digifinex_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-address-inquiry
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Digifinex_fetchDepositAddress
+
+function __ccxt_doc_Digifinex_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Digifinex_fetchDeposits
+
+function __ccxt_doc_Digifinex_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#withdrawal-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Digifinex_fetchWithdrawals
+
+function __ccxt_doc_Digifinex_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#transfer-assets-among-accounts
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#accounttransfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'spot', 'swap', 'margin', 'OTC' - account to transfer from
+- `toAccount`::string: 'spot', 'swap', 'margin', 'OTC' - account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Digifinex_transfer
+
+function __ccxt_doc_Digifinex_withdraw() end
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Digifinex_withdraw
+
+function __ccxt_doc_Digifinex_fetchCrossBorrowRate() end
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+"""
+__ccxt_doc_Digifinex_fetchCrossBorrowRate
+
+function __ccxt_doc_Digifinex_fetchCrossBorrowRates() end
+"""
+fetch the borrow interest rates of all currencies
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Digifinex_fetchCrossBorrowRates
+
+function __ccxt_doc_Digifinex_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Digifinex_fetchFundingRate
+
+function __ccxt_doc_Digifinex_fetchFundingInterval() end
+"""
+fetch the current funding rate interval
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Digifinex_fetchFundingInterval
+
+function __ccxt_doc_Digifinex_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Digifinex_fetchFundingRateHistory
+
+function __ccxt_doc_Digifinex_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Digifinex_fetchTradingFee
+
+function __ccxt_doc_Digifinex_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Digifinex_fetchPositions
+
+function __ccxt_doc_Digifinex_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Digifinex_fetchPosition
+
+function __ccxt_doc_Digifinex_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#setleverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: either 'cross' or 'isolated', default is cross
+- `params.side`::string, optional: either 'long' or 'short', required for isolated markets only
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Digifinex_setLeverage
+
+function __ccxt_doc_Digifinex_fetchTransfers() end
+"""
+fetch the transfer history, only transfers between spot and swap accounts are supported
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Digifinex_fetchTransfers
+
+function __ccxt_doc_Digifinex_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, for different trade sizes
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+
+# Arguments
+- `symbols`::any: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Digifinex_fetchLeverageTiers
+
+function __ccxt_doc_Digifinex_fetchMarketLeverageTiers() end
+"""
+retrieve information on the maximum leverage, for different trade sizes for a single market
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+__ccxt_doc_Digifinex_fetchMarketLeverageTiers
+
+function __ccxt_doc_Digifinex_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+
+# Arguments
+- `codes`::any: not used by fetchDepositWithdrawFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Digifinex_fetchDepositWithdrawFees
+
+function __ccxt_doc_Digifinex_addMargin() end
+"""
+add margin to a position
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string: the position side: 'long' or 'short'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Digifinex_addMargin
+
+function __ccxt_doc_Digifinex_reduceMargin() end
+"""
+remove margin from a position
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string: the position side: 'long' or 'short'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Digifinex_reduceMargin
+
+function __ccxt_doc_Digifinex_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#funding-fee
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding payment
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Digifinex_fetchFundingHistory
+
+function __ccxt_doc_Digifinex_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Digifinex_setMarginMode

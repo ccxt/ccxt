@@ -707,7 +707,17 @@ function describe(self::Coinbaseexchange, )
 ))
 
 end
-function fetchCurrencies(self::Coinbaseexchange, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Coinbaseexchange; params=Dict())
     response = Base.fetch(self.publicGetCurrencies(params));
     return self.parseCurrencies(response)
 
@@ -716,14 +726,14 @@ function parseCurrency(self::Coinbaseexchange, rawCurrency)
     id = safeString(rawCurrency, "id");
     name = safeString(rawCurrency, "name");
     code = self.safeCurrencyCode(id);
-    details = self.safeDict(rawCurrency, "details", Dict{Symbol, Any}());
+    details = self.safeDict(rawCurrency, "details", defaultValue = Dict{Symbol, Any}());
     networks = Dict{Symbol, Any}();
-    supportedNetworks = self.safeList(rawCurrency, "supported_networks", []);
+    supportedNetworks = self.safeList(rawCurrency, "supported_networks", defaultValue = []);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(supportedNetworks)))
         network = get(supportedNetworks, j + 1, nothing);
         networkId = safeString(network, "id");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -771,7 +781,17 @@ function parseCurrency(self::Coinbaseexchange, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Coinbaseexchange, params=Dict())
+"""
+retrieves data on all markets for coinbaseexchange
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Coinbaseexchange; params=Dict())
     response = Base.fetch(self.publicGetProducts(params));
     result = [];
     rawMarkets = toArray(response);
@@ -837,13 +857,23 @@ function fetchMarkets(self::Coinbaseexchange, params=Dict())
     return result
 
 end
-function fetchAccounts(self::Coinbaseexchange, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Coinbaseexchange; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetAccounts(params));
     accounts = toArray(response);
-    return self.parseAccounts(accounts, params)
+    return self.parseAccounts(accounts, params = params)
 
 end
 function parseAccount(self::Coinbaseexchange, account)
@@ -877,7 +907,17 @@ function parseBalance(self::Coinbaseexchange, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Coinbaseexchange, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Coinbaseexchange; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -885,7 +925,19 @@ function fetchBalance(self::Coinbaseexchange, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Coinbaseexchange, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Coinbaseexchange, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -899,7 +951,7 @@ function fetchOrderBook(self::Coinbaseexchange, symbol, limit=nothing, params=Di
     return orderbook
 
 end
-function parseTicker(self::Coinbaseexchange, ticker, market=nothing)
+function parseTicker(self::Coinbaseexchange, ticker; market=nothing)
     timestamp = nothing;
     bid = nothing;
     ask = nothing;
@@ -943,14 +995,25 @@ function parseTicker(self::Coinbaseexchange, ticker, market=nothing)
     Symbol("baseVolume") => volume,
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Coinbaseexchange, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Coinbaseexchange; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.publicGetProductsSparkLines(extend(request, params)));
     result = Dict{Symbol, Any}();
@@ -961,15 +1024,26 @@ function fetchTickers(self::Coinbaseexchange, symbols=nothing, params=Dict())
         marketId = get(marketIds, i + 1, nothing);
         entry = safeValue(response, marketId, []);
         first_var = safeValue(entry, 0, []);
-        market = self.safeMarket(marketId, nothing, delimiter);
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = delimiter);
         symbol = get(market, Symbol("symbol"), nothing);
-        result[Symbol(symbol)] = self.parseTicker(first_var, market);
+        result[Symbol(symbol)] = self.parseTicker(first_var, market = market);
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchTicker(self::Coinbaseexchange, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Coinbaseexchange, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -979,13 +1053,13 @@ function fetchTicker(self::Coinbaseexchange, symbol, params=Dict())
     );
     method = safeString(self.options, "fetchTickerMethod", "publicGetProductsIdTicker");
     response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function parseTrade(self::Coinbaseexchange, trade, market=nothing)
+function parseTrade(self::Coinbaseexchange, trade; market=nothing)
     timestamp = self.parse8601(safeString2(trade, "time", "created_at"));
     marketId = safeString(trade, "product_id");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     feeRate = nothing;
     takerOrMaker = nothing;
     cost = nothing;
@@ -1030,17 +1104,32 @@ function parseTrade(self::Coinbaseexchange, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("fee") => fee,
     Symbol("cost") => cost
-), market)
+), market = market)
 
 end
-function fetchMyTrades(self::Coinbaseexchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Coinbaseexchange; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 100))
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1061,10 +1150,23 @@ function fetchMyTrades(self::Coinbaseexchange, symbol=nothing, since=nothing, li
         request[Symbol("end_date")] = self.iso8601(until);
     end
     response = Base.fetch(self.privateGetFills(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchTrades(self::Coinbaseexchange, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Coinbaseexchange, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1076,10 +1178,20 @@ function fetchTrades(self::Coinbaseexchange, symbol, since=nothing, limit=nothin
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetProductsIdTrades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFees(self::Coinbaseexchange, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Coinbaseexchange; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1103,18 +1215,34 @@ function fetchTradingFees(self::Coinbaseexchange, params=Dict())
     return result
 
 end
-function parseOHLCV(self::Coinbaseexchange, ohlcv, market=nothing)
+function parseOHLCV(self::Coinbaseexchange, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, 0), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCV(self::Coinbaseexchange, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Coinbaseexchange, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 300))
     end
     market = self.market(symbol);
     parsedTimeframe = safeInteger(self.timeframes, timeframe);
@@ -1147,10 +1275,19 @@ function fetchOHLCV(self::Coinbaseexchange, symbol, timeframe="1m", since=nothin
         end
     end
     response = Base.fetch(self.publicGetProductsIdCandles(extend(request, params)));
-    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchTime(self::Coinbaseexchange, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Coinbaseexchange; params=Dict())
     response = Base.fetch(self.publicGetTime(params));
     return safeTimestamp(response, "epoch")
 
@@ -1167,10 +1304,10 @@ function parseOrderStatus(self::Coinbaseexchange, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Coinbaseexchange, order, market=nothing)
+function parseOrder(self::Coinbaseexchange, order; market=nothing)
     timestamp = self.parse8601(safeString(order, "created_at"));
     marketId = safeString(order, "product_id");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     status = self.parseOrderStatus(safeString(order, "status"));
     doneReason = safeString(order, "done_reason");
     if functions.ccxtruthy(@functions.ccxt_and((status == "closed"), (doneReason == "canceled")))
@@ -1218,10 +1355,22 @@ function parseOrder(self::Coinbaseexchange, order, market=nothing)
     Symbol("fee") => fee,
     Symbol("average") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Coinbaseexchange, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by coinbaseexchange fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Coinbaseexchange, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1240,7 +1389,20 @@ function fetchOrder(self::Coinbaseexchange, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOrderTrades(self::Coinbaseexchange, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Coinbaseexchange, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1252,24 +1414,53 @@ function fetchOrderTrades(self::Coinbaseexchange, id, symbol=nothing, since=noth
         Symbol("order_id") => id
     );
     response = Base.fetch(self.privateGetFills(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrders(self::Coinbaseexchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch open orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Coinbaseexchange; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "all"
     );
-    return Base.fetch(self.fetchOpenOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOpenOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchOpenOrders(self::Coinbaseexchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch open orders for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Coinbaseexchange; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, 100))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOpenOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 100))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1289,17 +1480,46 @@ function fetchOpenOrders(self::Coinbaseexchange, symbol=nothing, since=nothing, 
         request[Symbol("end_date")] = self.iso8601(until);
     end
     response = Base.fetch(self.privateGetOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Coinbaseexchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch open orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Coinbaseexchange; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "done"
     );
-    return Base.fetch(self.fetchOpenOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOpenOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function createOrder(self::Coinbaseexchange, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Coinbaseexchange, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1345,10 +1565,22 @@ function createOrder(self::Coinbaseexchange, symbol, type_var, side, amount, pri
         end
     end
     response = Base.fetch(self.privatePostOrders(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Coinbaseexchange, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Coinbaseexchange, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1374,7 +1606,18 @@ function cancelOrder(self::Coinbaseexchange, id, symbol=nothing, params=Dict())
 ))
 
 end
-function cancelAllOrders(self::Coinbaseexchange, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Coinbaseexchange; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1390,13 +1633,28 @@ function cancelAllOrders(self::Coinbaseexchange, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchPaymentMethods(self::Coinbaseexchange, params=Dict())
+function fetchPaymentMethods(self::Coinbaseexchange; params=Dict())
     return Base.fetch(self.privateGetPaymentMethods(params))
 
 end
-function withdraw(self::Coinbaseexchange, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Coinbaseexchange, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1421,7 +1679,7 @@ function withdraw(self::Coinbaseexchange, code, amount, address, tag=nothing, pa
     if functions.ccxtruthy(!functions.ccxtruthy(response))
         throw(ExchangeError(string(self.id, " withdraw() error: ", json(response))));
     end
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
 function parseLedgerEntryType(self::Coinbaseexchange, type_var)
@@ -1435,7 +1693,7 @@ function parseLedgerEntryType(self::Coinbaseexchange, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Coinbaseexchange, item, currency=nothing)
+function parseLedgerEntry(self::Coinbaseexchange, item; currency=nothing)
     id = safeString(item, "id");
     amountString = safeString(item, "amount");
     direction = nothing;
@@ -1452,7 +1710,7 @@ function parseLedgerEntry(self::Coinbaseexchange, item, currency=nothing)
     before = self.parseNumber(beforeString);
     timestamp = self.parse8601(safeValue(item, "created_at"));
     type_var = self.parseLedgerEntryType(safeString(item, "type"));
-    code = self.safeCurrencyCode(nothing, currency);
+    code = self.safeCurrencyCode(nothing, currency = currency);
     details = safeValue(item, "details", Dict{Symbol, Any}());
     account = nothing;
     referenceAccount = nothing;
@@ -1481,10 +1739,24 @@ function parseLedgerEntry(self::Coinbaseexchange, item, currency=nothing)
     Symbol("after") => after,
     Symbol("status") => status,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
-function fetchLedger(self::Coinbaseexchange, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
+
+# Arguments
+- `code`::string: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Coinbaseexchange; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchLedger() requires a code param")));
     end
@@ -1519,10 +1791,25 @@ function fetchLedger(self::Coinbaseexchange, code=nothing, since=nothing, limit=
         entries[i + 1][Symbol("currency")] = code;
         i += 1
     end
-    return self.parseLedger(entries, currency, since, limit)
+    return self.parseLedger(entries, currency = currency, since = since, limit = limit)
 
 end
-function fetchDepositsWithdrawals(self::Coinbaseexchange, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.id`::string, optional: account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Coinbaseexchange; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1568,17 +1855,45 @@ function fetchDepositsWithdrawals(self::Coinbaseexchange, code=nothing, since=no
             i += 1
         end
     end
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchDeposits(self::Coinbaseexchange, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchDepositsWithdrawals(code, since, limit, extend(Dict{Symbol, Any}(
+"""
+fetch all deposits made to an account
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Coinbaseexchange; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchDepositsWithdrawals(code = code, since = since, limit = limit, params = extend(Dict{Symbol, Any}(
     Symbol("type") => "deposit"
 ), params)))
 
 end
-function fetchWithdrawals(self::Coinbaseexchange, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchDepositsWithdrawals(code, since, limit, extend(Dict{Symbol, Any}(
+"""
+fetch all withdrawals made from an account
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Coinbaseexchange; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchDepositsWithdrawals(code = code, since = since, limit = limit, params = extend(Dict{Symbol, Any}(
     Symbol("type") => "withdraw"
 ), params)))
 
@@ -1599,11 +1914,11 @@ function parseTransactionStatus(self::Coinbaseexchange, transaction)
     end
 
 end
-function parseTransaction(self::Coinbaseexchange, transaction, currency=nothing)
+function parseTransaction(self::Coinbaseexchange, transaction; currency=nothing)
     details = safeValue(transaction, "details", Dict{Symbol, Any}());
     timestamp = self.parse8601(safeString(transaction, "created_at"));
     currencyId = safeString(transaction, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     amount = self.safeNumber(transaction, "amount");
     type_var = safeString(transaction, "type");
     address = safeString(details, "crypto_address");
@@ -1632,7 +1947,7 @@ function parseTransaction(self::Coinbaseexchange, transaction, currency=nothing)
     Symbol("txid") => safeString(details, "crypto_transaction_hash"),
     Symbol("type") => type_var,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("amount") => amount,
     Symbol("status") => self.parseTransactionStatus(transaction),
     Symbol("timestamp") => timestamp,
@@ -1650,7 +1965,18 @@ function parseTransaction(self::Coinbaseexchange, transaction, currency=nothing)
 )
 
 end
-function createDepositAddress(self::Coinbaseexchange, code, params=Dict())
+"""
+create a currency deposit address
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Coinbaseexchange, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1674,14 +2000,14 @@ function createDepositAddress(self::Coinbaseexchange, code, params=Dict())
     tag = safeString(response, "destination_tag");
     return Dict{Symbol, Any}(
     Symbol("currency") => code,
-    Symbol("address") => self.checkAddress(address),
+    Symbol("address") => self.checkAddress(address = address),
     Symbol("network") => nothing,
     Symbol("tag") => tag,
     Symbol("info") => response
 )
 
 end
-function sign(self::Coinbaseexchange, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Coinbaseexchange, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     request = string("/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
     if functions.ccxtruthy(method == "GET")
@@ -1739,8 +2065,8 @@ function handleErrors(self::Coinbaseexchange, code, reason, url, method, headers
     return nothing
 
 end
-function request(self::Coinbaseexchange, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing, config=Dict())
-    response = Base.fetch(self.fetch2(path, api, method, params, headers, body, config));
+function request(self::Coinbaseexchange, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing, config=Dict())
+    response = Base.fetch(self.fetch2(path, api = api, method = method, params = params, headers = headers, body = body, config = config));
     if functions.ccxtruthy(!isa(response, AbstractString))
         if functions.ccxtruthy(ccxt_in("message", response))
             throw(ExchangeError(string(self.id, " ", json(response))));
@@ -1756,331 +2082,331 @@ Base.getproperty(self::Coinbaseexchange, name::Symbol) = ccxt_getproperty(self, 
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetCurrencies(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProducts(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "products", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProductsId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "products/{id}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products/{id}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProductsIdBook(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "products/{id}/book", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products/{id}/book"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProductsIdCandles(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "products/{id}/candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products/{id}/candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProductsIdStats(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "products/{id}/stats", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products/{id}/stats"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProductsIdTicker(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "products/{id}/ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products/{id}/ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProductsIdTrades(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "products/{id}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products/{id}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTime(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProductsSparkLines(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "products/spark-lines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products/spark-lines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProductsVolumeSummary(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "products/volume-summary", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products/volume-summary"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAddressBook(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "address-book", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "address-book"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccounts(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsIdHolds(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/holds", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/{id}/holds"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsIdLedger(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/ledger", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/{id}/ledger"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsIdTransfers(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/transfers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/{id}/transfers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCoinbaseAccounts(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "coinbase-accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "coinbase-accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFills(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFunding(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "funding", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFees(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginProfileInformation(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "margin/profile_information", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/profile_information"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginBuyingPower(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "margin/buying_power", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/buying_power"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginWithdrawalPower(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "margin/withdrawal_power", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/withdrawal_power"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginWithdrawalPowerAll(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "margin/withdrawal_power_all", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/withdrawal_power_all"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginExitPlan(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "margin/exit_plan", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/exit_plan"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginLiquidationHistory(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "margin/liquidation_history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/liquidation_history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginPositionRefreshAmounts(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "margin/position_refresh_amounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/position_refresh_amounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginStatus(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "margin/status", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/status"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOracle(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "oracle", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "oracle"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrders(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersClientClientOid(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "orders/client:{client_oid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/client:{client_oid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOtcOrders(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "otc/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "otc/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPaymentMethods(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "payment-methods", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "payment-methods"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPosition(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "position", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "position"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetProfiles(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "profiles", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "profiles"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetProfilesId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "profiles/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "profiles/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetReportsReportId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "reports/{report_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "reports/{report_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransfers(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "transfers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransfersTransferId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "transfers/{transfer_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers/{transfer_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersSelfExchangeLimits(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "users/self/exchange-limits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/self/exchange-limits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersSelfHoldBalances(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "users/self/hold-balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/self/hold-balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersSelfTrailingVolume(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "users/self/trailing-volume", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/self/trailing-volume"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawalsFeeEstimate(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "withdrawals/fee-estimate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/fee-estimate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetConversionsConversionId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "conversions/{conversion_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "conversions/{conversion_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetConversions(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "conversions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "conversions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetConversionsFees(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "conversions/fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "conversions/fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoansLendingOverview(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/lending-overview", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans/lending-overview"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoansLendingOverviewXm(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/lending-overview-xm", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans/lending-overview-xm"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoansLoanPreview(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/loan-preview", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans/loan-preview"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoansLoanPreviewXm(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/loan-preview-xm", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans/loan-preview-xm"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoansRepaymentPreview(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/repayment-preview", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans/repayment-preview"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoansRepaymentPreviewXm(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/repayment-preview-xm", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans/repayment-preview-xm"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoansInterestLoanId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/interest/{loan_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans/interest/{loan_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoansInterestHistoryLoanId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/interest/history/{loan_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans/interest/history/{loan_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoansInterest(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/interest", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans/interest"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoansAssets(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/assets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans/assets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLoans(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "loans"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostConversions(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "conversions", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "conversions"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDepositsCoinbaseAccount(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "deposits/coinbase-account", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deposits/coinbase-account"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDepositsPaymentMethod(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "deposits/payment-method", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deposits/payment-method"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCoinbaseAccountsIdAddresses(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "coinbase-accounts/{id}/addresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "coinbase-accounts/{id}/addresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFundingRepay(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "funding/repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "funding/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionClose(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "position/close", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/close"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostProfiles(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "profiles", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "profiles"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostProfilesMarginTransfer(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "profiles/margin-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "profiles/margin-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostProfilesTransfer(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "profiles/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "profiles/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostReports(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "reports", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "reports"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawalsCoinbase(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "withdrawals/coinbase", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/coinbase"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawalsCoinbaseAccount(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "withdrawals/coinbase-account", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/coinbase-account"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawalsCrypto(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "withdrawals/crypto", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/crypto"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawalsPaymentMethod(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "withdrawals/payment-method", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/payment-method"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLoansOpen(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/open", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "loans/open"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLoansRepayInterest(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/repay-interest", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "loans/repay-interest"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLoansRepayPrincipal(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "loans/repay-principal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "loans/repay-principal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrders(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersClientClientOid(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "orders/client:{client_oid}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/client:{client_oid}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutProfilesIdDeactivate(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "profiles/{id}/deactivate", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "profiles/{id}/deactivate"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutProfilesId(self::Coinbaseexchange, params=Dict(), context=Dict())
-    return request(self, "profiles/{id}", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "profiles/{id}"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Coinbaseexchange(; kwargs...)
@@ -2144,3 +2470,409 @@ function Coinbaseexchange(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Coinbaseexchange_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Coinbaseexchange_fetchCurrencies
+
+function __ccxt_doc_Coinbaseexchange_fetchMarkets() end
+"""
+retrieves data on all markets for coinbaseexchange
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Coinbaseexchange_fetchMarkets
+
+function __ccxt_doc_Coinbaseexchange_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Coinbaseexchange_fetchAccounts
+
+function __ccxt_doc_Coinbaseexchange_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchBalance
+
+function __ccxt_doc_Coinbaseexchange_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchOrderBook
+
+function __ccxt_doc_Coinbaseexchange_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchTickers
+
+function __ccxt_doc_Coinbaseexchange_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchTicker
+
+function __ccxt_doc_Coinbaseexchange_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchMyTrades
+
+function __ccxt_doc_Coinbaseexchange_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Coinbaseexchange_fetchTrades
+
+function __ccxt_doc_Coinbaseexchange_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Coinbaseexchange_fetchTradingFees
+
+function __ccxt_doc_Coinbaseexchange_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Coinbaseexchange_fetchOHLCV
+
+function __ccxt_doc_Coinbaseexchange_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Coinbaseexchange_fetchTime
+
+function __ccxt_doc_Coinbaseexchange_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by coinbaseexchange fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchOrder
+
+function __ccxt_doc_Coinbaseexchange_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchOrderTrades
+
+function __ccxt_doc_Coinbaseexchange_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch open orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchOrders
+
+function __ccxt_doc_Coinbaseexchange_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch open orders for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchOpenOrders
+
+function __ccxt_doc_Coinbaseexchange_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch open orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchClosedOrders
+
+function __ccxt_doc_Coinbaseexchange_createOrder() end
+"""
+create a trade order
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinbaseexchange_createOrder
+
+function __ccxt_doc_Coinbaseexchange_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinbaseexchange_cancelOrder
+
+function __ccxt_doc_Coinbaseexchange_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinbaseexchange_cancelAllOrders
+
+function __ccxt_doc_Coinbaseexchange_withdraw() end
+"""
+make a withdrawal
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinbaseexchange_withdraw
+
+function __ccxt_doc_Coinbaseexchange_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
+
+# Arguments
+- `code`::string: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchLedger
+
+function __ccxt_doc_Coinbaseexchange_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.id`::string, optional: account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchDepositsWithdrawals
+
+function __ccxt_doc_Coinbaseexchange_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchDeposits
+
+function __ccxt_doc_Coinbaseexchange_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinbaseexchange_fetchWithdrawals
+
+function __ccxt_doc_Coinbaseexchange_createDepositAddress() end
+"""
+create a currency deposit address
+see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Coinbaseexchange_createDepositAddress

@@ -385,12 +385,32 @@ function nonce(self::Indodax, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function fetchTime(self::Indodax, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Indodax; params=Dict())
     response = Base.fetch(self.publicGetApiServerTime(params));
     return safeInteger(response, "server_time")
 
 end
-function fetchMarkets(self::Indodax, params=Dict())
+"""
+retrieves data on all markets for indodax
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Indodax; params=Dict())
     response = Base.fetch(self.publicGetApiPairs(params));
     result = [];
     rawMarkets = toArray(response);
@@ -431,8 +451,8 @@ function fetchMarkets(self::Indodax, params=Dict())
     Symbol("percentage") => true,
     Symbol("precision") => Dict{Symbol, Any}(
         Symbol("amount") => self.parseNumber("1e-8"),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "price_round"))),
-        Symbol("cost") => self.parseNumber(self.parsePrecision(safeString(market, "volume_precision")))
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "price_round"))),
+        Symbol("cost") => self.parseNumber(self.parsePrecision(precision = safeString(market, "volume_precision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -486,7 +506,17 @@ function parseBalance(self::Indodax, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Indodax, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Indodax; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -494,7 +524,19 @@ function fetchBalance(self::Indodax, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Indodax, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Indodax, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -503,11 +545,11 @@ function fetchOrderBook(self::Indodax, symbol, limit=nothing, params=Dict())
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     orderbook = Base.fetch(self.publicGetApiDepthPair(extend(request, params)));
-    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), nothing, "buy", "sell")
+    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "buy", asksKey = "sell")
 
 end
-function parseTicker(self::Indodax, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Indodax, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     timestamp = safeTimestamp(ticker, "server_time");
     baseVolume = string("vol_", safeStringLower(market, "baseId"));
     quoteVolume = string("vol_", safeStringLower(market, "quoteId"));
@@ -533,10 +575,21 @@ function parseTicker(self::Indodax, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, baseVolume),
     Symbol("quoteVolume") => safeString(ticker, quoteVolume),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Indodax, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Indodax, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -545,16 +598,27 @@ function fetchTicker(self::Indodax, symbol, params=Dict())
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetApiTickerPair(extend(request, params)));
-    ticker = self.safeDict(response, "ticker", Dict{Symbol, Any}());
-    return self.parseTicker(ticker, market)
+    ticker = self.safeDict(response, "ticker", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(ticker, market = market)
 
 end
-function fetchTickers(self::Indodax, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Indodax; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetApiTickerAll(params));
-    tickers = self.safeDict(response, "tickers", Dict{Symbol, Any}());
+    tickers = self.safeDict(response, "tickers", defaultValue = Dict{Symbol, Any}());
     keys_var = objectKeys(tickers);
     parsedTickers = Dict{Symbol, Any}();
     i = 0
@@ -562,22 +626,22 @@ function fetchTickers(self::Indodax, symbols=nothing, params=Dict())
         key = get(keys_var, i + 1, nothing);
         rawTicker = get(tickers, Symbol(key), nothing);
         marketId = replace(key, "_" => "");
-        market = self.safeMarket(marketId);
-        parsed = self.parseTicker(rawTicker, market);
+        market = self.safeMarket(marketId = marketId);
+        parsed = self.parseTicker(rawTicker, market = market);
         parsedTickers[Symbol(marketId)] = parsed;
         i += 1
     end
-    return self.filterByArray(parsedTickers, "symbol", symbols)
+    return self.filterByArray(parsedTickers, "symbol", values = symbols)
 
 end
-function parseTrade(self::Indodax, trade, market=nothing)
+function parseTrade(self::Indodax, trade; market=nothing)
     timestamp = safeTimestamp(trade, "date");
     return self.safeTrade(Dict{Symbol, Any}(
     Symbol("id") => safeString(trade, "tid"),
     Symbol("info") => trade,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("type") => nothing,
     Symbol("side") => safeString(trade, "type"),
     Symbol("order") => nothing,
@@ -586,10 +650,23 @@ function parseTrade(self::Indodax, trade, market=nothing)
     Symbol("amount") => safeString(trade, "amount"),
     Symbol("cost") => nothing,
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Indodax, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Indodax, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -598,14 +675,28 @@ function fetchTrades(self::Indodax, symbol, since=nothing, limit=nothing, params
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetApiTradesPair(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Indodax, ohlcv, market=nothing)
+function parseOHLCV(self::Indodax, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, "Time"), self.safeNumber(ohlcv, "Open"), self.safeNumber(ohlcv, "High"), self.safeNumber(ohlcv, "Low"), self.safeNumber(ohlcv, "Close"), self.safeNumber(ohlcv, "Volume")]
 
 end
-function fetchOHLCV(self::Indodax, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Indodax, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -629,7 +720,7 @@ function fetchOHLCV(self::Indodax, symbol, timeframe="1m", since=nothing, limit=
         request[Symbol("from")] = now - limit * duration - 1;
     end
     response = Base.fetch(self.publicGetTradingviewHistoryV2(extend(request, params)));
-    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Indodax, status)
@@ -641,7 +732,7 @@ function parseOrderStatus(self::Indodax, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Indodax, order, market=nothing)
+function parseOrder(self::Indodax, order; market=nothing)
     side = nothing;
     if functions.ccxtruthy(ccxt_in("type", order))
         side = get(order, Symbol("type"), nothing);
@@ -654,7 +745,7 @@ function parseOrder(self::Indodax, order, market=nothing)
     remaining = nothing;
     filled = nothing;
     marketId = safeString(order, "pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     if functions.ccxtruthy(market != nothing)
         symbol = get(market, Symbol("symbol"), nothing);
         quoteId = get(market, Symbol("quoteId"), nothing);
@@ -698,7 +789,19 @@ function parseOrder(self::Indodax, order, market=nothing)
 ))
 
 end
-function fetchOrder(self::Indodax, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-order-endpoints
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Indodax, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -711,15 +814,28 @@ function fetchOrder(self::Indodax, id, symbol=nothing, params=Dict())
         Symbol("order_id") => id
     );
     response = Base.fetch(self.privatePostGetOrder(extend(request, params)));
-    orders = self.safeDict(response, "return", Dict{Symbol, Any}());
+    orders = self.safeDict(response, "return", defaultValue = Dict{Symbol, Any}());
     order = self.parseOrder(extend(Dict{Symbol, Any}(
         Symbol("id") => id
-    ), get(orders, Symbol("order"), nothing)), market);
+    ), get(orders, Symbol("order"), nothing)), market = market);
     order[Symbol("info")] = response;
     return order
 
 end
-function fetchOpenOrders(self::Indodax, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Indodax; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -730,13 +846,13 @@ function fetchOpenOrders(self::Indodax, symbol=nothing, since=nothing, limit=not
         request[Symbol("pair")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostOpenOrders(extend(request, params)));
-    openOrdersResult = self.safeDict(response, "return", Dict{Symbol, Any}());
+    openOrdersResult = self.safeDict(response, "return", defaultValue = Dict{Symbol, Any}());
     rawOrders = get(openOrdersResult, Symbol("orders"), nothing);
     if functions.ccxtruthy(!functions.ccxtruthy(rawOrders))
             return []
     end
     if functions.ccxtruthy(symbol != nothing)
-            return self.parseOrders(rawOrders, market, since, limit)
+            return self.parseOrders(rawOrders, market = market, since = since, limit = limit)
     end
     marketIds = objectKeys(rawOrders);
     exchangeOrders = [];
@@ -744,15 +860,28 @@ function fetchOpenOrders(self::Indodax, symbol=nothing, since=nothing, limit=not
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
         marketOrders = get(rawOrders, Symbol(marketId), nothing);
-        market = self.safeMarket(marketId);
-        parsedOrders = self.parseOrders(marketOrders, market, since, limit);
+        market = self.safeMarket(marketId = marketId);
+        parsedOrders = self.parseOrders(marketOrders, market = market, since = since, limit = limit);
         exchangeOrders = arrayConcat(exchangeOrders, parsedOrders);
         i += 1
     end
     return exchangeOrders
 
 end
-function fetchClosedOrders(self::Indodax, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Indodax; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchClosedOrders() requires a symbol argument")));
     end
@@ -764,13 +893,28 @@ function fetchClosedOrders(self::Indodax, symbol=nothing, since=nothing, limit=n
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privatePostOrderHistory(extend(request, params)));
-    historyResult = self.safeDict(response, "return", Dict{Symbol, Any}());
-    orders = self.parseOrders(get(historyResult, Symbol("orders"), nothing), market);
+    historyResult = self.safeDict(response, "return", defaultValue = Dict{Symbol, Any}());
+    orders = self.parseOrders(get(historyResult, Symbol("orders"), nothing), market = market);
     orders = filterBy(orders, "status", "closed");
-    return self.filterBySymbolSinceLimit(orders, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(orders, symbol = symbol, since = since, limit = limit)
 
 end
-function createOrder(self::Indodax, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Indodax, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -824,10 +968,22 @@ function createOrder(self::Indodax, symbol, type_var, side, amount, price=nothin
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => result,
     Symbol("id") => id
-), market)
+), market = market)
 
 end
-function cancelOrder(self::Indodax, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Indodax, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -849,7 +1005,18 @@ function cancelOrder(self::Indodax, id, symbol=nothing, params=Dict())
     return self.parseOrder(data)
 
 end
-function fetchTransactionFee(self::Indodax, code, params=Dict())
+"""
+fetch the fee for a transaction
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTransactionFee(self::Indodax, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -863,27 +1030,51 @@ function fetchTransactionFee(self::Indodax, code, params=Dict())
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("rate") => self.safeNumber(data, "withdraw_fee"),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency)
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency)
 )
 
 end
-function fetchDepositWithdrawFee(self::Indodax, code, params=Dict())
+"""
+fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFee(self::Indodax, code; params=Dict())
     Base.fetch(self.loadMarkets());
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privatePostWithdrawFee(extend(request, params)));
-    data = self.safeDict(response, "return", Dict{Symbol, Any}());
+    data = self.safeDict(response, "return", defaultValue = Dict{Symbol, Any}());
     result = self.depositWithdrawFee(response);
     result[Symbol("withdraw")][Symbol("fee")] = self.safeNumber(data, "withdraw_fee");
     result[Symbol("withdraw")][Symbol("percentage")] = false;
     result[Symbol("deposit")][Symbol("fee")] = 0;
     result[Symbol("deposit")][Symbol("percentage")] = false;
-    return self.assignDefaultDepositWithdrawFees(result, currency)
+    return self.assignDefaultDepositWithdrawFees(result, currency = currency)
 
 end
-function fetchDepositsWithdrawals(self::Indodax, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Indodax; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -922,12 +1113,26 @@ function fetchDepositsWithdrawals(self::Indodax, code=nothing, since=nothing, li
         deposits = safeValue(deposit, get(currency, Symbol("id"), nothing), []);
         transactions = arrayConcat(withdraws, deposits);
     end
-    return self.parseTransactions(transactions, currency, since, limit)
+    return self.parseTransactions(transactions, currency = currency, since = since, limit = limit)
 
 end
-function withdraw(self::Indodax, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Indodax, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -943,10 +1148,10 @@ function withdraw(self::Indodax, code, amount, address, tag=nothing, params=Dict
         request[Symbol("withdraw_memo")] = tag;
     end
     response = Base.fetch(self.privatePostWithdrawCoin(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseTransaction(self::Indodax, transaction, currency=nothing)
+function parseTransaction(self::Indodax, transaction; currency=nothing)
     status = safeString(transaction, "status");
     timestamp = safeTimestamp2(transaction, "success_time", "submit_time");
     depositId = safeString(transaction, "deposit_id");
@@ -954,7 +1159,7 @@ function parseTransaction(self::Indodax, transaction, currency=nothing)
     fee = nothing;
     if functions.ccxtruthy(feeCost != nothing)
         fee = Dict{Symbol, Any}(
-            Symbol("currency") => self.safeCurrencyCode(nothing, currency),
+            Symbol("currency") => self.safeCurrencyCode(nothing, currency = currency),
             Symbol("cost") => feeCost,
             Symbol("rate") => nothing
         );
@@ -970,7 +1175,7 @@ function parseTransaction(self::Indodax, transaction, currency=nothing)
     Symbol("addressTo") => nothing,
     Symbol("amount") => self.safeNumberN(transaction, ["amount", "withdraw_amount", "deposit_amount"]),
     Symbol("type") => functions.ccxtruthy((depositId == nothing)) ? "withdraw" : "deposit",
-    Symbol("currency") => self.safeCurrencyCode(nothing, currency),
+    Symbol("currency") => self.safeCurrencyCode(nothing, currency = currency),
     Symbol("status") => self.parseTransactionStatus(status),
     Symbol("updated") => nothing,
     Symbol("tagFrom") => nothing,
@@ -990,14 +1195,25 @@ function parseTransactionStatus(self::Indodax, status)
     return safeString(statuses, status, status)
 
 end
-function fetchDepositAddresses(self::Indodax, codes=nothing, params=Dict())
+"""
+fetch deposit addresses for multiple currencies and chain types
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
+
+# Arguments
+- `codes`::array, optional: list of unified currency codes, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddresses(self::Indodax; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privatePostGetInfo(params));
     data = self.safeDict(response, "return");
-    addresses = self.safeDict(data, "address", Dict{Symbol, Any}());
-    networks = self.safeDict(data, "network", Dict{Symbol, Any}());
+    addresses = self.safeDict(data, "address", defaultValue = Dict{Symbol, Any}());
+    networks = self.safeDict(data, "network", defaultValue = Dict{Symbol, Any}());
     addressKeys = objectKeys(addresses);
     result = Dict{Symbol, Any}(
         Symbol("info") => data
@@ -1008,7 +1224,7 @@ function fetchDepositAddresses(self::Indodax, codes=nothing, params=Dict())
         code = self.safeCurrencyCode(marketId);
         address = safeString(addresses, marketId);
         if functions.ccxtruthy(@functions.ccxt_and((address != nothing), (@functions.ccxt_or((codes == nothing), (inArray(code, codes))))))
-            self.checkAddress(address);
+            self.checkAddress(address = address);
             network = nothing;
             if functions.ccxtruthy(ccxt_in(marketId, networks))
                 networkId = safeString(networks, marketId);
@@ -1023,7 +1239,7 @@ function fetchDepositAddresses(self::Indodax, codes=nothing, params=Dict())
                     networkIds = split(networkId, ",");
                     j = 0
                     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkIds)))
-                        _netIdTmp = self.networkIdToCode(get(networkIds, j + 1, nothing), code);
+                        _netIdTmp = self.networkIdToCode(networkId = get(networkIds, j + 1, nothing), currencyCode = code);
                         if functions.ccxtruthy(_netIdTmp != nothing)
                                                         push!(network, uppercase(_netIdTmp));
                         end
@@ -1031,7 +1247,7 @@ function fetchDepositAddresses(self::Indodax, codes=nothing, params=Dict())
                     end
 
                 else
-                    _netIdTmp = self.networkIdToCode(networkId, code);
+                    _netIdTmp = self.networkIdToCode(networkId = networkId, currencyCode = code);
                     if functions.ccxtruthy(_netIdTmp != nothing)
                         network = uppercase(_netIdTmp);
                     end
@@ -1053,7 +1269,7 @@ function fetchDepositAddresses(self::Indodax, codes=nothing, params=Dict())
     return result
 
 end
-function sign(self::Indodax, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Indodax, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing);
     if functions.ccxtruthy(api == "public")
         query = omit(params, self.extractParams(path));
@@ -1118,91 +1334,91 @@ Base.getproperty(self::Indodax, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetApiServerTime(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/server_time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/server_time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiPairs(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/pairs", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/pairs"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiPriceIncrements(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/price_increments", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/price_increments"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiSummaries(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/summaries", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/summaries"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiTickerPair(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/ticker/{pair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/ticker/{pair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiTickerAll(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/ticker_all", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/ticker_all"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiTradesPair(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/trades/{pair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/trades/{pair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiDepthPair(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/depth/{pair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/depth/{pair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradingviewHistoryV2(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "tradingview/history_v2", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingview/history_v2"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetInfo(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "getInfo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "getInfo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransHistory(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "transHistory", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transHistory"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTrade(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "trade", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeHistory(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "tradeHistory", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradeHistory"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenOrders(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderHistory(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "orderHistory", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orderHistory"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOrder(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "getOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "getOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelOrder(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "cancelOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawFee(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "withdrawFee", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawFee"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawCoin(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "withdrawCoin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawCoin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostListDownline(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "listDownline", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "listDownline"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCheckDownline(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "checkDownline", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "checkDownline"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCreateVoucher(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "createVoucher", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "createVoucher"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Indodax(; kwargs...)
@@ -1266,3 +1482,275 @@ function Indodax(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Indodax_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Indodax_fetchTime
+
+function __ccxt_doc_Indodax_fetchMarkets() end
+"""
+retrieves data on all markets for indodax
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Indodax_fetchMarkets
+
+function __ccxt_doc_Indodax_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Indodax_fetchBalance
+
+function __ccxt_doc_Indodax_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Indodax_fetchOrderBook
+
+function __ccxt_doc_Indodax_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Indodax_fetchTicker
+
+function __ccxt_doc_Indodax_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Indodax_fetchTickers
+
+function __ccxt_doc_Indodax_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Indodax_fetchTrades
+
+function __ccxt_doc_Indodax_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Indodax_fetchOHLCV
+
+function __ccxt_doc_Indodax_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-order-endpoints
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Indodax_fetchOrder
+
+function __ccxt_doc_Indodax_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Indodax_fetchOpenOrders
+
+function __ccxt_doc_Indodax_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Indodax_fetchClosedOrders
+
+function __ccxt_doc_Indodax_createOrder() end
+"""
+create a trade order
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Indodax_createOrder
+
+function __ccxt_doc_Indodax_cancelOrder() end
+"""
+cancels an open order
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Indodax_cancelOrder
+
+function __ccxt_doc_Indodax_fetchTransactionFee() end
+"""
+fetch the fee for a transaction
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Indodax_fetchTransactionFee
+
+function __ccxt_doc_Indodax_fetchDepositWithdrawFee() end
+"""
+fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Indodax_fetchDepositWithdrawFee
+
+function __ccxt_doc_Indodax_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Indodax_fetchDepositsWithdrawals
+
+function __ccxt_doc_Indodax_withdraw() end
+"""
+make a withdrawal
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Indodax_withdraw
+
+function __ccxt_doc_Indodax_fetchDepositAddresses() end
+"""
+fetch deposit addresses for multiple currencies and chain types
+see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
+
+# Arguments
+- `codes`::array, optional: list of unified currency codes, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Indodax_fetchDepositAddresses

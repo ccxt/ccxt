@@ -1317,7 +1317,7 @@ function describe(self::Aster, )
 ))
 
 end
-function isInverse(self::Aster, type_var, subType=nothing)
+function isInverse(self::Aster, type_var; subType=nothing)
     if functions.ccxtruthy(subType == nothing)
             return (type_var == "delivery")
     else
@@ -1325,7 +1325,7 @@ function isInverse(self::Aster, type_var, subType=nothing)
     end
 
 end
-function isLinear(self::Aster, type_var, subType=nothing)
+function isLinear(self::Aster, type_var; subType=nothing)
     if functions.ccxtruthy(subType == nothing)
             return @functions.ccxt_or((type_var == "future"), (type_var == "swap"))
     else
@@ -1333,9 +1333,20 @@ function isLinear(self::Aster, type_var, subType=nothing)
     end
 
 end
-function fetchCurrencies(self::Aster, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Aster; params=Dict())
     sapiResult = Base.fetch(self.sapiPublicGetV3ExchangeInfo(params));
-    sapiRows = self.safeList(sapiResult, "assets", []);
+    sapiRows = self.safeList(sapiResult, "assets", defaultValue = []);
     return self.parseCurrencies(sapiRows)
 
 end
@@ -1372,14 +1383,25 @@ function parseCurrency(self::Aster, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Aster, params=Dict())
+"""
+retrieves data on all markets for bigone
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Aster; params=Dict())
     promises = [self.sapiPublicGetV3ExchangeInfo(params), self.fapiPublicGetV3ExchangeInfo(params)];
     push!(promises, self.signIn());
     results = Base.fetch(asyncmap(Base.fetch, promises));
-    sapiResult = self.safeDict(results, 0, Dict{Symbol, Any}());
-    sapiRows = self.safeList(sapiResult, "symbols", []);
-    fapiResult = self.safeDict(results, 1, Dict{Symbol, Any}());
-    fapiRows = self.safeList(fapiResult, "symbols", []);
+    sapiResult = self.safeDict(results, 0, defaultValue = Dict{Symbol, Any}());
+    sapiRows = self.safeList(sapiResult, "symbols", defaultValue = []);
+    fapiResult = self.safeDict(results, 1, defaultValue = Dict{Symbol, Any}());
+    fapiRows = self.safeList(fapiResult, "symbols", defaultValue = []);
     fapiRowsFiltered = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fapiRows)))
@@ -1418,24 +1440,24 @@ function parseMarket(self::Aster, market)
         symbol = string(base, "/", quote_var, ":", settle);
         linear = settle == quote_var;
         inverse = settle == base;
-        contractSize = self.safeNumber2(market, "contractSize", "unit", self.parseNumber("1"));
+        contractSize = self.safeNumber2(market, "contractSize", "unit", d = self.parseNumber("1"));
     else
         spot = true;
         swap = false;
         symbol = string(base, "/", quote_var);
     end
-    filters = self.safeList(market, "filters", []);
+    filters = self.safeList(market, "filters", defaultValue = []);
     filtersByType = indexBy(filters, "filterType");
     filterNotional = self.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL");
     filterPrice = self.safeDict(filtersByType, "PRICE_FILTER");
     filterLotSize = self.safeDict(filtersByType, "LOT_SIZE");
-    filterMarketLotSize = self.safeDict(filtersByType, "MARKET_LOT_SIZE", Dict{Symbol, Any}());
+    filterMarketLotSize = self.safeDict(filtersByType, "MARKET_LOT_SIZE", defaultValue = Dict{Symbol, Any}());
     pricePrecision = self.safeNumber(filterPrice, "tickSize");
     if functions.ccxtruthy(pricePrecision == nothing)
-        pricePrecision = self.parseNumber(self.parsePrecision(safeString(market, "pricePrecision")));
+        pricePrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "pricePrecision")));
     end
-    amountPrecision = functions.ccxtruthy((filterLotSize != nothing)) ? self.safeNumber(filterLotSize, "stepSize") : self.parseNumber(self.parsePrecision(safeString(market, "quantityPrecision")));
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    amountPrecision = functions.ccxtruthy((filterLotSize != nothing)) ? self.safeNumber(filterLotSize, "stepSize") : self.parseNumber(self.parsePrecision(precision = safeString(market, "quantityPrecision")));
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -1464,8 +1486,8 @@ function parseMarket(self::Aster, market)
     Symbol("precision") => Dict{Symbol, Any}(
         Symbol("amount") => amountPrecision,
         Symbol("price") => pricePrecision,
-        Symbol("base") => self.parseNumber(self.parsePrecision(safeString(market, "baseAssetPrecision"))),
-        Symbol("quote") => self.parseNumber(self.parsePrecision(safeString(market, "quotePrecision")))
+        Symbol("base") => self.parseNumber(self.parsePrecision(precision = safeString(market, "baseAssetPrecision"))),
+        Symbol("quote") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quotePrecision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -1494,9 +1516,20 @@ function parseMarket(self::Aster, market)
 ))
 
 end
-function fetchTime(self::Aster, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-server-time
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Aster; params=Dict())
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTime", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTime", market = nothing, params = params);
     if functions.ccxtruthy(marketType == "swap")
         response = Base.fetch(self.fapiPublicGetV3Time(params));
     else
@@ -1505,11 +1538,30 @@ function fetchTime(self::Aster, params=Dict())
     return safeInteger(response, "serverTime")
 
 end
-function parseOHLCV(self::Aster, ohlcv, market=nothing)
+function parseOHLCV(self::Aster, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCV(self::Aster, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#k-line-data
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#klinecandlestick-data
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#index-price-klinecandlestick-data
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#mark-price-klinecandlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Aster, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1541,14 +1593,14 @@ function fetchOHLCV(self::Aster, symbol, timeframe="1m", since=nothing, limit=no
             response = Base.fetch(self.sapiPublicGetV3Klines(extend(request, params)));
         end
     end
-    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseTrade(self::Aster, trade, market=nothing)
+function parseTrade(self::Aster, trade; market=nothing)
     id = safeString2(trade, "id", "a");
     marketId = safeString(trade, "symbol");
     marketType = functions.ccxtruthy((ccxt_in("positionSide", trade))) ? "swap" : "spot";
-    market = self.safeMarket(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
     currencyId = safeString2(trade, "commissionAsset", "marginAsset");
     currencyCode = self.safeCurrencyCode(currencyId);
     amountString = safeString2(trade, "qty", "q");
@@ -1588,10 +1640,26 @@ function parseTrade(self::Aster, trade, market=nothing)
         Symbol("cost") => self.parseNumber(stringAbs(safeString(trade, "commission"))),
         Symbol("currency") => currencyCode
     )
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Aster, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-list
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-aggregated
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#recent-trades-list
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#compressedaggregate-trades-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Aster, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1623,10 +1691,25 @@ function fetchTrades(self::Aster, symbol, since=nothing, limit=nothing, params=D
             response = Base.fetch(self.sapiPublicGetV3Trades(extend(request, params)));
         end
     end
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Aster, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-trade-history-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#account-trade-list-user_data
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is undefined
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Aster; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1635,7 +1718,7 @@ function fetchMyTrades(self::Aster, symbol=nothing, since=nothing, limit=nothing
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startTime")] = since;
     end
@@ -1648,10 +1731,23 @@ function fetchMyTrades(self::Aster, symbol=nothing, since=nothing, limit=nothing
     else
         response = Base.fetch(self.sapiPrivateGetV3UserTrades(extend(request, params)));
     end
-    return self.parseTrades(response, market, since, limit, params)
+    return self.parseTrades(response, market = market, since = since, limit = limit, params = params)
 
 end
-function fetchOrderBook(self::Aster, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#depth-information
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Aster, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1668,10 +1764,10 @@ function fetchOrderBook(self::Aster, symbol, limit=nothing, params=Dict())
         response = Base.fetch(self.sapiPublicGetV3Depth(extend(request, params)));
     end
     timestamp = safeInteger(response, "T");
-    return self.parseOrderBook(response, symbol, timestamp, "bids", "asks")
+    return self.parseOrderBook(response, symbol, timestamp = timestamp, bidsKey = "bids", asksKey = "asks")
 
 end
-function parseTicker(self::Aster, ticker, market=nothing)
+function parseTicker(self::Aster, ticker; market=nothing)
     timestamp = safeInteger(ticker, "closeTime");
     last_var = safeString(ticker, "lastPrice");
     open = safeString(ticker, "openPrice");
@@ -1688,7 +1784,7 @@ function parseTicker(self::Aster, ticker, market=nothing)
         marketType = functions.ccxtruthy((ccxt_in("lastUpdateId", ticker))) ? "swap" : "spot";
     end
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
     Symbol("timestamp") => timestamp,
@@ -1712,10 +1808,22 @@ function parseTicker(self::Aster, ticker, market=nothing)
     Symbol("markPrice") => nothing,
     Symbol("indexPrice") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Aster, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Aster, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1728,34 +1836,61 @@ function fetchTicker(self::Aster, symbol, params=Dict())
     else
         response = Base.fetch(self.sapiPublicGetV3Ticker24hr(extend(request, params)));
     end
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchTickers(self::Aster, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
+
+# Arguments
+- `symbols`::array: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.type`::string, optional: 'spot', 'option', use params["subType"] for swap and future markets
+
+# Returns
+- an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Aster; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(marketType == "swap")
         response = Base.fetch(self.fapiPublicGetV3Ticker24hr(params));
     elseif functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.sapiPublicGetV3Ticker24hr(params));
     end
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function fetchLastPrices(self::Aster, symbols=nothing, params=Dict())
+"""
+fetches the last price for multiple markets
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#latest-price
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the last prices
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of lastprices structures
+"""
+function fetchLastPrices(self::Aster; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchLastPrices", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchLastPrices", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(marketType == "swap")
         response = Base.fetch(self.fapiPublicGetV3TickerPrice(params));
@@ -1770,16 +1905,16 @@ function fetchLastPrices(self::Aster, symbols=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
         marketId = safeString(get(rows, i + 1, nothing), "symbol");
-        safeMarket = self.safeMarket(marketId, nothing, nothing, marketType);
-        priceData = extend(self.parseLastPrice(get(rows, i + 1, nothing), safeMarket), params);
+        safeMarket = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = marketType);
+        priceData = extend(self.parseLastPrice(get(rows, i + 1, nothing), market = safeMarket), params);
         push!(results, priceData);
         i += 1
     end
-    symbols = self.marketSymbols(symbols);
-    return self.filterByArray(results, "symbol", symbols)
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.filterByArray(results, "symbol", values = symbols)
 
 end
-function parseLastPrice(self::Aster, entry, market=nothing)
+function parseLastPrice(self::Aster, entry; market=nothing)
     timestamp = safeInteger(entry, "time");
     return Dict{Symbol, Any}(
     Symbol("symbol") => safeString(market, "symbol"),
@@ -1791,24 +1926,37 @@ function parseLastPrice(self::Aster, entry, market=nothing)
 )
 
 end
-function fetchBidsAsks(self::Aster, symbols=nothing, params=Dict())
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#current-best-order
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-order-book-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchBidsAsks(self::Aster; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBidsAsks", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBidsAsks", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(marketType == "swap")
         response = Base.fetch(self.fapiPublicGetV3TickerBookTicker(params));
     elseif functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.sapiPublicGetV3TickerBookTicker(params));
     end
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function parseFundingRate(self::Aster, contract, market=nothing)
+function parseFundingRate(self::Aster, contract; market=nothing)
     marketId = safeString(contract, "symbol");
     nextFundingTimestamp = safeInteger(contract, "nextFundingTime");
     timestamp = safeInteger(contract, "time");
@@ -1819,7 +1967,7 @@ function parseFundingRate(self::Aster, contract, market=nothing)
     end
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("markPrice") => self.safeNumber(contract, "markPrice"),
     Symbol("indexPrice") => self.safeNumber(contract, "indexPrice"),
     Symbol("interestRate") => self.safeNumber(contract, "interestRate"),
@@ -1839,7 +1987,18 @@ function parseFundingRate(self::Aster, contract, market=nothing)
 )
 
 end
-function fetchFundingRate(self::Aster, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Aster, symbol; params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRate() requires a symbol argument")));
     end
@@ -1851,30 +2010,66 @@ function fetchFundingRate(self::Aster, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.fapiPublicGetV3PremiumIndex(extend(request, params)));
-    return self.parseFundingRate(response, market)
+    return self.parseFundingRate(response, market = market)
 
 end
-function fetchFundingRates(self::Aster, symbols=nothing, params=Dict())
+"""
+fetch the current funding rate for multiple symbols
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRates(self::Aster; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.fapiPublicGetV3PremiumIndex(extend(params)));
-    return self.parseFundingRates(response, symbols)
+    return self.parseFundingRates(response, symbols = symbols)
 
 end
-function fetchFundingIntervals(self::Aster, symbols=nothing, params=Dict())
+"""
+fetch the funding rate interval for multiple markets
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingIntervals(self::Aster; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     if functions.ccxtruthy(symbols != nothing)
-        symbols = self.marketSymbols(symbols);
+        symbols = self.marketSymbols(symbols = symbols);
     end
     response = Base.fetch(self.fapiPublicGetV3FundingInfo(params));
-    return self.parseFundingRates(response, symbols)
+    return self.parseFundingRates(response, symbols = symbols)
 
 end
-function fetchFundingRateHistory(self::Aster, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Aster; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1892,31 +2087,44 @@ function fetchFundingRateHistory(self::Aster, symbol=nothing, since=nothing, lim
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.fapiPublicGetV3FundingRate(extend(request, params)));
-    return self.parseFundingRateHistories(response, market)
+    return self.parseFundingRateHistories(response, market = market)
 
 end
-function parseFundingRateHistory(self::Aster, contract, market=nothing)
+function parseFundingRateHistory(self::Aster, contract; market=nothing)
     timestamp = safeInteger(contract, "fundingTime");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(safeString(contract, "symbol"), nothing, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(safeString(contract, "symbol"), market = nothing, delimiter = nothing, marketType = "swap"),
     Symbol("fundingRate") => self.safeNumber(contract, "fundingRate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 )
 
 end
-function fetchBalance(self::Aster, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-information-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#futures-account-balance-v3-user_data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.type`::string, optional: 'spot', 'option', use params["subType"] for swap and future markets
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Aster; params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     response = nothing;
     data = nothing;
     if functions.ccxtruthy(marketType == "swap")
         data = Base.fetch(self.fapiPrivateGetV3Balance(params));
     elseif functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.sapiPrivateGetV3Account(params));
-        data = self.safeList(response, "balances", []);
+        data = self.safeList(response, "balances", defaultValue = []);
     end
     return self.parseBalance(data)
 
@@ -1942,7 +2150,19 @@ function parseBalance(self::Aster, response)
     return self.safeBalance(result)
 
 end
-function setMarginMode(self::Aster, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-margin-type-trade
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Aster, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -1963,7 +2183,18 @@ function setMarginMode(self::Aster, marginMode, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchPositionMode(self::Aster, symbol=nothing, params=Dict())
+"""
+fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-current-position-modeuser_data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+function fetchPositionMode(self::Aster; symbol=nothing, params=Dict())
     response = Base.fetch(self.fapiPrivateGetV3PositionSideDual(params));
     return Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -1971,7 +2202,19 @@ function fetchPositionMode(self::Aster, symbol=nothing, params=Dict())
 )
 
 end
-function setPositionMode(self::Aster, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Aster, hedged; symbol=nothing, params=Dict())
     strValue = functions.ccxtruthy(hedged) ? "true" : "false";
     request = Dict{Symbol, Any}(
         Symbol("dualSidePosition") => strValue
@@ -1979,10 +2222,10 @@ function setPositionMode(self::Aster, hedged, symbol=nothing, params=Dict())
     return Base.fetch(self.fapiPrivatePostV3PositionSideDual(extend(request, params)))
 
 end
-function parseTradingFee(self::Aster, fee, market=nothing)
+function parseTradingFee(self::Aster, fee; market=nothing)
     marketId = safeString(fee, "symbol");
-    market = self.safeMarket(marketId, market);
-    symbol = self.safeSymbol(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => symbol,
@@ -1993,7 +2236,19 @@ function parseTradingFee(self::Aster, fee, market=nothing)
 )
 
 end
-function fetchTradingFee(self::Aster, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-symbol-fees
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#user-commission-rate-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Aster, symbol; params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -2004,7 +2259,7 @@ function fetchTradingFee(self::Aster, symbol, params=Dict())
     else
         response = Base.fetch(self.sapiPrivateGetV3CommissionRate(extend(request, params)));
     end
-    return self.parseTradingFee(response, market)
+    return self.parseTradingFee(response, market = market)
 
 end
 function parseOrderStatus(self::Aster, status)
@@ -2032,12 +2287,12 @@ function parseOrderType(self::Aster, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseOrder(self::Aster, order, market=nothing)
+function parseOrder(self::Aster, order; market=nothing)
     info = order;
     positionSide = safeString(order, "positionSide");
     defaultType = functions.ccxtruthy((positionSide != nothing)) ? "swap" : "spot";
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market, nothing, defaultType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = defaultType);
     side = safeStringLower(order, "side");
     timestamp = safeInteger(order, "time");
     statusId = safeStringUpper(order, "status");
@@ -2048,7 +2303,7 @@ function parseOrder(self::Aster, order, market=nothing)
     Symbol("info") => info,
     Symbol("id") => safeString(order, "orderId"),
     Symbol("clientOrderId") => safeString(order, "clientOrderId"),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("lastTradeTimestamp") => nothing,
@@ -2068,10 +2323,24 @@ function parseOrder(self::Aster, order, market=nothing)
     Symbol("fee") => nothing,
     Symbol("trades") => nothing,
     Symbol("reduceOnly") => self.safeBool2(order, "reduceOnly", "ro")
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Aster, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-order-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-order-user_data
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Aster, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -2092,10 +2361,23 @@ function fetchOrder(self::Aster, id, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.sapiPrivateGetV3Order(extend(request, params)));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOpenOrder(self::Aster, id, symbol=nothing, params=Dict())
+"""
+fetch an open order by the id
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-current-open-order-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-current-open-order-user_data
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrder(self::Aster, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrder() requires a symbol argument")));
     end
@@ -2116,10 +2398,25 @@ function fetchOpenOrder(self::Aster, id, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.fapiPrivateGetV3OpenOrder(extend(request, params)));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOrders(self::Aster, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-all-orders-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#all-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Aster; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -2140,10 +2437,26 @@ function fetchOrders(self::Aster, symbol=nothing, since=nothing, limit=nothing, 
     else
         response = Base.fetch(self.sapiPrivateGetV3AllOrders(extend(request, params)));
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Aster, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#current-open-orders-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.type`::string, optional: 'spot', 'option', use params["subType"] for swap and future markets
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Aster; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -2160,31 +2473,66 @@ function fetchOpenOrders(self::Aster, symbol=nothing, since=nothing, limit=nothi
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchOpenOrders", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchOpenOrders", market = market, params = params);
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(marketType, subType))
+    if functions.ccxtruthy(self.isLinear(marketType, subType = subType))
         response = Base.fetch(self.fapiPrivateGetV3OpenOrders(extend(request, params)));
     elseif functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.sapiPrivateGetV3OpenOrders(extend(request, params)));
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function createOrder(self::Aster, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#place-order-trade
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'STOP' or 'STOP_MARKET' or 'TAKE_PROFIT' or 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.reduceOnly`::string, optional: for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
+- `params.test`::bool, optional: whether to use the test endpoint or not, default is false
+- `params.trailingPercent`::float, optional: the percent to trail away from the current market price
+- `params.trailingTriggerPrice`::float, optional: the price to trigger a trailing order, default uses the price argument
+- `params.positionSide`::string, optional: "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+- `params.triggerPrice`::float, optional: the price that a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Aster, symbol, type_var, side, amount; price=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     market = self.market(symbol);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         response = Base.fetch(self.fapiPrivatePostV3Order(request));
     else
         response = Base.fetch(self.sapiPrivatePostV3Order(request));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createOrders(self::Aster, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Aster, orders; params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     ordersRequests = [];
     orderSymbols = [];
@@ -2201,12 +2549,12 @@ function createOrders(self::Aster, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, orderParams);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
-    orderSymbols = self.marketSymbols(orderSymbols, nothing, false, true, true);
+    orderSymbols = self.marketSymbols(symbols = orderSymbols, type_var = nothing, allowEmpty = false, sameTypeOnly = true, sameSubTypeOnly = true);
     market = self.market(get(orderSymbols, 1, nothing));
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         throw(NotSupported(string(self.id, " createOrders() does not support ", get(market, Symbol("type"), nothing), " orders")));
@@ -2218,7 +2566,7 @@ function createOrders(self::Aster, orders, params=Dict())
     return self.parseOrders(response)
 
 end
-function createOrderRequest(self::Aster, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Aster, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -2274,11 +2622,11 @@ function createOrderRequest(self::Aster, symbol, type_var, side, amount, price=n
         end
 
     end
-    postOnly = self.isPostOnly(isMarketOrder, nothing, params);
+    postOnly = self.isPostOnly(isMarketOrder, nothing, params = params);
     if functions.ccxtruthy(postOnly)
         request[Symbol("timeInForce")] = "GTX";
     end
-    closePosition = self.safeBool(params, "closePosition", false);
+    closePosition = self.safeBool(params, "closePosition", defaultValue = false);
     timeInForceIsRequired = false;
     priceIsRequired = false;
     triggerPriceIsRequired = false;
@@ -2286,7 +2634,7 @@ function createOrderRequest(self::Aster, symbol, type_var, side, amount, price=n
     request[Symbol("type")] = uppercaseType;
     if functions.ccxtruthy(uppercaseType == "MARKET")
         if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            quoteOrderQty = self.handleOption("createOrder", "quoteOrderQty", true);
+            quoteOrderQty = self.handleOption("createOrder", "quoteOrderQty", defaultValue = true);
             if functions.ccxtruthy(quoteOrderQty)
                 quoteOrderQtyNew = safeString2(params, "quoteOrderQty", "cost");
                 precision = get(get(market, Symbol("precision"), nothing), Symbol("price"), nothing);
@@ -2373,7 +2721,19 @@ function createOrderRequest(self::Aster, symbol, type_var, side, amount, price=n
     return extend(request, requestParams)
 
 end
-function cancelAllOrders(self::Aster, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Aster; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -2392,7 +2752,20 @@ function cancelAllOrders(self::Aster, symbol=nothing, params=Dict())
 ))]
 
 end
-function cancelOrder(self::Aster, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-order-trade
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-order-trade
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Aster, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -2413,10 +2786,25 @@ function cancelOrder(self::Aster, id, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.sapiPrivateDeleteV3Order(extend(request, params)));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrders(self::Aster, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-multiple-orders-trade
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.origClientOrderIdList`::array, optional: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+- `params.recvWindow`::array, optional:
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Aster, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -2436,10 +2824,22 @@ function cancelOrders(self::Aster, ids, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.sapiPrivateDeleteV3AllOpenOrders(extend(request, params)));
     end
-    return self.parseOrders(response, market)
+    return self.parseOrders(response, market = market)
 
 end
-function setLeverage(self::Aster, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-initial-leverage-trade
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Aster, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -2456,13 +2856,24 @@ function setLeverage(self::Aster, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchLeverages(self::Aster, symbols=nothing, params=Dict())
+"""
+fetch the set leverage for all markets
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverages(self::Aster; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     response = Base.fetch(self.fapiPrivateGetV3PositionRisk(params));
-    return self.parseLeverages(toArray(response), symbols, "symbol")
+    return self.parseLeverages(toArray(response), symbols = symbols, symbolKey = "symbol")
 
 end
-function parseLeverage(self::Aster, leverage, market=nothing)
+function parseLeverage(self::Aster, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
     marginMode = safeStringLower(leverage, "marginType");
     side = safeStringLower(leverage, "positionSide");
@@ -2482,22 +2893,33 @@ function parseLeverage(self::Aster, leverage, market=nothing)
     end
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => marginMode,
     Symbol("longLeverage") => longLeverage,
     Symbol("shortLeverage") => shortLeverage
 )
 
 end
-function fetchMarginModes(self::Aster, symbols=nothing, params=Dict())
+"""
+fetches margin mode of the user
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginModes(self::Aster; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     response = Base.fetch(self.fapiPrivateGetV3PositionRisk(params));
-    return self.parseMarginModes(toArray(response), symbols, "symbol", "swap")
+    return self.parseMarginModes(toArray(response), symbols = symbols, symbolKey = "symbol", marketType = "swap")
 
 end
-function parseMarginMode(self::Aster, marginMode, market=nothing)
+function parseMarginMode(self::Aster, marginMode; market=nothing)
     marketId = safeString(marginMode, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "swap");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "swap");
     return Dict{Symbol, Any}(
     Symbol("info") => marginMode,
     Symbol("symbol") => safeString(market, "symbol"),
@@ -2505,7 +2927,22 @@ function parseMarginMode(self::Aster, marginMode, market=nothing)
 )
 
 end
-function fetchMarginAdjustmentHistory(self::Aster, symbol=nothing, type_var=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches the history of margin added or reduced from contract isolated positions
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-position-margin-change-history-trade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `type`::string, optional: "add" or "reduce"
+- `since`::int, optional: timestamp in ms of the earliest change to fetch
+- `limit`::int, optional: the maximum amount of changes to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest change to fetch
+
+# Returns
+- a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function fetchMarginAdjustmentHistory(self::Aster; symbol=nothing, type_var=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMarginAdjustmentHistory () requires a symbol argument")));
     end
@@ -2530,15 +2967,15 @@ function fetchMarginAdjustmentHistory(self::Aster, symbol=nothing, type_var=noth
     end
     response = Base.fetch(self.fapiPrivateGetV3PositionMarginHistory(extend(request, params)));
     modifications = self.parseMarginModifications(toArray(response));
-    return self.filterBySymbolSinceLimit(modifications, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(modifications, symbol = symbol, since = since, limit = limit)
 
 end
-function parseMarginModification(self::Aster, data, market=nothing)
+function parseMarginModification(self::Aster, data; market=nothing)
     rawType = safeInteger(data, "type");
     errorCode = safeString(data, "code");
     marketId = safeString(data, "symbol");
     timestamp = safeInteger(data, "time");
-    market = self.safeMarket(marketId, market, nothing, "swap");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "swap");
     noErrorCode = errorCode == nothing;
     success = errorCode == "200";
     return Dict{Symbol, Any}(
@@ -2555,7 +2992,7 @@ function parseMarginModification(self::Aster, data, market=nothing)
 )
 
 end
-function modifyMarginHelper(self::Aster, symbol, amount, addOrReduce, params=Dict())
+function modifyMarginHelper(self::Aster, symbol, amount, addOrReduce; params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     market = self.market(symbol);
     amount = self.amountToPrecision(symbol, amount);
@@ -2566,26 +3003,50 @@ function modifyMarginHelper(self::Aster, symbol, amount, addOrReduce, params=Dic
     );
     code = get(market, Symbol("quote"), nothing);
     response = Base.fetch(self.fapiPrivatePostV3PositionMargin(extend(request, params)));
-    return extend(self.parseMarginModification(response, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(response, market = market), Dict{Symbol, Any}(
     Symbol("code") => code
 ))
 
 end
-function reduceMargin(self::Aster, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, 2, params))
+"""
+remove margin from a position
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+"""
+function reduceMargin(self::Aster, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, 2, params = params))
 
 end
-function addMargin(self::Aster, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, 1, params))
+"""
+add margin
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+"""
+function addMargin(self::Aster, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, 1, params = params))
 
 end
-function parseIncome(self::Aster, income, market=nothing)
+function parseIncome(self::Aster, income; market=nothing)
     marketId = safeString(income, "symbol");
     currencyId = safeString(income, "asset");
     timestamp = safeInteger(income, "time");
     return Dict{Symbol, Any}(
     Symbol("info") => income,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("code") => self.safeCurrencyCode(currencyId),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -2594,7 +3055,23 @@ function parseIncome(self::Aster, income, market=nothing)
 )
 
 end
-function fetchFundingHistory(self::Aster, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding history entry
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the funding history for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Aster; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     market = nothing;
     request = Dict{Symbol, Any}(
@@ -2612,10 +3089,10 @@ function fetchFundingHistory(self::Aster, symbol=nothing, since=nothing, limit=n
         request[Symbol("limit")] = min(limit, 1000);
     end
     response = Base.fetch(self.fapiPrivateGetV3Income(extend(request, params)));
-    return self.parseIncomes(response, market, since, limit)
+    return self.parseIncomes(response, market = market, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Aster, item, currency=nothing)
+function parseLedgerEntry(self::Aster, item; currency=nothing)
     amount = safeString(item, "income");
     direction = nothing;
     if functions.ccxtruthy(stringLe(amount, "0"))
@@ -2625,8 +3102,8 @@ function parseLedgerEntry(self::Aster, item, currency=nothing)
         direction = "in";
     end
     currencyId = safeString(item, "asset");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     timestamp = safeInteger(item, "time");
     type_var = safeString(item, "incomeType");
     return self.safeLedgerEntry(Dict{Symbol, Any}(
@@ -2645,7 +3122,7 @@ function parseLedgerEntry(self::Aster, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => nothing,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Aster, type_var)
@@ -2661,7 +3138,21 @@ function parseLedgerEntryType(self::Aster, type_var)
     return safeString(ledgerType, type_var, type_var)
 
 end
-function fetchLedger(self::Aster, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+"""
+function fetchLedger(self::Aster; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -2680,16 +3171,16 @@ function fetchLedger(self::Aster, code=nothing, since=nothing, limit=nothing, pa
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.fapiPrivateGetV3Income(extend(request, params)));
-    return self.parseLedger(response, currency, since, limit)
+    return self.parseLedger(response, currency = currency, since = since, limit = limit)
 
 end
-function parsePositionRisk(self::Aster, position, market=nothing)
+function parsePositionRisk(self::Aster, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
     symbol = safeString(market, "symbol");
     isolatedMarginString = safeString(position, "isolatedMargin");
-    leverageBrackets = self.safeDict(self.options, "leverageBrackets", Dict{Symbol, Any}());
-    leverageBracket = self.safeList(leverageBrackets, symbol, []);
+    leverageBrackets = self.safeDict(self.options, "leverageBrackets", defaultValue = Dict{Symbol, Any}());
+    leverageBracket = self.safeList(leverageBrackets, symbol, defaultValue = []);
     notionalString = safeString2(position, "notional", "notionalValue");
     notionalStringAbs = stringAbs(notionalString);
     maintenanceMarginPercentageString = nothing;
@@ -2726,7 +3217,7 @@ function parsePositionRisk(self::Aster, position, market=nothing)
     contractSizeString = numberToString(contractSize);
     linear = (ccxt_in("notional", position));
     if functions.ccxtruthy(marginMode == "cross")
-        precision = self.safeDict(market, "precision", Dict{Symbol, Any}());
+        precision = self.safeDict(market, "precision", defaultValue = Dict{Symbol, Any}());
         basePrecisionValue = safeString(precision, "base");
         quotePrecisionValue = safeString2(precision, "quote", "price");
         precisionIsUndefined = @functions.ccxt_and((basePrecisionValue == nothing), (quotePrecisionValue == nothing));
@@ -2833,14 +3324,25 @@ function parsePositionRisk(self::Aster, position, market=nothing)
 ))
 
 end
-function fetchPositionsRisk(self::Aster, symbols=nothing, params=Dict())
+"""
+fetch positions risk
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- data on the positions risk
+"""
+function fetchPositionsRisk(self::Aster; symbols=nothing, params=Dict())
     if functions.ccxtruthy(symbols != nothing)
         if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(symbols)))
             throw(ArgumentsRequired(string(self.id, " fetchPositionsRisk() requires an array argument for symbols")));
         end
     end
     Base.fetch(self.loadMarketsAndSignIn());
-    Base.fetch(self.loadLeverageBrackets(false, params));
+    Base.fetch(self.loadLeverageBrackets(reload = false, params = params));
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.fapiPrivateGetV3PositionRisk(extend(request, params)));
     rawPositions = toArray(response);
@@ -2854,11 +3356,23 @@ function fetchPositionsRisk(self::Aster, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    symbols = self.marketSymbols(symbols);
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function fetchPositions(self::Aster, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Aster; symbols=nothing, params=Dict())
     defaultMethod = nothing;
     (defaultMethod, params) = self.handleOptionAndParams(params, "fetchPositions", "method");
     if functions.ccxtruthy(defaultMethod == nothing)
@@ -2870,17 +3384,17 @@ function fetchPositions(self::Aster, symbols=nothing, params=Dict())
         end
     end
     if functions.ccxtruthy(defaultMethod == "positionRisk")
-            return Base.fetch(self.fetchPositionsRisk(symbols, params))
+            return Base.fetch(self.fetchPositionsRisk(symbols = symbols, params = params))
     elseif functions.ccxtruthy(defaultMethod == "account")
-        return Base.fetch(self.fetchAccountPositions(symbols, params))
+        return Base.fetch(self.fetchAccountPositions(symbols = symbols, params = params))
     else
         throw(NotSupported(string(self.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"", defaultMethod, "\" is invalid, please choose between \"account\" and \"positionRisk\"")));
     end
 
 end
-function parseAccountPositions(self::Aster, account, filterClosed=false)
-    positions = self.safeList(account, "positions", []);
-    assets = self.safeList(account, "assets", []);
+function parseAccountPositions(self::Aster, account; filterClosed=false)
+    positions = self.safeList(account, "positions", defaultValue = []);
+    assets = self.safeList(account, "assets", defaultValue = []);
     balances = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(assets)))
@@ -2902,7 +3416,7 @@ function parseAccountPositions(self::Aster, account, filterClosed=false)
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         position = get(positions, i + 1, nothing);
         marketId = safeString(position, "symbol");
-        market = self.safeMarket(marketId, nothing, nothing, "contract");
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = "contract");
         code = functions.ccxtruthy(get(market, Symbol("linear"), nothing)) ? get(market, Symbol("quote"), nothing) : get(market, Symbol("base"), nothing);
         maintenanceMargin = safeString(position, "maintMargin");
         isPositionOpen = @functions.ccxt_and((maintenanceMargin != "0"), (maintenanceMargin != "0.00000000"));
@@ -2911,7 +3425,7 @@ function parseAccountPositions(self::Aster, account, filterClosed=false)
                 parsed = self.parseAccountPosition(extend(position, Dict{Symbol, Any}(
                     Symbol("crossMargin") => get(get(balances, Symbol(code), nothing), Symbol("crossMargin"), nothing),
                     Symbol("crossWalletBalance") => get(get(balances, Symbol(code), nothing), Symbol("crossWalletBalance"), nothing)
-                )), market);
+                )), market = market);
                                 push!(result, parsed);
             end
         end
@@ -2920,9 +3434,9 @@ function parseAccountPositions(self::Aster, account, filterClosed=false)
     return result
 
 end
-function parseAccountPosition(self::Aster, position, market=nothing)
+function parseAccountPosition(self::Aster, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
     symbol = safeString(market, "symbol");
     leverageString = safeString(position, "leverage");
     leverage = functions.ccxtruthy((leverageString != nothing)) ? ccxt_parseInt(leverageString) : nothing;
@@ -2956,8 +3470,8 @@ function parseAccountPosition(self::Aster, position, market=nothing)
         contractsStringAbs = stringDiv(stringAdd(contractsString, "0.5"), "1", 0);
     end
     contracts = self.parseNumber(contractsStringAbs);
-    leverageBrackets = self.safeDict(self.options, "leverageBrackets", Dict{Symbol, Any}());
-    leverageBracket = self.safeList(leverageBrackets, symbol, []);
+    leverageBrackets = self.safeDict(self.options, "leverageBrackets", defaultValue = Dict{Symbol, Any}());
+    leverageBracket = self.safeList(leverageBrackets, symbol, defaultValue = []);
     maintenanceMarginPercentageString = nothing;
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(leverageBracket)))
@@ -3076,23 +3590,33 @@ function parseAccountPosition(self::Aster, position, market=nothing)
 )
 
 end
-function fetchAccountPositions(self::Aster, symbols=nothing, params=Dict())
+"""
+fetch account positions https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- data on account positions
+"""
+function fetchAccountPositions(self::Aster; symbols=nothing, params=Dict())
     if functions.ccxtruthy(symbols != nothing)
         if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(symbols)))
             throw(ArgumentsRequired(string(self.id, " fetchPositions() requires an array argument for symbols")));
         end
     end
     Base.fetch(self.loadMarketsAndSignIn());
-    Base.fetch(self.loadLeverageBrackets(false, params));
+    Base.fetch(self.loadLeverageBrackets(reload = false, params = params));
     response = Base.fetch(self.fapiPrivateGetV4Account(params));
     filterClosed = nothing;
-    (filterClosed, params) = self.handleOptionAndParams(params, "fetchAccountPositions", "filterClosed", false);
-    result = self.parseAccountPositions(response, filterClosed);
-    symbols = self.marketSymbols(symbols);
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    (filterClosed, params) = self.handleOptionAndParams(params, "fetchAccountPositions", "filterClosed", defaultValue = false);
+    result = self.parseAccountPositions(response, filterClosed = filterClosed);
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function loadLeverageBrackets(self::Aster, reload=false, params=Dict())
+function loadLeverageBrackets(self::Aster; reload=false, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     leverageBrackets = self.safeDict(self.options, "leverageBrackets");
     if functions.ccxtruthy(@functions.ccxt_or((leverageBrackets == nothing), (reload)))
@@ -3103,8 +3627,8 @@ function loadLeverageBrackets(self::Aster, reload=false, params=Dict())
         while functions.ccxtruthy(functions.ccxt_lt(i, length(entries)))
             entry = get(entries, i + 1, nothing);
             marketId = safeString(entry, "symbol");
-            symbol = self.safeSymbol(marketId, nothing, nothing, "contract");
-            brackets = self.safeList(entry, "brackets", []);
+            symbol = self.safeSymbol(marketId, market = nothing, delimiter = nothing, marketType = "contract");
+            brackets = self.safeList(entry, "brackets", defaultValue = []);
             result = [];
             j = 0
             while functions.ccxtruthy(functions.ccxt_lt(j, length(brackets)))
@@ -3180,9 +3704,25 @@ function signWithdrawPayload(self::Aster, withdrawPayload, network)
     return signature
 
 end
-function withdraw(self::Aster, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#withdraw-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-futures
+see: https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-spot
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Aster, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     Base.fetch(self.loadMarketsAndSignIn());
     currency = self.currency(code);
     nonce = milliseconds() * 1000;
@@ -3192,11 +3732,11 @@ function withdraw(self::Aster, code, amount, address, tag=nothing, params=Dict()
         Symbol("userNonce") => string(nonce)
     );
     chainId = safeInteger(params, "chainId");
-    networks = self.safeDict(self.options, "networks", Dict{Symbol, Any}());
+    networks = self.safeDict(self.options, "networks", defaultValue = Dict{Symbol, Any}());
     network = safeStringUpper(params, "network");
     network = safeString(networks, network, network);
     if functions.ccxtruthy(@functions.ccxt_and((chainId == nothing), (network != nothing)))
-        chainIds = self.safeDict(self.options, "networksToChainId", Dict{Symbol, Any}());
+        chainIds = self.safeDict(self.options, "networksToChainId", defaultValue = Dict{Symbol, Any}());
         chainId = safeInteger(chainIds, network);
     end
     if functions.ccxtruthy(chainId == nothing)
@@ -3209,13 +3749,13 @@ function withdraw(self::Aster, code, amount, address, tag=nothing, params=Dict()
     end
     request[Symbol("fee")] = fee;
     params = omit(params, ["chainId", "network", "fee"]);
-    request[Symbol("amount")] = self.currencyToPrecision(code, amount, network);
+    request[Symbol("amount")] = self.currencyToPrecision(code, amount, networkCode = network);
     request[Symbol("userSignature")] = self.signWithdrawPayload(request, network);
     response = Base.fetch(self.sapiPrivatePostV3AsterUserWithdraw(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseTransaction(self::Aster, transaction, currency=nothing)
+function parseTransaction(self::Aster, transaction; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => transaction,
     Symbol("id") => safeString(transaction, "withdrawId"),
@@ -3240,7 +3780,22 @@ function parseTransaction(self::Aster, transaction, currency=nothing)
 )
 
 end
-function transfer(self::Aster, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#perp-spot-transfer-trade
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#transfer-between-futures-and-spot-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Aster, code, amount, fromAccount, toAccount; params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -3269,17 +3824,17 @@ function transfer(self::Aster, code, amount, fromAccount, toAccount, params=Dict
     request[Symbol("kindType")] = type_var;
     request[Symbol("clientTranId")] = clientTranId;
     response = Base.fetch(self.sapiPrivatePostV3AssetWalletTransfer(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function parseTransfer(self::Aster, transfer, currency=nothing)
+function parseTransfer(self::Aster, transfer; currency=nothing)
     currencyId = safeString(transfer, "code");
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
     Symbol("id") => safeString(transfer, "tranId"),
     Symbol("timestamp") => nothing,
     Symbol("datetime") => nothing,
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => nothing,
     Symbol("fromAccount") => nothing,
     Symbol("toAccount") => nothing,
@@ -3311,7 +3866,7 @@ function signHash(self::Aster, hash, privateKey)
     return string("0x", lpad(r, 64, "0"), lpad(s, 64, "0"), v)
 
 end
-function sign(self::Aster, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Aster, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", path);
     if functions.ccxtruthy(@functions.ccxt_or(api == "fapiPublic", api == "sapiPublic"))
         if functions.ccxtruthy(length(objectKeys(params)))
@@ -3437,7 +3992,17 @@ function loadMarketsAndSignIn(self::Aster, )
     Base.fetch(asyncmap(Base.fetch, [self.loadMarkets(), self.signIn()]));
 
 end
-function signIn(self::Aster, params=Dict())
+"""
+sign in, must be called prior to using other authenticated methods
+see: https://asterdex.github.io/aster-api-website/asterCode/integration-flow/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from exchange
+"""
+function signIn(self::Aster; params=Dict())
     if functions.ccxtruthy(self.isEmptyString(self.privateKey))
         if functions.ccxtruthy(@functions.ccxt_or(!functions.ccxtruthy(self.isEmptyString(self.apiKey)), !functions.ccxtruthy(self.isEmptyString(self.secret))))
             throw(NotSupported(string(self.id, "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")));
@@ -3447,16 +4012,16 @@ function signIn(self::Aster, params=Dict())
     if functions.ccxtruthy(functions.ccxt_gt(length(self.privateKey), 66))
         throw(NotSupported(string(self.id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")));
     end
-    Base.fetch(self.initializeClient(params));
+    Base.fetch(self.initializeClient(params = params));
     return true
 
 end
-function initializeClient(self::Aster, params=Dict())
-    builderFee = self.safeBool(params, "builderFee", self.safeBool(self.options, "builderFee", true));
+function initializeClient(self::Aster; params=Dict())
+    builderFee = self.safeBool(params, "builderFee", defaultValue = self.safeBool(self.options, "builderFee", defaultValue = true));
     if functions.ccxtruthy(!functions.ccxtruthy(builderFee))
             return false
     end
-    approvedBuilderFee = self.safeBool(self.options, "approvedBuilderFee", false);
+    approvedBuilderFee = self.safeBool(self.options, "approvedBuilderFee", defaultValue = false);
     if functions.ccxtruthy(approvedBuilderFee)
             return true
     end
@@ -3466,7 +4031,7 @@ function initializeClient(self::Aster, params=Dict())
     found = false;
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, len))
-        builderInfo = self.safeDict(approvedBuilders, i, Dict{Symbol, Any}());
+        builderInfo = self.safeDict(approvedBuilders, i, defaultValue = Dict{Symbol, Any}());
         builderAccountId = safeString(builderInfo, "builderAddress");
         if functions.ccxtruthy(builderAccountId == safeString(self.options, "builder"))
             found = true;
@@ -3521,663 +4086,663 @@ Base.getproperty(self::Aster, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function fapiPublicGetV1Ping(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ping", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/ping"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3Ping(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ping", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ping"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1Time(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/time", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/time"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3Time(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/time", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/time"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1ExchangeInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/exchangeInfo"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3ExchangeInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/exchangeInfo"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1Depth(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/depth", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/depth"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3Depth(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/depth", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/depth"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1Trades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/trades", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trades"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3Trades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/trades", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trades"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1HistoricalTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/historicalTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/historicalTrades"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3HistoricalTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/historicalTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/historicalTrades"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1AggTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/aggTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/aggTrades"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3AggTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/aggTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/aggTrades"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1Klines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/klines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/klines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3Klines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/klines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/klines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1IndexPriceKlines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/indexPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/indexPriceKlines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3IndexPriceKlines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/indexPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/indexPriceKlines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1MarkPriceKlines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/markPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/markPriceKlines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3MarkPriceKlines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/markPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/markPriceKlines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1PremiumIndex(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/premiumIndex", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/premiumIndex"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3PremiumIndex(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/premiumIndex", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/premiumIndex"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1FundingRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/fundingRate", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fundingRate"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3FundingRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/fundingRate", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/fundingRate"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1FundingInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/fundingInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fundingInfo"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3FundingInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/fundingInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/fundingInfo"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1Ticker24hr(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/24hr", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/ticker/24hr"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3Ticker24hr(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/24hr", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ticker/24hr"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1TickerPrice(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/price", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/ticker/price"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3TickerPrice(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/price", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ticker/price"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1TickerBookTicker(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/bookTicker", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/ticker/bookTicker"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3TickerBookTicker(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/bookTicker", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ticker/bookTicker"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1AdlQuantile(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/adlQuantile", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/adlQuantile"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV1ForceOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/forceOrders", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/forceOrders"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetV3Indexreferences(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/indexreferences", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/indexreferences"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1PositionSideDual(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/positionSide/dual", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/positionSide/dual"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3PositionSideDual(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/positionSide/dual", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/positionSide/dual"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1MultiAssetsMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/multiAssetsMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/multiAssetsMargin"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3MultiAssetsMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/multiAssetsMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/multiAssetsMargin"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/order"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/order"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1OpenOrder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/openOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/openOrder"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3OpenOrder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/openOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/openOrder"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1OpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/openOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/openOrders"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3OpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/openOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/openOrders"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1AllOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/allOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/allOrders"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3AllOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/allOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/allOrders"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV2Balance(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v2/balance", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/balance"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3Balance(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/balance", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/balance"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3Account(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/account", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1PositionMarginHistory(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/positionMargin/history", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/positionMargin/history"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3PositionMarginHistory(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/positionMargin/history", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/positionMargin/history"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV2PositionRisk(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v2/positionRisk", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/positionRisk"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3PositionRisk(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/positionRisk", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/positionRisk"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1UserTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/userTrades", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/userTrades"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3UserTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/userTrades", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/userTrades"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1Income(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/income", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/income"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3Income(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/income", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/income"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1LeverageBracket(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/leverageBracket", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/leverageBracket"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3LeverageBracket(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/leverageBracket", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/leverageBracket"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV1CommissionRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/commissionRate", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/commissionRate"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3CommissionRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/commissionRate", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/commissionRate"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3AdlQuantile(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/adlQuantile", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/adlQuantile"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3ForceOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/forceOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/forceOrders"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3Mmp(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/mmp", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/mmp"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3AccountWithJoinMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/accountWithJoinMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/accountWithJoinMargin"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV4Account(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v4/account", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v4/account"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3Agent(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/agent", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/agent"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetV3Builder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/builder", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/builder"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1PositionSideDual(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/positionSide/dual", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/positionSide/dual"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3PositionSideDual(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/positionSide/dual", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/positionSide/dual"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1MultiAssetsMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/multiAssetsMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/multiAssetsMargin"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3MultiAssetsMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/multiAssetsMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/multiAssetsMargin"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/order"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/order"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1OrderTest(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order/test", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/order/test"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3OrderTest(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order/test", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/order/test"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1BatchOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/batchOrders", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/batchOrders"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3BatchOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/batchOrders", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/batchOrders"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1AssetWalletTransfer(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/asset/wallet/transfer", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/asset/wallet/transfer"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3AssetWalletTransfer(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/asset/wallet/transfer", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/asset/wallet/transfer"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1CountdownCancelAll(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/countdownCancelAll", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/countdownCancelAll"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3CountdownCancelAll(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/countdownCancelAll", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/countdownCancelAll"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1Leverage(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/leverage", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/leverage"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3Leverage(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/leverage", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/leverage"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1MarginType(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/marginType", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/marginType"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3MarginType(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/marginType", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/marginType"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1PositionMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/positionMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/positionMargin"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3PositionMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/positionMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/positionMargin"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/listenKey"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/listenKey"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3Mmp(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/mmp", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/mmp"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3MmpReset(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/mmpReset", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/mmpReset"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3Noop(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/noop", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/noop"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3ApproveAgent(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/approveAgent", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/approveAgent"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3UpdateAgent(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/updateAgent", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/updateAgent"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3ApproveBuilder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/approveBuilder", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/approveBuilder"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostV3UpdateBuilder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/updateBuilder", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/updateBuilder"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePutV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "fapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "v1/listenKey"; api="fapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePutV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "fapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "v3/listenKey"; api="fapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v1/order"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/order"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV1AllOpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/allOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v1/allOpenOrders"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV3AllOpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/allOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/allOpenOrders"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV1BatchOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/batchOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v1/batchOrders"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV3BatchOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/batchOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/batchOrders"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV3Mmp(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/mmp", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/mmp"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v1/listenKey"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/listenKey"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV3Agent(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/agent", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/agent"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteV3Builder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/builder", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/builder"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1Ping(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ping", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/ping"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1Time(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/time", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/time"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1ExchangeInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/exchangeInfo", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/exchangeInfo"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1Depth(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/depth", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/depth"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1Trades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/trades", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trades"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1HistoricalTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/historicalTrades", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/historicalTrades"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1AggTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/aggTrades", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/aggTrades"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1Klines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/klines", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/klines"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1Ticker24hr(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/24hr", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/ticker/24hr"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1TickerPrice(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/price", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/ticker/price"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1TickerBookTicker(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/bookTicker", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/ticker/bookTicker"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV1AsterWithdrawEstimateFee(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/aster/withdraw/estimateFee", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/aster/withdraw/estimateFee"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3Ping(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ping", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ping"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3Time(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/time", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/time"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3ExchangeInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/exchangeInfo", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/exchangeInfo"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3Depth(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/depth", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/depth"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3Trades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/trades", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trades"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3HistoricalTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/historicalTrades", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/historicalTrades"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3AggTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/aggTrades", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/aggTrades"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3Klines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/klines", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/klines"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3Ticker24hr(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/24hr", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ticker/24hr"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3TickerPrice(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/price", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ticker/price"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3TickerBookTicker(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/bookTicker", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ticker/bookTicker"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPublicGetV3AsterWithdrawEstimateFee(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/aster/withdraw/estimateFee", "sapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/aster/withdraw/estimateFee"; api="sapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV1CommissionRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/commissionRate", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/commissionRate"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/order"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV1OpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/openOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/openOrders"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV1AllOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/allOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/allOrders"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV1TransactionHistory(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/transactionHistory", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/transactionHistory"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV1Account(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/account", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/account"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV1UserTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/userTrades", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/userTrades"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV3CommissionRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/commissionRate", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/commissionRate"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/order"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV3OpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/openOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/openOrders"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV3AllOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/allOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/allOrders"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV3Account(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/account", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV3UserTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/userTrades", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/userTrades"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateGetV3OpenOrder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/openOrder", "sapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/openOrder"; api="sapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivatePostV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "sapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/order"; api="sapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivatePostV1AssetWalletTransfer(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/asset/wallet/transfer", "sapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/asset/wallet/transfer"; api="sapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivatePostV1AssetSendToAddress(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/asset/sendToAddress", "sapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/asset/sendToAddress"; api="sapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivatePostV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "sapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/listenKey"; api="sapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivatePostV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "sapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/order"; api="sapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivatePostV3AssetWalletTransfer(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/asset/wallet/transfer", "sapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/asset/wallet/transfer"; api="sapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivatePostV3AsterUserWithdraw(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/aster/user-withdraw", "sapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/aster/user-withdraw"; api="sapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivatePostV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "sapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/listenKey"; api="sapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivatePutV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "sapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "v1/listenKey"; api="sapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivatePutV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "sapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "v3/listenKey"; api="sapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateDeleteV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v1/order"; api="sapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateDeleteV1AllOpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/allOpenOrders", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v1/allOpenOrders"; api="sapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateDeleteV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v1/listenKey"; api="sapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateDeleteV3AllOpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/allOpenOrders", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/allOpenOrders"; api="sapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateDeleteV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/order"; api="sapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPrivateDeleteV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/listenKey"; api="sapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Aster(; kwargs...)
@@ -4241,3 +4806,699 @@ function Aster(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Aster_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Aster_fetchCurrencies
+
+function __ccxt_doc_Aster_fetchMarkets() end
+"""
+retrieves data on all markets for bigone
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Aster_fetchMarkets
+
+function __ccxt_doc_Aster_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-server-time
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Aster_fetchTime
+
+function __ccxt_doc_Aster_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#k-line-data
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#klinecandlestick-data
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#index-price-klinecandlestick-data
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#mark-price-klinecandlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Aster_fetchOHLCV
+
+function __ccxt_doc_Aster_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-list
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-aggregated
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#recent-trades-list
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#compressedaggregate-trades-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Aster_fetchTrades
+
+function __ccxt_doc_Aster_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-trade-history-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#account-trade-list-user_data
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is undefined
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Aster_fetchMyTrades
+
+function __ccxt_doc_Aster_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#depth-information
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Aster_fetchOrderBook
+
+function __ccxt_doc_Aster_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Aster_fetchTicker
+
+function __ccxt_doc_Aster_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
+
+# Arguments
+- `symbols`::array: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.type`::string, optional: 'spot', 'option', use params["subType"] for swap and future markets
+
+# Returns
+- an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Aster_fetchTickers
+
+function __ccxt_doc_Aster_fetchLastPrices() end
+"""
+fetches the last price for multiple markets
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#latest-price
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the last prices
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of lastprices structures
+"""
+__ccxt_doc_Aster_fetchLastPrices
+
+function __ccxt_doc_Aster_fetchBidsAsks() end
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#current-best-order
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-order-book-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Aster_fetchBidsAsks
+
+function __ccxt_doc_Aster_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Aster_fetchFundingRate
+
+function __ccxt_doc_Aster_fetchFundingRates() end
+"""
+fetch the current funding rate for multiple symbols
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Aster_fetchFundingRates
+
+function __ccxt_doc_Aster_fetchFundingIntervals() end
+"""
+fetch the funding rate interval for multiple markets
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Aster_fetchFundingIntervals
+
+function __ccxt_doc_Aster_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Aster_fetchFundingRateHistory
+
+function __ccxt_doc_Aster_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-information-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#futures-account-balance-v3-user_data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.type`::string, optional: 'spot', 'option', use params["subType"] for swap and future markets
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Aster_fetchBalance
+
+function __ccxt_doc_Aster_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-margin-type-trade
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Aster_setMarginMode
+
+function __ccxt_doc_Aster_fetchPositionMode() end
+"""
+fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-current-position-modeuser_data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+__ccxt_doc_Aster_fetchPositionMode
+
+function __ccxt_doc_Aster_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Aster_setPositionMode
+
+function __ccxt_doc_Aster_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-symbol-fees
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#user-commission-rate-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Aster_fetchTradingFee
+
+function __ccxt_doc_Aster_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-order-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-order-user_data
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Aster_fetchOrder
+
+function __ccxt_doc_Aster_fetchOpenOrder() end
+"""
+fetch an open order by the id
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-current-open-order-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-current-open-order-user_data
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Aster_fetchOpenOrder
+
+function __ccxt_doc_Aster_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-all-orders-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#all-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Aster_fetchOrders
+
+function __ccxt_doc_Aster_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#current-open-orders-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.type`::string, optional: 'spot', 'option', use params["subType"] for swap and future markets
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Aster_fetchOpenOrders
+
+function __ccxt_doc_Aster_createOrder() end
+"""
+create a trade order
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#place-order-trade
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'STOP' or 'STOP_MARKET' or 'TAKE_PROFIT' or 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.reduceOnly`::string, optional: for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
+- `params.test`::bool, optional: whether to use the test endpoint or not, default is false
+- `params.trailingPercent`::float, optional: the percent to trail away from the current market price
+- `params.trailingTriggerPrice`::float, optional: the price to trigger a trailing order, default uses the price argument
+- `params.positionSide`::string, optional: "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+- `params.triggerPrice`::float, optional: the price that a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Aster_createOrder
+
+function __ccxt_doc_Aster_createOrders() end
+"""
+create a list of trade orders
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Aster_createOrders
+
+function __ccxt_doc_Aster_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Aster_cancelAllOrders
+
+function __ccxt_doc_Aster_cancelOrder() end
+"""
+cancels an open order
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-order-trade
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-order-trade
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Aster_cancelOrder
+
+function __ccxt_doc_Aster_cancelOrders() end
+"""
+cancel multiple orders
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-multiple-orders-trade
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.origClientOrderIdList`::array, optional: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+- `params.recvWindow`::array, optional:
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Aster_cancelOrders
+
+function __ccxt_doc_Aster_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-initial-leverage-trade
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Aster_setLeverage
+
+function __ccxt_doc_Aster_fetchLeverages() end
+"""
+fetch the set leverage for all markets
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Aster_fetchLeverages
+
+function __ccxt_doc_Aster_fetchMarginModes() end
+"""
+fetches margin mode of the user
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Aster_fetchMarginModes
+
+function __ccxt_doc_Aster_fetchMarginAdjustmentHistory() end
+"""
+fetches the history of margin added or reduced from contract isolated positions
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-position-margin-change-history-trade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `type`::string, optional: "add" or "reduce"
+- `since`::int, optional: timestamp in ms of the earliest change to fetch
+- `limit`::int, optional: the maximum amount of changes to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest change to fetch
+
+# Returns
+- a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Aster_fetchMarginAdjustmentHistory
+
+function __ccxt_doc_Aster_reduceMargin() end
+"""
+remove margin from a position
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+"""
+__ccxt_doc_Aster_reduceMargin
+
+function __ccxt_doc_Aster_addMargin() end
+"""
+add margin
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+"""
+__ccxt_doc_Aster_addMargin
+
+function __ccxt_doc_Aster_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding history entry
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the funding history for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Aster_fetchFundingHistory
+
+function __ccxt_doc_Aster_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+"""
+__ccxt_doc_Aster_fetchLedger
+
+function __ccxt_doc_Aster_fetchPositionsRisk() end
+"""
+fetch positions risk
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- data on the positions risk
+"""
+__ccxt_doc_Aster_fetchPositionsRisk
+
+function __ccxt_doc_Aster_fetchPositions() end
+"""
+fetch all open positions
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Aster_fetchPositions
+
+function __ccxt_doc_Aster_fetchAccountPositions() end
+"""
+fetch account positions https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- data on account positions
+"""
+__ccxt_doc_Aster_fetchAccountPositions
+
+function __ccxt_doc_Aster_withdraw() end
+"""
+make a withdrawal
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#withdraw-user_data
+see: https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-futures
+see: https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-spot
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Aster_withdraw
+
+function __ccxt_doc_Aster_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#perp-spot-transfer-trade
+see: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#transfer-between-futures-and-spot-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Aster_transfer
+
+function __ccxt_doc_Aster_signIn() end
+"""
+sign in, must be called prior to using other authenticated methods
+see: https://asterdex.github.io/aster-api-website/asterCode/integration-flow/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from exchange
+"""
+__ccxt_doc_Aster_signIn

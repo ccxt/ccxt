@@ -536,17 +536,37 @@ function nonce(self::Latoken, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function fetchTime(self::Latoken, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Latoken; params=Dict())
     response = Base.fetch(self.publicGetTime(params));
     return safeInteger(response, "serverTime")
 
 end
-function fetchMarkets(self::Latoken, params=Dict())
+"""
+retrieves data on all markets for latoken
+see: https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Latoken; params=Dict())
     response = Base.fetch(self.publicGetPair(params));
-    if functions.ccxtruthy(self.safeBool(self.options, "adjustForTimeDifference", false))
+    if functions.ccxtruthy(self.safeBool(self.options, "adjustForTimeDifference", defaultValue = false))
         Base.fetch(self.loadTimeDifference());
     end
-    currencies = self.safeDict(self.options, "cachedCurrencies", Dict{Symbol, Any}());
+    currencies = self.safeDict(self.options, "cachedCurrencies", defaultValue = Dict{Symbol, Any}());
     currenciesById = indexBy(currencies, "id");
     result = [];
     rawMarkets = toArray(response);
@@ -624,7 +644,16 @@ function fetchMarkets(self::Latoken, params=Dict())
     return result
 
 end
-function fetchCurrencies(self::Latoken, params=Dict())
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Latoken; params=Dict())
     response = Base.fetch(self.publicGetCurrency(params));
     return self.parseCurrencies(response)
 
@@ -645,7 +674,7 @@ function parseCurrency(self::Latoken, currency)
     Symbol("deposit") => nothing,
     Symbol("withdraw") => nothing,
     Symbol("fee") => self.safeNumber(currency, "fee"),
-    Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(currency, "decimals"))),
+    Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(currency, "decimals"))),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("amount") => Dict{Symbol, Any}(
             Symbol("min") => self.safeNumber(currency, "minTransferAmount"),
@@ -660,7 +689,17 @@ function parseCurrency(self::Latoken, currency)
 ))
 
 end
-function fetchBalance(self::Latoken, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Latoken; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -703,7 +742,19 @@ function fetchBalance(self::Latoken, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchOrderBook(self::Latoken, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Latoken, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -716,15 +767,15 @@ function fetchOrderBook(self::Latoken, symbol, limit=nothing, params=Dict())
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetBookCurrencyQuote(extend(request, params)));
-    return self.parseOrderBook(response, symbol, nothing, "bid", "ask", "price", "quantity")
+    return self.parseOrderBook(response, symbol, timestamp = nothing, bidsKey = "bid", asksKey = "ask", priceKey = "price", amountKey = "quantity")
 
 end
-function parseTicker(self::Latoken, ticker, market=nothing)
+function parseTicker(self::Latoken, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
     last_var = safeString(ticker, "lastPrice");
     timestamp = self.safeIntegerOmitZero(ticker, "updateTimestamp");
     return self.safeTicker(Dict{Symbol, Any}(
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("low") => nothing,
@@ -744,10 +795,21 @@ function parseTicker(self::Latoken, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "amount24h"),
     Symbol("quoteVolume") => safeString(ticker, "volume24h"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Latoken, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Latoken, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -757,18 +819,29 @@ function fetchTicker(self::Latoken, symbol, params=Dict())
         Symbol("quote") => get(market, Symbol("quoteId"), nothing)
     );
     response = Base.fetch(self.publicGetTickerBaseQuote(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchTickers(self::Latoken, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Latoken; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetTicker(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function parseTrade(self::Latoken, trade, market=nothing)
+function parseTrade(self::Latoken, trade; market=nothing)
     type_var = nothing;
     timestamp = safeInteger(trade, "timestamp");
     priceString = safeString(trade, "price");
@@ -819,10 +892,23 @@ function parseTrade(self::Latoken, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Latoken, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Latoken, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -835,24 +921,36 @@ function fetchTrades(self::Latoken, symbol, since=nothing, limit=nothing, params
         request[Symbol("limit")] = min(limit, 100);
     end
     response = Base.fetch(self.publicGetTradeHistoryCurrencyQuote(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFee(self::Latoken, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
+see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Latoken, symbol; params=Dict())
     options = safeValue(self.options, "fetchTradingFee", Dict{Symbol, Any}());
     defaultMethod = safeString(options, "method", "fetchPrivateTradingFee");
     method = safeString(params, "method", defaultMethod);
     params = omit(params, "method");
     if functions.ccxtruthy(method == "fetchPrivateTradingFee")
-            return Base.fetch(self.fetchPrivateTradingFee(symbol, params))
+            return Base.fetch(self.fetchPrivateTradingFee(symbol, params = params))
     elseif functions.ccxtruthy(method == "fetchPublicTradingFee")
-        return Base.fetch(self.fetchPublicTradingFee(symbol, params))
+        return Base.fetch(self.fetchPublicTradingFee(symbol, params = params))
     else
         throw(NotSupported(string(self.id, " not support this method")));
     end
 
 end
-function fetchPublicTradingFee(self::Latoken, symbol, params=Dict())
+function fetchPublicTradingFee(self::Latoken, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -872,7 +970,7 @@ function fetchPublicTradingFee(self::Latoken, symbol, params=Dict())
 )
 
 end
-function fetchPrivateTradingFee(self::Latoken, symbol, params=Dict())
+function fetchPrivateTradingFee(self::Latoken, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -892,7 +990,21 @@ function fetchPrivateTradingFee(self::Latoken, symbol, params=Dict())
 )
 
 end
-function fetchMyTrades(self::Latoken, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByTrader
+see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByAssetAndTrader
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Latoken; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -910,7 +1022,7 @@ function fetchMyTrades(self::Latoken, symbol=nothing, since=nothing, limit=nothi
     else
         response = Base.fetch(self.privateGetAuthTrade(extend(request, params)));
     end
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Latoken, status)
@@ -939,7 +1051,7 @@ function parseTimeInForce(self::Latoken, timeInForce)
     return safeString(timeInForces, timeInForce, timeInForce)
 
 end
-function parseOrder(self::Latoken, order, market=nothing)
+function parseOrder(self::Latoken, order; market=nothing)
     id = safeString(order, "id");
     timestamp = safeInteger(order, "timestamp");
     baseId = safeString(order, "baseCurrency");
@@ -998,10 +1110,25 @@ function parseOrder(self::Latoken, order, market=nothing)
     Symbol("remaining") => nothing,
     Symbol("fee") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function fetchOpenOrders(self::Latoken, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  // stop
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if fetching trigger orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Latoken; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument")));
     end
@@ -1020,10 +1147,27 @@ function fetchOpenOrders(self::Latoken, symbol=nothing, since=nothing, limit=not
     else
         response = Base.fetch(self.privateGetAuthOrderPairCurrencyQuoteActive(extend(request, params)));
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrders(self::Latoken, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       // stop
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair // stop
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if fetching trigger orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Latoken; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1050,10 +1194,24 @@ function fetchOrders(self::Latoken, symbol=nothing, since=nothing, limit=nothing
             response = Base.fetch(self.privateGetAuthOrder(extend(request, params)));
         end
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrder(self::Latoken, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: not used by latoken fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if fetching a trigger order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Latoken, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1070,7 +1228,26 @@ function fetchOrder(self::Latoken, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function createOrder(self::Latoken, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  // stop
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at EXCHANGE SPECIFIC PARAMETERS
+- `params.condition`::string, optional: "GTC", "IOC", or  "FOK"
+- `params.clientOrderId`::string, optional: [ 0 .. 50 ] characters, client's custom order id (free field for your convenience)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Latoken, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1100,10 +1277,24 @@ function createOrder(self::Latoken, symbol, type_var, side, amount, price=nothin
     else
         response = Base.fetch(self.privatePostAuthOrderPlace(extend(request, params)));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Latoken, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if cancelling a trigger order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Latoken, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1120,7 +1311,20 @@ function cancelOrder(self::Latoken, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelAllOrders(self::Latoken, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if cancelling trigger orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Latoken; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1149,7 +1353,20 @@ function cancelAllOrders(self::Latoken, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchTransactions(self::Latoken, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+use fetchDepositsWithdrawals instead
+see: https://api.latoken.com/doc/v2/#tag/Transaction/operation/getUserTransactions
+
+# Arguments
+- `code`::string: unified currency code for the currency of the transactions, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest transaction, default is undefined
+- `limit`::int, optional: max number of transactions to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchTransactions(self::Latoken; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1159,15 +1376,15 @@ function fetchTransactions(self::Latoken, code=nothing, since=nothing, limit=not
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    content = self.safeList(response, "content", []);
-    return self.parseTransactions(content, currency, since, limit)
+    content = self.safeList(response, "content", defaultValue = []);
+    return self.parseTransactions(content, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Latoken, transaction, currency=nothing)
+function parseTransaction(self::Latoken, transaction; currency=nothing)
     id = safeString(transaction, "id");
     timestamp = safeInteger(transaction, "timestamp");
     currencyId = safeString(transaction, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     status = self.parseTransactionStatus(safeString(transaction, "status"));
     amount = self.safeNumber(transaction, "amount");
     addressFrom = safeString(transaction, "senderAddress");
@@ -1229,17 +1446,46 @@ function parseTransactionType(self::Latoken, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function fetchTransfers(self::Latoken, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Latoken; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     response = Base.fetch(self.privateGetAuthTransfer(params));
-    transfers = self.safeList(response, "content", []);
-    return self.parseTransfers(transfers, currency, since, limit)
+    transfers = self.safeList(response, "content", defaultValue = []);
+    return self.parseTransfers(transfers, currency = currency, since = since, limit = limit)
 
 end
-function transfer(self::Latoken, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByEmail
+see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferById
+see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByPhone
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Latoken, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1259,7 +1505,7 @@ function transfer(self::Latoken, code, amount, fromAccount, toAccount, params=Di
     return self.parseTransfer(response)
 
 end
-function parseTransfer(self::Latoken, transfer, currency=nothing)
+function parseTransfer(self::Latoken, transfer; currency=nothing)
     timestamp = safeTimestamp(transfer, "timestamp");
     currencyId = safeString(transfer, "currency");
     status = safeString(transfer, "status");
@@ -1268,7 +1514,7 @@ function parseTransfer(self::Latoken, transfer, currency=nothing)
     Symbol("id") => safeString(transfer, "id"),
     Symbol("timestamp") => safeInteger(transfer, "timestamp"),
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(transfer, "transferringFunds"),
     Symbol("fromAccount") => safeString(transfer, "fromAccount"),
     Symbol("toAccount") => safeString(transfer, "toAccount"),
@@ -1287,7 +1533,7 @@ function parseTransferStatus(self::Latoken, status)
     return safeString(statuses, status, status)
 
 end
-function sign(self::Latoken, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Latoken, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     request = string("/", self.version, "/", self.implodeParams(path, params));
     requestString = request;
     query = omit(params, self.extractParams(path));
@@ -1347,211 +1593,211 @@ Base.getproperty(self::Latoken, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetBookCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "book/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "book/{currency}/{quote}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetChartWeek(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "chart/week", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "chart/week"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetChartWeekCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "chart/week/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "chart/week/{currency}/{quote}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrency(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "currency", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currency"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrencyAvailable(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "currency/available", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currency/available"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrencyQuotes(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "currency/quotes", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currency/quotes"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrencyCurrency(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "currency/{currency}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currency/{currency}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPair(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "pair", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "pair"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPairAvailable(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "pair/available", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "pair/available"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerBaseQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "ticker/{base}/{quote}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/{base}/{quote}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTime(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeHistoryCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "trade/history/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/history/{currency}/{quote}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeFeeCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "trade/fee/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/fee/{currency}/{quote}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeFeeLevels(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "trade/feeLevels", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/feeLevels"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTransactionBindings(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "transaction/bindings", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "transaction/bindings"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthAccount(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthAccountCurrencyCurrencyType(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/account/currency/{currency}/{type}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/account/currency/{currency}/{type}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthOrder(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthOrderGetOrderId(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/getOrder/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/order/getOrder/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthOrderPairCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/pair/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/order/pair/{currency}/{quote}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthOrderPairCurrencyQuoteActive(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/pair/{currency}/{quote}/active", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/order/pair/{currency}/{quote}/active"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthStopOrder(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/stopOrder"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthStopOrderGetOrderId(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/getOrder/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/stopOrder/getOrder/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthStopOrderPairCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/pair/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/stopOrder/pair/{currency}/{quote}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthStopOrderPairCurrencyQuoteActive(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/pair/{currency}/{quote}/active", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/stopOrder/pair/{currency}/{quote}/active"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthTrade(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/trade", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/trade"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthTradePairCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/trade/pair/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/trade/pair/{currency}/{quote}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthTradeFeeCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/trade/fee/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/trade/fee/{currency}/{quote}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthTransaction(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/transaction"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthTransactionBindings(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/bindings", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/transaction/bindings"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthTransactionBindingsCurrency(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/bindings/{currency}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/transaction/bindings/{currency}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthTransactionId(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/transaction/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAuthTransfer(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transfer", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "auth/transfer"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthOrderCancel(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/order/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthOrderCancelAll(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/cancelAll", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/order/cancelAll"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthOrderCancelAllCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/cancelAll/{currency}/{quote}", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/order/cancelAll/{currency}/{quote}"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthOrderPlace(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/place", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/order/place"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthSpotDeposit(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/spot/deposit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/spot/deposit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthSpotWithdraw(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/spot/withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/spot/withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthStopOrderCancel(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/stopOrder/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthStopOrderCancelAll(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/cancelAll", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/stopOrder/cancelAll"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthStopOrderCancelAllCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/cancelAll/{currency}/{quote}", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/stopOrder/cancelAll/{currency}/{quote}"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthStopOrderPlace(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/place", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/stopOrder/place"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthTransactionDepositAddress(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/depositAddress", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/transaction/depositAddress"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthTransactionWithdraw(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/transaction/withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthTransactionWithdrawCancel(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/withdraw/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/transaction/withdraw/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthTransactionWithdrawConfirm(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/withdraw/confirm", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/transaction/withdraw/confirm"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthTransactionWithdrawResendCode(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/withdraw/resendCode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/transaction/withdraw/resendCode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthTransferEmail(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transfer/email", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/transfer/email"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthTransferId(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transfer/id", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/transfer/id"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuthTransferPhone(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transfer/phone", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/transfer/phone"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Latoken(; kwargs...)
@@ -1615,3 +1861,308 @@ function Latoken(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Latoken_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Latoken_fetchTime
+
+function __ccxt_doc_Latoken_fetchMarkets() end
+"""
+retrieves data on all markets for latoken
+see: https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Latoken_fetchMarkets
+
+function __ccxt_doc_Latoken_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Latoken_fetchCurrencies
+
+function __ccxt_doc_Latoken_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Latoken_fetchBalance
+
+function __ccxt_doc_Latoken_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Latoken_fetchOrderBook
+
+function __ccxt_doc_Latoken_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Latoken_fetchTicker
+
+function __ccxt_doc_Latoken_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Latoken_fetchTickers
+
+function __ccxt_doc_Latoken_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Latoken_fetchTrades
+
+function __ccxt_doc_Latoken_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
+see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Latoken_fetchTradingFee
+
+function __ccxt_doc_Latoken_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByTrader
+see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByAssetAndTrader
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Latoken_fetchMyTrades
+
+function __ccxt_doc_Latoken_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  // stop
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if fetching trigger orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Latoken_fetchOpenOrders
+
+function __ccxt_doc_Latoken_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       // stop
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair // stop
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if fetching trigger orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Latoken_fetchOrders
+
+function __ccxt_doc_Latoken_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: not used by latoken fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if fetching a trigger order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Latoken_fetchOrder
+
+function __ccxt_doc_Latoken_createOrder() end
+"""
+create a trade order
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  // stop
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at EXCHANGE SPECIFIC PARAMETERS
+- `params.condition`::string, optional: "GTC", "IOC", or  "FOK"
+- `params.clientOrderId`::string, optional: [ 0 .. 50 ] characters, client's custom order id (free field for your convenience)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Latoken_createOrder
+
+function __ccxt_doc_Latoken_cancelOrder() end
+"""
+cancels an open order
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
+see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if cancelling a trigger order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Latoken_cancelOrder
+
+function __ccxt_doc_Latoken_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
+see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if cancelling trigger orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Latoken_cancelAllOrders
+
+function __ccxt_doc_Latoken_fetchTransactions() end
+"""
+use fetchDepositsWithdrawals instead
+see: https://api.latoken.com/doc/v2/#tag/Transaction/operation/getUserTransactions
+
+# Arguments
+- `code`::string: unified currency code for the currency of the transactions, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest transaction, default is undefined
+- `limit`::int, optional: max number of transactions to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Latoken_fetchTransactions
+
+function __ccxt_doc_Latoken_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Latoken_fetchTransfers
+
+function __ccxt_doc_Latoken_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByEmail
+see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferById
+see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByPhone
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Latoken_transfer

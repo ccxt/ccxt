@@ -1116,9 +1116,19 @@ function describe(self::Woo, )
 ))
 
 end
-function fetchStatus(self::Woo, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Woo; params=Dict())
     response = Base.fetch(self.v3PublicGetSystemInfo(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     status = safeString(data, "status");
     if functions.ccxtruthy(status == nothing)
         status = "error";
@@ -1136,18 +1146,38 @@ function fetchStatus(self::Woo, params=Dict())
 )
 
 end
-function fetchTime(self::Woo, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Woo; params=Dict())
     response = Base.fetch(self.v3PublicGetSystemInfo(params));
     return safeInteger(response, "timestamp")
 
 end
-function fetchMarkets(self::Woo, params=Dict())
+"""
+retrieves data on all markets for woo
+see: https://developer.woox.io/api-reference/endpoint/public_data/instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Woo; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
     response = Base.fetch(self.v3PublicGetInstruments(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
     return self.parseMarkets(rows)
 
 end
@@ -1187,7 +1217,7 @@ function parseMarket(self::Woo, market)
         inverse = false;
     end
     active = safeString(market, "status") == "TRADING";
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -1238,7 +1268,20 @@ function parseMarket(self::Woo, market)
 ))
 
 end
-function fetchTrades(self::Woo, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Woo, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1250,12 +1293,12 @@ function fetchTrades(self::Woo, symbol, since=nothing, limit=nothing, params=Dic
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v3PublicGetMarketTrades(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseTrades(rows, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseTrades(rows, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Woo, trade, market=nothing)
+function parseTrade(self::Woo, trade; market=nothing)
     isFromFetchOrder = (ccxt_in("id", trade));
     timestampString = safeString2(trade, "executed_timestamp", "executedTimestamp");
     timestamp = nothing;
@@ -1267,7 +1310,7 @@ function parseTrade(self::Woo, trade, market=nothing)
         end
     end
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     price = safeString2(trade, "executed_price", "executedPrice");
     amount = safeString2(trade, "executed_quantity", "executedQuantity");
@@ -1299,7 +1342,7 @@ function parseTrade(self::Woo, trade, market=nothing)
     Symbol("type") => nothing,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
 function parseTokenAndFeeTemp(self::Woo, item, feeTokenKeys, feeAmountKeys)
@@ -1316,9 +1359,9 @@ function parseTokenAndFeeTemp(self::Woo, item, feeTokenKeys, feeAmountKeys)
     return fee
 
 end
-function parseTradingFee(self::Woo, fee, market=nothing)
+function parseTradingFee(self::Woo, fee; market=nothing)
     marketId = safeString(fee, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => symbol,
@@ -1329,7 +1372,20 @@ function parseTradingFee(self::Woo, fee, market=nothing)
 )
 
 end
-function fetchTradingFee(self::Woo, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://developer.woox.io/api-reference/endpoint/trading/get_tradingFee
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch trading fees in a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Woo, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1338,16 +1394,26 @@ function fetchTradingFee(self::Woo, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v3PrivateGetTradeTradingFee(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTradingFee(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTradingFee(data, market = market)
 
 end
-function fetchTradingFees(self::Woo, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://developer.woox.io/api-reference/endpoint/account/get_account_info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Woo; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v3PrivateGetAccountInfo(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     maker = safeString(data, "makerFeeRate");
     taker = safeString(data, "takerFeeRate");
     result = Dict{Symbol, Any}();
@@ -1371,13 +1437,23 @@ function fetchTradingFees(self::Woo, params=Dict())
     return result
 
 end
-function fetchCurrencies(self::Woo, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.woox.io/#available-token-public
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Woo; params=Dict())
     result = Dict{Symbol, Any}();
     tokenResponsePromise = self.v1PublicGetToken(params);
     tokenNetworkResponsePromise = self.v1PublicGetTokenNetwork(params);
     (tokenResponse, tokenNetworkResponse) = (Base.fetch(asyncmap(Base.fetch, [tokenResponsePromise, tokenNetworkResponsePromise])));
-    tokenRows = self.safeList(tokenResponse, "rows", []);
-    tokenNetworkRows = self.safeList(tokenNetworkResponse, "rows", []);
+    tokenRows = self.safeList(tokenResponse, "rows", defaultValue = []);
+    tokenNetworkRows = self.safeList(tokenNetworkResponse, "rows", defaultValue = []);
     networksById = groupBy(tokenNetworkRows, "token");
     tokensById = groupBy(tokenRows, "balance_token");
     currencyIds = objectKeys(tokensById);
@@ -1409,9 +1485,9 @@ function parseCurrency(self::Woo, rawCurrency)
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(keys_var)))
         networkId = get(keys_var, j + 1, nothing);
-        tokenEntry = self.safeDict(tokensByNetworkId, networkId, Dict{Symbol, Any}());
-        networkEntry = self.safeDict(chainsByNetworkId, networkId, Dict{Symbol, Any}());
-        networkCode = self.networkIdToCode(networkId, code);
+        tokenEntry = self.safeDict(tokensByNetworkId, networkId, defaultValue = Dict{Symbol, Any}());
+        networkEntry = self.safeDict(chainsByNetworkId, networkId, defaultValue = Dict{Symbol, Any}());
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         specialNetworkId = safeString(tokenEntry, "token");
         if functions.ccxtruthy(networkCode != nothing)
             resultingNetworks[Symbol(networkCode)] = Dict{Symbol, Any}(
@@ -1422,7 +1498,7 @@ function parseCurrency(self::Woo, rawCurrency)
                 Symbol("deposit") => safeString(networkEntry, "allow_deposit") == "1",
                 Symbol("withdraw") => safeString(networkEntry, "allow_withdraw") == "1",
                 Symbol("fee") => self.safeNumber(networkEntry, "withdrawal_fee"),
-                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(tokenEntry, "decimals"))),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(tokenEntry, "decimals"))),
                 Symbol("limits") => Dict{Symbol, Any}(
                     Symbol("withdraw") => Dict{Symbol, Any}(
                         Symbol("min") => self.safeNumber(networkEntry, "minimum_withdrawal"),
@@ -1466,7 +1542,19 @@ function parseCurrency(self::Woo, rawCurrency)
 ))
 
 end
-function createMarketBuyOrderWithCost(self::Woo, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://developer.woox.io/api-reference/endpoint/trading/post_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Woo, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1474,10 +1562,22 @@ function createMarketBuyOrderWithCost(self::Woo, symbol, cost, params=Dict())
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
         throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
     end
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, 1, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = 1, params = params))
 
 end
-function createMarketSellOrderWithCost(self::Woo, symbol, cost, params=Dict())
+"""
+create a market sell order by providing the symbol and cost
+see: https://developer.woox.io/api-reference/endpoint/trading/post_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketSellOrderWithCost(self::Woo, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1485,10 +1585,27 @@ function createMarketSellOrderWithCost(self::Woo, symbol, cost, params=Dict())
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
         throw(NotSupported(string(self.id, " createMarketSellOrderWithCost() supports spot orders only")));
     end
-    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, 1, params))
+    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, price = 1, params = params))
 
 end
-function createTrailingAmountOrder(self::Woo, symbol, type_var, side, amount, price=nothing, trailingAmount=nothing, trailingTriggerPrice=nothing, params=Dict())
+"""
+create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+see: https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency, or number of contracts
+- `price`::float, optional: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+- `trailingAmount`::float: the quote amount to trail away from the current market price
+- `trailingTriggerPrice`::float: the price to activate a trailing order, default uses the price argument
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createTrailingAmountOrder(self::Woo, symbol, type_var, side, amount; price=nothing, trailingAmount=nothing, trailingTriggerPrice=nothing, params=Dict())
     if functions.ccxtruthy(trailingAmount == nothing)
         throw(ArgumentsRequired(string(self.id, " createTrailingAmountOrder() requires a trailingAmount argument")));
     end
@@ -1497,10 +1614,27 @@ function createTrailingAmountOrder(self::Woo, symbol, type_var, side, amount, pr
     end
     params[Symbol("trailingAmount")] = trailingAmount;
     params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
-    return Base.fetch(self.createOrder(symbol, type_var, side, amount, price, params))
+    return Base.fetch(self.createOrder(symbol, type_var, side, amount, price = price, params = params))
 
 end
-function createTrailingPercentOrder(self::Woo, symbol, type_var, side, amount, price=nothing, trailingPercent=nothing, trailingTriggerPrice=nothing, params=Dict())
+"""
+create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+see: https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency, or number of contracts
+- `price`::float, optional: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+- `trailingPercent`::float: the percent to trail away from the current market price
+- `trailingTriggerPrice`::float: the price to activate a trailing order, default uses the price argument
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createTrailingPercentOrder(self::Woo, symbol, type_var, side, amount; price=nothing, trailingPercent=nothing, trailingTriggerPrice=nothing, params=Dict())
     if functions.ccxtruthy(trailingPercent == nothing)
         throw(ArgumentsRequired(string(self.id, " createTrailingPercentOrder() requires a trailingPercent argument")));
     end
@@ -1509,10 +1643,38 @@ function createTrailingPercentOrder(self::Woo, symbol, type_var, side, amount, p
     end
     params[Symbol("trailingPercent")] = trailingPercent;
     params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
-    return Base.fetch(self.createOrder(symbol, type_var, side, amount, price, params))
+    return Base.fetch(self.createOrder(symbol, type_var, side, amount, price = price, params = params))
 
 end
-function createOrder(self::Woo, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://developer.woox.io/api-reference/endpoint/trading/post_order
+see: https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: *for swap markets only* 'cross' or 'isolated', default 'cross'
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.algoType`::float, optional: 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.trailingAmount`::string, optional: the quote amount to trail away from the current market price
+- `params.trailingPercent`::string, optional: the percent to trail away from the current market price
+- `params.trailingTriggerPrice`::string, optional: the price to trigger a trailing order, default uses the price argument
+- `params.position_side`::string, optional: 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Woo, symbol, type_var, side, amount; price=nothing, params=Dict())
     reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only");
     params = omit(params, ["reduceOnly", "reduce_only"]);
     orderType = uppercase(type_var);
@@ -1526,7 +1688,7 @@ function createOrder(self::Woo, symbol, type_var, side, amount, price=nothing, p
         Symbol("side") => orderSide
     );
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
     if functions.ccxtruthy(marginMode != nothing)
         request[Symbol("marginMode")] = self.encodeMarginMode(marginMode);
     end
@@ -1545,7 +1707,7 @@ function createOrder(self::Woo, symbol, type_var, side, amount, price=nothing, p
     isConditional = @functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(isTrailing, triggerPrice != nothing), hasStopLoss), hasTakeProfit), (safeValue(params, "childOrders") != nothing));
     isMarket = orderType == "MARKET";
     timeInForce = safeStringLower(params, "timeInForce");
-    postOnly = self.isPostOnly(isMarket, nothing, params);
+    postOnly = self.isPostOnly(isMarket, nothing, params = params);
     clientOrderIdKey = functions.ccxtruthy(isConditional) ? "clientAlgoOrderId" : "clientOrderId";
     request[Symbol("type")] = orderType;
     if functions.ccxtruthy(!functions.ccxtruthy(isConditional))
@@ -1652,10 +1814,10 @@ function createOrder(self::Woo, symbol, type_var, side, amount, price=nothing, p
     else
         response = Base.fetch(self.v3PrivatePostTradeOrder(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    data = self.safeDict(self.safeList(data, "rows"), 0, data);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    data = self.safeDict(self.safeList(data, "rows"), 0, defaultValue = data);
     data[Symbol("timestamp")] = safeString(response, "timestamp");
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
 function encodeMarginMode(self::Woo, mode)
@@ -1666,7 +1828,32 @@ function encodeMarginMode(self::Woo, mode)
     return safeString(modes, mode, mode)
 
 end
-function editOrder(self::Woo, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://developer.woox.io/api-reference/endpoint/trading/edit_order
+see: https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id of the order to edit, used instead of the id argument
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: price to trigger stop-loss orders
+- `params.takeProfitPrice`::float, optional: price to trigger take-profit orders
+- `params.trailingAmount`::string, optional: the quote amount to trail away from the current market price
+- `params.trailingPercent`::string, optional: the percent to trail away from the current market price
+- `params.trailingTriggerPrice`::string, optional: the price to trigger a trailing order, default uses the price argument
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Woo, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1702,7 +1889,7 @@ function editOrder(self::Woo, id, symbol, type_var, side, amount=nothing, price=
             request[Symbol("callbackRate")] = convertedTrailingPercent;
         end
     end
-    isTrigger = self.safeBool2(params, "trigger", "stop", false);
+    isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     params = omit(params, ["clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"]);
     isConditional = @functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(isTrigger, isTrailing), (triggerPrice != nothing)), (safeValue(params, "childOrders") != nothing));
     response = nothing;
@@ -1721,18 +1908,32 @@ function editOrder(self::Woo, id, symbol, type_var, side, amount=nothing, price=
         end
         response = Base.fetch(self.v3PrivatePutTradeOrder(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     order = extend(response, data);
     if functions.ccxtruthy(isByClientOrder)
         order[Symbol("clientOrderId")] = clientOrderIdExchangeSpecific;
     else
         order[Symbol("orderId")] = id;
     end
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function cancelOrder(self::Woo, id, symbol=nothing, params=Dict())
-    isTrigger = self.safeBool2(params, "trigger", "stop", false);
+"""
+cancels an open order
+see: https://developer.woox.io/api-reference/endpoint/trading/cancel_order
+see: https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Woo, id; symbol=nothing, params=Dict())
+    isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     params = omit(params, ["trigger", "stop"]);
     if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(isTrigger), (symbol == nothing)))
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
@@ -1766,17 +1967,30 @@ function cancelOrder(self::Woo, id, symbol=nothing, params=Dict())
         end
         response = Base.fetch(self.v3PrivateDeleteTradeOrder(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     data[Symbol("timestamp")] = safeString(response, "timestamp");
     if functions.ccxtruthy(isByClientOrder)
         data[Symbol("clientOrderId")] = clientOrderIdExchangeSpecific;
     else
         data[Symbol("orderId")] = id;
     end
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function cancelAllOrders(self::Woo, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+see: https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Woo; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1793,13 +2007,24 @@ function cancelAllOrders(self::Woo, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.v3PrivateDeleteTradeOrders(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return [self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => data
 ))]
 
 end
-function cancelAllOrdersAfter(self::Woo, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://developer.woox.io/api-reference/endpoint/trading/cancel_all_after
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Woo, timeout; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1810,7 +2035,21 @@ function cancelAllOrdersAfter(self::Woo, timeout, params=Dict())
     return response
 
 end
-function fetchOrder(self::Woo, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://developer.woox.io/api-reference/endpoint/trading/get_order
+see: https://developer.woox.io/api-reference/endpoint/trading/get_algo_order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Woo, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1838,18 +2077,36 @@ function fetchOrder(self::Woo, id, symbol=nothing, params=Dict())
         end
         response = Base.fetch(self.v3PrivateGetTradeOrder(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function fetchOrders(self::Woo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://developer.woox.io/api-reference/endpoint/trading/get_orders
+see: https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.isTriggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Woo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchOrders", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = 500))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1877,28 +2134,66 @@ function fetchOrders(self::Woo, symbol=nothing, since=nothing, limit=nothing, pa
         response = Base.fetch(self.v3PrivateGetTradeOrders(extend(request, params)));
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "rows", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(data, "rows", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Woo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://developer.woox.io/api-reference/endpoint/trading/get_orders
+see: https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.isTriggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Woo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     extendedParams = extend(params, Dict{Symbol, Any}(
         Symbol("status") => "INCOMPLETE"
     ));
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extendedParams))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extendedParams))
 
 end
-function fetchClosedOrders(self::Woo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://developer.woox.io/api-reference/endpoint/trading/get_orders
+see: https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.isTriggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Woo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     extendedParams = extend(params, Dict{Symbol, Any}(
         Symbol("status") => "COMPLETED"
     ));
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extendedParams))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extendedParams))
 
 end
 function parseTimeInForce(self::Woo, timeInForce)
@@ -1910,7 +2205,7 @@ function parseTimeInForce(self::Woo, timeInForce)
     return safeString(timeInForces, timeInForce)
 
 end
-function parseOrder(self::Woo, order, market=nothing)
+function parseOrder(self::Woo, order; market=nothing)
     timestamp = nothing;
     timestrampString = safeString(order, "createdTime");
     if functions.ccxtruthy(timestrampString != nothing)
@@ -1926,7 +2221,7 @@ function parseOrder(self::Woo, order, market=nothing)
     orderId = safeString2(order, "orderId", "algoOrderId");
     clientOrderId = omitZero(safeString2(order, "clientOrderId", "clientAlgoOrderId"));
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     price = safeString(order, "price");
     amount = safeString(order, "quantity");
@@ -1981,7 +2276,7 @@ function parseOrder(self::Woo, order, market=nothing)
         Symbol("currency") => feeCurrency
     ),
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Woo, status)
@@ -2003,7 +2298,19 @@ function parseOrderStatus(self::Woo, status)
     return status
 
 end
-function fetchOrderBook(self::Woo, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://developer.woox.io/api-reference/endpoint/public_data/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Woo, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2015,12 +2322,27 @@ function fetchOrderBook(self::Woo, symbol, limit=nothing, params=Dict())
         request[Symbol("maxLevel")] = limit;
     end
     response = Base.fetch(self.v3PublicGetOrderbook(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(response, "timestamp");
-    return self.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
+    return self.parseOrderBook(data, symbol, timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "quantity")
 
 end
-function fetchOHLCV(self::Woo, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://developer.woox.io/api-reference/endpoint/public_data/klineHistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Woo, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2041,16 +2363,30 @@ function fetchOHLCV(self::Woo, symbol, timeframe="1m", since=nothing, limit=noth
         request[Symbol("before")] = until;
     end
     response = Base.fetch(self.v3PublicGetKlineHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseOHLCVs(rows, market, timeframe, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseOHLCVs(rows, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Woo, ohlcv, market=nothing)
+function parseOHLCV(self::Woo, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "startTimestamp"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchOrderTrades(self::Woo, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://docs.woox.io/#get-trades
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Woo, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2062,18 +2398,32 @@ function fetchOrderTrades(self::Woo, id, symbol=nothing, since=nothing, limit=no
         Symbol("oid") => id
     );
     response = Base.fetch(self.v1PrivateGetOrderOidTrades(extend(request, params)));
-    trades = self.safeList(response, "rows", []);
-    return self.parseTrades(trades, market, since, limit, params)
+    trades = self.safeList(response, "rows", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit, params = params)
 
 end
-function fetchMyTrades(self::Woo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://developer.woox.io/api-reference/endpoint/trading/get_transactions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch trades with pagination
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Woo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = 500))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -2093,21 +2443,32 @@ function fetchMyTrades(self::Woo, symbol=nothing, since=nothing, limit=nothing, 
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v3PrivateGetTradeTransactionHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    trades = self.safeList(data, "rows", []);
-    return self.parseTrades(trades, market, since, limit, params)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    trades = self.safeList(data, "rows", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit, params = params)
 
 end
-function fetchAccounts(self::Woo, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://developer.woox.io/api-reference/endpoint/account/get_account_info
+see: https://developer.woox.io/api-reference/endpoint/account/sub_accounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Woo; params=Dict())
     mainAccountPromise = self.v3PrivateGetAccountInfo(params);
     subAccountPromise = self.v3PrivateGetAccountSubAccountsAll(params);
     (mainAccountResponse, subAccountResponse) = (Base.fetch(asyncmap(Base.fetch, [mainAccountPromise, subAccountPromise])));
-    mainData = self.safeDict(mainAccountResponse, "data", Dict{Symbol, Any}());
+    mainData = self.safeDict(mainAccountResponse, "data", defaultValue = Dict{Symbol, Any}());
     mainRows = [mainData];
-    subData = self.safeDict(subAccountResponse, "data", Dict{Symbol, Any}());
-    subRows = self.safeList(subData, "rows", []);
+    subData = self.safeDict(subAccountResponse, "data", defaultValue = Dict{Symbol, Any}());
+    subRows = self.safeList(subData, "rows", defaultValue = []);
     rows = arrayConcat(mainRows, subRows);
-    return self.parseAccounts(rows, params)
+    return self.parseAccounts(rows, params = params)
 
 end
 function parseAccount(self::Woo, account)
@@ -2120,7 +2481,17 @@ function parseAccount(self::Woo, account)
 )
 
 end
-function fetchBalance(self::Woo, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://developer.woox.io/api-reference/endpoint/assets/get_balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Woo; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2133,7 +2504,7 @@ function parseBalance(self::Woo, response)
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    balances = self.safeList(response, "holding", []);
+    balances = self.safeList(response, "holding", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         balance = get(balances, i + 1, nothing);
@@ -2149,7 +2520,18 @@ function parseBalance(self::Woo, response)
     return self.safeBalance(result)
 
 end
-function fetchDepositAddress(self::Woo, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_deposit
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Woo, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2158,19 +2540,19 @@ function fetchDepositAddress(self::Woo, code, params=Dict())
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     request = Dict{Symbol, Any}(
         Symbol("token") => get(currency, Symbol("id"), nothing),
-        Symbol("network") => self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing))
+        Symbol("network") => self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing))
     );
     response = Base.fetch(self.v3PrivateGetAssetWalletDeposit(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseDepositAddress(extend(data, Dict{Symbol, Any}(
     Symbol("network") => safeString(request, "network")
-)), currency)
+)), currency = currency)
 
 end
 function getDedicatedNetworkId(self::Woo, currency, params)
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
-    networkCode = self.networkIdToCode(networkCode, get(currency, Symbol("code"), nothing));
+    networkCode = self.networkIdToCode(networkId = networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     networkEntry = functions.ccxtruthy((networkCode == nothing)) ? nothing : self.safeDict(get(currency, Symbol("networks"), nothing), networkCode);
     if functions.ccxtruthy(networkEntry == nothing)
         supportedNetworks = objectKeys(get(currency, Symbol("networks"), nothing));
@@ -2180,20 +2562,20 @@ function getDedicatedNetworkId(self::Woo, currency, params)
     return [currentyNetworkId, params]
 
 end
-function parseDepositAddress(self::Woo, depositEntry, currency=nothing)
+function parseDepositAddress(self::Woo, depositEntry; currency=nothing)
     address = safeString(depositEntry, "address");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     networkId = safeString(depositEntry, "network");
     return Dict{Symbol, Any}(
     Symbol("info") => depositEntry,
     Symbol("currency") => safeString(currency, "code"),
-    Symbol("network") => self.networkIdToCode(networkId, safeString(currency, "code")),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = safeString(currency, "code")),
     Symbol("address") => address,
     Symbol("tag") => safeString(depositEntry, "extra")
 )
 
 end
-function getAssetHistoryRows(self::Woo, code=nothing, since=nothing, limit=nothing, params=Dict())
+function getAssetHistoryRows(self::Woo; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2206,7 +2588,7 @@ function getAssetHistoryRows(self::Woo, code=nothing, since=nothing, limit=nothi
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("network")] = self.networkCodeToId(networkCode, safeString(currency, "code"));
+        request[Symbol("network")] = self.networkCodeToId(networkCode, currencyCode = safeString(currency, "code"));
     end
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startTime")] = since;
@@ -2220,21 +2602,34 @@ function getAssetHistoryRows(self::Woo, code=nothing, since=nothing, limit=nothi
         request[Symbol("type")] = transactionType;
     end
     response = Base.fetch(self.v3PrivateGetAssetWalletHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return [currency, self.safeList(data, "rows", [])]
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return [currency, self.safeList(data, "rows", defaultValue = [])]
 
 end
-function fetchLedger(self::Woo, code=nothing, since=nothing, limit=nothing, params=Dict())
-    currencyRows = Base.fetch(self.getAssetHistoryRows(code, since, limit, params));
+"""
+fetch the history of changes, actions done by the user or operations that altered balance of the user
+see: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Woo; code=nothing, since=nothing, limit=nothing, params=Dict())
+    currencyRows = Base.fetch(self.getAssetHistoryRows(code = code, since = since, limit = limit, params = params));
     currency = safeValue(currencyRows, 0);
     rows = self.safeList(currencyRows, 1);
-    return self.parseLedger(rows, currency, since, limit, params)
+    return self.parseLedger(rows, currency = currency, since = since, limit = limit, params = params)
 
 end
-function parseLedgerEntry(self::Woo, item, currency=nothing)
+function parseLedgerEntry(self::Woo, item; currency=nothing)
     networkizedCode = safeString(item, "token");
-    code = self.safeCurrencyCode(networkizedCode, currency);
-    currency = self.safeCurrency(code, currency);
+    code = self.safeCurrencyCode(networkizedCode, currency = currency);
+    currency = self.safeCurrency(code, currency = currency);
     amount = self.safeNumber(item, "amount");
     side = safeString(item, "tokenSide");
     direction = functions.ccxtruthy((side == "DEPOSIT")) ? "in" : "out";
@@ -2256,7 +2651,7 @@ function parseLedgerEntry(self::Woo, item, currency=nothing)
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("type") => self.parseLedgerEntryType(safeString(item, "type")),
     Symbol("fee") => fee
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Woo, type_var)
@@ -2283,31 +2678,70 @@ function getCurrencyFromChaincode(self::Woo, networkizedCode, currency)
     return currency
 
 end
-function fetchDeposits(self::Woo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Woo; code=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("tokenSide") => "DEPOSIT"
     );
-    return Base.fetch(self.fetchDepositsWithdrawals(code, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchDepositsWithdrawals(code = code, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchWithdrawals(self::Woo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Woo; code=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("tokenSide") => "WITHDRAW"
     );
-    return Base.fetch(self.fetchDepositsWithdrawals(code, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchDepositsWithdrawals(code = code, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchDepositsWithdrawals(self::Woo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Woo; code=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => "BALANCE"
     );
-    currencyRows = Base.fetch(self.getAssetHistoryRows(code, since, limit, extend(request, params)));
+    currencyRows = Base.fetch(self.getAssetHistoryRows(code = code, since = since, limit = limit, params = extend(request, params)));
     currency = safeValue(currencyRows, 0);
-    rows = self.safeList(currencyRows, 1, []);
-    return self.parseTransactions(rows, currency, since, limit, params)
+    rows = self.safeList(currencyRows, 1, defaultValue = []);
+    return self.parseTransactions(rows, currency = currency, since = since, limit = limit, params = params)
 
 end
-function parseTransaction(self::Woo, transaction, currency=nothing)
+function parseTransaction(self::Woo, transaction; currency=nothing)
     networkizedCode = safeString(transaction, "token");
     currencyDefined = self.getCurrencyFromChaincode(networkizedCode, currency);
     code = get(currencyDefined, Symbol("code"), nothing);
@@ -2339,7 +2773,7 @@ function parseTransaction(self::Woo, transaction, currency=nothing)
     Symbol("comment") => nothing,
     Symbol("internal") => nothing,
     Symbol("fee") => fee,
-    Symbol("network") => self.networkIdToCode(safeString(transaction, "network"), code)
+    Symbol("network") => self.networkIdToCode(networkId = safeString(transaction, "network"), currencyCode = code)
 )
 
 end
@@ -2354,7 +2788,21 @@ function parseTransactionStatus(self::Woo, status)
     return safeString(statuses, status, status)
 
 end
-function transfer(self::Woo, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://developer.woox.io/api-reference/endpoint/assets/transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Woo, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2370,13 +2818,13 @@ function transfer(self::Woo, code, amount, fromAccount, toAccount, params=Dict()
         )
     );
     response = Base.fetch(self.v3PrivatePostAssetTransfer(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     data[Symbol("timestamp")] = safeInteger(response, "timestamp");
     data[Symbol("token")] = get(currency, Symbol("id"), nothing);
     data[Symbol("status")] = "ok";
-    transfer = self.parseTransfer(data, currency);
-    transferOptions = self.safeDict(self.options, "transfer", Dict{Symbol, Any}());
-    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", true);
+    transfer = self.parseTransfer(data, currency = currency);
+    transferOptions = self.safeDict(self.options, "transfer", defaultValue = Dict{Symbol, Any}());
+    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         transfer[Symbol("amount")] = amount;
         transfer[Symbol("fromAccount")] = fromAccount;
@@ -2385,7 +2833,21 @@ function transfer(self::Woo, code, amount, fromAccount, toAccount, params=Dict()
     return transfer
 
 end
-function fetchTransfers(self::Woo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://developer.woox.io/api-reference/endpoint/assets/get_transfer_history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Woo; code=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -2403,21 +2865,21 @@ function fetchTransfers(self::Woo, code=nothing, since=nothing, limit=nothing, p
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.v3PrivateGetAssetTransferHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseTransfers(rows, currency, since, limit, params)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseTransfers(rows, currency = currency, since = since, limit = limit, params = params)
 
 end
-function parseTransfer(self::Woo, transfer, currency=nothing)
-    code = self.safeCurrencyCode(safeString(transfer, "token"), currency);
+function parseTransfer(self::Woo, transfer; currency=nothing)
+    code = self.safeCurrencyCode(safeString(transfer, "token"), currency = currency);
     timestamp = safeTimestamp2(transfer, "createdTime", "timestamp");
     success = self.safeBool(transfer, "success");
     status = nothing;
     if functions.ccxtruthy(success != nothing)
         status = functions.ccxtruthy(success) ? "ok" : "failed";
     end
-    fromAccount = self.safeDict(transfer, "from", Dict{Symbol, Any}());
-    toAccount = self.safeDict(transfer, "to", Dict{Symbol, Any}());
+    fromAccount = self.safeDict(transfer, "from", defaultValue = Dict{Symbol, Any}());
+    toAccount = self.safeDict(transfer, "to", defaultValue = Dict{Symbol, Any}());
     return Dict{Symbol, Any}(
     Symbol("id") => safeString(transfer, "id"),
     Symbol("timestamp") => timestamp,
@@ -2442,12 +2904,26 @@ function parseTransferStatus(self::Woo, status)
     return safeString(statuses, status, status)
 
 end
-function withdraw(self::Woo, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Woo, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("amount") => amount,
@@ -2462,9 +2938,9 @@ function withdraw(self::Woo, code, amount, address, tag=nothing, params=Dict())
     end
     params = omit(params, "network");
     request[Symbol("token")] = get(currency, Symbol("id"), nothing);
-    request[Symbol("network")] = self.networkCodeToId(network, get(currency, Symbol("code"), nothing));
+    request[Symbol("network")] = self.networkCodeToId(network, currencyCode = get(currency, Symbol("code"), nothing));
     response = Base.fetch(self.v3PrivatePostAssetWalletWithdraw(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     transactionData = extend(data, Dict{Symbol, Any}(
         Symbol("id") => safeString(data, "withdrawId"),
         Symbol("timestamp") => safeInteger(response, "timestamp"),
@@ -2476,10 +2952,23 @@ function withdraw(self::Woo, code, amount, address, tag=nothing, params=Dict())
         Symbol("type") => "withdrawal",
         Symbol("status") => "pending"
     ));
-    return self.parseTransaction(transactionData, currency)
+    return self.parseTransaction(transactionData, currency = currency)
 
 end
-function repayMargin(self::Woo, code, amount, symbol=nothing, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://docs.woox.io/#repay-interest
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `symbol`::string: not used by woo.repayMargin ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayMargin(self::Woo, code, amount; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2494,17 +2983,17 @@ function repayMargin(self::Woo, code, amount, symbol=nothing, params=Dict())
         Symbol("amount") => self.currencyToPrecision(code, amount)
     );
     response = Base.fetch(self.v1PrivatePostInterestRepay(extend(request, params)));
-    transaction = self.parseMarginLoan(response, currency);
+    transaction = self.parseMarginLoan(response, currency = currency);
     return extend(transaction, Dict{Symbol, Any}(
     Symbol("amount") => amount,
     Symbol("symbol") => symbol
 ))
 
 end
-function parseMarginLoan(self::Woo, info, currency=nothing)
+function parseMarginLoan(self::Woo, info; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("id") => nothing,
-    Symbol("currency") => self.safeCurrencyCode(nothing, currency),
+    Symbol("currency") => self.safeCurrencyCode(nothing, currency = currency),
     Symbol("amount") => nothing,
     Symbol("symbol") => nothing,
     Symbol("timestamp") => nothing,
@@ -2517,7 +3006,7 @@ function nonce(self::Woo, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function sign(self::Woo, path, section="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Woo, path; section="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     version = get(section, 1, nothing);
     access = get(section, 2, nothing);
     pathWithParams = self.implodeParams(path, params);
@@ -2538,7 +3027,7 @@ function sign(self::Woo, path, section="public", method="GET", params=Dict(), he
     else
         self.checkRequiredCredentials();
         if functions.ccxtruthy(@functions.ccxt_and(method == "POST", (@functions.ccxt_or(path == "trade/algoOrder", path == "trade/order"))))
-            isSandboxMode = self.safeBool(self.options, "sandboxMode", false);
+            isSandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
             if functions.ccxtruthy(!functions.ccxtruthy(isSandboxMode))
                 applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
                 brokerId = safeString(self.options, "brokerId", applicationId);
@@ -2607,9 +3096,9 @@ function handleErrors(self::Woo, httpCode, reason, url, method, headers, body, r
     return nothing
 
 end
-function parseIncome(self::Woo, income, market=nothing)
+function parseIncome(self::Woo, income; market=nothing)
     marketId = safeString(income, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     amount = safeString(income, "fundingFee");
     code = self.safeCurrencyCode("USD");
     id = safeString(income, "id");
@@ -2629,14 +3118,28 @@ function parseIncome(self::Woo, income, market=nothing)
 )
 
 end
-function fetchFundingHistory(self::Woo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://developer.woox.io/api-reference/endpoint/futures/get_fundingFee_history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Woo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingHistory", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = 500))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -2656,12 +3159,12 @@ function fetchFundingHistory(self::Woo, symbol=nothing, since=nothing, limit=not
         request[Symbol("size")] = min(limit, 500);
     end
     response = Base.fetch(self.v3PrivateGetFuturesFundingFeeHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseIncomes(rows, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseIncomes(rows, market = market, since = since, limit = limit)
 
 end
-function parseFundingRate(self::Woo, fundingRate, market=nothing)
+function parseFundingRate(self::Woo, fundingRate; market=nothing)
     symbol = safeString(fundingRate, "symbol");
     market = self.market(symbol);
     nextFundingTimestamp = safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
@@ -2694,11 +3197,33 @@ function parseFundingRate(self::Woo, fundingRate, market=nothing)
 )
 
 end
-function fetchFundingInterval(self::Woo, symbol, params=Dict())
-    return Base.fetch(self.fetchFundingRate(symbol, params))
+"""
+fetch the current funding rate interval
+see: https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingInterval(self::Woo, symbol; params=Dict())
+    return Base.fetch(self.fetchFundingRate(symbol, params = params))
 
 end
-function fetchFundingRate(self::Woo, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Woo, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2707,31 +3232,57 @@ function fetchFundingRate(self::Woo, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v3PublicGetFundingRate(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    first_var = self.safeDict(rows, 0, Dict{Symbol, Any}());
-    return self.parseFundingRate(first_var, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    first_var = self.safeDict(rows, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(first_var, market = market)
 
 end
-function fetchFundingRates(self::Woo, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Woo; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.v3PublicGetFundingRate(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseFundingRates(rows, symbols)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseFundingRates(rows, symbols = symbols)
 
 end
-function fetchFundingRateHistory(self::Woo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Woo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = 25))
     end
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
@@ -2746,8 +3297,8 @@ function fetchFundingRateHistory(self::Woo, symbol=nothing, since=nothing, limit
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.v3PublicGetFundingRateHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
     rates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
@@ -2764,10 +3315,22 @@ function fetchFundingRateHistory(self::Woo, symbol=nothing, since=nothing, limit
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function setPositionMode(self::Woo, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://developer.woox.io/api-reference/endpoint/futures/position_mode
+
+# Arguments
+- `hedged`::bool: set to true to use HEDGE_MODE, false for ONE_WAY
+- `symbol`::string: not used by woo setPositionMode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Woo, hedged; symbol=nothing, params=Dict())
     hedgeMode = nothing;
     if functions.ccxtruthy(hedged)
         hedgeMode = "HEDGE_MODE";
@@ -2781,7 +3344,21 @@ function setPositionMode(self::Woo, hedged, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchLeverage(self::Woo, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://developer.woox.io/api-reference/endpoint/account/get_account_info
+see: https://developer.woox.io/api-reference/endpoint/futures/get_leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: *for swap markets only* 'cross' or 'isolated'
+- `params.positionMode`::string, optional: *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Woo, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2794,19 +3371,19 @@ function fetchLeverage(self::Woo, symbol, params=Dict())
             Symbol("symbol") => get(market, Symbol("id"), nothing)
         );
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("fetchLeverage", params, "cross");
+        (marginMode, params) = self.handleMarginModeAndParams("fetchLeverage", params = params, defaultValue = "cross");
         request[Symbol("marginMode")] = self.encodeMarginMode(marginMode);
         response = Base.fetch(self.v3PrivateGetFuturesLeverage(extend(request, params)));
     else
         throw(NotSupported(string(self.id, " fetchLeverage() is not supported for ", get(market, Symbol("type"), nothing), " markets")));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Woo, leverage, market=nothing)
+function parseLeverage(self::Woo, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     marginMode = safeStringLower(leverage, "marginMode");
     spotLeverage = safeInteger(leverage, "leverage");
     if functions.ccxtruthy(spotLeverage == 0)
@@ -2814,10 +3391,10 @@ function parseLeverage(self::Woo, leverage, market=nothing)
     end
     longLeverage = spotLeverage;
     shortLeverage = spotLeverage;
-    details = self.safeList(leverage, "details", []);
+    details = self.safeList(leverage, "details", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(details)))
-        position = self.safeDict(details, i, Dict{Symbol, Any}());
+        position = self.safeDict(details, i, defaultValue = Dict{Symbol, Any}());
         positionLeverage = safeInteger(position, "leverage");
         side = safeString(position, "positionSide");
         if functions.ccxtruthy(side == "BOTH")
@@ -2842,7 +3419,22 @@ function parseLeverage(self::Woo, leverage, market=nothing)
 )
 
 end
-function setLeverage(self::Woo, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://developer.woox.io/api-reference/endpoint/spot_margin/set_leverage
+see: https://developer.woox.io/api-reference/endpoint/futures/set_leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
+- `symbol`::string, optional: unified market symbol (is mandatory for swap markets)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: *for swap markets only* 'cross' or 'isolated'
+- `params.positionMode`::string, optional: *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Woo, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2858,7 +3450,7 @@ function setLeverage(self::Woo, leverage, symbol=nothing, params=Dict())
     elseif functions.ccxtruthy(self.safeBool(market, "swap"))
         request[Symbol("symbol")] = safeString(market, "id");
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params, "cross");
+        (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params, defaultValue = "cross");
         request[Symbol("marginMode")] = self.encodeMarginMode(marginMode);
         return Base.fetch(self.v3PrivatePutFuturesLeverage(extend(request, params)))
     else
@@ -2866,15 +3458,41 @@ function setLeverage(self::Woo, leverage, symbol=nothing, params=Dict())
     end
 
 end
-function addMargin(self::Woo, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "ADD", params))
+"""
+add margin
+see: https://docs.woox.io/#update-isolated-margin-setting
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.position_side`::string, optional: 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Woo, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "ADD", params = params))
 
 end
-function reduceMargin(self::Woo, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "REDUCE", params))
+"""
+remove margin from a position
+see: https://docs.woox.io/#update-isolated-margin-setting
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.position_side`::string, optional: 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Woo, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "REDUCE", params = params))
 
 end
-function modifyMarginHelper(self::Woo, symbol, amount, type_var, params=Dict())
+function modifyMarginHelper(self::Woo, symbol, amount, type_var; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2888,7 +3506,18 @@ function modifyMarginHelper(self::Woo, symbol, amount, type_var, params=Dict())
     return Base.fetch(self.v1PrivatePostClientIsolatedMargin(extend(request, params)))
 
 end
-function fetchPosition(self::Woo, symbol, params=Dict())
+"""
+fetch data on an open position
+see: https://developer.woox.io/api-reference/endpoint/futures/get_positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Woo, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2897,17 +3526,28 @@ function fetchPosition(self::Woo, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v3PrivateGetFuturesPositions(extend(request, params)));
-    result = self.safeDict(response, "data", Dict{Symbol, Any}());
-    positions = self.safeList(result, "positions", []);
-    first_var = self.safeDict(positions, 0, Dict{Symbol, Any}());
-    return self.parsePosition(first_var, market)
+    result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    positions = self.safeList(result, "positions", defaultValue = []);
+    first_var = self.safeDict(positions, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parsePosition(first_var, market = market)
 
 end
-function fetchPositions(self::Woo, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://developer.woox.io/api-reference/endpoint/futures/get_positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Woo; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
         symbolsLength = length(symbols);
@@ -2917,14 +3557,14 @@ function fetchPositions(self::Woo, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.v3PrivateGetFuturesPositions(extend(request, params)));
-    result = self.safeDict(response, "data", Dict{Symbol, Any}());
-    positions = self.safeList(result, "positions", []);
-    return self.parsePositions(positions, symbols)
+    result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    positions = self.safeList(result, "positions", defaultValue = []);
+    return self.parsePositions(positions, symbols = symbols)
 
 end
-function parsePosition(self::Woo, position, market=nothing)
+function parsePosition(self::Woo, position; market=nothing)
     contract = safeString(position, "symbol");
-    market = self.safeMarket(contract, market);
+    market = self.safeMarket(marketId = contract, market = market);
     size_var = safeString(position, "holding");
     side = nothing;
     if functions.ccxtruthy(stringGt(size_var, "0"))
@@ -2980,7 +3620,20 @@ function parsePosition(self::Woo, position, market=nothing)
 ))
 
 end
-function fetchConvertQuote(self::Woo, fromCode, toCode, amount=nothing, params=Dict())
+"""
+fetch a quote for converting from one currency to another
+see: https://docs.woox.io/#get-quote-rfq
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertQuote(self::Woo, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2990,15 +3643,29 @@ function fetchConvertQuote(self::Woo, fromCode, toCode, amount=nothing, params=D
         Symbol("sellQuantity") => numberToString(amount)
     );
     response = Base.fetch(self.v3PrivateGetConvertRfq(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     fromCurrencyId = safeString(data, "sellToken", fromCode);
     fromCurrency = self.currency(fromCurrencyId);
     toCurrencyId = safeString(data, "buyToken", toCode);
     toCurrency = self.currency(toCurrencyId);
-    return self.parseConversion(data, fromCurrency, toCurrency)
+    return self.parseConversion(data, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function createConvertTrade(self::Woo, id, fromCode, toCode, amount=nothing, params=Dict())
+"""
+convert from one currency to another
+see: https://docs.woox.io/#send-quote-rft
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function createConvertTrade(self::Woo, id, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3006,11 +3673,23 @@ function createConvertTrade(self::Woo, id, fromCode, toCode, amount=nothing, par
         Symbol("quoteId") => id
     );
     response = Base.fetch(self.v3PrivatePostConvertRft(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseConversion(data)
 
 end
-function fetchConvertTrade(self::Woo, id, code=nothing, params=Dict())
+"""
+fetch the data for a conversion trade
+see: https://docs.woox.io/#get-quote-trade
+
+# Arguments
+- `id`::string: the id of the trade that you want to fetch
+- `code`::string, optional: the unified currency code of the conversion trade
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTrade(self::Woo, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3018,7 +3697,7 @@ function fetchConvertTrade(self::Woo, id, code=nothing, params=Dict())
         Symbol("quoteId") => id
     );
     response = Base.fetch(self.v3PrivateGetConvertTrade(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     fromCurrencyId = safeString(data, "sellAsset");
     toCurrencyId = safeString(data, "buyAsset");
     fromCurrency = nothing;
@@ -3029,10 +3708,24 @@ function fetchConvertTrade(self::Woo, id, code=nothing, params=Dict())
     if functions.ccxtruthy(toCurrencyId != nothing)
         toCurrency = self.currency(toCurrencyId);
     end
-    return self.parseConversion(data, fromCurrency, toCurrency)
+    return self.parseConversion(data, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function fetchConvertTradeHistory(self::Woo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the users history of conversion trades
+see: https://docs.woox.io/#get-quote-trades
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest conversion to fetch
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTradeHistory(self::Woo; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3045,17 +3738,17 @@ function fetchConvertTradeHistory(self::Woo, code=nothing, since=nothing, limit=
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.v3PrivateGetConvertTrades(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "tradeVos", []);
-    return self.parseConversions(rows, code, "sellAsset", "buyAsset", since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "tradeVos", defaultValue = []);
+    return self.parseConversions(rows, code = code, fromCurrencyKey = "sellAsset", toCurrencyKey = "buyAsset", since = since, limit = limit)
 
 end
-function parseConversion(self::Woo, conversion, fromCurrency=nothing, toCurrency=nothing)
+function parseConversion(self::Woo, conversion; fromCurrency=nothing, toCurrency=nothing)
     timestamp = safeInteger2(conversion, "expireTimestamp", "createdTime");
     fromCurr = safeString2(conversion, "sellToken", "buyAsset");
-    fromCode = self.safeCurrencyCode(fromCurr, fromCurrency);
+    fromCode = self.safeCurrencyCode(fromCurr, currency = fromCurrency);
     to = safeString2(conversion, "buyToken", "sellAsset");
-    toCode = self.safeCurrencyCode(to, toCurrency);
+    toCode = self.safeCurrencyCode(to, currency = toCurrency);
     return Dict{Symbol, Any}(
     Symbol("info") => conversion,
     Symbol("timestamp") => timestamp,
@@ -3070,13 +3763,23 @@ function parseConversion(self::Woo, conversion, fromCurrency=nothing, toCurrency
 )
 
 end
-function fetchConvertCurrencies(self::Woo, params=Dict())
+"""
+fetches all available currencies that can be converted
+see: https://docs.woox.io/#get-quote-asset-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchConvertCurrencies(self::Woo; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v3PrivateGetConvertAssetInfo(params));
     result = Dict{Symbol, Any}();
-    data = self.safeList(response, "rows", []);
+    data = self.safeList(response, "rows", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
@@ -3117,11 +3820,22 @@ function fetchConvertCurrencies(self::Woo, params=Dict())
     return result
 
 end
-function fetchPositionsADLRank(self::Woo, symbols=nothing, params=Dict())
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://developer.woox.io/api-reference/endpoint/futures/get_positions
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+function fetchPositionsADLRank(self::Woo; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
         symbolsLength = length(symbols);
@@ -3131,17 +3845,17 @@ function fetchPositionsADLRank(self::Woo, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.v3PrivateGetFuturesPositions(extend(request, params)));
-    result = self.safeDict(response, "data", Dict{Symbol, Any}());
-    positions = self.safeList(result, "positions", []);
-    return self.parseADLRanks(positions, symbols)
+    result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    positions = self.safeList(result, "positions", defaultValue = []);
+    return self.parseADLRanks(positions, symbols = symbols)
 
 end
-function parseADLRank(self::Woo, info, market=nothing)
+function parseADLRank(self::Woo, info; market=nothing)
     marketId = safeString(info, "symbol");
     timestamp = safeInteger(info, "timestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("rank") => self.safeNumber(info, "adlQuantile"),
     Symbol("rating") => nothing,
     Symbol("percentage") => nothing,
@@ -3177,539 +3891,539 @@ Base.getproperty(self::Woo, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v1PubGetHistKline(self::Woo, params=Dict(), context=Dict())
-    return request(self, "hist/kline", ["v1", "pub"], "GET", params, nothing, nothing, Dict())
+    return request(self, "hist/kline"; api=["v1", "pub"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PubGetHistTrades(self::Woo, params=Dict(), context=Dict())
-    return request(self, "hist/trades", ["v1", "pub"], "GET", params, nothing, nothing, Dict())
+    return request(self, "hist/trades"; api=["v1", "pub"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfo(self::Woo, params=Dict(), context=Dict())
-    return request(self, "info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfoSymbol(self::Woo, params=Dict(), context=Dict())
-    return request(self, "info/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/{symbol}"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetSystemInfo(self::Woo, params=Dict(), context=Dict())
-    return request(self, "system_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "system_info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetMarketTrades(self::Woo, params=Dict(), context=Dict())
-    return request(self, "market_trades", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market_trades"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetToken(self::Woo, params=Dict(), context=Dict())
-    return request(self, "token", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "token"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetTokenNetwork(self::Woo, params=Dict(), context=Dict())
-    return request(self, "token_network", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "token_network"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetFundingRates(self::Woo, params=Dict(), context=Dict())
-    return request(self, "funding_rates", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "funding_rates"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetFundingRateSymbol(self::Woo, params=Dict(), context=Dict())
-    return request(self, "funding_rate/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "funding_rate/{symbol}"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetFundingRateHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "funding_rate_history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "funding_rate_history"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetFutures(self::Woo, params=Dict(), context=Dict())
-    return request(self, "futures", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetFuturesSymbol(self::Woo, params=Dict(), context=Dict())
-    return request(self, "futures/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/{symbol}"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetOrderbookSymbol(self::Woo, params=Dict(), context=Dict())
-    return request(self, "orderbook/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook/{symbol}"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetKline(self::Woo, params=Dict(), context=Dict())
-    return request(self, "kline", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "kline"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientToken(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/token", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/token"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderOid(self::Woo, params=Dict(), context=Dict())
-    return request(self, "order/{oid}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/{oid}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientOrderClientOrderId(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/order/{client_order_id}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/order/{client_order_id}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrders(self::Woo, params=Dict(), context=Dict())
-    return request(self, "orders", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientTradeTid(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/trade/{tid}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/trade/{tid}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderOidTrades(self::Woo, params=Dict(), context=Dict())
-    return request(self, "order/{oid}/trades", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/{oid}/trades"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientTrades(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/trades", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/trades"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientHistTrades(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/hist_trades", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/hist_trades"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetStakingYieldHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "staking/yield_history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/yield_history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientHolding(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/holding", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/holding"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAssetDeposit(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/deposit", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/deposit"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAssetHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetSubAccountAll(self::Woo, params=Dict(), context=Dict())
-    return request(self, "sub_account/all", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "sub_account/all"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetSubAccountAssets(self::Woo, params=Dict(), context=Dict())
-    return request(self, "sub_account/assets", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "sub_account/assets"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetSubAccountAssetDetail(self::Woo, params=Dict(), context=Dict())
-    return request(self, "sub_account/asset_detail", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "sub_account/asset_detail"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetSubAccountIpRestriction(self::Woo, params=Dict(), context=Dict())
-    return request(self, "sub_account/ip_restriction", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "sub_account/ip_restriction"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAssetMainSubTransferHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/main_sub_transfer_history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/main_sub_transfer_history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetTokenInterest(self::Woo, params=Dict(), context=Dict())
-    return request(self, "token_interest", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "token_interest"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetTokenInterestToken(self::Woo, params=Dict(), context=Dict())
-    return request(self, "token_interest/{token}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "token_interest/{token}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetInterestHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "interest/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "interest/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetInterestRepay(self::Woo, params=Dict(), context=Dict())
-    return request(self, "interest/repay", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "interest/repay"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetFundingFeeHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "funding_fee/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "funding_fee/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetPositions(self::Woo, params=Dict(), context=Dict())
-    return request(self, "positions", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "positions"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetPositionSymbol(self::Woo, params=Dict(), context=Dict())
-    return request(self, "position/{symbol}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "position/{symbol}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientTransactionHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/transaction_history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/transaction_history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientFuturesLeverage(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/futures_leverage", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/futures_leverage"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrderCancelAllAfter(self::Woo, params=Dict(), context=Dict())
-    return request(self, "order/cancel_all_after", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancel_all_after"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostAssetLtv(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/ltv", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/ltv"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostAssetInternalWithdraw(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/internal_withdraw", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/internal_withdraw"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostInterestRepay(self::Woo, params=Dict(), context=Dict())
-    return request(self, "interest/repay", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "interest/repay"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostClientAccountMode(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/account_mode", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "client/account_mode"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostClientPositionMode(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/position_mode", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "client/position_mode"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostClientLeverage(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/leverage", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "client/leverage"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostClientFuturesLeverage(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/futures_leverage", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "client/futures_leverage"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostClientIsolatedMargin(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/isolated_margin", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "client/isolated_margin"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteClientOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "client/order"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteOrders(self::Woo, params=Dict(), context=Dict())
-    return request(self, "orders", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteAssetWithdraw(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/withdraw", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "asset/withdraw"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetClientHolding(self::Woo, params=Dict(), context=Dict())
-    return request(self, "client/holding", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/holding"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetSystemInfo(self::Woo, params=Dict(), context=Dict())
-    return request(self, "systemInfo", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "systemInfo"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetInstruments(self::Woo, params=Dict(), context=Dict())
-    return request(self, "instruments", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "instruments"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetToken(self::Woo, params=Dict(), context=Dict())
-    return request(self, "token", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "token"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetTokenNetwork(self::Woo, params=Dict(), context=Dict())
-    return request(self, "tokenNetwork", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "tokenNetwork"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetTokenInfo(self::Woo, params=Dict(), context=Dict())
-    return request(self, "tokenInfo", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "tokenInfo"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetMarketTrades(self::Woo, params=Dict(), context=Dict())
-    return request(self, "marketTrades", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "marketTrades"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetMarketTradesHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "marketTradesHistory", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "marketTradesHistory"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetOrderbook(self::Woo, params=Dict(), context=Dict())
-    return request(self, "orderbook", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetKline(self::Woo, params=Dict(), context=Dict())
-    return request(self, "kline", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "kline"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetKlineHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "klineHistory", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "klineHistory"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetFutures(self::Woo, params=Dict(), context=Dict())
-    return request(self, "futures", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetFundingRate(self::Woo, params=Dict(), context=Dict())
-    return request(self, "fundingRate", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "fundingRate"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetFundingRateHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "fundingRateHistory", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "fundingRateHistory"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetInsuranceFund(self::Woo, params=Dict(), context=Dict())
-    return request(self, "insuranceFund", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "insuranceFund"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetTradeOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/order", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetTradeOrders(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/orders", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetTradeAlgoOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/algoOrder", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/algoOrder"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetTradeAlgoOrders(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/algoOrders", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/algoOrders"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetTradeTransaction(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/transaction", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/transaction"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetTradeTransactionHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/transactionHistory", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/transactionHistory"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetTradeTradingFee(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/tradingFee", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/tradingFee"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAccountInfo(self::Woo, params=Dict(), context=Dict())
-    return request(self, "account/info", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/info"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAccountTokenConfig(self::Woo, params=Dict(), context=Dict())
-    return request(self, "account/tokenConfig", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/tokenConfig"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAccountSymbolConfig(self::Woo, params=Dict(), context=Dict())
-    return request(self, "account/symbolConfig", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/symbolConfig"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAccountSubAccountsAll(self::Woo, params=Dict(), context=Dict())
-    return request(self, "account/subAccounts/all", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subAccounts/all"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAccountReferralSummary(self::Woo, params=Dict(), context=Dict())
-    return request(self, "account/referral/summary", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/referral/summary"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAccountReferralRewardHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "account/referral/rewardHistory", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/referral/rewardHistory"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAccountCredentials(self::Woo, params=Dict(), context=Dict())
-    return request(self, "account/credentials", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/credentials"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAssetBalances(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/balances", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/balances"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAssetTokenHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/token/history", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/token/history"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAssetTransferHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/transfer/history", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/transfer/history"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAssetWalletHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/wallet/history", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/wallet/history"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAssetWalletDeposit(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/wallet/deposit", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/wallet/deposit"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAssetStakingYieldHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/staking/yieldHistory", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/staking/yieldHistory"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetFuturesPositions(self::Woo, params=Dict(), context=Dict())
-    return request(self, "futures/positions", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/positions"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetFuturesLeverage(self::Woo, params=Dict(), context=Dict())
-    return request(self, "futures/leverage", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/leverage"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetFuturesDefaultMarginMode(self::Woo, params=Dict(), context=Dict())
-    return request(self, "futures/defaultMarginMode", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/defaultMarginMode"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetFuturesFundingFeeHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "futures/fundingFee/history", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/fundingFee/history"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetSpotMarginInterestRate(self::Woo, params=Dict(), context=Dict())
-    return request(self, "spotMargin/interestRate", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spotMargin/interestRate"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetSpotMarginInterestHistory(self::Woo, params=Dict(), context=Dict())
-    return request(self, "spotMargin/interestHistory", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spotMargin/interestHistory"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetSpotMarginMaxMargin(self::Woo, params=Dict(), context=Dict())
-    return request(self, "spotMargin/maxMargin", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spotMargin/maxMargin"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAlgoOrderOid(self::Woo, params=Dict(), context=Dict())
-    return request(self, "algo/order/{oid}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/order/{oid}"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAlgoOrders(self::Woo, params=Dict(), context=Dict())
-    return request(self, "algo/orders", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/orders"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetPositions(self::Woo, params=Dict(), context=Dict())
-    return request(self, "positions", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "positions"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetBuypower(self::Woo, params=Dict(), context=Dict())
-    return request(self, "buypower", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "buypower"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetConvertExchangeInfo(self::Woo, params=Dict(), context=Dict())
-    return request(self, "convert/exchangeInfo", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/exchangeInfo"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetConvertAssetInfo(self::Woo, params=Dict(), context=Dict())
-    return request(self, "convert/assetInfo", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/assetInfo"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetConvertRfq(self::Woo, params=Dict(), context=Dict())
-    return request(self, "convert/rfq", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/rfq"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetConvertTrade(self::Woo, params=Dict(), context=Dict())
-    return request(self, "convert/trade", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/trade"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetConvertTrades(self::Woo, params=Dict(), context=Dict())
-    return request(self, "convert/trades", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/trades"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostTradeOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/order", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostTradeAlgoOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/algoOrder", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/algoOrder"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostTradeCancelAllAfter(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/cancelAllAfter", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancelAllAfter"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostAccountTradingMode(self::Woo, params=Dict(), context=Dict())
-    return request(self, "account/tradingMode", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/tradingMode"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostAccountListenKey(self::Woo, params=Dict(), context=Dict())
-    return request(self, "account/listenKey", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/listenKey"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostAssetTransfer(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/transfer", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/transfer"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostAssetWalletWithdraw(self::Woo, params=Dict(), context=Dict())
-    return request(self, "asset/wallet/withdraw", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/wallet/withdraw"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostSpotMarginLeverage(self::Woo, params=Dict(), context=Dict())
-    return request(self, "spotMargin/leverage", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spotMargin/leverage"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostSpotMarginInterestRepay(self::Woo, params=Dict(), context=Dict())
-    return request(self, "spotMargin/interestRepay", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spotMargin/interestRepay"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostAlgoOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "algo/order", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "algo/order"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostConvertRft(self::Woo, params=Dict(), context=Dict())
-    return request(self, "convert/rft", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "convert/rft"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePutTradeOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/order", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api=["v3", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePutTradeAlgoOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/algoOrder", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "trade/algoOrder"; api=["v3", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePutFuturesLeverage(self::Woo, params=Dict(), context=Dict())
-    return request(self, "futures/leverage", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "futures/leverage"; api=["v3", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePutFuturesPositionMode(self::Woo, params=Dict(), context=Dict())
-    return request(self, "futures/positionMode", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "futures/positionMode"; api=["v3", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePutOrderOid(self::Woo, params=Dict(), context=Dict())
-    return request(self, "order/{oid}", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "order/{oid}"; api=["v3", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePutOrderClientClientOrderId(self::Woo, params=Dict(), context=Dict())
-    return request(self, "order/client/{client_order_id}", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "order/client/{client_order_id}"; api=["v3", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePutAlgoOrderOid(self::Woo, params=Dict(), context=Dict())
-    return request(self, "algo/order/{oid}", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "algo/order/{oid}"; api=["v3", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePutAlgoOrderClientClientOrderId(self::Woo, params=Dict(), context=Dict())
-    return request(self, "algo/order/client/{client_order_id}", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "algo/order/client/{client_order_id}"; api=["v3", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateDeleteTradeOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/order", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api=["v3", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateDeleteTradeOrders(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/orders", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/orders"; api=["v3", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateDeleteTradeAlgoOrder(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/algoOrder", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/algoOrder"; api=["v3", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateDeleteTradeAlgoOrders(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/algoOrders", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/algoOrders"; api=["v3", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateDeleteTradeAllOrders(self::Woo, params=Dict(), context=Dict())
-    return request(self, "trade/allOrders", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/allOrders"; api=["v3", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateDeleteAlgoOrderOrderId(self::Woo, params=Dict(), context=Dict())
-    return request(self, "algo/order/{order_id}", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algo/order/{order_id}"; api=["v3", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateDeleteAlgoOrdersPending(self::Woo, params=Dict(), context=Dict())
-    return request(self, "algo/orders/pending", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algo/orders/pending"; api=["v3", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateDeleteAlgoOrdersPendingSymbol(self::Woo, params=Dict(), context=Dict())
-    return request(self, "algo/orders/pending/{symbol}", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algo/orders/pending/{symbol}"; api=["v3", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateDeleteOrdersPending(self::Woo, params=Dict(), context=Dict())
-    return request(self, "orders/pending", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/pending"; api=["v3", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Woo(; kwargs...)
@@ -3773,3 +4487,878 @@ function Woo(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Woo_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Woo_fetchStatus
+
+function __ccxt_doc_Woo_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Woo_fetchTime
+
+function __ccxt_doc_Woo_fetchMarkets() end
+"""
+retrieves data on all markets for woo
+see: https://developer.woox.io/api-reference/endpoint/public_data/instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Woo_fetchMarkets
+
+function __ccxt_doc_Woo_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Woo_fetchTrades
+
+function __ccxt_doc_Woo_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://developer.woox.io/api-reference/endpoint/trading/get_tradingFee
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch trading fees in a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Woo_fetchTradingFee
+
+function __ccxt_doc_Woo_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://developer.woox.io/api-reference/endpoint/account/get_account_info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Woo_fetchTradingFees
+
+function __ccxt_doc_Woo_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.woox.io/#available-token-public
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Woo_fetchCurrencies
+
+function __ccxt_doc_Woo_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://developer.woox.io/api-reference/endpoint/trading/post_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Woo_createMarketSellOrderWithCost() end
+"""
+create a market sell order by providing the symbol and cost
+see: https://developer.woox.io/api-reference/endpoint/trading/post_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_createMarketSellOrderWithCost
+
+function __ccxt_doc_Woo_createTrailingAmountOrder() end
+"""
+create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+see: https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency, or number of contracts
+- `price`::float, optional: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+- `trailingAmount`::float: the quote amount to trail away from the current market price
+- `trailingTriggerPrice`::float: the price to activate a trailing order, default uses the price argument
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_createTrailingAmountOrder
+
+function __ccxt_doc_Woo_createTrailingPercentOrder() end
+"""
+create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+see: https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency, or number of contracts
+- `price`::float, optional: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+- `trailingPercent`::float: the percent to trail away from the current market price
+- `trailingTriggerPrice`::float: the price to activate a trailing order, default uses the price argument
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_createTrailingPercentOrder
+
+function __ccxt_doc_Woo_createOrder() end
+"""
+create a trade order
+see: https://developer.woox.io/api-reference/endpoint/trading/post_order
+see: https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: *for swap markets only* 'cross' or 'isolated', default 'cross'
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.algoType`::float, optional: 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.trailingAmount`::string, optional: the quote amount to trail away from the current market price
+- `params.trailingPercent`::string, optional: the percent to trail away from the current market price
+- `params.trailingTriggerPrice`::string, optional: the price to trigger a trailing order, default uses the price argument
+- `params.position_side`::string, optional: 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_createOrder
+
+function __ccxt_doc_Woo_editOrder() end
+"""
+edit a trade order
+see: https://developer.woox.io/api-reference/endpoint/trading/edit_order
+see: https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id of the order to edit, used instead of the id argument
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: price to trigger stop-loss orders
+- `params.takeProfitPrice`::float, optional: price to trigger take-profit orders
+- `params.trailingAmount`::string, optional: the quote amount to trail away from the current market price
+- `params.trailingPercent`::string, optional: the percent to trail away from the current market price
+- `params.trailingTriggerPrice`::string, optional: the price to trigger a trailing order, default uses the price argument
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_editOrder
+
+function __ccxt_doc_Woo_cancelOrder() end
+"""
+cancels an open order
+see: https://developer.woox.io/api-reference/endpoint/trading/cancel_order
+see: https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_cancelOrder
+
+function __ccxt_doc_Woo_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+see: https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_cancelAllOrders
+
+function __ccxt_doc_Woo_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://developer.woox.io/api-reference/endpoint/trading/cancel_all_after
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Woo_cancelAllOrdersAfter
+
+function __ccxt_doc_Woo_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://developer.woox.io/api-reference/endpoint/trading/get_order
+see: https://developer.woox.io/api-reference/endpoint/trading/get_algo_order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_fetchOrder
+
+function __ccxt_doc_Woo_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://developer.woox.io/api-reference/endpoint/trading/get_orders
+see: https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.isTriggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_fetchOrders
+
+function __ccxt_doc_Woo_fetchOpenOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://developer.woox.io/api-reference/endpoint/trading/get_orders
+see: https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.isTriggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_fetchOpenOrders
+
+function __ccxt_doc_Woo_fetchClosedOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://developer.woox.io/api-reference/endpoint/trading/get_orders
+see: https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.isTriggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woo_fetchClosedOrders
+
+function __ccxt_doc_Woo_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://developer.woox.io/api-reference/endpoint/public_data/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Woo_fetchOrderBook
+
+function __ccxt_doc_Woo_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://developer.woox.io/api-reference/endpoint/public_data/klineHistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Woo_fetchOHLCV
+
+function __ccxt_doc_Woo_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://docs.woox.io/#get-trades
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Woo_fetchOrderTrades
+
+function __ccxt_doc_Woo_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://developer.woox.io/api-reference/endpoint/trading/get_transactions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch trades with pagination
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Woo_fetchMyTrades
+
+function __ccxt_doc_Woo_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://developer.woox.io/api-reference/endpoint/account/get_account_info
+see: https://developer.woox.io/api-reference/endpoint/account/sub_accounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Woo_fetchAccounts
+
+function __ccxt_doc_Woo_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://developer.woox.io/api-reference/endpoint/assets/get_balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Woo_fetchBalance
+
+function __ccxt_doc_Woo_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_deposit
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Woo_fetchDepositAddress
+
+function __ccxt_doc_Woo_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered balance of the user
+see: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Woo_fetchLedger
+
+function __ccxt_doc_Woo_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Woo_fetchDeposits
+
+function __ccxt_doc_Woo_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Woo_fetchWithdrawals
+
+function __ccxt_doc_Woo_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Woo_fetchDepositsWithdrawals
+
+function __ccxt_doc_Woo_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://developer.woox.io/api-reference/endpoint/assets/transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Woo_transfer
+
+function __ccxt_doc_Woo_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://developer.woox.io/api-reference/endpoint/assets/get_transfer_history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Woo_fetchTransfers
+
+function __ccxt_doc_Woo_withdraw() end
+"""
+make a withdrawal
+see: https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Woo_withdraw
+
+function __ccxt_doc_Woo_repayMargin() end
+"""
+repay borrowed margin and interest
+see: https://docs.woox.io/#repay-interest
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `symbol`::string: not used by woo.repayMargin ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Woo_repayMargin
+
+function __ccxt_doc_Woo_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://developer.woox.io/api-reference/endpoint/futures/get_fundingFee_history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Woo_fetchFundingHistory
+
+function __ccxt_doc_Woo_fetchFundingInterval() end
+"""
+fetch the current funding rate interval
+see: https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Woo_fetchFundingInterval
+
+function __ccxt_doc_Woo_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Woo_fetchFundingRate
+
+function __ccxt_doc_Woo_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Woo_fetchFundingRates
+
+function __ccxt_doc_Woo_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Woo_fetchFundingRateHistory
+
+function __ccxt_doc_Woo_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://developer.woox.io/api-reference/endpoint/futures/position_mode
+
+# Arguments
+- `hedged`::bool: set to true to use HEDGE_MODE, false for ONE_WAY
+- `symbol`::string: not used by woo setPositionMode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Woo_setPositionMode
+
+function __ccxt_doc_Woo_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://developer.woox.io/api-reference/endpoint/account/get_account_info
+see: https://developer.woox.io/api-reference/endpoint/futures/get_leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: *for swap markets only* 'cross' or 'isolated'
+- `params.positionMode`::string, optional: *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Woo_fetchLeverage
+
+function __ccxt_doc_Woo_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://developer.woox.io/api-reference/endpoint/spot_margin/set_leverage
+see: https://developer.woox.io/api-reference/endpoint/futures/set_leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
+- `symbol`::string, optional: unified market symbol (is mandatory for swap markets)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: *for swap markets only* 'cross' or 'isolated'
+- `params.positionMode`::string, optional: *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Woo_setLeverage
+
+function __ccxt_doc_Woo_addMargin() end
+"""
+add margin
+see: https://docs.woox.io/#update-isolated-margin-setting
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.position_side`::string, optional: 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Woo_addMargin
+
+function __ccxt_doc_Woo_reduceMargin() end
+"""
+remove margin from a position
+see: https://docs.woox.io/#update-isolated-margin-setting
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.position_side`::string, optional: 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Woo_reduceMargin
+
+function __ccxt_doc_Woo_fetchPosition() end
+"""
+fetch data on an open position
+see: https://developer.woox.io/api-reference/endpoint/futures/get_positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Woo_fetchPosition
+
+function __ccxt_doc_Woo_fetchPositions() end
+"""
+fetch all open positions
+see: https://developer.woox.io/api-reference/endpoint/futures/get_positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Woo_fetchPositions
+
+function __ccxt_doc_Woo_fetchConvertQuote() end
+"""
+fetch a quote for converting from one currency to another
+see: https://docs.woox.io/#get-quote-rfq
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Woo_fetchConvertQuote
+
+function __ccxt_doc_Woo_createConvertTrade() end
+"""
+convert from one currency to another
+see: https://docs.woox.io/#send-quote-rft
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Woo_createConvertTrade
+
+function __ccxt_doc_Woo_fetchConvertTrade() end
+"""
+fetch the data for a conversion trade
+see: https://docs.woox.io/#get-quote-trade
+
+# Arguments
+- `id`::string: the id of the trade that you want to fetch
+- `code`::string, optional: the unified currency code of the conversion trade
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Woo_fetchConvertTrade
+
+function __ccxt_doc_Woo_fetchConvertTradeHistory() end
+"""
+fetch the users history of conversion trades
+see: https://docs.woox.io/#get-quote-trades
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest conversion to fetch
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Woo_fetchConvertTradeHistory
+
+function __ccxt_doc_Woo_fetchConvertCurrencies() end
+"""
+fetches all available currencies that can be converted
+see: https://docs.woox.io/#get-quote-asset-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Woo_fetchConvertCurrencies
+
+function __ccxt_doc_Woo_fetchPositionsADLRank() end
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://developer.woox.io/api-reference/endpoint/futures/get_positions
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+__ccxt_doc_Woo_fetchPositionsADLRank

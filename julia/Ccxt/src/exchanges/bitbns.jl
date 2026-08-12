@@ -339,7 +339,16 @@ function describe(self::Bitbns, )
 ))
 
 end
-function fetchStatus(self::Bitbns, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Bitbns; params=Dict())
     response = Base.fetch(self.v1GetPlatformStatus(params));
     statusRaw = safeString(response, "status");
     return Dict{Symbol, Any}(
@@ -353,7 +362,16 @@ function fetchStatus(self::Bitbns, params=Dict())
 )
 
 end
-function fetchMarkets(self::Bitbns, params=Dict())
+"""
+retrieves data on all markets for bitbns
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitbns; params=Dict())
     response = Base.fetch(self.wwwGetOrderFetchMarkets(params));
     result = [];
     rawMarkets = toArray(response);
@@ -365,11 +383,11 @@ function fetchMarkets(self::Bitbns, params=Dict())
         quoteId = safeString(market, "quote");
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
-        marketPrecision = self.safeDict(market, "precision", Dict{Symbol, Any}());
-        marketLimits = self.safeDict(market, "limits", Dict{Symbol, Any}());
-        amountLimits = self.safeDict(marketLimits, "amount", Dict{Symbol, Any}());
-        priceLimits = self.safeDict(marketLimits, "price", Dict{Symbol, Any}());
-        costLimits = self.safeDict(marketLimits, "cost", Dict{Symbol, Any}());
+        marketPrecision = self.safeDict(market, "precision", defaultValue = Dict{Symbol, Any}());
+        marketLimits = self.safeDict(market, "limits", defaultValue = Dict{Symbol, Any}());
+        amountLimits = self.safeDict(marketLimits, "amount", defaultValue = Dict{Symbol, Any}());
+        priceLimits = self.safeDict(marketLimits, "price", defaultValue = Dict{Symbol, Any}());
+        costLimits = self.safeDict(marketLimits, "cost", defaultValue = Dict{Symbol, Any}());
         usdt = (quoteId == "USDT");
         uppercaseId = functions.ccxtruthy(usdt) ? (string(baseId, "_", quoteId)) : baseId;
         push!(result, Dict{Symbol, Any}(
@@ -398,8 +416,8 @@ function fetchMarkets(self::Bitbns, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(marketPrecision, "amount"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(marketPrecision, "price")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(marketPrecision, "amount"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(marketPrecision, "price")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -427,7 +445,18 @@ function fetchMarkets(self::Bitbns, params=Dict())
     return result
 
 end
-function fetchOrderBook(self::Bitbns, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitbns, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -440,13 +469,13 @@ function fetchOrderBook(self::Bitbns, symbol, limit=nothing, params=Dict())
     end
     response = Base.fetch(self.wwwGetOrderFetchOrderbook(extend(request, params)));
     timestamp = safeInteger(response, "timestamp");
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp)
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = timestamp)
 
 end
-function parseTicker(self::Bitbns, ticker, market=nothing)
+function parseTicker(self::Bitbns, ticker; market=nothing)
     timestamp = safeInteger(ticker, "timestamp");
     marketId = safeString(ticker, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     last_var = safeString(ticker, "last");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -469,15 +498,25 @@ function parseTicker(self::Bitbns, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "baseVolume"),
     Symbol("quoteVolume") => safeString(ticker, "quoteVolume"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Bitbns, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bitbns; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.wwwGetOrderFetchTickers(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
 function parseBalance(self::Bitbns, response)
@@ -487,7 +526,7 @@ function parseBalance(self::Bitbns, response)
         Symbol("timestamp") => timestamp,
         Symbol("datetime") => self.iso8601(timestamp)
     );
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     keys_var = objectKeys(data);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(keys_var)))
@@ -512,7 +551,16 @@ function parseBalance(self::Bitbns, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bitbns, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bitbns; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -530,7 +578,7 @@ function parseStatus(self::Bitbns, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Bitbns, order, market=nothing)
+function parseOrder(self::Bitbns, order; market=nothing)
     id = safeString2(order, "id", "entry_id");
     datetime = safeString(order, "time");
     triggerPrice = safeString(order, "t_rate");
@@ -572,10 +620,29 @@ function parseOrder(self::Bitbns, order, market=nothing)
         Symbol("rate") => nothing
     ),
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function createOrder(self::Bitbns, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  // market orders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at EXCHANGE SPECIFIC PARAMETERS
+- `params.target_rate`::float, optional: *requires params.trail_rate when set, type must be 'limit'* a bracket order is placed when set
+- `params.trail_rate`::float, optional: *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bitbns, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -610,10 +677,24 @@ function createOrder(self::Bitbns, symbol, type_var, side, amount, price=nothing
     end
     response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     parsed = functions.ccxtruthy((response == nothing)) ? Dict{Symbol, Any}() : response;
-    return self.parseOrder(parsed, market)
+    return self.parseOrder(parsed, market = market)
 
 end
-function cancelOrder(self::Bitbns, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/cancel-orders
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if cancelling a trigger order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bitbns, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -634,10 +715,22 @@ function cancelOrder(self::Bitbns, id, symbol=nothing, params=Dict())
     request[Symbol("side")] = quoteSide;
     response = Base.fetch(self.v2PostCancel(extend(request, params)));
     parsed = functions.ccxtruthy((response == nothing)) ? Dict{Symbol, Any}() : response;
-    return self.parseOrder(parsed, market)
+    return self.parseOrder(parsed, market = market)
 
 end
-function fetchOrder(self::Bitbns, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bitbns, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -654,12 +747,27 @@ function fetchOrder(self::Bitbns, id, symbol=nothing, params=Dict())
         throw(BadRequest(string(self.id, " fetchOrder cannot fetch stop orders")));
     end
     response = Base.fetch(self.v1PostOrderStatusSymbol(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseOrder(first_var, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(first_var, market = market)
 
 end
-function fetchOpenOrders(self::Bitbns, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit/order-status-stop-limit
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if fetching trigger orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bitbns; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument")));
     end
@@ -676,12 +784,12 @@ function fetchOpenOrders(self::Bitbns, symbol=nothing, since=nothing, limit=noth
         Symbol("side") => functions.ccxtruthy(isTrigger) ? (string(quoteSide, "StopOrders")) : (string(quoteSide, "Orders"))
     );
     response = Base.fetch(self.v2PostGetordersnew(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Bitbns, trade, market=nothing)
-    market = self.safeMarket(nothing, market);
+function parseTrade(self::Bitbns, trade; market=nothing)
+    market = self.safeMarket(marketId = nothing, market = market);
     orderId = safeString2(trade, "id", "tradeId");
     timestamp = self.parse8601(safeString(trade, "date"));
     timestamp = safeInteger(trade, "timestamp", timestamp);
@@ -727,10 +835,22 @@ function parseTrade(self::Bitbns, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchMyTrades(self::Bitbns, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bitbns; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -746,11 +866,23 @@ function fetchMyTrades(self::Bitbns, symbol=nothing, since=nothing, limit=nothin
         request[Symbol("since")] = self.iso8601(since);
     end
     response = Base.fetch(self.v1PostListExecutedOrdersSymbol(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchTrades(self::Bitbns, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bitbns, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchTrades() requires a symbol argument")));
     end
@@ -763,10 +895,22 @@ function fetchTrades(self::Bitbns, symbol, since=nothing, limit=nothing, params=
         Symbol("market") => get(market, Symbol("quoteId"), nothing)
     );
     response = Base.fetch(self.wwwGetExchangeDataTradedetails(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchDeposits(self::Bitbns, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bitbns; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchDeposits() requires a currency code argument")));
     end
@@ -779,11 +923,23 @@ function fetchDeposits(self::Bitbns, code=nothing, since=nothing, limit=nothing,
         Symbol("page") => 0
     );
     response = Base.fetch(self.v1PostDepositHistorySymbol(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Bitbns, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bitbns; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchWithdrawals() requires a currency code argument")));
     end
@@ -796,11 +952,11 @@ function fetchWithdrawals(self::Bitbns, code=nothing, since=nothing, limit=nothi
         Symbol("page") => 0
     );
     response = Base.fetch(self.v1PostWithdrawHistorySymbol(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function parseTransactionStatusByType(self::Bitbns, status, type_var=nothing)
+function parseTransactionStatusByType(self::Bitbns, status; type_var=nothing)
     statusesByType = Dict{Symbol, Any}(
         Symbol("deposit") => Dict{Symbol, Any}(
             Symbol("0") => "pending",
@@ -816,13 +972,13 @@ function parseTransactionStatusByType(self::Bitbns, status, type_var=nothing)
             Symbol("6") => "ok"
         )
     );
-    statuses = self.safeDict(statusesByType, type_var, Dict{Symbol, Any}());
+    statuses = self.safeDict(statusesByType, type_var, defaultValue = Dict{Symbol, Any}());
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Bitbns, transaction, currency=nothing)
+function parseTransaction(self::Bitbns, transaction; currency=nothing)
     currencyId = safeString(transaction, "unit");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = self.parse8601(safeString2(transaction, "date", "timestamp"));
     type_var = safeString(transaction, "type");
     expTime = safeString(transaction, "expTime", "");
@@ -868,7 +1024,17 @@ function parseTransaction(self::Bitbns, transaction, currency=nothing)
 )
 
 end
-function fetchDepositAddress(self::Bitbns, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bitbns, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -877,10 +1043,10 @@ function fetchDepositAddress(self::Bitbns, code, params=Dict())
         Symbol("symbol") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PostGetCoinAddressSymbol(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     address = safeString(data, "token");
     tag = safeString(data, "tag");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
@@ -894,7 +1060,7 @@ function nonce(self::Bitbns, )
     return milliseconds()
 
 end
-function sign(self::Bitbns, path, api="www", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitbns, path; api="www", method="GET", params=Dict(), headers=nothing, body=nothing)
     urls = self.urls;
     if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(api, get(urls, Symbol("api"), nothing)))))
         throw(ExchangeError(string(self.id, " does not have a testnet/sandbox URL for ", api, " endpoints")));
@@ -962,147 +1128,147 @@ Base.getproperty(self::Bitbns, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function wwwGetOrderFetchMarkets(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "order/fetchMarkets", "www", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/fetchMarkets"; api="www", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function wwwGetOrderFetchTickers(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "order/fetchTickers", "www", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/fetchTickers"; api="www", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function wwwGetOrderFetchOrderbook(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "order/fetchOrderbook", "www", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/fetchOrderbook"; api="www", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function wwwGetOrderGetTickerWithVolume(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "order/getTickerWithVolume", "www", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/getTickerWithVolume"; api="www", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function wwwGetExchangeDataOhlc(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "exchangeData/ohlc", "www", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchangeData/ohlc"; api="www", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function wwwGetExchangeDataOrderBook(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "exchangeData/orderBook", "www", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchangeData/orderBook"; api="www", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function wwwGetExchangeDataTradedetails(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "exchangeData/tradedetails", "www", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchangeData/tradedetails"; api="www", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetPlatformStatus(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "platform/status", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "platform/status"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetTickers(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "tickers", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetOrderbookSellSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "orderbook/sell/{symbol}", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook/sell/{symbol}"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetOrderbookBuySymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "orderbook/buy/{symbol}", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook/buy/{symbol}"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostCurrentCoinBalanceEVERYTHING(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "currentCoinBalance/EVERYTHING", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "currentCoinBalance/EVERYTHING"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostGetApiUsageStatusUSAGE(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "getApiUsageStatus/USAGE", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "getApiUsageStatus/USAGE"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostGetOrderSocketTokenUSAGE(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "getOrderSocketToken/USAGE", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "getOrderSocketToken/USAGE"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostCurrentCoinBalanceSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "currentCoinBalance/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "currentCoinBalance/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostOrderStatusSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "orderStatus/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "orderStatus/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostDepositHistorySymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "depositHistory/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "depositHistory/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostWithdrawHistorySymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "withdrawHistory/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawHistory/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostWithdrawHistoryAllSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "withdrawHistoryAll/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawHistoryAll/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostDepositHistoryAllSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "depositHistoryAll/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "depositHistoryAll/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostListOpenOrdersSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "listOpenOrders/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "listOpenOrders/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostListOpenStopOrdersSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "listOpenStopOrders/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "listOpenStopOrders/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostGetCoinAddressSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "getCoinAddress/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "getCoinAddress/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostPlaceSellOrderSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "placeSellOrder/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "placeSellOrder/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostPlaceBuyOrderSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "placeBuyOrder/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "placeBuyOrder/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostBuyStopLossSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "buyStopLoss/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "buyStopLoss/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostSellStopLossSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "sellStopLoss/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "sellStopLoss/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostCancelOrderSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "cancelOrder/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelOrder/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostCancelStopLossOrderSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "cancelStopLossOrder/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelStopLossOrder/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostListExecutedOrdersSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "listExecutedOrders/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "listExecutedOrders/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostPlaceMarketOrderSymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "placeMarketOrder/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "placeMarketOrder/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PostPlaceMarketOrderQntySymbol(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "placeMarketOrderQnty/{symbol}", "v1", "POST", params, nothing, nothing, Dict())
+    return request(self, "placeMarketOrderQnty/{symbol}"; api="v1", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PostOrders(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "orders", "v2", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="v2", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PostCancel(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "cancel", "v2", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel"; api="v2", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PostGetordersnew(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "getordersnew", "v2", "POST", params, nothing, nothing, Dict())
+    return request(self, "getordersnew"; api="v2", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PostMarginOrders(self::Bitbns, params=Dict(), context=Dict())
-    return request(self, "marginOrders", "v2", "POST", params, nothing, nothing, Dict())
+    return request(self, "marginOrders"; api="v2", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitbns(; kwargs...)
@@ -1166,3 +1332,213 @@ function Bitbns(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitbns_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Bitbns_fetchStatus
+
+function __ccxt_doc_Bitbns_fetchMarkets() end
+"""
+retrieves data on all markets for bitbns
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitbns_fetchMarkets
+
+function __ccxt_doc_Bitbns_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitbns_fetchOrderBook
+
+function __ccxt_doc_Bitbns_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitbns_fetchTickers
+
+function __ccxt_doc_Bitbns_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bitbns_fetchBalance
+
+function __ccxt_doc_Bitbns_createOrder() end
+"""
+create a trade order
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  // market orders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at EXCHANGE SPECIFIC PARAMETERS
+- `params.target_rate`::float, optional: *requires params.trail_rate when set, type must be 'limit'* a bracket order is placed when set
+- `params.trail_rate`::float, optional: *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitbns_createOrder
+
+function __ccxt_doc_Bitbns_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/cancel-orders
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if cancelling a trigger order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitbns_cancelOrder
+
+function __ccxt_doc_Bitbns_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitbns_fetchOrder
+
+function __ccxt_doc_Bitbns_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit
+see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit/order-status-stop-limit
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if fetching trigger orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitbns_fetchOpenOrders
+
+function __ccxt_doc_Bitbns_fetchMyTrades() end
+"""
+fetch all trades made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitbns_fetchMyTrades
+
+function __ccxt_doc_Bitbns_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bitbns_fetchTrades
+
+function __ccxt_doc_Bitbns_fetchDeposits() end
+"""
+fetch all deposits made to an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitbns_fetchDeposits
+
+function __ccxt_doc_Bitbns_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitbns_fetchWithdrawals
+
+function __ccxt_doc_Bitbns_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bitbns_fetchDepositAddress

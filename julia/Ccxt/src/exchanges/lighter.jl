@@ -556,7 +556,7 @@ function describe(self::Lighter, )
 ))
 
 end
-function loadAccount(self::Lighter, chainId, privateKey, apiKeyIndex, accountIndex, params=Dict())
+function loadAccount(self::Lighter, chainId, privateKey, apiKeyIndex, accountIndex; params=Dict())
     self.initAuthObject(accountIndex, apiKeyIndex);
     cachedAuths = self.safeDict(get(get(self.options, Symbol("auths"), nothing), Symbol(accountIndex), nothing), apiKeyIndex);
     signer = safeValue(cachedAuths, "signer");
@@ -567,7 +567,7 @@ function loadAccount(self::Lighter, chainId, privateKey, apiKeyIndex, accountInd
     (libraryPath, params) = self.handleOptionAndParams(params, "loadAccount", "libraryPath");
     lighterPrivateKeyIsSet = @functions.ccxt_and((privateKey != nothing), (privateKey != ""));
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(@functions.ccxt_and(lighterPrivateKeyIsSet, (libraryPath != nothing)), (apiKeyIndex != nothing)), (accountIndex != nothing)))
-        signer = Base.fetch(self.loadLighterLibrary(libraryPath, chainId, privateKey, self.parseToInt(apiKeyIndex), self.parseToInt(accountIndex), true));
+        signer = Base.fetch(self.loadLighterLibrary(libraryPath, chainId, privateKey, self.parseToInt(apiKeyIndex), self.parseToInt(accountIndex), createClient = true));
         self.options[Symbol("auths")][Symbol(accountIndex)][Symbol(apiKeyIndex)][Symbol("signer")] = signer;
             return signer
     end
@@ -576,7 +576,7 @@ function loadAccount(self::Lighter, chainId, privateKey, apiKeyIndex, accountInd
         if functions.ccxtruthy(functions.ccxt_gt(length(self.privateKey), 66))
             throw(NotSupported(string(self.id, " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")));
         end
-        signer = Base.fetch(self.loadLighterLibrary(libraryPath, chainId, "", self.parseToInt(apiKeyIndex), self.parseToInt(accountIndex), false));
+        signer = Base.fetch(self.loadLighterLibrary(libraryPath, chainId, "", self.parseToInt(apiKeyIndex), self.parseToInt(accountIndex), createClient = false));
         self.options[Symbol("auths")][Symbol(accountIndex)][Symbol(apiKeyIndex)][Symbol("signer")] = signer;
         res = Base.fetch(self.changeApiKey());
         Base.fetch(self.handleBuilderFeeApproval(self.parseToInt(accountIndex), self.parseToInt(apiKeyIndex)));
@@ -618,7 +618,16 @@ function getLighterPrivateKey(self::Lighter, strAccountIndex, strApiKeyIndex)
     return get(get(get(get(self.options, Symbol("auths"), nothing), Symbol(strAccountIndex), nothing), Symbol(strApiKeyIndex), nothing), Symbol("lighterPrivateKey"), nothing)
 
 end
-function preLoadLighterLibrary(self::Lighter, params=Dict())
+"""
+if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- true if the signer was loaded, false otherwise
+"""
+function preLoadLighterLibrary(self::Lighter; params=Dict())
     apiKeyIndex = nothing;
     (apiKeyIndex, params) = self.handleApiKeyIndex(params, "loadAccount", "apiKeyIndex", "api_key_index");
     accountIndex = nothing;
@@ -638,9 +647,9 @@ function preLoadLighterLibrary(self::Lighter, params=Dict())
     return (signer != nothing)
 
 end
-function handleApiKeyIndex(self::Lighter, params, methodName1, optionName1, optionName2, defaultValue=nothing)
+function handleApiKeyIndex(self::Lighter, params, methodName1, optionName1, optionName2; defaultValue=nothing)
     apiKeyIndex = nothing;
-    (apiKeyIndex, params) = self.handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue);
+    (apiKeyIndex, params) = self.handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue = defaultValue);
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((apiKeyIndex == nothing), (functions.ccxt_lt(apiKeyIndex, 4))), (functions.ccxt_gt(apiKeyIndex, 254))))
         apiKeyIndex = 254;
         self.options[Symbol("apiKeyIndex")] = apiKeyIndex;
@@ -648,9 +657,9 @@ function handleApiKeyIndex(self::Lighter, params, methodName1, optionName1, opti
     return [self.parseToInt(apiKeyIndex), params]
 
 end
-function handleAccountIndex(self::Lighter, params, methodName1, optionName1, optionName2, defaultValue=nothing)
+function handleAccountIndex(self::Lighter, params, methodName1, optionName1, optionName2; defaultValue=nothing)
     accountIndex = nothing;
-    (accountIndex, params) = self.handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue);
+    (accountIndex, params) = self.handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue = defaultValue);
     if functions.ccxtruthy(accountIndex == nothing)
         walletAddress = self.walletAddress;
         if functions.ccxtruthy(self.privateKey != nothing)
@@ -678,12 +687,12 @@ function handleAccountIndex(self::Lighter, params, methodName1, optionName1, opt
     return [self.parseToInt(accountIndex), params]
 
 end
-function createSubAccount(self::Lighter, name, params=Dict())
+function createSubAccount(self::Lighter, name; params=Dict())
     apiKeyIndex = nothing;
     (apiKeyIndex, params) = self.handleApiKeyIndex(params, "createSubAccount", "apiKeyIndex", "api_key_index");
     accountIndex = nothing;
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "createSubAccount", "accountIndex", "account_index"));
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params));
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = params));
     signRaw = Dict{Symbol, Any}(
         Symbol("nonce") => nonce,
         Symbol("api_key_index") => apiKeyIndex,
@@ -691,7 +700,7 @@ function createSubAccount(self::Lighter, name, params=Dict())
     );
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     (txType, txInfo) = self.lighterSignCreateSubAccount(signer, extend(signRaw, params));
     request = Dict{Symbol, Any}(
         Symbol("tx_type") => txType,
@@ -700,7 +709,7 @@ function createSubAccount(self::Lighter, name, params=Dict())
     return Base.fetch(self.publicPostSendTx(request))
 
 end
-function createAuth(self::Lighter, params=Dict())
+function createAuth(self::Lighter; params=Dict())
     apiKeyIndex = safeString2(params, "apiKeyIndex", "api_key_index");
     if functions.ccxtruthy(apiKeyIndex == nothing)
         res = self.handleOptionAndParams2(Dict{Symbol, Any}(), "createAuth", "apiKeyIndex", "api_key_index");
@@ -780,11 +789,11 @@ function signL1AndPrepareTxInfo(self::Lighter, txInfo, message, privateKey)
 
 end
 function handleBuilderFeeApproval(self::Lighter, accountIndex, apiKeyIndex)
-    buildFee = self.safeBool(self.options, "builderFee", true);
+    buildFee = self.safeBool(self.options, "builderFee", defaultValue = true);
     if functions.ccxtruthy(!functions.ccxtruthy(buildFee))
             return false
     end
-    approvedBuilderFee = self.safeBool(self.options, "approvedBuilderFee", false);
+    approvedBuilderFee = self.safeBool(self.options, "approvedBuilderFee", defaultValue = false);
     if functions.ccxtruthy(approvedBuilderFee)
             return true
     end
@@ -801,11 +810,11 @@ function handleBuilderFeeApproval(self::Lighter, accountIndex, apiKeyIndex)
     return true
 
 end
-function approveBuilderFee(self::Lighter, builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex, params=Dict())
+function approveBuilderFee(self::Lighter, builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex; params=Dict())
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, extend(params, Dict{Symbol, Any}(
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = extend(params, Dict{Symbol, Any}(
         Symbol("skipNonce") => false
     ))));
     expiry = milliseconds() + 365 * 864000;
@@ -828,7 +837,7 @@ function approveBuilderFee(self::Lighter, builder, takerFeeRate, makerFeeRate, a
     return response
 
 end
-function changeApiKey(self::Lighter, params=Dict())
+function changeApiKey(self::Lighter; params=Dict())
     apiKeyIndex = nothing;
     (apiKeyIndex, params) = self.handleApiKeyIndex(params, "changeApiKey", "apiKeyIndex", "api_key_index");
     accountIndex = nothing;
@@ -837,7 +846,7 @@ function changeApiKey(self::Lighter, params=Dict())
     strApiKeyIndex = numberToString(apiKeyIndex);
     signerNotLoad = get(get(get(get(self.options, Symbol("auths"), nothing), Symbol(strAccountIndex), nothing), Symbol(strApiKeyIndex), nothing), Symbol("signer"), nothing);
     (privateKey, publicKey) = self.lighterGenerateApiKey(signerNotLoad);
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, extend(params, Dict{Symbol, Any}(
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = extend(params, Dict{Symbol, Any}(
         Symbol("skipNonce") => false
     ))));
     signRaw = Dict{Symbol, Any}(
@@ -866,7 +875,7 @@ function setSandboxMode(self::Lighter, enable)
     self.options[Symbol("chainId")] = functions.ccxtruthy(enable) ? 300 : 304;
 
 end
-function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Lighter, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -876,7 +885,7 @@ function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price
     if functions.ccxtruthy(price == nothing)
         throw(ArgumentsRequired(string(self.id, " createOrder() requires a price argument")));
     end
-    reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", false);
+    reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", defaultValue = false);
     orderType = uppercase(type_var);
     market = self.market(symbol);
     orderSide = uppercase(side);
@@ -890,7 +899,7 @@ function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price
     (apiKeyIndex, params) = self.handleApiKeyIndex(params, "createOrder", "apiKeyIndex", "api_key_index");
     (accountIndex, params) = self.handleOptionAndParams2(params, "createOrder", "accountIndex", "account_index");
     (nonce, params) = self.handleOptionAndParams(params, "createOrder", "nonce");
-    (orderExpiry, params) = self.handleOptionAndParams(params, "createOrder", "orderExpiry", 0);
+    (orderExpiry, params) = self.handleOptionAndParams(params, "createOrder", "orderExpiry", defaultValue = 0);
     if functions.ccxtruthy(nonce != nothing)
         request[Symbol("nonce")] = nonce;
     end
@@ -906,7 +915,7 @@ function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price
     isConditional = (@functions.ccxt_or(stopLossPrice, takeProfitPrice));
     isMarketOrder = (orderType == "MARKET");
     timeInForce = safeStringLower(params, "timeInForce", "gtt");
-    postOnly = self.isPostOnly(isMarketOrder, nothing, params);
+    postOnly = self.isPostOnly(isMarketOrder, nothing, params = params);
     params = omit(params, ["stopLoss", "takeProfit", "timeInForce"]);
     orderTypeNum = nothing;
     timeInForceNum = nothing;
@@ -934,7 +943,7 @@ function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price
             end
         end
     end
-    marketInfo = self.safeDict(market, "info", Dict{Symbol, Any}());
+    marketInfo = self.safeDict(market, "info", defaultValue = Dict{Symbol, Any}());
     amountStr = nothing;
     priceStr = self.priceToPrecision(symbol, price);
     amountScale = self.pow("10", get(marketInfo, Symbol("size_decimals"), nothing));
@@ -971,7 +980,7 @@ function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price
     request[Symbol("base_amount")] = self.parseToInt(stringMul(amountStr, amountScale));
     request[Symbol("avg_execution_price")] = self.parseToInt(stringMul(priceStr, priceScale));
     request[Symbol("trigger_price")] = self.parseToInt(stringMul(triggerPriceStr, priceScale));
-    if functions.ccxtruthy(self.safeBool(self.options, "builderFee", true))
+    if functions.ccxtruthy(self.safeBool(self.options, "builderFee", defaultValue = true))
         request[Symbol("integrator_account_index")] = get(self.options, Symbol("integratorAccountIndex"), nothing);
         request[Symbol("integrator_taker_fee")] = get(self.options, Symbol("integratorTakerFee"), nothing);
         request[Symbol("integrator_maker_fee")] = get(self.options, Symbol("integratorMakerFee"), nothing);
@@ -988,12 +997,12 @@ function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price
         end
         stopLossOrderTriggerPrice = self.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
         stopLossOrderType = safeString(stopLoss, "type", "limit");
-        stopLossOrderLimitPrice = self.safeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
+        stopLossOrderLimitPrice = self.safeNumber2(stopLoss, "price", "stopLossPrice", d = stopLossOrderTriggerPrice);
         takeProfitOrderTriggerPrice = self.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
         takeProfitOrderType = safeString(takeProfit, "type", "limit");
-        takeProfitOrderLimitPrice = self.safeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
+        takeProfitOrderLimitPrice = self.safeNumber2(takeProfit, "price", "takeProfitPrice", d = takeProfitOrderTriggerPrice);
         if functions.ccxtruthy(stopLoss != nothing)
-            orderObj = get(self.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, extend(params, Dict{Symbol, Any}(
+            orderObj = get(self.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, price = stopLossOrderLimitPrice, params = extend(params, Dict{Symbol, Any}(
                 Symbol("stopLossPrice") => stopLossOrderTriggerPrice,
                 Symbol("reduceOnly") => true
             ))), 1, nothing);
@@ -1001,7 +1010,7 @@ function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price
                         push!(orders, orderObj);
         end
         if functions.ccxtruthy(takeProfit != nothing)
-            orderObj = get(self.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, extend(params, Dict{Symbol, Any}(
+            orderObj = get(self.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, price = takeProfitOrderLimitPrice, params = extend(params, Dict{Symbol, Any}(
                 Symbol("takeProfitPrice") => takeProfitOrderTriggerPrice,
                 Symbol("reduceOnly") => true
             ))), 1, nothing);
@@ -1012,7 +1021,7 @@ function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price
     return orders
 
 end
-function fetchNonce(self::Lighter, accountIndex, apiKeyIndex, params=Dict())
+function fetchNonce(self::Lighter, accountIndex, apiKeyIndex; params=Dict())
     if functions.ccxtruthy(@functions.ccxt_or((accountIndex == nothing), (apiKeyIndex == nothing)))
         throw(ArgumentsRequired(string(self.id, " fetchNonce() requires accountIndex and apiKeyIndex.")));
     end
@@ -1024,7 +1033,7 @@ function fetchNonce(self::Lighter, accountIndex, apiKeyIndex, params=Dict())
             return nonceInOptions
     end
     skipNonce = true;
-    (skipNonce, params) = self.handleOptionAndParams(params, "fetchNonce", "skipNonce", true);
+    (skipNonce, params) = self.handleOptionAndParams(params, "fetchNonce", "skipNonce", defaultValue = true);
     if functions.ccxtruthy(skipNonce)
             return milliseconds()
     end
@@ -1035,7 +1044,29 @@ function fetchNonce(self::Lighter, accountIndex, apiKeyIndex, params=Dict())
     return safeInteger(response, "nonce")
 
 end
-function createOrder(self::Lighter, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: 'GTT' or 'IOC', default is 'GTT'
+- `params.clientOrderId`::int, optional: client order id, should be unique for each order, default is a random number
+- `params.triggerPrice`::string, optional: trigger price for stop loss or take profit orders, in units of the quote currency
+- `params.reduceOnly`::bool, optional: whether the order is reduce only, default false
+- `params.nonce`::int, optional: nonce for the account
+- `params.apiKeyIndex`::int, optional: apiKeyIndex
+- `params.accountIndex`::int, optional: accountIndex
+- `params.orderExpiry`::int, optional: orderExpiry
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Lighter, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1044,8 +1075,8 @@ function createOrder(self::Lighter, symbol, type_var, side, amount, price=nothin
     params[Symbol("accountIndex")] = accountIndex;
     market = self.market(symbol);
     groupingType = nothing;
-    (groupingType, params) = self.handleOptionAndParams(params, "createOrder", "groupingType", 3);
-    orderRequests = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    (groupingType, params) = self.handleOptionAndParams(params, "createOrder", "groupingType", defaultValue = 3);
+    orderRequests = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     totalOrderRequests = length(orderRequests);
     apiKeyIndex = nothing;
     order = nothing;
@@ -1055,7 +1086,7 @@ function createOrder(self::Lighter, symbol, type_var, side, amount, price=nothin
     end
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     if functions.ccxtruthy(safeInteger(order, "nonce") == nothing)
         order[Symbol("nonce")] = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex));
     end
@@ -1070,7 +1101,7 @@ function createOrder(self::Lighter, symbol, type_var, side, amount, price=nothin
             Symbol("api_key_index") => apiKeyIndex,
             Symbol("account_index") => accountIndex
         );
-        if functions.ccxtruthy(self.safeBool(self.options, "builderFee", true))
+        if functions.ccxtruthy(self.safeBool(self.options, "builderFee", defaultValue = true))
             signingPayload[Symbol("integrator_account_index")] = get(order, Symbol("integrator_account_index"), nothing);
             signingPayload[Symbol("integrator_taker_fee")] = get(order, Symbol("integrator_taker_fee"), nothing);
             signingPayload[Symbol("integrator_maker_fee")] = get(order, Symbol("integrator_maker_fee"), nothing);
@@ -1082,10 +1113,27 @@ function createOrder(self::Lighter, symbol, type_var, side, amount, price=nothin
         Symbol("tx_info") => txInfo
     );
     response = Base.fetch(self.publicPostSendTx(request));
-    return self.parseOrder(deepExtend(response, order), market)
+    return self.parseOrder(deepExtend(response, order), market = market)
 
 end
-function editOrder(self::Lighter, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+cancels an order and places a new order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Lighter, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1095,9 +1143,9 @@ function editOrder(self::Lighter, id, symbol, type_var, side, amount=nothing, pr
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "editOrder", "accountIndex", "account_index"));
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     market = self.market(symbol);
-    marketInfo = self.safeDict(market, "info", Dict{Symbol, Any}());
+    marketInfo = self.safeDict(market, "info", defaultValue = Dict{Symbol, Any}());
     amountScale = self.pow("10", get(marketInfo, Symbol("size_decimals"), nothing));
     priceScale = self.pow("10", get(marketInfo, Symbol("price_decimals"), nothing));
     triggerPrice = safeStringN(params, ["stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"]);
@@ -1111,7 +1159,7 @@ function editOrder(self::Lighter, id, symbol, type_var, side, amount=nothing, pr
     else
         amountStr = self.amountToPrecision(symbol, amount);
     end
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params));
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = params));
     signRaw = Dict{Symbol, Any}(
         Symbol("market_index") => self.parseToInt(get(market, Symbol("id"), nothing)),
         Symbol("index") => self.parseToInt(id),
@@ -1122,7 +1170,7 @@ function editOrder(self::Lighter, id, symbol, type_var, side, amount=nothing, pr
         Symbol("api_key_index") => apiKeyIndex,
         Symbol("account_index") => accountIndex
     );
-    if functions.ccxtruthy(self.safeBool(self.options, "builderFee", true))
+    if functions.ccxtruthy(self.safeBool(self.options, "builderFee", defaultValue = true))
         signRaw[Symbol("integrator_account_index")] = get(self.options, Symbol("integratorAccountIndex"), nothing);
         signRaw[Symbol("integrator_taker_fee")] = get(self.options, Symbol("integratorTakerFee"), nothing);
         signRaw[Symbol("integrator_maker_fee")] = get(self.options, Symbol("integratorMakerFee"), nothing);
@@ -1133,10 +1181,20 @@ function editOrder(self::Lighter, id, symbol, type_var, side, amount=nothing, pr
         Symbol("tx_info") => txInfo
     );
     response = Base.fetch(self.publicPostSendTx(request));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchStatus(self::Lighter, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://apidocs.lighter.xyz/reference/status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Lighter; params=Dict())
     response = Base.fetch(self.rootGet(params));
     status = safeString(response, "status");
     return Dict{Symbol, Any}(
@@ -1148,15 +1206,35 @@ function fetchStatus(self::Lighter, params=Dict())
 )
 
 end
-function fetchTime(self::Lighter, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://apidocs.lighter.xyz/reference/status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Lighter; params=Dict())
     response = Base.fetch(self.rootGet(params));
     return safeTimestamp(response, "timestamp")
 
 end
-function fetchMarkets(self::Lighter, params=Dict())
+"""
+retrieves data on all markets for lighter
+see: https://apidocs.lighter.xyz/reference/orderbookdetails
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Lighter; params=Dict())
     response = Base.fetch(self.publicGetOrderBookDetails(params));
-    spotMarkets = self.safeList(response, "spot_order_book_details", []);
-    swapMarkets = self.safeList(response, "order_book_details", []);
+    spotMarkets = self.safeList(response, "spot_order_book_details", defaultValue = []);
+    swapMarkets = self.safeList(response, "order_book_details", defaultValue = []);
     markets = arrayConcat(spotMarkets, swapMarkets);
     result = [];
     i = 0
@@ -1180,8 +1258,8 @@ function fetchMarkets(self::Lighter, params=Dict())
         end
         amountDecimals = safeString2(market, "size_decimals", "supported_size_decimals");
         priceDecimals = safeString2(market, "price_decimals", "supported_price_decimals");
-        amountPrecision = functions.ccxtruthy((amountDecimals == nothing)) ? nothing : self.parseNumber(self.parsePrecision(amountDecimals));
-        pricePrecision = functions.ccxtruthy((priceDecimals == nothing)) ? nothing : self.parseNumber(self.parsePrecision(priceDecimals));
+        amountPrecision = functions.ccxtruthy((amountDecimals == nothing)) ? nothing : self.parseNumber(self.parsePrecision(precision = amountDecimals));
+        pricePrecision = functions.ccxtruthy((priceDecimals == nothing)) ? nothing : self.parseNumber(self.parsePrecision(precision = priceDecimals));
         quoteMultiplier = self.safeNumber(market, "quote_multiplier");
         push!(result, Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -1239,12 +1317,22 @@ function fetchMarkets(self::Lighter, params=Dict())
     return result
 
 end
-function fetchCurrencies(self::Lighter, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://apidocs.lighter.xyz/reference/assetdetails
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Lighter; params=Dict())
     response = Base.fetch(self.publicGetAssetDetails(params));
-    if functions.ccxtruthy(self.checkRequiredCredentials(false))
+    if functions.ccxtruthy(self.checkRequiredCredentials(error = false))
         Base.fetch(self.preLoadLighterLibrary());
     end
-    data = self.safeList(response, "asset_details", []);
+    data = self.safeList(response, "asset_details", defaultValue = []);
     return self.parseCurrencies(data)
 
 end
@@ -1284,7 +1372,19 @@ function parseCurrency(self::Lighter, rawCurrency)
 ))
 
 end
-function fetchOrderBook(self::Lighter, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://apidocs.lighter.xyz/reference/orderbookorders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Lighter, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrderBook() requires a symbol argument")));
     end
@@ -1300,13 +1400,13 @@ function fetchOrderBook(self::Lighter, symbol, limit=nothing, params=Dict())
         request[Symbol("limit")] = min(limit, 100);
     end
     response = Base.fetch(self.publicGetOrderBookOrders(extend(request, params)));
-    result = self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), nothing, "bids", "asks", "price", "remaining_base_amount");
+    result = self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "remaining_base_amount");
     return result
 
 end
-function parseTicker(self::Lighter, ticker, market=nothing)
+function parseTicker(self::Lighter, ticker; market=nothing)
     marketId = safeString(ticker, "market_id");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     last_var = safeString(ticker, "last_trade_price");
     high = safeString(ticker, "daily_price_high");
@@ -1339,10 +1439,21 @@ function parseTicker(self::Lighter, ticker, market=nothing)
     Symbol("indexPrice") => safeString(ticker, "index_price"),
     Symbol("openInterest") => openInterest,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Lighter, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://apidocs.lighter.xyz/reference/orderbookdetails
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Lighter, symbol; params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchTicker() requires a symbol argument")));
     end
@@ -1354,30 +1465,56 @@ function fetchTicker(self::Lighter, symbol, params=Dict())
         Symbol("market_id") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetOrderBookDetails(extend(request, params)));
-    spotTickers = self.safeList(response, "spot_order_book_details", []);
-    swapTickers = self.safeList(response, "order_book_details", []);
+    spotTickers = self.safeList(response, "spot_order_book_details", defaultValue = []);
+    swapTickers = self.safeList(response, "order_book_details", defaultValue = []);
     tickers = arrayConcat(spotTickers, swapTickers);
-    first_var = self.safeDict(tickers, 0, Dict{Symbol, Any}());
-    return self.parseTicker(first_var, market)
+    first_var = self.safeDict(tickers, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(first_var, market = market)
 
 end
-function fetchTickers(self::Lighter, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://apidocs.lighter.xyz/reference/orderbookdetails
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Lighter; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetOrderBookDetails(params));
-    spotTickers = self.safeList(response, "spot_order_book_details", []);
-    swapTickers = self.safeList(response, "order_book_details", []);
+    spotTickers = self.safeList(response, "spot_order_book_details", defaultValue = []);
+    swapTickers = self.safeList(response, "order_book_details", defaultValue = []);
     tickers = arrayConcat(spotTickers, swapTickers);
-    return self.parseTickers(tickers, symbols)
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function parseOHLCV(self::Lighter, ohlcv, market=nothing)
+function parseOHLCV(self::Lighter, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "t"), self.safeNumber(ohlcv, "o"), self.safeNumber(ohlcv, "h"), self.safeNumber(ohlcv, "l"), self.safeNumber(ohlcv, "c"), self.safeNumber(ohlcv, "v")]
 
 end
-function fetchOHLCV(self::Lighter, symbol, timeframe="1h", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://apidocs.lighter.xyz/reference/candles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Lighter, symbol; timeframe="1h", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOHLCV() requires a symbol argument")));
     end
@@ -1417,15 +1554,15 @@ function fetchOHLCV(self::Lighter, symbol, timeframe="1h", since=nothing, limit=
         Symbol("end_timestamp") => endTs
     );
     response = Base.fetch(self.publicGetCandles(extend(request, params)));
-    ohlcvs = self.safeList(response, "c", []);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    ohlcvs = self.safeList(response, "c", defaultValue = []);
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseFundingRate(self::Lighter, contract, market=nothing)
+function parseFundingRate(self::Lighter, contract; market=nothing)
     marketId = safeString(contract, "market_id");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("markPrice") => nothing,
     Symbol("indexPrice") => nothing,
     Symbol("interestRate") => nothing,
@@ -1445,12 +1582,23 @@ function parseFundingRate(self::Lighter, contract, market=nothing)
 )
 
 end
-function fetchFundingRates(self::Lighter, symbols=nothing, params=Dict())
+"""
+fetch the current funding rate for multiple symbols
+see: https://apidocs.lighter.xyz/reference/funding-rates
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRates(self::Lighter; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetFundingRates(extend(params)));
-    data = self.safeList(response, "funding_rates", []);
+    data = self.safeList(response, "funding_rates", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -1460,10 +1608,23 @@ function fetchFundingRates(self::Lighter, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    return self.parseFundingRates(result, symbols)
+    return self.parseFundingRates(result, symbols = symbols)
 
 end
-function fetchBalance(self::Lighter, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://apidocs.lighter.xyz/reference/account-1
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.by`::string, optional: fetch balance by 'index' or 'l1_address', defaults to 'index'
+- `params.value`::string, optional: fetch balance value, account index or l1 address
+- `params.type`::string, optional: 'spot', 'swap', default is 'swap'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Lighter; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1479,18 +1640,18 @@ function fetchBalance(self::Lighter, params=Dict())
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    accounts = self.safeList(response, "accounts", []);
+    accounts = self.safeList(response, "accounts", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(accounts)))
         account = get(accounts, i + 1, nothing);
         if functions.ccxtruthy(type_var == "spot")
-            assets = self.safeList(account, "assets", []);
+            assets = self.safeList(account, "assets", defaultValue = []);
             j = 0
             while functions.ccxtruthy(functions.ccxt_lt(j, length(assets)))
                 asset = get(assets, j + 1, nothing);
                 codeId = safeString(asset, "symbol");
                 code = self.safeCurrencyCode(codeId);
-                balance = self.safeDict(result, code, self.account());
+                balance = self.safeDict(result, code, defaultValue = self.account());
                 balance[Symbol("total")] = stringAdd(get(balance, Symbol("total"), nothing), safeString(asset, "balance"));
                 balance[Symbol("used")] = stringAdd(get(balance, Symbol("used"), nothing), safeString(asset, "locked_balance"));
                 if functions.ccxtruthy(code != nothing)
@@ -1500,7 +1661,7 @@ function fetchBalance(self::Lighter, params=Dict())
             end
 
         else
-            perpBalance = self.safeDict(result, "USDC", self.account());
+            perpBalance = self.safeDict(result, "USDC", defaultValue = self.account());
             perpTotal = safeString(perpBalance, "total", "0");
             perpFree = safeString(perpBalance, "free", "0");
             perpUSDCTotal = safeString(account, "collateral", "0");
@@ -1514,12 +1675,38 @@ function fetchBalance(self::Lighter, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchPosition(self::Lighter, symbol, params=Dict())
-    positions = Base.fetch(self.fetchPositions([symbol], params));
-    return self.safeDict(positions, 0, Dict{Symbol, Any}())
+"""
+fetch data on an open position
+see: https://apidocs.lighter.xyz/reference/account-1
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.by`::string, optional: fetch balance by 'index' or 'l1_address', defaults to 'index'
+- `params.value`::string, optional: fetch balance value, account index or l1 address
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Lighter, symbol; params=Dict())
+    positions = Base.fetch(self.fetchPositions(symbols = [symbol], params = params));
+    return self.safeDict(positions, 0, defaultValue = Dict{Symbol, Any}())
 
 end
-function fetchPositions(self::Lighter, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://apidocs.lighter.xyz/reference/account-1
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.by`::string, optional: fetch balance by 'index' or 'l1_address', defaults to 'index'
+- `params.value`::string, optional: fetch balance value, account index or l1 address
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Lighter; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1531,11 +1718,11 @@ function fetchPositions(self::Lighter, symbols=nothing, params=Dict())
     );
     response = Base.fetch(self.publicGetAccount(extend(request, params)));
     allPositions = [];
-    accounts = self.safeList(response, "accounts", []);
+    accounts = self.safeList(response, "accounts", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(accounts)))
         account = get(accounts, i + 1, nothing);
-        positions = self.safeList(account, "positions", []);
+        positions = self.safeList(account, "positions", defaultValue = []);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(positions)))
             push!(allPositions, get(positions, j + 1, nothing));
@@ -1543,12 +1730,12 @@ function fetchPositions(self::Lighter, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    return self.parsePositions(allPositions, symbols)
+    return self.parsePositions(allPositions, symbols = symbols)
 
 end
-function parsePosition(self::Lighter, position, market=nothing)
+function parsePosition(self::Lighter, position; market=nothing)
     marketId = safeString(position, "market_id");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     sign_var = safeInteger(position, "sign");
     side = nothing;
     if functions.ccxtruthy(sign_var != nothing)
@@ -1594,7 +1781,19 @@ function parsePosition(self::Lighter, position, market=nothing)
 ))
 
 end
-function fetchAccounts(self::Lighter, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://apidocs.lighter.xyz/reference/account-1
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.by`::string, optional: fetch balance by 'index' or 'l1_address', defaults to 'index'
+- `params.value`::string, optional: fetch balance value, account index or l1 address
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
+"""
+function fetchAccounts(self::Lighter; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1605,8 +1804,8 @@ function fetchAccounts(self::Lighter, params=Dict())
         Symbol("value") => accountIndex
     );
     response = Base.fetch(self.publicGetAccount(extend(request, params)));
-    accounts = self.safeList(response, "accounts", []);
-    return self.parseAccounts(accounts, params)
+    accounts = self.safeList(response, "accounts", defaultValue = []);
+    return self.parseAccounts(accounts, params = params)
 
 end
 function parseAccount(self::Lighter, account)
@@ -1619,7 +1818,21 @@ function parseAccount(self::Lighter, account)
 )
 
 end
-function fetchOpenOrders(self::Lighter, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://apidocs.lighter.xyz/reference/accountactiveorders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Lighter; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument")));
     end
@@ -1632,18 +1845,32 @@ function fetchOpenOrders(self::Lighter, symbol=nothing, since=nothing, limit=not
     (apiKeyIndex, params) = self.handleApiKeyIndex(params, "fetchOpenOrders", "apiKeyIndex", "api_key_index");
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market_id") => get(market, Symbol("id"), nothing),
         Symbol("account_index") => accountIndex
     );
     response = Base.fetch(self.privateGetAccountActiveOrders(extend(request, params)));
-    data = self.safeList(response, "orders", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "orders", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Lighter, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently closed orders
+see: https://apidocs.lighter.xyz/reference/accountinactiveorders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Lighter; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchClosedOrders() requires a symbol argument")));
     end
@@ -1656,7 +1883,7 @@ function fetchClosedOrders(self::Lighter, symbol=nothing, since=nothing, limit=n
     (apiKeyIndex, params) = self.handleApiKeyIndex(params, "fetchClosedOrders", "apiKeyIndex", "api_key_index");
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market_id") => get(market, Symbol("id"), nothing),
@@ -1667,13 +1894,13 @@ function fetchClosedOrders(self::Lighter, symbol=nothing, since=nothing, limit=n
         request[Symbol("limit")] = min(limit, 100);
     end
     response = Base.fetch(self.privateGetAccountInactiveOrders(extend(request, params)));
-    data = self.safeList(response, "orders", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "orders", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function parseOrder(self::Lighter, order, market=nothing)
+function parseOrder(self::Lighter, order; market=nothing)
     marketId = safeString(order, "market_index");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeTimestamp(order, "timestamp");
     isAsk = self.safeBool(order, "is_ask");
     if functions.ccxtruthy(isAsk == nothing)
@@ -1743,7 +1970,7 @@ function parseOrder(self::Lighter, order, market=nothing)
     Symbol("status") => self.parseOrderStatus(status),
     Symbol("fee") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Lighter, status)
@@ -1820,7 +2047,24 @@ function parseOrderTimeInForceInteger(self::Lighter, tifInteger)
     return safeString(timeInForces, string(tifInteger))
 
 end
-function transfer(self::Lighter, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from (spot, perp)
+- `toAccount`::string: account to transfer to (spot, perp)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.toAccountIndex`::string, optional: to account index, defaults to fromAccountIndex
+- `params.apiKeyIndex`::string, optional: api key index
+- `params.memo`::string, optional: hex encoding memo
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Lighter, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1829,10 +2073,10 @@ function transfer(self::Lighter, code, amount, fromAccount, toAccount, params=Di
     accountIndex = nothing;
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "transfer", "accountIndex", "account_index"));
     toAccountIndex = nothing;
-    (toAccountIndex, params) = self.handleOptionAndParams2(params, "transfer", "toAccountIndex", "to_account_index", accountIndex);
+    (toAccountIndex, params) = self.handleOptionAndParams2(params, "transfer", "toAccountIndex", "to_account_index", defaultValue = accountIndex);
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     currency = self.currency(code);
     if functions.ccxtruthy(get(currency, Symbol("code"), nothing) == "USDC")
         amount = self.parseToInt(stringMul(self.pow("10", "6"), self.currencyToPrecision(code, amount)));
@@ -1845,7 +2089,7 @@ function transfer(self::Lighter, code, amount, fromAccount, toAccount, params=Di
     toRouteType = functions.ccxtruthy((toAccount == "perp")) ? 0 : 1;
     memo = safeString(params, "memo", "0x000000000000000000000000000000");
     params = omit(params, ["memo"]);
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params));
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = params));
     signRaw = Dict{Symbol, Any}(
         Symbol("to_account_index") => toAccountIndex,
         Symbol("asset_index") => self.parseToInt(get(currency, Symbol("id"), nothing)),
@@ -1867,14 +2111,29 @@ function transfer(self::Lighter, code, amount, fromAccount, toAccount, params=Di
     return self.parseTransfer(response)
 
 end
-function fetchTransfers(self::Lighter, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://apidocs.lighter.xyz/reference/transfer_history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Lighter; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransfers", symbol = code, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     accountIndex = nothing;
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "fetchTransfers", "accountIndex", "account_index"));
@@ -1885,27 +2144,27 @@ function fetchTransfers(self::Lighter, code=nothing, since=nothing, limit=nothin
     (apiKeyIndex, params) = self.handleApiKeyIndex(params, "fetchTransfers", "apiKeyIndex", "api_key_index");
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
     response = Base.fetch(self.privateGetTransferHistory(extend(request, params)));
-    rows = self.safeList(response, "transfers", []);
+    rows = self.safeList(response, "transfers", defaultValue = []);
     cursor = safeString(response, "cursor");
     first_var = self.safeDict(rows, 0);
     if functions.ccxtruthy(@functions.ccxt_and((first_var != nothing), (cursor != nothing)))
         rows[1][Symbol("cursor")] = cursor;
     end
-    return self.parseTransfers(rows, currency, since, limit, params)
+    return self.parseTransfers(rows, currency = currency, since = since, limit = limit, params = params)
 
 end
-function parseTransfer(self::Lighter, transfer, currency=nothing)
+function parseTransfer(self::Lighter, transfer; currency=nothing)
     currencyId = safeString(transfer, "asset_id");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeInteger(transfer, "timestamp");
-    fromAccount = self.safeDict(transfer, "from", Dict{Symbol, Any}());
-    toAccount = self.safeDict(transfer, "to", Dict{Symbol, Any}());
+    fromAccount = self.safeDict(transfer, "from", defaultValue = Dict{Symbol, Any}());
+    toAccount = self.safeDict(transfer, "to", defaultValue = Dict{Symbol, Any}());
     return Dict{Symbol, Any}(
     Symbol("id") => safeString(transfer, "id"),
     Symbol("timestamp") => timestamp,
@@ -1919,14 +2178,30 @@ function parseTransfer(self::Lighter, transfer, currency=nothing)
 )
 
 end
-function fetchDeposits(self::Lighter, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://apidocs.lighter.xyz/reference/deposit_history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.address`::string, optional: l1_address
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Lighter; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "cursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", symbol = code, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     address = nothing;
     (address, params) = self.handleOptionAndParams2(params, "fetchDeposits", "address", "l1_address");
@@ -1943,27 +2218,42 @@ function fetchDeposits(self::Lighter, code=nothing, since=nothing, limit=nothing
     (apiKeyIndex, params) = self.handleApiKeyIndex(params, "fetchDeposits", "apiKeyIndex", "api_key_index");
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
         request[Symbol("coin")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetDepositHistory(extend(request, params)));
-    data = self.safeList(response, "deposits", []);
+    data = self.safeList(response, "deposits", defaultValue = []);
     cursor = safeString(response, "cursor");
     first_var = self.safeDict(data, 0);
     if functions.ccxtruthy(@functions.ccxt_and((first_var != nothing), (cursor != nothing)))
         data[1][Symbol("cursor")] = cursor;
     end
-    return self.parseTransactions(data, currency, since, limit)
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Lighter, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://apidocs.lighter.xyz/reference/withdraw_history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Lighter; code=nothing, since=nothing, limit=nothing, params=Dict())
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", symbol = code, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     accountIndex = nothing;
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "fetchWithdrawals", "accountIndex", "account_index"));
@@ -1977,23 +2267,23 @@ function fetchWithdrawals(self::Lighter, code=nothing, since=nothing, limit=noth
     (apiKeyIndex, params) = self.handleApiKeyIndex(params, "fetchWithdrawals", "apiKeyIndex", "api_key_index");
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
         request[Symbol("coin")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetWithdrawHistory(extend(request, params)));
-    data = self.safeList(response, "withdraws", []);
+    data = self.safeList(response, "withdraws", defaultValue = []);
     cursor = safeString(response, "cursor");
     first_var = self.safeDict(data, 0);
     if functions.ccxtruthy(@functions.ccxt_and((first_var != nothing), (cursor != nothing)))
         data[1][Symbol("cursor")] = cursor;
     end
-    return self.parseTransactions(data, currency, since, limit)
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Lighter, transaction, currency=nothing)
+function parseTransaction(self::Lighter, transaction; currency=nothing)
     type_var = safeString(transaction, "type");
     if functions.ccxtruthy(type_var == nothing)
         type_var = "deposit";
@@ -2007,7 +2297,7 @@ function parseTransaction(self::Lighter, transaction, currency=nothing)
     Symbol("id") => safeString(transaction, "id"),
     Symbol("txid") => safeString(transaction, "l1_tx_hash"),
     Symbol("type") => type_var,
-    Symbol("currency") => self.safeCurrencyCode(safeString(transaction, "asset_id"), currency),
+    Symbol("currency") => self.safeCurrencyCode(safeString(transaction, "asset_id"), currency = currency),
     Symbol("network") => nothing,
     Symbol("amount") => self.safeNumber(transaction, "amount"),
     Symbol("status") => self.parseTransactionStatus(status),
@@ -2036,7 +2326,23 @@ function parseTransactionStatus(self::Lighter, status)
     return safeString(statuses, status, status)
 
 end
-function withdraw(self::Lighter, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string, optional:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+- `params.routeType`::int, optional: wallet type, 0: perp, 1: spot, default is 0
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Lighter, code, amount, address; tag=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2046,7 +2352,7 @@ function withdraw(self::Lighter, code, amount, address, tag=nothing, params=Dict
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "withdraw", "accountIndex", "account_index"));
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     currency = self.currency(code);
     if functions.ccxtruthy(get(currency, Symbol("code"), nothing) == "USDC")
         amount = self.parseToInt(stringMul(self.pow("10", "6"), self.currencyToPrecision(code, amount)));
@@ -2057,7 +2363,7 @@ function withdraw(self::Lighter, code, amount, address, tag=nothing, params=Dict
     end
     routeType = safeInteger(params, "routeType", 0);
     params = omit(params, "routeType");
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params));
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = params));
     signRaw = Dict{Symbol, Any}(
         Symbol("asset_index") => self.parseToInt(get(currency, Symbol("id"), nothing)),
         Symbol("route_type") => routeType,
@@ -2075,14 +2381,30 @@ function withdraw(self::Lighter, code, amount, address, tag=nothing, params=Dict
     return self.parseTransaction(response)
 
 end
-function fetchMyTrades(self::Lighter, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://apidocs.lighter.xyz/reference/trades
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Lighter; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "next_cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     accountIndex = nothing;
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "fetchMyTrades", "accountIndex", "account_index"));
@@ -2090,7 +2412,7 @@ function fetchMyTrades(self::Lighter, symbol=nothing, since=nothing, limit=nothi
     (apiKeyIndex, params) = self.handleApiKeyIndex(params, "fetchMyTrades", "apiKeyIndex", "api_key_index");
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     request = Dict{Symbol, Any}(
         Symbol("sort_by") => "timestamp",
         Symbol("limit") => 100,
@@ -2110,7 +2432,7 @@ function fetchMyTrades(self::Lighter, symbol=nothing, since=nothing, limit=nothi
         request[Symbol("market_id")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetTrades(extend(request, params)));
-    data = self.safeList(response, "trades", []);
+    data = self.safeList(response, "trades", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         data[i + 1][Symbol("account_index")] = accountIndex;
@@ -2121,12 +2443,12 @@ function fetchMyTrades(self::Lighter, symbol=nothing, since=nothing, limit=nothi
     if functions.ccxtruthy(@functions.ccxt_and((first_var != nothing), (nextCursor != nothing)))
         data[1][Symbol("next_cursor")] = nextCursor;
     end
-    return self.parseTrades(data, market, since, limit, params)
+    return self.parseTrades(data, market = market, since = since, limit = limit, params = params)
 
 end
-function parseTrade(self::Lighter, trade, market=nothing)
+function parseTrade(self::Lighter, trade; market=nothing)
     marketId = safeString(trade, "market_id");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(trade, "timestamp");
     accountIndex = safeString(trade, "account_index");
     askAccountId = safeString(trade, "ask_account_id");
@@ -2162,10 +2484,24 @@ function parseTrade(self::Lighter, trade, market=nothing)
     Symbol("amount") => safeString(trade, "size"),
     Symbol("cost") => safeString(trade, "usd_amount"),
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function setLeverage(self::Lighter, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+- `params.marginMode`::string, optional: margin mode, 'cross' or 'isolated'
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Lighter, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -2174,10 +2510,24 @@ function setLeverage(self::Lighter, leverage, symbol=nothing, params=Dict())
     if functions.ccxtruthy(marginMode == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires an marginMode parameter")));
     end
-    return Base.fetch(self.modifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
+    return Base.fetch(self.modifyLeverageAndMarginMode(leverage, marginMode, symbol = symbol, params = params))
 
 end
-function setMarginMode(self::Lighter, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+- `params.leverage`::int, optional: required leverage
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Lighter, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(marginMode == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires an marginMode parameter")));
     end
@@ -2186,10 +2536,10 @@ function setMarginMode(self::Lighter, marginMode, symbol=nothing, params=Dict())
     if functions.ccxtruthy(leverage == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires an leverage parameter")));
     end
-    return Base.fetch(self.modifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
+    return Base.fetch(self.modifyLeverageAndMarginMode(leverage, marginMode, symbol = symbol, params = params))
 
 end
-function modifyLeverageAndMarginMode(self::Lighter, leverage, marginMode, symbol=nothing, params=Dict())
+function modifyLeverageAndMarginMode(self::Lighter, leverage, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2205,9 +2555,9 @@ function modifyLeverageAndMarginMode(self::Lighter, leverage, marginMode, symbol
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "modifyLeverageAndMarginMode", "accountIndex", "account_index"));
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     market = self.market(symbol);
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params));
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = params));
     signRaw = Dict{Symbol, Any}(
         Symbol("market_index") => self.parseToInt(get(market, Symbol("id"), nothing)),
         Symbol("initial_margin_fraction") => self.parseToInt(10000 / leverage),
@@ -2224,7 +2574,20 @@ function modifyLeverageAndMarginMode(self::Lighter, leverage, marginMode, symbol
     return Base.fetch(self.publicPostSendTx(request))
 
 end
-function cancelOrder(self::Lighter, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Lighter, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2240,8 +2603,8 @@ function cancelOrder(self::Lighter, id, symbol=nothing, params=Dict())
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "cancelOrder", "accountIndex", "account_index"));
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params));
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = params));
     signRaw = Dict{Symbol, Any}(
         Symbol("market_index") => self.parseToInt(get(market, Symbol("id"), nothing)),
         Symbol("nonce") => nonce,
@@ -2261,10 +2624,22 @@ function cancelOrder(self::Lighter, id, symbol=nothing, params=Dict())
         Symbol("tx_info") => txInfo
     );
     response = Base.fetch(self.publicPostSendTx(request));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelAllOrders(self::Lighter, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Lighter; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2274,8 +2649,8 @@ function cancelAllOrders(self::Lighter, symbol=nothing, params=Dict())
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "cancelAllOrders", "accountIndex", "account_index"));
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params));
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = params));
     signRaw = Dict{Symbol, Any}(
         Symbol("time_in_force") => 0,
         Symbol("time") => 0,
@@ -2292,7 +2667,17 @@ function cancelAllOrders(self::Lighter, symbol=nothing, params=Dict())
     return self.parseOrders([response])
 
 end
-function cancelAllOrdersAfter(self::Lighter, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Lighter, timeout; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2305,8 +2690,8 @@ function cancelAllOrdersAfter(self::Lighter, timeout, params=Dict())
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "cancelAllOrdersAfter", "accountIndex", "account_index"));
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params));
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = params));
     signRaw = Dict{Symbol, Any}(
         Symbol("time_in_force") => 1,
         Symbol("time") => milliseconds() + timeout,
@@ -2323,21 +2708,56 @@ function cancelAllOrdersAfter(self::Lighter, timeout, params=Dict())
     return response
 
 end
-function addMargin(self::Lighter, symbol, amount, params=Dict())
+"""
+add margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+"""
+function addMargin(self::Lighter, symbol, amount; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("direction") => 1
     );
-    return Base.fetch(self.setMargin(symbol, amount, extend(request, params)))
+    return Base.fetch(self.setMargin(symbol, amount, params = extend(request, params)))
 
 end
-function reduceMargin(self::Lighter, symbol, amount, params=Dict())
+"""
+remove margin from a position
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+"""
+function reduceMargin(self::Lighter, symbol, amount; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("direction") => 0
     );
-    return Base.fetch(self.setMargin(symbol, amount, extend(request, params)))
+    return Base.fetch(self.setMargin(symbol, amount, params = extend(request, params)))
 
 end
-function setMargin(self::Lighter, symbol, amount, params=Dict())
+"""
+Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to set margin in
+- `amount`::float: the amount to set the margin to
+- `params`::object, optional: parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+
+# Returns
+- A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+"""
+function setMargin(self::Lighter, symbol, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2357,9 +2777,9 @@ function setMargin(self::Lighter, symbol, amount, params=Dict())
     (accountIndex, params) = Base.fetch(self.handleAccountIndex(params, "setMargin", "accountIndex", "account_index"));
     strAccountIndex = numberToString(accountIndex);
     strApiKeyIndex = numberToString(apiKeyIndex);
-    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params));
+    signer = Base.fetch(self.loadAccount(get(self.options, Symbol("chainId"), nothing), self.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params = params));
     market = self.market(symbol);
-    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params));
+    nonce = Base.fetch(self.fetchNonce(accountIndex, apiKeyIndex, params = params));
     signRaw = Dict{Symbol, Any}(
         Symbol("market_index") => self.parseToInt(get(market, Symbol("id"), nothing)),
         Symbol("usdc_amount") => self.parseToInt(stringMul(self.pow("10", "6"), self.currencyToPrecision("USDC", amount))),
@@ -2374,10 +2794,10 @@ function setMargin(self::Lighter, symbol, amount, params=Dict())
         Symbol("tx_info") => txInfo
     );
     response = Base.fetch(self.publicPostSendTx(request));
-    return self.parseMarginModification(response, market)
+    return self.parseMarginModification(response, market = market)
 
 end
-function parseMarginModification(self::Lighter, data, market=nothing)
+function parseMarginModification(self::Lighter, data; market=nothing)
     timestamp = safeInteger(data, "predicted_execution_time_ms");
     return Dict{Symbol, Any}(
     Symbol("info") => data,
@@ -2393,7 +2813,7 @@ function parseMarginModification(self::Lighter, data, market=nothing)
 )
 
 end
-function sign(self::Lighter, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Lighter, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = nothing;
     if functions.ccxtruthy(api == "root")
         url = self.implodeHostname(get(get(self.urls, Symbol("api"), nothing), Symbol("public"), nothing));
@@ -2402,7 +2822,7 @@ function sign(self::Lighter, path, api="public", method="GET", params=Dict(), he
     end
     if functions.ccxtruthy(api == "private")
         headers = Dict{Symbol, Any}(
-            Symbol("Authorization") => self.createAuth(params)
+            Symbol("Authorization") => self.createAuth(params = params)
         );
     end
     if functions.ccxtruthy(length(objectKeys(params)))
@@ -2445,187 +2865,187 @@ Base.getproperty(self::Lighter, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function rootGet(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "", "root", "GET", params, nothing, nothing, Dict())
+    return request(self, ""; api="root", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function rootGetInfo(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "info", "root", "GET", params, nothing, nothing, Dict())
+    return request(self, "info"; api="root", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccount(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "account", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccountsByL1Address(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountsByL1Address", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "accountsByL1Address"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApikeys(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "apikeys", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "apikeys"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetExchangeStats(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "exchangeStats", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchangeStats"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetDetails(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "assetDetails", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "assetDetails"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderBookDetails(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "orderBookDetails", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderBookDetails"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderBookOrders(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "orderBookOrders", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderBookOrders"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderBooks(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "orderBooks", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderBooks"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRecentTrades(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "recentTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "recentTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetBlockTxs(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "blockTxs", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "blockTxs"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetNextNonce(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "nextNonce", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "nextNonce"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTx(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "tx", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tx"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTxFromL1TxHash(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "txFromL1TxHash", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "txFromL1TxHash"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTxs(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "txs", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "txs"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAnnouncement(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "announcement", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "announcement"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetBlock(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "block", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "block"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetBlocks(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "blocks", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "blocks"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrentHeight(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "currentHeight", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currentHeight"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandles(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFundings(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "fundings", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "fundings"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFastbridgeInfo(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "fastbridge/info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "fastbridge/info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFundingRates(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "funding-rates", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding-rates"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetWithdrawalDelay(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "withdrawalDelay", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawalDelay"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostSendTx(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "sendTx", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "sendTx"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostSendTxBatch(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "sendTxBatch", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "sendTxBatch"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountLimits(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountLimits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accountLimits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountMetadata(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountMetadata", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accountMetadata"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPnl(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "pnl", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "pnl"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetL1Metadata(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "l1Metadata", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "l1Metadata"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLiquidations(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "liquidations", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "liquidations"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPositionFunding(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "positionFunding", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "positionFunding"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPublicPoolsMetadata(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "publicPoolsMetadata", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "publicPoolsMetadata"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountActiveOrders(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountActiveOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accountActiveOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountInactiveOrders(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountInactiveOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accountInactiveOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExport(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "export", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "export"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTrades(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountTxs(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountTxs", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accountTxs"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDepositHistory(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "deposit/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransferHistory(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "transfer/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfer/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawHistory(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "withdraw/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraw/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetReferralPoints(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "referral/points", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "referral/points"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransferFeeInfo(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "transferFeeInfo", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transferFeeInfo"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostChangeAccountTier(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "changeAccountTier", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "changeAccountTier"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostNotificationAck(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "notification/ack", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "notification/ack"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Lighter(; kwargs...)
@@ -2689,3 +3109,521 @@ function Lighter(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Lighter_preLoadLighterLibrary() end
+"""
+if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- true if the signer was loaded, false otherwise
+"""
+__ccxt_doc_Lighter_preLoadLighterLibrary
+
+function __ccxt_doc_Lighter_createOrder() end
+"""
+create a trade order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: 'GTT' or 'IOC', default is 'GTT'
+- `params.clientOrderId`::int, optional: client order id, should be unique for each order, default is a random number
+- `params.triggerPrice`::string, optional: trigger price for stop loss or take profit orders, in units of the quote currency
+- `params.reduceOnly`::bool, optional: whether the order is reduce only, default false
+- `params.nonce`::int, optional: nonce for the account
+- `params.apiKeyIndex`::int, optional: apiKeyIndex
+- `params.accountIndex`::int, optional: accountIndex
+- `params.orderExpiry`::int, optional: orderExpiry
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lighter_createOrder
+
+function __ccxt_doc_Lighter_editOrder() end
+"""
+cancels an order and places a new order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lighter_editOrder
+
+function __ccxt_doc_Lighter_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://apidocs.lighter.xyz/reference/status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Lighter_fetchStatus
+
+function __ccxt_doc_Lighter_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://apidocs.lighter.xyz/reference/status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Lighter_fetchTime
+
+function __ccxt_doc_Lighter_fetchMarkets() end
+"""
+retrieves data on all markets for lighter
+see: https://apidocs.lighter.xyz/reference/orderbookdetails
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Lighter_fetchMarkets
+
+function __ccxt_doc_Lighter_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://apidocs.lighter.xyz/reference/assetdetails
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Lighter_fetchCurrencies
+
+function __ccxt_doc_Lighter_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://apidocs.lighter.xyz/reference/orderbookorders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Lighter_fetchOrderBook
+
+function __ccxt_doc_Lighter_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://apidocs.lighter.xyz/reference/orderbookdetails
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Lighter_fetchTicker
+
+function __ccxt_doc_Lighter_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://apidocs.lighter.xyz/reference/orderbookdetails
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Lighter_fetchTickers
+
+function __ccxt_doc_Lighter_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://apidocs.lighter.xyz/reference/candles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Lighter_fetchOHLCV
+
+function __ccxt_doc_Lighter_fetchFundingRates() end
+"""
+fetch the current funding rate for multiple symbols
+see: https://apidocs.lighter.xyz/reference/funding-rates
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Lighter_fetchFundingRates
+
+function __ccxt_doc_Lighter_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://apidocs.lighter.xyz/reference/account-1
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.by`::string, optional: fetch balance by 'index' or 'l1_address', defaults to 'index'
+- `params.value`::string, optional: fetch balance value, account index or l1 address
+- `params.type`::string, optional: 'spot', 'swap', default is 'swap'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Lighter_fetchBalance
+
+function __ccxt_doc_Lighter_fetchPosition() end
+"""
+fetch data on an open position
+see: https://apidocs.lighter.xyz/reference/account-1
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.by`::string, optional: fetch balance by 'index' or 'l1_address', defaults to 'index'
+- `params.value`::string, optional: fetch balance value, account index or l1 address
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Lighter_fetchPosition
+
+function __ccxt_doc_Lighter_fetchPositions() end
+"""
+fetch all open positions
+see: https://apidocs.lighter.xyz/reference/account-1
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.by`::string, optional: fetch balance by 'index' or 'l1_address', defaults to 'index'
+- `params.value`::string, optional: fetch balance value, account index or l1 address
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Lighter_fetchPositions
+
+function __ccxt_doc_Lighter_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://apidocs.lighter.xyz/reference/account-1
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.by`::string, optional: fetch balance by 'index' or 'l1_address', defaults to 'index'
+- `params.value`::string, optional: fetch balance value, account index or l1 address
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
+"""
+__ccxt_doc_Lighter_fetchAccounts
+
+function __ccxt_doc_Lighter_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://apidocs.lighter.xyz/reference/accountactiveorders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lighter_fetchOpenOrders
+
+function __ccxt_doc_Lighter_fetchClosedOrders() end
+"""
+fetch all unfilled currently closed orders
+see: https://apidocs.lighter.xyz/reference/accountinactiveorders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lighter_fetchClosedOrders
+
+function __ccxt_doc_Lighter_transfer() end
+"""
+transfer currency internally between wallets on the same account
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from (spot, perp)
+- `toAccount`::string: account to transfer to (spot, perp)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.toAccountIndex`::string, optional: to account index, defaults to fromAccountIndex
+- `params.apiKeyIndex`::string, optional: api key index
+- `params.memo`::string, optional: hex encoding memo
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Lighter_transfer
+
+function __ccxt_doc_Lighter_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://apidocs.lighter.xyz/reference/transfer_history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Lighter_fetchTransfers
+
+function __ccxt_doc_Lighter_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://apidocs.lighter.xyz/reference/deposit_history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.address`::string, optional: l1_address
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Lighter_fetchDeposits
+
+function __ccxt_doc_Lighter_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://apidocs.lighter.xyz/reference/withdraw_history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Lighter_fetchWithdrawals
+
+function __ccxt_doc_Lighter_withdraw() end
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string, optional:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+- `params.routeType`::int, optional: wallet type, 0: perp, 1: spot, default is 0
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Lighter_withdraw
+
+function __ccxt_doc_Lighter_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://apidocs.lighter.xyz/reference/trades
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Lighter_fetchMyTrades
+
+function __ccxt_doc_Lighter_setLeverage() end
+"""
+set the level of leverage for a market
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+- `params.marginMode`::string, optional: margin mode, 'cross' or 'isolated'
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Lighter_setLeverage
+
+function __ccxt_doc_Lighter_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+- `params.leverage`::int, optional: required leverage
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Lighter_setMarginMode
+
+function __ccxt_doc_Lighter_cancelOrder() end
+"""
+cancels an open order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lighter_cancelOrder
+
+function __ccxt_doc_Lighter_cancelAllOrders() end
+"""
+cancel all open orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lighter_cancelAllOrders
+
+function __ccxt_doc_Lighter_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Lighter_cancelAllOrdersAfter
+
+function __ccxt_doc_Lighter_addMargin() end
+"""
+add margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+"""
+__ccxt_doc_Lighter_addMargin
+
+function __ccxt_doc_Lighter_reduceMargin() end
+"""
+remove margin from a position
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+"""
+__ccxt_doc_Lighter_reduceMargin
+
+function __ccxt_doc_Lighter_setMargin() end
+"""
+Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to set margin in
+- `amount`::float: the amount to set the margin to
+- `params`::object, optional: parameters specific to the exchange API endpoint
+- `params.accountIndex`::string, optional: account index
+- `params.apiKeyIndex`::string, optional: api key index
+
+# Returns
+- A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+"""
+__ccxt_doc_Lighter_setMargin

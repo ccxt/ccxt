@@ -367,7 +367,17 @@ function describe(self::Bitbank, )
 ))
 
 end
-function fetchMarkets(self::Bitbank, params=Dict())
+"""
+retrieves data on all markets for bitbank
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitbank; params=Dict())
     response = Base.fetch(self.marketsGetSpotPairs(params));
     data = safeValue(response, "data");
     pairs_var = safeValue(data, "pairs", []);
@@ -380,7 +390,7 @@ function parseMarket(self::Bitbank, entry)
     quoteId = safeString(entry, "quote_asset");
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -407,8 +417,8 @@ function parseMarket(self::Bitbank, entry)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(entry, "amount_digits"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(entry, "price_digits")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(entry, "amount_digits"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(entry, "price_digits")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -433,8 +443,8 @@ function parseMarket(self::Bitbank, entry)
 ))
 
 end
-function parseTicker(self::Bitbank, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Bitbank, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     timestamp = safeInteger(ticker, "timestamp");
     last_var = safeString(ticker, "last");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -458,10 +468,21 @@ function parseTicker(self::Bitbank, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "vol"),
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bitbank, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bitbank, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -470,11 +491,23 @@ function fetchTicker(self::Bitbank, symbol, params=Dict())
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetPairTicker(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTicker(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(data, market = market)
 
 end
-function fetchOrderBook(self::Bitbank, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitbank, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -485,12 +518,12 @@ function fetchOrderBook(self::Bitbank, symbol, limit=nothing, params=Dict())
     response = Base.fetch(self.publicGetPairDepth(extend(request, params)));
     orderbook = safeValue(response, "data", Dict{Symbol, Any}());
     timestamp = safeInteger(orderbook, "timestamp");
-    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp)
+    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = timestamp)
 
 end
-function parseTrade(self::Bitbank, trade, market=nothing)
+function parseTrade(self::Bitbank, trade; market=nothing)
     timestamp = safeInteger(trade, "executed_at");
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     priceString = safeString(trade, "price");
     amountString = safeString(trade, "amount");
     id = safeString2(trade, "transaction_id", "trade_id");
@@ -520,10 +553,23 @@ function parseTrade(self::Bitbank, trade, market=nothing)
     Symbol("cost") => nothing,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bitbank, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#transactions
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bitbank, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -533,11 +579,21 @@ function fetchTrades(self::Bitbank, symbol, since=nothing, limit=nothing, params
     );
     response = Base.fetch(self.publicGetPairTransactions(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    trades = self.safeList(data, "transactions", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(data, "transactions", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFees(self::Bitbank, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Bitbank; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -549,7 +605,7 @@ function fetchTradingFees(self::Bitbank, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(pairs_var)))
         pair = get(pairs_var, i + 1, nothing);
         marketId = safeString(pair, "name");
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
         symbol = get(market, Symbol("symbol"), nothing);
         result[Symbol(symbol)] = Dict{Symbol, Any}(
             Symbol("info") => pair,
@@ -564,11 +620,25 @@ function fetchTradingFees(self::Bitbank, params=Dict())
     return result
 
 end
-function parseOHLCV(self::Bitbank, ohlcv, market=nothing)
+function parseOHLCV(self::Bitbank, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 5), self.safeNumber(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4)]
 
 end
-function fetchOHLCV(self::Bitbank, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#candlestick
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bitbank, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(since == nothing)
         if functions.ccxtruthy(limit == nothing)
             limit = 1000;
@@ -589,8 +659,8 @@ function fetchOHLCV(self::Bitbank, symbol, timeframe="1m", since=nothing, limit=
     data = safeValue(response, "data", Dict{Symbol, Any}());
     candlestick = safeValue(data, "candlestick", []);
     first_var = safeValue(candlestick, 0, Dict{Symbol, Any}());
-    ohlcv = self.safeList(first_var, "ohlcv", []);
-    return self.parseOHLCVs(ohlcv, market, timeframe, since, limit)
+    ohlcv = self.safeList(first_var, "ohlcv", defaultValue = []);
+    return self.parseOHLCVs(ohlcv, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
 function parseBalance(self::Bitbank, response)
@@ -618,7 +688,17 @@ function parseBalance(self::Bitbank, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bitbank, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bitbank; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -637,10 +717,10 @@ function parseOrderStatus(self::Bitbank, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Bitbank, order, market=nothing)
+function parseOrder(self::Bitbank, order; market=nothing)
     id = safeString(order, "order_id");
     marketId = safeString(order, "pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(order, "ordered_at");
     price = safeString(order, "price");
     amount = safeString(order, "start_amount");
@@ -672,10 +752,25 @@ function parseOrder(self::Bitbank, order, market=nothing)
     Symbol("trades") => nothing,
     Symbol("fee") => nothing,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
-function createOrder(self::Bitbank, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#create-new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bitbank, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -691,10 +786,22 @@ function createOrder(self::Bitbank, symbol, type_var, side, amount, price=nothin
     end
     response = Base.fetch(self.privatePostUserSpotOrder(extend(request, params)));
     data = self.safeDict(response, "data");
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function cancelOrder(self::Bitbank, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bitbank, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -708,7 +815,19 @@ function cancelOrder(self::Bitbank, id, symbol=nothing, params=Dict())
     return self.parseOrder(data)
 
 end
-function fetchOrder(self::Bitbank, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bitbank, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -719,10 +838,23 @@ function fetchOrder(self::Bitbank, id, symbol=nothing, params=Dict())
     );
     response = Base.fetch(self.privateGetUserSpotOrder(extend(request, params)));
     data = self.safeDict(response, "data");
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function fetchOpenOrders(self::Bitbank, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-active-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bitbank; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -738,11 +870,24 @@ function fetchOpenOrders(self::Bitbank, symbol=nothing, since=nothing, limit=not
     end
     response = Base.fetch(self.privateGetUserSpotActiveOrders(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(data, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Bitbank, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bitbank; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -760,11 +905,22 @@ function fetchMyTrades(self::Bitbank, symbol=nothing, since=nothing, limit=nothi
     end
     response = Base.fetch(self.privateGetUserSpotTradeHistory(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    trades = self.safeList(data, "trades", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(data, "trades", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchDepositAddress(self::Bitbank, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-withdrawal-accounts
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bitbank, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -786,7 +942,21 @@ function fetchDepositAddress(self::Bitbank, code, params=Dict())
 )
 
 end
-function withdraw(self::Bitbank, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#new-withdrawal-request
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bitbank, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in("uuid", params))))
         throw(ExchangeError(string(self.id, " uuid is required for withdrawal")));
@@ -800,13 +970,13 @@ function withdraw(self::Bitbank, code, amount, address, tag=nothing, params=Dict
         Symbol("amount") => amount
     );
     response = Base.fetch(self.privatePostUserRequestWithdrawal(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransaction(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(data, currency = currency)
 
 end
-function parseTransaction(self::Bitbank, transaction, currency=nothing)
+function parseTransaction(self::Bitbank, transaction; currency=nothing)
     txid = safeString(transaction, "txid");
-    currency = self.safeCurrency(nothing, currency);
+    currency = self.safeCurrency(nothing, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("id") => txid,
     Symbol("txid") => txid,
@@ -835,7 +1005,7 @@ function nonce(self::Bitbank, )
     return milliseconds()
 
 end
-function sign(self::Bitbank, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitbank, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     query = omit(params, self.extractParams(path));
     url = string(self.implodeHostname(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing)), "/");
     if functions.ccxtruthy(@functions.ccxt_or((api == "public"), (api == "markets")))
@@ -972,115 +1142,115 @@ Base.getproperty(self::Bitbank, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetPairTicker(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{pair}/ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickers(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickersJpy(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "tickers_jpy", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers_jpy"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPairDepth(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{pair}/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPairTransactions(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/transactions", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{pair}/transactions"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPairTransactionsYyyymmdd(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/transactions/{yyyymmdd}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{pair}/transactions/{yyyymmdd}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPairCandlestickCandletypeYyyymmdd(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/candlestick/{candletype}/{yyyymmdd}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{pair}/candlestick/{candletype}/{yyyymmdd}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPairCircuitBreakInfo(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/circuit_break_info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{pair}/circuit_break_info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserAssets(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/assets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/assets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserSpotOrder(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/spot/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserSpotActiveOrders(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/active_orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/spot/active_orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserMarginPositions(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/margin/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/margin/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserSpotTradeHistory(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/trade_history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/spot/trade_history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserDepositHistory(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/deposit_history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/deposit_history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserUnconfirmedDeposits(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/unconfirmed_deposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/unconfirmed_deposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserDepositOriginators(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/deposit_originators", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/deposit_originators"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserWithdrawalAccount(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/withdrawal_account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/withdrawal_account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserWithdrawalHistory(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/withdrawal_history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/withdrawal_history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotStatus(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "spot/status", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/status"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotPairs(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "spot/pairs", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/pairs"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserSpotOrder(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/spot/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserSpotCancelOrder(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/cancel_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/spot/cancel_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserSpotCancelOrders(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/cancel_orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/spot/cancel_orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserSpotOrdersInfo(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/orders_info", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/spot/orders_info"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserConfirmDeposits(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/confirm_deposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/confirm_deposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserConfirmDepositsAll(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/confirm_deposits_all", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/confirm_deposits_all"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserRequestWithdrawal(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/request_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/request_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketsGetSpotPairs(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "spot/pairs", "markets", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/pairs"; api="markets", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitbank(; kwargs...)
@@ -1144,3 +1314,217 @@ function Bitbank(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitbank_fetchMarkets() end
+"""
+retrieves data on all markets for bitbank
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitbank_fetchMarkets
+
+function __ccxt_doc_Bitbank_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitbank_fetchTicker
+
+function __ccxt_doc_Bitbank_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitbank_fetchOrderBook
+
+function __ccxt_doc_Bitbank_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#transactions
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bitbank_fetchTrades
+
+function __ccxt_doc_Bitbank_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Bitbank_fetchTradingFees
+
+function __ccxt_doc_Bitbank_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#candlestick
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bitbank_fetchOHLCV
+
+function __ccxt_doc_Bitbank_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bitbank_fetchBalance
+
+function __ccxt_doc_Bitbank_createOrder() end
+"""
+create a trade order
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#create-new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitbank_createOrder
+
+function __ccxt_doc_Bitbank_cancelOrder() end
+"""
+cancels an open order
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitbank_cancelOrder
+
+function __ccxt_doc_Bitbank_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitbank_fetchOrder
+
+function __ccxt_doc_Bitbank_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-active-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitbank_fetchOpenOrders
+
+function __ccxt_doc_Bitbank_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitbank_fetchMyTrades
+
+function __ccxt_doc_Bitbank_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-withdrawal-accounts
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bitbank_fetchDepositAddress
+
+function __ccxt_doc_Bitbank_withdraw() end
+"""
+make a withdrawal
+see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#new-withdrawal-request
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitbank_withdraw

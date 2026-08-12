@@ -744,7 +744,17 @@ function describe(self::Ndax, )
 ))
 
 end
-function fetchStatus(self::Ndax, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://apidoc.ndax.io/#ping
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Ndax; params=Dict())
     response = Base.fetch(self.publicGetPing(params));
     message = safeString(response, "msg");
     return Dict{Symbol, Any}(
@@ -756,7 +766,17 @@ function fetchStatus(self::Ndax, params=Dict())
 )
 
 end
-function signIn(self::Ndax, params=Dict())
+"""
+sign in, must be called prior to using other authenticated methods
+see: https://apidoc.ndax.io/#authenticate2fa
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from exchange
+"""
+function signIn(self::Ndax; params=Dict())
     self.checkRequiredCredentials();
     if functions.ccxtruthy(@functions.ccxt_or(self.login == nothing, self.password == nothing))
         throw(AuthenticationError(string(self.id, " signIn() requires exchange.login, exchange.password")));
@@ -787,7 +807,17 @@ function signIn(self::Ndax, params=Dict())
     return response
 
 end
-function fetchCurrencies(self::Ndax, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://apidoc.ndax.io/#getproducts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Ndax; params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     request = Dict{Symbol, Any}(
         Symbol("omsId") => omsId
@@ -830,7 +860,17 @@ function parseCurrency(self::Ndax, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Ndax, params=Dict())
+"""
+retrieves data on all markets for ndax
+see: https://apidoc.ndax.io/#getinstruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Ndax; params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     request = Dict{Symbol, Any}(
         Symbol("omsId") => omsId
@@ -848,7 +888,7 @@ function parseMarket(self::Ndax, market)
     sessionStatus = safeString(market, "SessionStatus");
     isDisable = safeValue(market, "IsDisable");
     sessionRunning = (sessionStatus == "Running");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -899,7 +939,7 @@ function parseMarket(self::Ndax, market)
 ))
 
 end
-function parseOrderBook(self::Ndax, orderbook, symbol, timestamp=nothing, bidsKey="bids", asksKey="asks", priceKey=6, amountKey=8, countOrIdKey=2)
+function parseOrderBook(self::Ndax, orderbook, symbol; timestamp=nothing, bidsKey="bids", asksKey="asks", priceKey=6, amountKey=8, countOrIdKey=2)
     nonce = nothing;
     result = Dict{Symbol, Any}(
         Symbol("symbol") => symbol,
@@ -928,7 +968,7 @@ function parseOrderBook(self::Ndax, orderbook, symbol, timestamp=nothing, bidsKe
                 nonce = max(nonce, newNonce);
             end
         end
-        bidask = self.parseOrderBookBidAsk(level, priceKey, amountKey);
+        bidask = self.parseOrderBookBidAsk(level, priceKey = priceKey, amountKey = amountKey);
         levelSide = safeInteger(level, 9);
         side = functions.ccxtruthy(levelSide) ? asksKey : bidsKey;
         push!(get(result, Symbol(side), nothing), bidask);
@@ -942,7 +982,19 @@ function parseOrderBook(self::Ndax, orderbook, symbol, timestamp=nothing, bidsKe
     return result
 
 end
-function fetchOrderBook(self::Ndax, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://apidoc.ndax.io/#getl2snapshot
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Ndax, symbol; limit=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -958,14 +1010,14 @@ function fetchOrderBook(self::Ndax, symbol, limit=nothing, params=Dict())
     return self.parseOrderBook(response, symbol)
 
 end
-function parseTicker(self::Ndax, ticker, market=nothing)
+function parseTicker(self::Ndax, ticker; market=nothing)
     timestamp = safeInteger(ticker, "TimeStamp");
     marketId = safeString(ticker, "InstrumentId");
     if functions.ccxtruthy(marketId == nothing)
         marketId = safeString(ticker, "trading_pairs");
     end
-    market = self.safeMarket(marketId, market, "_");
-    symbol = self.safeSymbol(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
+    symbol = self.safeSymbol(marketId, market = market);
     last_var = safeString2(ticker, "LastTradedPx", "last_price");
     percentage = safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
     change = safeString(ticker, "Rolling24HrPxChange");
@@ -993,20 +1045,42 @@ function parseTicker(self::Ndax, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Ndax, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://apidoc.ndax.io/#cmc-summary
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Ndax; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetSummary(params));
     tickers = self.parseTickers(response);
-    return self.filterByArrayTickers(tickers, "symbol", symbols)
+    return self.filterByArrayTickers(tickers, "symbol", values = symbols)
 
 end
-function fetchTicker(self::Ndax, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://apidoc.ndax.io/#getlevel1
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Ndax, symbol; params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1017,14 +1091,28 @@ function fetchTicker(self::Ndax, symbol, params=Dict())
         Symbol("InstrumentId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetGetLevel1(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function parseOHLCV(self::Ndax, ohlcv, market=nothing)
+function parseOHLCV(self::Ndax, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCV(self::Ndax, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://apidoc.ndax.io/#gettickerhistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Ndax, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1055,10 +1143,10 @@ function fetchOHLCV(self::Ndax, symbol, timeframe="1m", since=nothing, limit=not
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         candles = response;
     end
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseTrade(self::Ndax, trade, market=nothing)
+function parseTrade(self::Ndax, trade; market=nothing)
     priceString = nothing;
     amountString = nothing;
     costString = nothing;
@@ -1100,7 +1188,7 @@ function parseTrade(self::Ndax, trade, market=nothing)
             );
         end
     end
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return self.safeTrade(Dict{Symbol, Any}(
     Symbol("info") => trade,
     Symbol("id") => id,
@@ -1115,10 +1203,22 @@ function parseTrade(self::Ndax, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Ndax, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Ndax, symbol; since=nothing, limit=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1132,10 +1232,20 @@ function fetchTrades(self::Ndax, symbol, since=nothing, limit=nothing, params=Di
         request[Symbol("Count")] = limit;
     end
     response = Base.fetch(self.publicGetGetLastTrades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchAccounts(self::Ndax, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://apidoc.ndax.io/#getuseraccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Ndax; params=Dict())
     if functions.ccxtruthy(!functions.ccxtruthy(self.login))
         throw(AuthenticationError(string(self.id, " fetchAccounts() requires exchange.login email credential")));
     end
@@ -1186,7 +1296,17 @@ function parseBalance(self::Ndax, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Ndax, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://apidoc.ndax.io/#getaccountpositions
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Ndax; params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1225,9 +1345,9 @@ function parseLedgerEntryType(self::Ndax, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Ndax, item, currency=nothing)
+function parseLedgerEntry(self::Ndax, item; currency=nothing)
     currencyId = safeString(item, "ProductId");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     credit = safeString(item, "CR");
     debit = safeString(item, "DR");
     amount = nothing;
@@ -1255,7 +1375,7 @@ function parseLedgerEntry(self::Ndax, item, currency=nothing)
     Symbol("referenceId") => safeString(item, "ReferenceId"),
     Symbol("referenceAccount") => safeString(item, "Counterparty"),
     Symbol("type") => self.parseLedgerEntryType(safeString(item, "ReferenceType")),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.parseNumber(amount),
     Symbol("before") => self.parseNumber(before),
     Symbol("after") => self.parseNumber(after),
@@ -1263,10 +1383,23 @@ function parseLedgerEntry(self::Ndax, item, currency=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
-function fetchLedger(self::Ndax, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://apidoc.ndax.io/#getaccounttransactions
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Ndax; code=nothing, since=nothing, limit=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1287,7 +1420,7 @@ function fetchLedger(self::Ndax, code=nothing, since=nothing, limit=nothing, par
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    return self.parseLedger(response, currency, since, limit)
+    return self.parseLedger(response, currency = currency, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Ndax, status)
@@ -1305,7 +1438,7 @@ function parseOrderStatus(self::Ndax, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Ndax, order, market=nothing)
+function parseOrder(self::Ndax, order; market=nothing)
     timestamp = safeInteger(order, "ReceiveTime");
     marketId = safeString(order, "Instrument");
     return self.safeOrder(Dict{Symbol, Any}(
@@ -1316,7 +1449,7 @@ function parseOrder(self::Ndax, order, market=nothing)
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("lastTradeTimestamp") => safeInteger(order, "LastUpdatedTime"),
     Symbol("status") => self.parseOrderStatus(safeString(order, "OrderState")),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("type") => safeStringLower(order, "OrderType"),
     Symbol("timeInForce") => nothing,
     Symbol("postOnly") => nothing,
@@ -1330,10 +1463,27 @@ function parseOrder(self::Ndax, order, market=nothing)
     Symbol("remaining") => nothing,
     Symbol("fee") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function createOrder(self::Ndax, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://apidoc.ndax.io/#sendorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order would be triggered
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Ndax, symbol, type_var, side, amount; price=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1378,10 +1528,26 @@ function createOrder(self::Ndax, symbol, type_var, side, amount, price=nothing, 
         request[Symbol("StopPrice")] = triggerPrice;
     end
     response = Base.fetch(self.privatePostSendOrder(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function editOrder(self::Ndax, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+cancels an open order and places a new order
+see: https://apidoc.ndax.io/#cancelreplaceorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float, optional: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Ndax, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1415,10 +1581,23 @@ function editOrder(self::Ndax, id, symbol, type_var, side, amount=nothing, price
         request[Symbol("ClientOrderId")] = clientOrderId;
     end
     response = Base.fetch(self.privatePostCancelReplaceOrder(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchMyTrades(self::Ndax, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://apidoc.ndax.io/#gettradeshistory
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Ndax; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1443,10 +1622,21 @@ function fetchMyTrades(self::Ndax, symbol=nothing, since=nothing, limit=nothing,
         request[Symbol("Depth")] = limit;
     end
     response = Base.fetch(self.privateGetGetTradesHistory(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function cancelAllOrders(self::Ndax, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://apidoc.ndax.io/#cancelallorders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Ndax; symbol=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1469,7 +1659,20 @@ function cancelAllOrders(self::Ndax, symbol=nothing, params=Dict())
 ))]
 
 end
-function cancelOrder(self::Ndax, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://apidoc.ndax.io/#cancelorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Ndax, id; symbol=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1490,14 +1693,27 @@ function cancelOrder(self::Ndax, id, symbol=nothing, params=Dict())
     end
     params = omit(params, ["clientOrderId", "ClOrderId"]);
     response = Base.fetch(self.privatePostCancelOrder(extend(request, params)));
-    order = self.parseOrder(response, market);
+    order = self.parseOrder(response, market = market);
     return extend(order, Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("clientOrderId") => clientOrderId
 ))
 
 end
-function fetchOpenOrders(self::Ndax, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://apidoc.ndax.io/#getopenorders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Ndax; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1515,10 +1731,23 @@ function fetchOpenOrders(self::Ndax, symbol=nothing, since=nothing, limit=nothin
         Symbol("AccountId") => accountId
     );
     response = Base.fetch(self.privateGetGetOpenOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrders(self::Ndax, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://apidoc.ndax.io/#getorderhistory
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Ndax; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1543,10 +1772,22 @@ function fetchOrders(self::Ndax, symbol=nothing, since=nothing, limit=nothing, p
         request[Symbol("Depth")] = limit;
     end
     response = Base.fetch(self.privateGetGetOrdersHistory(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrder(self::Ndax, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://apidoc.ndax.io/#getorderstatus
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Ndax, id; symbol=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1565,10 +1806,24 @@ function fetchOrder(self::Ndax, id, symbol=nothing, params=Dict())
         Symbol("OrderId") => ccxt_parseInt(id)
     );
     response = Base.fetch(self.privateGetGetOrderStatus(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOrderTrades(self::Ndax, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://apidoc.ndax.io/#getorderhistorybyorderid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Ndax, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1584,11 +1839,21 @@ function fetchOrderTrades(self::Ndax, id, symbol=nothing, since=nothing, limit=n
     );
     response = Base.fetch(self.privatePostGetOrderHistoryByOrderId(extend(request, params)));
     grouped = groupBy(response, "ChangeReason");
-    trades = self.safeList(grouped, "Trade", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(grouped, "Trade", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchDepositAddress(self::Ndax, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Ndax, code; params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1605,10 +1870,10 @@ function fetchDepositAddress(self::Ndax, code, params=Dict())
         Symbol("GenerateNewKey") => false
     );
     response = Base.fetch(self.privateGetGetDepositInfo(extend(request, params)));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function parseDepositAddress(self::Ndax, depositAddress, currency=nothing)
+function parseDepositAddress(self::Ndax, depositAddress; currency=nothing)
     depositInfoString = safeString(depositAddress, "DepositInfo", "[]");
     depositInfo = functions.ccxt_json_parse(depositInfoString);
     depositInfoLength = length(depositInfo);
@@ -1620,7 +1885,7 @@ function parseDepositAddress(self::Ndax, depositAddress, currency=nothing)
     if functions.ccxtruthy(currency != nothing)
         code = get(currency, Symbol("code"), nothing);
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
@@ -1630,14 +1895,37 @@ function parseDepositAddress(self::Ndax, depositAddress, currency=nothing)
 )
 
 end
-function createDepositAddress(self::Ndax, code, params=Dict())
+"""
+create a currency deposit address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Ndax, code; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("GenerateNewKey") => true
     );
-    return Base.fetch(self.fetchDepositAddress(code, extend(request, params)))
+    return Base.fetch(self.fetchDepositAddress(code, params = extend(request, params)))
 
 end
-function fetchDeposits(self::Ndax, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://apidoc.ndax.io/#getdeposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: not used by ndax fetchDeposits
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Ndax; code=nothing, since=nothing, limit=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1656,12 +1944,25 @@ function fetchDeposits(self::Ndax, code=nothing, since=nothing, limit=nothing, p
     );
     response = Base.fetch(self.privateGetGetDeposits(extend(request, params)));
     if functions.ccxtruthy(isa(response, AbstractString))
-            return self.parseTransactions(functions.ccxt_json_parse(response), currency, since, limit)
+            return self.parseTransactions(functions.ccxt_json_parse(response), currency = currency, since = since, limit = limit)
     end
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Ndax, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://apidoc.ndax.io/#getwithdraws
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Ndax; code=nothing, since=nothing, limit=nothing, params=Dict())
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1679,10 +1980,10 @@ function fetchWithdrawals(self::Ndax, code=nothing, since=nothing, limit=nothing
         Symbol("AccountId") => accountId
     );
     response = Base.fetch(self.privateGetGetWithdraws(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function parseTransactionStatusByType(self::Ndax, status=nothing, type_var=nothing)
+function parseTransactionStatusByType(self::Ndax; status=nothing, type_var=nothing)
     statusesByType = Dict{Symbol, Any}(
         Symbol("deposit") => Dict{Symbol, Any}(
             Symbol("New") => "pending",
@@ -1734,10 +2035,10 @@ function parseTransactionStatusByType(self::Ndax, status=nothing, type_var=nothi
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Ndax, transaction, currency=nothing)
+function parseTransaction(self::Ndax, transaction; currency=nothing)
     id = nothing;
     currencyId = safeString(transaction, "ProductId");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     type_var = nothing;
     if functions.ccxtruthy(ccxt_in("DepositId", transaction))
         id = safeString(transaction, "DepositId");
@@ -1777,7 +2078,7 @@ function parseTransaction(self::Ndax, transaction, currency=nothing)
     Symbol("type") => type_var,
     Symbol("amount") => self.safeNumber(transaction, "Amount"),
     Symbol("currency") => code,
-    Symbol("status") => self.parseTransactionStatusByType(transactionStatus, type_var),
+    Symbol("status") => self.parseTransactionStatusByType(status = transactionStatus, type_var = type_var),
     Symbol("updated") => updated,
     Symbol("fee") => fee,
     Symbol("internal") => nothing,
@@ -1786,7 +2087,20 @@ function parseTransaction(self::Ndax, transaction, currency=nothing)
 )
 
 end
-function withdraw(self::Ndax, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Ndax, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     sessionToken = safeString(self.options, "sessionToken");
     if functions.ccxtruthy(sessionToken == nothing)
@@ -1795,7 +2109,7 @@ function withdraw(self::Ndax, code, amount, address, tag=nothing, params=Dict())
     if functions.ccxtruthy(self.twofa == nothing)
         throw(AuthenticationError(string(self.id, " withdraw() requires exchange.twofa credentials")));
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     omsId = safeInteger(self.options, "omsId", 1);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1849,14 +2163,14 @@ function withdraw(self::Ndax, code, amount, address, tag=nothing, params=Dict())
         Symbol("Payload") => json(withdrawPayload)
     );
     response = Base.fetch(self.privatePostCreateWithdrawTicket(deepExtend(withdrawRequest, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
 function nonce(self::Ndax, )
     return milliseconds()
 
 end
-function sign(self::Ndax, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Ndax, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
     if functions.ccxtruthy(api == "public")
@@ -1937,419 +2251,419 @@ Base.getproperty(self::Ndax, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetActivate2FA(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "Activate2FA", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "Activate2FA"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAuthenticate2FA(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "Authenticate2FA", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "Authenticate2FA"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAuthenticateUser(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "AuthenticateUser", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "AuthenticateUser"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetEnableXP2FA(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "EnableXP2FA", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "EnableXP2FA"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetL2Snapshot(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetL2Snapshot", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetL2Snapshot"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetLevel1(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetLevel1", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetLevel1"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetValidate2FARequiredEndpoints(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetValidate2FARequiredEndpoints", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetValidate2FARequiredEndpoints"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetLogOut(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "LogOut", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "LogOut"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetTickerHistory(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetTickerHistory", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetTickerHistory"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetProduct(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetProduct", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetProduct"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetProducts(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetProducts", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetProducts"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetInstrument(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetInstrument", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetInstrument"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetInstruments(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetInstruments", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetInstruments"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetEarliestTickTime(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetEarliestTickTime", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetEarliestTickTime"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPing(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "Ping", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "Ping"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssets(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "assets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "assets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbook(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSummary(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "summary", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "summary"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetLastTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetLastTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetLastTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetConfirmWithdraw(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ConfirmWithdraw", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ConfirmWithdraw"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSubscribeLevel1(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeLevel1", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "SubscribeLevel1"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSubscribeLevel2(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeLevel2", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "SubscribeLevel2"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSubscribeTicker(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeTicker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "SubscribeTicker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSubscribeTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "SubscribeTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSubscribeBlockTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeBlockTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "SubscribeBlockTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUnsubscribeBlockTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UnsubscribeBlockTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "UnsubscribeBlockTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUnsubscribeLevel1(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UnsubscribeLevel1", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "UnsubscribeLevel1"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUnsubscribeLevel2(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UnsubscribeLevel2", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "UnsubscribeLevel2"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUnsubscribeTicker(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UnsubscribeTicker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "UnsubscribeTicker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUnsubscribeTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UnsubscribeTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "UnsubscribeTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAuthenticate(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "Authenticate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "Authenticate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserAccountInfos(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserAccountInfos", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetUserAccountInfos"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserAccounts(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserAccounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetUserAccounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserAffiliateCount(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserAffiliateCount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetUserAffiliateCount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserAffiliateTag(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserAffiliateTag", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetUserAffiliateTag"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserConfig(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserConfig", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetUserConfig"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAllUnredactedUserConfigsForUser(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAllUnredactedUserConfigsForUser", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAllUnredactedUserConfigsForUser"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUnredactedUserConfigByKey(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUnredactedUserConfigByKey", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetUnredactedUserConfigByKey"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserDevices(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserDevices", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetUserDevices"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserReportTickets(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserReportTickets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetUserReportTickets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetUserReportWriterResultRecords(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserReportWriterResultRecords", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetUserReportWriterResultRecords"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAccountInfo(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountInfo", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAccountInfo"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAccountPositions(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountPositions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAccountPositions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAllAccountConfigs(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAllAccountConfigs", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAllAccountConfigs"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetTreasuryProductsForAccount(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetTreasuryProductsForAccount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetTreasuryProductsForAccount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAccountTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountTrades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAccountTrades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAccountTransactions(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountTransactions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAccountTransactions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOpenTradeReports(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOpenTradeReports", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOpenTradeReports"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAllOpenTradeReports(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAllOpenTradeReports", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAllOpenTradeReports"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetTradesHistory(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetTradesHistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetTradesHistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOpenOrders(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOpenOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOpenOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOpenQuotes(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOpenQuotes", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOpenQuotes"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOrderFee(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOrderFee", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOrderFee"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOrderHistory(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOrderHistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOrderHistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOrdersHistory(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOrdersHistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOrdersHistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOrderStatus(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOrderStatus", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOrderStatus"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOmsFeeTiers(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOmsFeeTiers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOmsFeeTiers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAccountDepositTransactions(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountDepositTransactions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAccountDepositTransactions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAccountWithdrawTransactions(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountWithdrawTransactions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAccountWithdrawTransactions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetAllDepositRequestInfoTemplates(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAllDepositRequestInfoTemplates", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAllDepositRequestInfoTemplates"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetDepositInfo(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDepositInfo", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetDepositInfo"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetDepositRequestInfoTemplate(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDepositRequestInfoTemplate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetDepositRequestInfoTemplate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetDeposits(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDeposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetDeposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetDepositTicket(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDepositTicket", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetDepositTicket"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetDepositTickets(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDepositTickets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetDepositTickets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetOMSWithdrawFees(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOMSWithdrawFees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOMSWithdrawFees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetWithdrawFee(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawFee", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetWithdrawFee"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetWithdraws(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdraws", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetWithdraws"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetWithdrawTemplate(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawTemplate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetWithdrawTemplate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetWithdrawTemplateTypes(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawTemplateTypes", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetWithdrawTemplateTypes"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetWithdrawTicket(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawTicket", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetWithdrawTicket"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetWithdrawTicketAttachment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawTicketAttachment", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetWithdrawTicketAttachment"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetWithdrawTickets(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawTickets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetWithdrawTickets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetDepositTicketAttachment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDepositTicketAttachment", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetDepositTicketAttachment"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAddUserAffiliateTag(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "AddUserAffiliateTag", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "AddUserAffiliateTag"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAddDepositTicketAttachment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "AddDepositTicketAttachment", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "AddDepositTicketAttachment"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAddWithdrawTicketAttachment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "AddWithdrawTicketAttachment", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "AddWithdrawTicketAttachment"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelUserReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelUserReport", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "CancelUserReport"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRegisterNewDevice(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "RegisterNewDevice", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "RegisterNewDevice"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubscribeAccountEvents(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeAccountEvents", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "SubscribeAccountEvents"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUpdateUserAffiliateTag(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UpdateUserAffiliateTag", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "UpdateUserAffiliateTag"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGenerateTradeActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GenerateTradeActivityReport", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GenerateTradeActivityReport"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGenerateTransactionActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GenerateTransactionActivityReport", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GenerateTransactionActivityReport"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGenerateTreasuryActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GenerateTreasuryActivityReport", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GenerateTreasuryActivityReport"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostScheduleTradeActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ScheduleTradeActivityReport", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ScheduleTradeActivityReport"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostScheduleTransactionActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ScheduleTransactionActivityReport", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ScheduleTransactionActivityReport"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostScheduleTreasuryActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ScheduleTreasuryActivityReport", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ScheduleTreasuryActivityReport"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelAllOrders(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelAllOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "CancelAllOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelOrder(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "CancelOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelQuote(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelQuote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "CancelQuote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelReplaceOrder(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelReplaceOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "CancelReplaceOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCreateQuote(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CreateQuote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "CreateQuote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostModifyOrder(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ModifyOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ModifyOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSendOrder(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SendOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "SendOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubmitBlockTrade(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubmitBlockTrade", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "SubmitBlockTrade"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUpdateQuote(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UpdateQuote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "UpdateQuote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelWithdraw(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelWithdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "CancelWithdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCreateDepositTicket(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CreateDepositTicket", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "CreateDepositTicket"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCreateWithdrawTicket(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CreateWithdrawTicket", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "CreateWithdrawTicket"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubmitDepositTicketComment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubmitDepositTicketComment", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "SubmitDepositTicketComment"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubmitWithdrawTicketComment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubmitWithdrawTicketComment", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "SubmitWithdrawTicketComment"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOrderHistoryByOrderId(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOrderHistoryByOrderId", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetOrderHistoryByOrderId"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Ndax(; kwargs...)
@@ -2413,3 +2727,397 @@ function Ndax(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Ndax_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://apidoc.ndax.io/#ping
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Ndax_fetchStatus
+
+function __ccxt_doc_Ndax_signIn() end
+"""
+sign in, must be called prior to using other authenticated methods
+see: https://apidoc.ndax.io/#authenticate2fa
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from exchange
+"""
+__ccxt_doc_Ndax_signIn
+
+function __ccxt_doc_Ndax_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://apidoc.ndax.io/#getproducts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Ndax_fetchCurrencies
+
+function __ccxt_doc_Ndax_fetchMarkets() end
+"""
+retrieves data on all markets for ndax
+see: https://apidoc.ndax.io/#getinstruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Ndax_fetchMarkets
+
+function __ccxt_doc_Ndax_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://apidoc.ndax.io/#getl2snapshot
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Ndax_fetchOrderBook
+
+function __ccxt_doc_Ndax_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://apidoc.ndax.io/#cmc-summary
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Ndax_fetchTickers
+
+function __ccxt_doc_Ndax_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://apidoc.ndax.io/#getlevel1
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Ndax_fetchTicker
+
+function __ccxt_doc_Ndax_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://apidoc.ndax.io/#gettickerhistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Ndax_fetchOHLCV
+
+function __ccxt_doc_Ndax_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Ndax_fetchTrades
+
+function __ccxt_doc_Ndax_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://apidoc.ndax.io/#getuseraccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Ndax_fetchAccounts
+
+function __ccxt_doc_Ndax_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://apidoc.ndax.io/#getaccountpositions
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Ndax_fetchBalance
+
+function __ccxt_doc_Ndax_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://apidoc.ndax.io/#getaccounttransactions
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Ndax_fetchLedger
+
+function __ccxt_doc_Ndax_createOrder() end
+"""
+create a trade order
+see: https://apidoc.ndax.io/#sendorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order would be triggered
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Ndax_createOrder
+
+function __ccxt_doc_Ndax_editOrder() end
+"""
+cancels an open order and places a new order
+see: https://apidoc.ndax.io/#cancelreplaceorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float, optional: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Ndax_editOrder
+
+function __ccxt_doc_Ndax_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://apidoc.ndax.io/#gettradeshistory
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Ndax_fetchMyTrades
+
+function __ccxt_doc_Ndax_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://apidoc.ndax.io/#cancelallorders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Ndax_cancelAllOrders
+
+function __ccxt_doc_Ndax_cancelOrder() end
+"""
+cancels an open order
+see: https://apidoc.ndax.io/#cancelorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Ndax_cancelOrder
+
+function __ccxt_doc_Ndax_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://apidoc.ndax.io/#getopenorders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Ndax_fetchOpenOrders
+
+function __ccxt_doc_Ndax_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://apidoc.ndax.io/#getorderhistory
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Ndax_fetchOrders
+
+function __ccxt_doc_Ndax_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://apidoc.ndax.io/#getorderstatus
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Ndax_fetchOrder
+
+function __ccxt_doc_Ndax_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://apidoc.ndax.io/#getorderhistorybyorderid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Ndax_fetchOrderTrades
+
+function __ccxt_doc_Ndax_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Ndax_fetchDepositAddress
+
+function __ccxt_doc_Ndax_createDepositAddress() end
+"""
+create a currency deposit address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Ndax_createDepositAddress
+
+function __ccxt_doc_Ndax_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://apidoc.ndax.io/#getdeposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: not used by ndax fetchDeposits
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Ndax_fetchDeposits
+
+function __ccxt_doc_Ndax_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://apidoc.ndax.io/#getwithdraws
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Ndax_fetchWithdrawals
+
+function __ccxt_doc_Ndax_withdraw() end
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Ndax_withdraw

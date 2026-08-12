@@ -373,11 +373,21 @@ function parseExpiryDate(self::Bitflyer, expiry)
     return self.parse8601(string(year, "-", month, "-", day, "T00:00:00Z"))
 
 end
-function safeMarket(self::Bitflyer, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
-    return safeMarket(self.parent, marketId, market, delimiter, "spot")
+function safeMarket(self::Bitflyer; marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
+    return safeMarket(self.parent, marketId = marketId, market = market, delimiter = delimiter, marketType = "spot")
 
 end
-function fetchMarkets(self::Bitflyer, params=Dict())
+"""
+retrieves data on all markets for bitflyer
+see: https://lightning.bitflyer.com/docs?lang=en#market-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitflyer; params=Dict())
     jp_markets = Base.fetch(self.publicGetGetmarkets(params));
     us_markets = Base.fetch(self.publicGetGetmarketsUsa(params));
     eu_markets = Base.fetch(self.publicGetGetmarketsEu(params));
@@ -517,7 +527,17 @@ function parseBalance(self::Bitflyer, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bitflyer, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://lightning.bitflyer.com/docs?lang=en#get-account-asset-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bitflyer; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -525,7 +545,19 @@ function fetchBalance(self::Bitflyer, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Bitflyer, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://lightning.bitflyer.com/docs?lang=en#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitflyer, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -534,11 +566,11 @@ function fetchOrderBook(self::Bitflyer, symbol, limit=nothing, params=Dict())
         Symbol("product_code") => get(market, Symbol("id"), nothing)
     );
     orderbook = Base.fetch(self.publicGetGetboard(extend(request, params)));
-    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), nothing, "bids", "asks", "price", "size")
+    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "size")
 
 end
-function parseTicker(self::Bitflyer, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Bitflyer, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     timestamp = self.parse8601(safeString(ticker, "timestamp"));
     last_var = safeString(ticker, "ltp");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -562,10 +594,21 @@ function parseTicker(self::Bitflyer, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "volume_by_product"),
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bitflyer, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://lightning.bitflyer.com/docs?lang=en#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bitflyer, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -574,10 +617,10 @@ function fetchTicker(self::Bitflyer, symbol, params=Dict())
         Symbol("product_code") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetGetticker(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function parseTrade(self::Bitflyer, trade, market=nothing)
+function parseTrade(self::Bitflyer, trade; market=nothing)
     side = safeStringLower(trade, "side");
     if functions.ccxtruthy(side != nothing)
         if functions.ccxtruthy(functions.ccxt_lt(length(side), 1))
@@ -598,7 +641,7 @@ function parseTrade(self::Bitflyer, trade, market=nothing)
     priceString = safeString(trade, "price");
     amountString = safeString(trade, "size");
     id = safeString(trade, "id");
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     return self.safeTrade(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("info") => trade,
@@ -613,10 +656,23 @@ function parseTrade(self::Bitflyer, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => nothing,
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bitflyer, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://lightning.bitflyer.com/docs?lang=en#list-executions
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bitflyer, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -628,10 +684,21 @@ function fetchTrades(self::Bitflyer, symbol, since=nothing, limit=nothing, param
         request[Symbol("count")] = limit;
     end
     response = Base.fetch(self.publicGetGetexecutions(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFee(self::Bitflyer, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://lightning.bitflyer.com/docs?lang=en#get-trading-commission
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Bitflyer, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -651,7 +718,22 @@ function fetchTradingFee(self::Bitflyer, symbol, params=Dict())
 )
 
 end
-function createOrder(self::Bitflyer, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://lightning.bitflyer.com/docs?lang=en#send-a-new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bitflyer, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -670,7 +752,19 @@ function createOrder(self::Bitflyer, symbol, type_var, side, amount, price=nothi
 ))
 
 end
-function cancelOrder(self::Bitflyer, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://lightning.bitflyer.com/docs?lang=en#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bitflyer, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -698,7 +792,7 @@ function parseOrderStatus(self::Bitflyer, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Bitflyer, order, market=nothing)
+function parseOrder(self::Bitflyer, order; market=nothing)
     timestamp = self.parse8601(safeString(order, "child_order_date"));
     price = safeString(order, "price");
     amount = safeString(order, "size");
@@ -708,7 +802,7 @@ function parseOrder(self::Bitflyer, order, market=nothing)
     type_var = safeStringLower(order, "child_order_type");
     side = safeStringLower(order, "side");
     marketId = safeString(order, "product_code");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     fee = nothing;
     feeCost = self.safeNumber(order, "total_commission");
     if functions.ccxtruthy(feeCost != nothing)
@@ -741,10 +835,23 @@ function parseOrder(self::Bitflyer, order, market=nothing)
     Symbol("fee") => fee,
     Symbol("average") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function fetchOrders(self::Bitflyer, symbol=nothing, since=nothing, limit=100, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Bitflyer; symbol=nothing, since=nothing, limit=100, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -757,32 +864,70 @@ function fetchOrders(self::Bitflyer, symbol=nothing, since=nothing, limit=100, p
         Symbol("count") => limit
     );
     response = Base.fetch(self.privateGetGetchildorders(extend(request, params)));
-    orders = self.parseOrders(response, market, since, limit);
+    orders = self.parseOrders(response, market = market, since = since, limit = limit);
     if functions.ccxtruthy(symbol != nothing)
         orders = filterBy(orders, "symbol", symbol);
     end
     return orders
 
 end
-function fetchOpenOrders(self::Bitflyer, symbol=nothing, since=nothing, limit=100, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bitflyer; symbol=nothing, since=nothing, limit=100, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("child_order_state") => "ACTIVE"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchClosedOrders(self::Bitflyer, symbol=nothing, since=nothing, limit=100, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Bitflyer; symbol=nothing, since=nothing, limit=100, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("child_order_state") => "COMPLETED"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchOrder(self::Bitflyer, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bitflyer, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
-    orders = Base.fetch(self.fetchOrders(symbol));
+    orders = Base.fetch(self.fetchOrders(symbol = symbol));
     ordersById = indexBy(orders, "id");
     if functions.ccxtruthy(ccxt_in(id, ordersById))
             return get(ordersById, Symbol(id), nothing)
@@ -790,7 +935,20 @@ function fetchOrder(self::Bitflyer, id, symbol=nothing, params=Dict())
     throw(OrderNotFound(string(self.id, " No order found with id ", id)));
 
 end
-function fetchMyTrades(self::Bitflyer, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://lightning.bitflyer.com/docs?lang=en#list-executions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bitflyer; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -805,10 +963,21 @@ function fetchMyTrades(self::Bitflyer, symbol=nothing, since=nothing, limit=noth
         request[Symbol("count")] = limit;
     end
     response = Base.fetch(self.privateGetGetexecutions(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchPositions(self::Bitflyer, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://lightning.bitflyer.com/docs?lang=en#get-open-interest-summary
+
+# Arguments
+- `symbols`::array: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Bitflyer; symbols=nothing, params=Dict())
     if functions.ccxtruthy(symbols == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchPositions() requires a `symbols` argument, exactly one symbol in an array")));
     end
@@ -816,14 +985,28 @@ function fetchPositions(self::Bitflyer, symbols=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
-        Symbol("product_code") => self.marketIds(symbols)
+        Symbol("product_code") => self.marketIds(symbols = symbols)
     );
     response = Base.fetch(self.privateGetGetpositions(extend(request, params)));
     return response
 
 end
-function withdraw(self::Bitflyer, code, amount, address, tag=nothing, params=Dict())
-    self.checkAddress(address);
+"""
+make a withdrawal
+see: https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bitflyer, code, amount, address; tag=nothing, params=Dict())
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -836,10 +1019,23 @@ function withdraw(self::Bitflyer, code, amount, address, tag=nothing, params=Dic
         Symbol("amount") => amount
     );
     response = Base.fetch(self.privatePostWithdraw(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function fetchDeposits(self::Bitflyer, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-deposit-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bitflyer; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -852,10 +1048,23 @@ function fetchDeposits(self::Bitflyer, code=nothing, since=nothing, limit=nothin
         request[Symbol("count")] = limit;
     end
     response = Base.fetch(self.privateGetGetcoinins(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Bitflyer, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-transaction-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bitflyer; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -868,7 +1077,7 @@ function fetchWithdrawals(self::Bitflyer, code=nothing, since=nothing, limit=not
         request[Symbol("count")] = limit;
     end
     response = Base.fetch(self.privateGetGetcoinouts(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
 function parseDepositStatus(self::Bitflyer, status)
@@ -887,11 +1096,11 @@ function parseWithdrawalStatus(self::Bitflyer, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Bitflyer, transaction, currency=nothing)
+function parseTransaction(self::Bitflyer, transaction; currency=nothing)
     id = safeString2(transaction, "id", "message_id");
     address = safeString(transaction, "address");
     currencyId = safeString(transaction, "currency_code");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = self.parse8601(safeString(transaction, "event_date"));
     amount = self.safeNumber(transaction, "amount");
     txId = safeString(transaction, "tx_hash");
@@ -936,7 +1145,18 @@ function parseTransaction(self::Bitflyer, transaction, currency=nothing)
 )
 
 end
-function fetchFundingRate(self::Bitflyer, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://lightning.bitflyer.com/docs#funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Bitflyer, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -945,10 +1165,10 @@ function fetchFundingRate(self::Bitflyer, symbol, params=Dict())
         Symbol("product_code") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetGetfundingrate(extend(request, params)));
-    return self.parseFundingRate(response, market)
+    return self.parseFundingRate(response, market = market)
 
 end
-function parseFundingRate(self::Bitflyer, contract, market=nothing)
+function parseFundingRate(self::Bitflyer, contract; market=nothing)
     nextFundingDatetime = safeString(contract, "next_funding_rate_settledate");
     nextFundingTimestamp = self.parse8601(nextFundingDatetime);
     return Dict{Symbol, Any}(
@@ -973,7 +1193,7 @@ function parseFundingRate(self::Bitflyer, contract, market=nothing)
 )
 
 end
-function sign(self::Bitflyer, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitflyer, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     request = string("/", self.version, "/");
     if functions.ccxtruthy(api == "private")
         request += "me/";
@@ -1033,143 +1253,143 @@ Base.getproperty(self::Bitflyer, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetGetmarketsUsa(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getmarkets/usa", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "getmarkets/usa"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetmarketsEu(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getmarkets/eu", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "getmarkets/eu"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetmarkets(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getmarkets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "getmarkets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetboard(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getboard", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "getboard"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetticker(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "getticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetexecutions(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getexecutions", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "getexecutions"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGethealth(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "gethealth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "gethealth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetboardstate(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getboardstate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "getboardstate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetchats(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getchats", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "getchats"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetfundingrate(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getfundingrate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "getfundingrate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetpermissions(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getpermissions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getpermissions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetbalance(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getbalance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getbalance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetbalancehistory(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getbalancehistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getbalancehistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetcollateral(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getcollateral", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getcollateral"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetcollateralhistory(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getcollateralhistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getcollateralhistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetcollateralaccounts(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getcollateralaccounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getcollateralaccounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetaddresses(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getaddresses", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getaddresses"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetcoinins(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getcoinins", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getcoinins"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetcoinouts(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getcoinouts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getcoinouts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetbankaccounts(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getbankaccounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getbankaccounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetdeposits(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getdeposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getdeposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetwithdrawals(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getwithdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getwithdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetchildorders(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getchildorders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getchildorders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetparentorders(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getparentorders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getparentorders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetparentorder(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getparentorder", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getparentorder"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetexecutions(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getexecutions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getexecutions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGetpositions(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "getpositions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "getpositions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGettradingcommission(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "gettradingcommission", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "gettradingcommission"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSendcoin(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "sendcoin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sendcoin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdraw(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSendchildorder(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "sendchildorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sendchildorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelchildorder(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "cancelchildorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelchildorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSendparentorder(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "sendparentorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sendparentorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelparentorder(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "cancelparentorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelparentorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelallchildorders(self::Bitflyer, params=Dict(), context=Dict())
-    return request(self, "cancelallchildorders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelallchildorders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitflyer(; kwargs...)
@@ -1233,3 +1453,279 @@ function Bitflyer(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitflyer_fetchMarkets() end
+"""
+retrieves data on all markets for bitflyer
+see: https://lightning.bitflyer.com/docs?lang=en#market-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitflyer_fetchMarkets
+
+function __ccxt_doc_Bitflyer_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://lightning.bitflyer.com/docs?lang=en#get-account-asset-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bitflyer_fetchBalance
+
+function __ccxt_doc_Bitflyer_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://lightning.bitflyer.com/docs?lang=en#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitflyer_fetchOrderBook
+
+function __ccxt_doc_Bitflyer_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://lightning.bitflyer.com/docs?lang=en#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitflyer_fetchTicker
+
+function __ccxt_doc_Bitflyer_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://lightning.bitflyer.com/docs?lang=en#list-executions
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bitflyer_fetchTrades
+
+function __ccxt_doc_Bitflyer_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://lightning.bitflyer.com/docs?lang=en#get-trading-commission
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitflyer_fetchTradingFee
+
+function __ccxt_doc_Bitflyer_createOrder() end
+"""
+create a trade order
+see: https://lightning.bitflyer.com/docs?lang=en#send-a-new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitflyer_createOrder
+
+function __ccxt_doc_Bitflyer_cancelOrder() end
+"""
+cancels an open order
+see: https://lightning.bitflyer.com/docs?lang=en#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitflyer_cancelOrder
+
+function __ccxt_doc_Bitflyer_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitflyer_fetchOrders
+
+function __ccxt_doc_Bitflyer_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitflyer_fetchOpenOrders
+
+function __ccxt_doc_Bitflyer_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitflyer_fetchClosedOrders
+
+function __ccxt_doc_Bitflyer_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitflyer_fetchOrder
+
+function __ccxt_doc_Bitflyer_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://lightning.bitflyer.com/docs?lang=en#list-executions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitflyer_fetchMyTrades
+
+function __ccxt_doc_Bitflyer_fetchPositions() end
+"""
+fetch all open positions
+see: https://lightning.bitflyer.com/docs?lang=en#get-open-interest-summary
+
+# Arguments
+- `symbols`::array: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bitflyer_fetchPositions
+
+function __ccxt_doc_Bitflyer_withdraw() end
+"""
+make a withdrawal
+see: https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitflyer_withdraw
+
+function __ccxt_doc_Bitflyer_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-deposit-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitflyer_fetchDeposits
+
+function __ccxt_doc_Bitflyer_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-transaction-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitflyer_fetchWithdrawals
+
+function __ccxt_doc_Bitflyer_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://lightning.bitflyer.com/docs#funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Bitflyer_fetchFundingRate

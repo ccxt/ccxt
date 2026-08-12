@@ -854,7 +854,17 @@ function describe(self::Toobit, )
 ))
 
 end
-function fetchStatus(self::Toobit, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Toobit; params=Dict())
     response = Base.fetch(self.commonGetApiV1Ping(params));
     return Dict{Symbol, Any}(
     Symbol("status") => "ok",
@@ -865,15 +875,35 @@ function fetchStatus(self::Toobit, params=Dict())
 )
 
 end
-function fetchTime(self::Toobit, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api-docs.toobit.com/api/spot-market-data.html#check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Toobit; params=Dict())
     response = Base.fetch(self.commonGetApiV1Time(params));
     return safeInteger(response, "serverTime")
 
 end
-function fetchCurrencies(self::Toobit, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Toobit; params=Dict())
     response = Base.fetch(self.commonGetApiV1ExchangeInfo(params));
     self.options[Symbol("exchangeInfo")] = response;
-    coins = self.safeList(response, "coins", []);
+    coins = self.safeList(response, "coins", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(coins)))
@@ -892,12 +922,12 @@ function parseCurrency(self::Toobit, rawCurrency)
     id = safeString(rawCurrency, "coinId");
     code = self.safeCurrencyCode(id);
     networks = Dict{Symbol, Any}();
-    rawNetworks = self.safeList(rawCurrency, "chainTypes", []);
+    rawNetworks = self.safeList(rawCurrency, "chainTypes", defaultValue = []);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(rawNetworks)))
         rawNetwork = get(rawNetworks, j + 1, nothing);
         networkId = safeString(rawNetwork, "chainType");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -948,15 +978,26 @@ function parseCurrency(self::Toobit, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Toobit, params=Dict())
+"""
+retrieves data on all markets for toobit
+see: https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Toobit; params=Dict())
     response = self.safeDict(self.options, "exchangeInfo");
     if functions.ccxtruthy(response != nothing)
         self.options[Symbol("exchangeInfo")] = nothing;
     else
         response = Base.fetch(self.commonGetApiV1ExchangeInfo(params));
     end
-    symbols = self.safeList(response, "symbols", []);
-    contracts = self.safeList(response, "contracts", []);
+    symbols = self.safeList(response, "symbols", defaultValue = []);
+    contracts = self.safeList(response, "contracts", defaultValue = []);
     all_var = arrayConcat(symbols, contracts);
     result = [];
     i = 0
@@ -983,18 +1024,18 @@ function parseMarket(self::Toobit, market)
     settle = self.safeCurrencyCode(settleId);
     status = safeString(market, "status");
     active = (status == "TRADING");
-    filters = self.safeList(market, "filters", []);
+    filters = self.safeList(market, "filters", defaultValue = []);
     filtersByType = indexBy(filters, "filterType");
-    priceFilter = self.safeDict(filtersByType, "PRICE_FILTER", Dict{Symbol, Any}());
-    lotSizeFilter = self.safeDict(filtersByType, "LOT_SIZE", Dict{Symbol, Any}());
-    minNotionalFilter = self.safeDict(filtersByType, "MIN_NOTIONAL", Dict{Symbol, Any}());
+    priceFilter = self.safeDict(filtersByType, "PRICE_FILTER", defaultValue = Dict{Symbol, Any}());
+    lotSizeFilter = self.safeDict(filtersByType, "LOT_SIZE", defaultValue = Dict{Symbol, Any}());
+    minNotionalFilter = self.safeDict(filtersByType, "MIN_NOTIONAL", defaultValue = Dict{Symbol, Any}());
     symbol = string(base, "/", quote_var);
     isContract = (ccxt_in("contractMultiplier", market));
     inverse = self.safeBool2(market, "isInverse", "inverse");
     if functions.ccxtruthy(isContract)
         symbol += string(":", settle);
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -1045,7 +1086,20 @@ function parseMarket(self::Toobit, market)
 ))
 
 end
-function fetchOrderBook(self::Toobit, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api-docs.toobit.com/api/spot-market-data.html#order-book
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Toobit, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1058,10 +1112,24 @@ function fetchOrderBook(self::Toobit, symbol, limit=nothing, params=Dict())
     end
     response = Base.fetch(self.commonGetQuoteV1Depth(extend(request, params)));
     timestamp = safeInteger(response, "t");
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp, "b", "a")
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "b", asksKey = "a")
 
 end
-function fetchTrades(self::Toobit, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get a list of the most recent trades for a particular symbol
+see: https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum number of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Toobit, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1073,10 +1141,10 @@ function fetchTrades(self::Toobit, symbol, since=nothing, limit=nothing, params=
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.commonGetQuoteV1Trades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Toobit, trade, market=nothing)
+function parseTrade(self::Toobit, trade; market=nothing)
     timestamp = safeInteger2(trade, "t", "time");
     priceString = safeString2(trade, "p", "price");
     amountString = safeString2(trade, "q", "qty");
@@ -1116,7 +1184,7 @@ function parseTrade(self::Toobit, trade, market=nothing)
     if functions.ccxtruthy(isMaker != nothing)
         takerOrMaker = functions.ccxtruthy(isMaker) ? "maker" : "taker";
     end
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     return self.safeTrade(Dict{Symbol, Any}(
     Symbol("info") => trade,
@@ -1132,10 +1200,27 @@ function parseTrade(self::Toobit, trade, market=nothing)
     Symbol("cost") => nothing,
     Symbol("takerOrMaker") => takerOrMaker,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchOHLCV(self::Toobit, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api-docs.toobit.com/api/spot-market-data.html#kline-candlestick-data
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#kline-candlestick-data
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#index-price-kline-candlestick-data
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#mark-price-kline-candlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Toobit, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1169,18 +1254,30 @@ function fetchOHLCV(self::Toobit, symbol, timeframe="1m", since=nothing, limit=n
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         candles = response;
     end
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Toobit, ohlcv, market=nothing)
+function parseOHLCV(self::Toobit, ohlcv; market=nothing)
     return [safeIntegerN(ohlcv, [0, "time", "t"]), self.safeNumberN(ohlcv, [1, "open", "o"]), self.safeNumberN(ohlcv, [2, "high", "h"]), self.safeNumberN(ohlcv, [3, "low", "l"]), self.safeNumberN(ohlcv, [4, "close", "c"]), self.safeNumberN(ohlcv, [5, "volume", "v"])]
 
 end
-function fetchTickers(self::Toobit, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Toobit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     type_var = nothing;
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -1194,19 +1291,19 @@ function fetchTickers(self::Toobit, symbols=nothing, params=Dict())
             request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         end
     end
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(type_var == "spot")
         response = Base.fetch(self.commonGetQuoteV1Ticker24hr(extend(request, params)));
     else
         response = Base.fetch(self.commonGetQuoteV1ContractTicker24hr(extend(request, params)));
     end
-    return self.parseTickers(response, symbols, params)
+    return self.parseTickers(response, symbols = symbols, params = params)
 
 end
-function parseTicker(self::Toobit, ticker, market=nothing)
+function parseTicker(self::Toobit, ticker; market=nothing)
     marketId = safeString(ticker, "s");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(ticker, "t");
     last_var = safeString(ticker, "c");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1230,14 +1327,26 @@ function parseTicker(self::Toobit, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "v"),
     Symbol("quoteVolume") => safeString(ticker, "qv"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchLastPrices(self::Toobit, symbols=nothing, params=Dict())
+"""
+fetches the last price for multiple markets
+see: https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
+see: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the last prices
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of lastprices structures
+"""
+function fetchLastPrices(self::Toobit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
         len = length(symbols);
@@ -1247,12 +1356,12 @@ function fetchLastPrices(self::Toobit, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.commonGetQuoteV1TickerPrice(extend(request, params)));
-    return self.parseLastPrices(response, symbols)
+    return self.parseLastPrices(response, symbols = symbols)
 
 end
-function parseLastPrice(self::Toobit, entry, market=nothing)
+function parseLastPrice(self::Toobit, entry; market=nothing)
     marketId = safeString(entry, "s");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
     Symbol("timestamp") => nothing,
@@ -1263,11 +1372,23 @@ function parseLastPrice(self::Toobit, entry, market=nothing)
 )
 
 end
-function fetchBidsAsks(self::Toobit, symbols=nothing, params=Dict())
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
+see: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchBidsAsks(self::Toobit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
         len = length(symbols);
@@ -1277,10 +1398,10 @@ function fetchBidsAsks(self::Toobit, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.commonGetQuoteV1TickerBookTicker(extend(request, params)));
-    return self.parseBidsAsksCustom(response, symbols)
+    return self.parseBidsAsksCustom(response, symbols = symbols)
 
 end
-function parseBidsAsksCustom(self::Toobit, tickers, symbols=nothing, params=Dict())
+function parseBidsAsksCustom(self::Toobit, tickers; symbols=nothing, params=Dict())
     results = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
@@ -1289,8 +1410,8 @@ function parseBidsAsksCustom(self::Toobit, tickers, symbols=nothing, params=Dict
         push!(results, ticker);
         i += 1
     end
-    symbols = self.marketSymbols(symbols);
-    return self.filterByArray(results, "symbol", symbols)
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.filterByArray(results, "symbol", values = symbols)
 
 end
 function parseBidAskCustom(self::Toobit, ticker)
@@ -1305,11 +1426,22 @@ function parseBidAskCustom(self::Toobit, ticker)
 )
 
 end
-function fetchFundingRates(self::Toobit, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Toobit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
         len = length(symbols);
@@ -1319,12 +1451,12 @@ function fetchFundingRates(self::Toobit, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.commonGetApiV1FuturesFundingRate(extend(request, params)));
-    return self.parseFundingRates(response, symbols)
+    return self.parseFundingRates(response, symbols = symbols)
 
 end
-function parseFundingRate(self::Toobit, contract, market=nothing)
+function parseFundingRate(self::Toobit, contract; market=nothing)
     marketId = safeString(contract, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     nextFundingRate = self.safeNumber(contract, "rate");
     nextFundingRateTimestamp = safeInteger(contract, "nextFundingTime");
     return Dict{Symbol, Any}(
@@ -1349,14 +1481,29 @@ function parseFundingRate(self::Toobit, contract, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Toobit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Toobit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params))
     end
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
@@ -1369,28 +1516,39 @@ function fetchFundingRateHistory(self::Toobit, symbol=nothing, since=nothing, li
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.commonGetApiV1FuturesHistoryFundingRate(extend(request, params)));
-    return self.parseFundingRateHistories(response, market, since, limit)
+    return self.parseFundingRateHistories(response, market = market, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Toobit, contract, market=nothing)
+function parseFundingRateHistory(self::Toobit, contract; market=nothing)
     timestamp = safeInteger(contract, "settleTime");
     marketId = safeString(contract, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("fundingRate") => self.safeNumber(contract, "settleRate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 )
 
 end
-function fetchBalance(self::Toobit, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Toobit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = nothing;
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     if functions.ccxtruthy(inArray(marketType, ["swap", "future"]))
         response = Base.fetch(self.privateGetApiV1FuturesBalance());
     else
@@ -1405,7 +1563,7 @@ function parseBalance(self::Toobit, response)
         Symbol("timestamp") => nothing,
         Symbol("datetime") => nothing
     );
-    balances = self.safeList(response, "balances", response);
+    balances = self.safeList(response, "balances", defaultValue = response);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         balance = get(balances, i + 1, nothing);
@@ -1422,7 +1580,23 @@ function parseBalance(self::Toobit, response)
     return self.safeBalance(result)
 
 end
-function createOrder(self::Toobit, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market', 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Toobit, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1430,16 +1604,16 @@ function createOrder(self::Toobit, symbol, type_var, side, amount, price=nothing
     request = Dict{Symbol, Any}();
     response = Dict{Symbol, Any}();
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-        (request, params) = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+        (request, params) = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
         response = Base.fetch(self.privatePostApiV1SpotOrder(extend(request, params)));
     else
-        (request, params) = self.createContractOrderRequest(symbol, type_var, side, amount, price, params);
+        (request, params) = self.createContractOrderRequest(symbol, type_var, side, amount, price = price, params = params);
         response = Base.fetch(self.privatePostApiV1FuturesOrder(extend(request, params)));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createOrderRequest(self::Toobit, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Toobit, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1467,7 +1641,7 @@ function createOrderRequest(self::Toobit, symbol, type_var, side, amount, price=
         request[Symbol("quantity")] = self.amountToPrecision(symbol, amount);
     end
     isPostOnly = nothing;
-    (isPostOnly, params) = self.handlePostOnly(type_var == "market", false, params);
+    (isPostOnly, params) = self.handlePostOnly(type_var == "market", false, params = params);
     if functions.ccxtruthy(isPostOnly)
         request[Symbol("type")] = "LIMIT_MAKER";
     else
@@ -1476,7 +1650,7 @@ function createOrderRequest(self::Toobit, symbol, type_var, side, amount, price=
     return [request, params]
 
 end
-function createContractOrderRequest(self::Toobit, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createContractOrderRequest(self::Toobit, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1507,7 +1681,7 @@ function createContractOrderRequest(self::Toobit, symbol, type_var, side, amount
         request[Symbol("priceType")] = "MARKET";
     end
     isPostOnly = nothing;
-    (isPostOnly, params) = self.handlePostOnly(type_var == "market", false, params);
+    (isPostOnly, params) = self.handlePostOnly(type_var == "market", false, params = params);
     if functions.ccxtruthy(isPostOnly)
         request[Symbol("timeInForce")] = "LIMIT_MAKER";
     end
@@ -1557,10 +1731,10 @@ function createContractOrderRequest(self::Toobit, symbol, type_var, side, amount
     return [request, params]
 
 end
-function parseOrder(self::Toobit, order, market=nothing)
+function parseOrder(self::Toobit, order; market=nothing)
     timestamp = safeInteger2(order, "transactTime", "time");
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     rawType = safeString(order, "type");
     rawSideLower = safeStringLower(order, "side");
     triggerPrice = omitZero(safeString(order, "stopPrice"));
@@ -1594,7 +1768,7 @@ function parseOrder(self::Toobit, order, market=nothing)
     Symbol("reduceOnly") => nothing,
     Symbol("leverage") => nothing,
     Symbol("hedged") => nothing
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Toobit, status)
@@ -1625,7 +1799,20 @@ function parseOrderType(self::Toobit, status)
     return safeString(statuses, status, status)
 
 end
-function cancelOrder(self::Toobit, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Toobit, id; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(safeString(params, "clientOrderId") == nothing)
         request[Symbol("orderId")] = id;
@@ -1636,7 +1823,7 @@ function cancelOrder(self::Toobit, id, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelOrder", market, params, "none");
+    (marketType, params) = self.handleMarketTypeAndParams("cancelOrder", market = market, params = params, defaultValue = "none");
     if functions.ccxtruthy(marketType == "none")
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")));
     end
@@ -1650,10 +1837,22 @@ function cancelOrder(self::Toobit, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(status != "open")
         throw(OrderNotFound(string(self.id, " order ", id, " can not be canceled, ", json(response))));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelAllOrders(self::Toobit, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
+
+# Arguments
+- `symbol`::string: unified symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Toobit; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1664,7 +1863,7 @@ function cancelAllOrders(self::Toobit, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market, params, "none");
+    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market = market, params = params, defaultValue = "none");
     if functions.ccxtruthy(marketType == "none")
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")));
     end
@@ -1679,7 +1878,20 @@ function cancelAllOrders(self::Toobit, symbol=nothing, params=Dict())
 ))]
 
 end
-function cancelOrders(self::Toobit, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Toobit, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1692,7 +1904,7 @@ function cancelOrders(self::Toobit, ids, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelOrders", market, params, "none");
+    (marketType, params) = self.handleMarketTypeAndParams("cancelOrders", market = market, params = params, defaultValue = "none");
     if functions.ccxtruthy(marketType == "none")
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")));
     end
@@ -1702,11 +1914,24 @@ function cancelOrders(self::Toobit, ids, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.privateDeleteApiV1FuturesCancelOrderByIds(extend(request, params)));
     end
-    result = self.safeList(response, "result", []);
-    return self.parseOrders(result, market)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOrders(result, market = market)
 
 end
-function fetchOrder(self::Toobit, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Toobit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -1723,10 +1948,24 @@ function fetchOrder(self::Toobit, id, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.privateGetApiV1FuturesOrder(extend(request, params)));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOpenOrders(self::Toobit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Toobit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1740,17 +1979,30 @@ function fetchOpenOrders(self::Toobit, symbol=nothing, since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market = market, params = params);
     response = [];
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.privateGetApiV1SpotOpenOrders(extend(request, params)));
     else
         response = Base.fetch(self.privateGetApiV1FuturesOpenOrders(extend(request, params)));
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrders(self::Toobit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Toobit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1768,17 +2020,30 @@ function fetchOrders(self::Toobit, symbol=nothing, since=nothing, limit=nothing,
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOrders", market = market, params = params);
     response = [];
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.privateGetApiV1SpotTradeOrders(request));
     else
         throw(NotSupported(string(self.id, " fetchOrders() is not supported for ", marketType, " markets")));
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Toobit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Toobit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1793,7 +2058,7 @@ function fetchClosedOrders(self::Toobit, symbol=nothing, since=nothing, limit=no
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchClosedOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchClosedOrders", market = market, params = params);
     response = [];
     if functions.ccxtruthy(marketType == "spot")
         throw(NotSupported(string(self.id, " fetchOrders() is not supported for ", marketType, " markets")));
@@ -1812,10 +2077,25 @@ function fetchClosedOrders(self::Toobit, symbol=nothing, since=nothing, limit=no
 ));
         i += 1
     end
-    return self.parseOrders(ordersList, market, since, limit)
+    return self.parseOrders(ordersList, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Toobit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Toobit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -1832,7 +2112,7 @@ function fetchMyTrades(self::Toobit, symbol=nothing, since=nothing, limit=nothin
     market = self.market(symbol);
     request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = [];
     if functions.ccxtruthy(marketType == "spot")
@@ -1840,15 +2120,29 @@ function fetchMyTrades(self::Toobit, symbol=nothing, since=nothing, limit=nothin
     else
         response = Base.fetch(self.privateGetApiV1FuturesUserTrades(request));
     end
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function transfer(self::Toobit, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'spot', 'swap'
+- `toAccount`::string: 'spot', 'swap'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Toobit, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(accountsByType, fromAccount, fromAccount);
     toId = safeString(accountsByType, toAccount, toAccount);
     request = Dict{Symbol, Any}(
@@ -1858,10 +2152,10 @@ function transfer(self::Toobit, code, amount, fromAccount, toAccount, params=Dic
         Symbol("toAccountType") => toId
     );
     response = Base.fetch(self.privatePostApiV1SubAccountTransfer(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function parseTransfer(self::Toobit, transfer, currency=nothing)
+function parseTransfer(self::Toobit, transfer; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
     Symbol("id") => nothing,
@@ -1875,7 +2169,22 @@ function parseTransfer(self::Toobit, transfer, currency=nothing)
 )
 
 end
-function fetchLedger(self::Toobit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Toobit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1893,19 +2202,19 @@ function fetchLedger(self::Toobit, code=nothing, since=nothing, limit=nothing, p
         request[Symbol("limit")] = limit;
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchLedger", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchLedger", market = nothing, params = params);
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.privateGetApiV1AccountBalanceFlow(extend(request, params)));
     else
         response = Base.fetch(self.privateGetApiV1FuturesBalanceFlow(extend(request, params)));
     end
-    return self.parseLedger(response, currency, since, limit)
+    return self.parseLedger(response, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Toobit, item, currency=nothing)
+function parseLedgerEntry(self::Toobit, item; currency=nothing)
     currencyId = safeString(item, "coinId");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     timestamp = safeInteger(item, "created");
     after = self.safeNumber(item, "total");
     amountRaw = safeString(item, "change", "");
@@ -1930,7 +2239,7 @@ function parseLedgerEntry(self::Toobit, item, currency=nothing)
     Symbol("after") => after,
     Symbol("status") => nothing,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
 function parseLedgerType(self::Toobit, type_var)
@@ -1941,14 +2250,24 @@ function parseLedgerType(self::Toobit, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function fetchTradingFees(self::Toobit, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Toobit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = nothing;
     marketType = nothing;
     market = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTradingFees", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTradingFees", market = nothing, params = params);
     if functions.ccxtruthy(marketType == "spot")
         throw(NotSupported(string(self.id, " fetchTradingFees(): does not support ", marketType, " markets")));
     elseif functions.ccxtruthy(inArray(marketType, ["swap", "future"]))
@@ -1966,17 +2285,17 @@ function fetchTradingFees(self::Toobit, params=Dict())
     result = Dict{Symbol, Any}();
     entry = response;
     marketId = safeString(entry, "symbol");
-    market = self.safeMarket(marketId, market);
-    fee = self.parseTradingFee(entry, market);
+    market = self.safeMarket(marketId = marketId, market = market);
+    fee = self.parseTradingFee(entry, market = market);
     result[Symbol(market[Symbol("symbol")])] = fee;
     return result
 
 end
-function parseTradingFee(self::Toobit, data, market=nothing)
+function parseTradingFee(self::Toobit, data; market=nothing)
     marketId = safeString(data, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => data,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("maker") => self.safeNumber(data, "closeMakerFee"),
     Symbol("taker") => self.safeNumber(data, "closeTakerFee"),
     Symbol("percentage") => nothing,
@@ -1984,15 +2303,41 @@ function parseTradingFee(self::Toobit, data, market=nothing)
 )
 
 end
-function fetchDeposits(self::Toobit, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
+"""
+fetch all deposits made to an account
+see: https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposit structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Toobit; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params = params))
 
 end
-function fetchWithdrawals(self::Toobit, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
+"""
+fetch all withdrawals made from an account
+see: https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Toobit; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params = params))
 
 end
-function fetchDepositsOrWithdrawalsHelper(self::Toobit, type_var, code, since, limit, params=Dict())
+function fetchDepositsOrWithdrawalsHelper(self::Toobit, type_var, code, since, limit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2015,13 +2360,13 @@ function fetchDepositsOrWithdrawalsHelper(self::Toobit, type_var, code, since, l
     elseif functions.ccxtruthy(type_var == "withdrawals")
         response = Base.fetch(self.privateGetApiV1AccountWithdrawOrders(extend(request, params)));
     end
-    return self.parseTransactions(response, currency, since, limit, params)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit, params = params)
 
 end
-function parseTransaction(self::Toobit, transaction, currency=nothing)
+function parseTransaction(self::Toobit, transaction; currency=nothing)
     timestamp = safeInteger(transaction, "time");
     currencyId = safeString2(transaction, "coin", "coinId");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     feeString = safeString(transaction, "fee");
     feeCoin = safeString(transaction, "feeCoinName");
     fee = nothing;
@@ -2074,7 +2419,18 @@ function parseTransactionStatus(self::Toobit, status)
     return safeString(statuses, status, status)
 
 end
-function fetchDepositAddress(self::Toobit, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Toobit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2086,14 +2442,14 @@ function fetchDepositAddress(self::Toobit, code, params=Dict())
     if functions.ccxtruthy(networkCode == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchDepositAddress() : param[\"network\"] is required")));
     end
-    request[Symbol("chainType")] = self.networkCodeToId(networkCode, code);
+    request[Symbol("chainType")] = self.networkCodeToId(networkCode, currencyCode = code);
     response = Base.fetch(self.privateGetApiV1AccountDepositAddress(extend(request, paramsOmitted)));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function parseDepositAddress(self::Toobit, depositAddress, currency=nothing)
+function parseDepositAddress(self::Toobit, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => safeString(currency, "code"),
@@ -2103,8 +2459,23 @@ function parseDepositAddress(self::Toobit, depositAddress, currency=nothing)
 )
 
 end
-function withdraw(self::Toobit, code, amount, address, tag=nothing, params=Dict())
-    self.checkAddress(address);
+"""
+make a withdrawal
+see: https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string: a memo for the transaction
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.addressType`::string, optional: recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Toobit, code, amount, address; tag=nothing, params=Dict())
+    self.checkAddress(address = address);
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode == nothing)
@@ -2125,10 +2496,22 @@ function withdraw(self::Toobit, code, amount, address, tag=nothing, params=Dict(
         request[Symbol("addressExt")] = tag;
     end
     response = Base.fetch(self.privatePostApiV1AccountWithdraw(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function setMarginMode(self::Toobit, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Toobit, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -2148,7 +2531,19 @@ function setMarginMode(self::Toobit, marginMode, symbol=nothing, params=Dict())
     return response
 
 end
-function setLeverage(self::Toobit, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Toobit, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -2164,7 +2559,18 @@ function setLeverage(self::Toobit, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchLeverage(self::Toobit, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Toobit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2173,25 +2579,36 @@ function fetchLeverage(self::Toobit, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetApiV1FuturesAccountLeverage(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Toobit, leverage, market=nothing)
+function parseLeverage(self::Toobit, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
     leverageValue = safeInteger(leverage, "leverage");
     marginType = safeString(leverage, "marginType");
     marginMode = functions.ccxtruthy((marginType == "crossed")) ? "cross" : "isolated";
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => marginMode,
     Symbol("longLeverage") => leverageValue,
     Symbol("shortLeverage") => leverageValue
 )
 
 end
-function fetchPositions(self::Toobit, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Toobit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2209,12 +2626,12 @@ function fetchPositions(self::Toobit, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.privateGetApiV1FuturesPositions(extend(request, params)));
-    return self.parsePositions(response, symbols)
+    return self.parsePositions(response, symbols = symbols)
 
 end
-function parsePosition(self::Toobit, position, market=nothing)
+function parsePosition(self::Toobit, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     side = safeStringLower(position, "side");
     quantity = safeString(position, "position");
     leverage = safeInteger(position, "leverage");
@@ -2246,7 +2663,7 @@ function parsePosition(self::Toobit, position, market=nothing)
 ))
 
 end
-function sign(self::Toobit, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Toobit, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", self.implodeParams(path, params));
     isPost = method == "POST";
     isDelete = method == "DELETE";
@@ -2323,351 +2740,351 @@ Base.getproperty(self::Toobit, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function commonGetApiV1Time(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/time", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/time"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetApiV1Ping(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/ping", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/ping"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetApiV1ExchangeInfo(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/exchangeInfo", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/exchangeInfo"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1Depth(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/depth", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/depth"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1DepthMerged(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/depth/merged", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/depth/merged"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1Trades(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/trades", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/trades"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1Klines(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/klines", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/klines"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1IndexKlines(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/index/klines", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/index/klines"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1IndexPriceComponents(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/indexPriceComponents", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/indexPriceComponents"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1MarkPriceKlines(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/markPrice/klines", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/markPrice/klines"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1MarkPrice(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/markPrice", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/markPrice"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1Index(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/index", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/index"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1Ticker24hr(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/24hr", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/ticker/24hr"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1ContractTicker24hr(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/contract/ticker/24hr", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/contract/ticker/24hr"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1TickerPrice(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/price", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/ticker/price"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1ContractTickerPrice(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/contract/ticker/price", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/contract/ticker/price"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1TickerBookTicker(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/bookTicker", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/ticker/bookTicker"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetQuoteV1ContractTickerBookTicker(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/contract/ticker/bookTicker", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/contract/ticker/bookTicker"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetApiV1FuturesFundingRate(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/fundingRate", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/fundingRate"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetApiV1FuturesHistoryFundingRate(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/historyFundingRate", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/historyFundingRate"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function commonGetApiV1FuturesRiskLimits(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/riskLimits", "common", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/riskLimits"; api="common", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1Account(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountCheckApiKey(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/checkApiKey", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/checkApiKey"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SpotOrder(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SpotOpenOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesOpenOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SpotTradeOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/tradeOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/tradeOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesHistoryOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/historyOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/historyOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountTrades(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountBalanceFlow(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/balanceFlow", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/balanceFlow"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountDepositOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/depositOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/depositOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountWithdrawOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/withdrawOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/withdrawOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountDepositAddress(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/deposit/address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/deposit/address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SubAccount(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/subAccount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/subAccount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountSubAccount(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/subAccount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/subAccount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SubAccountList(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/subAccount/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/subAccount/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesAccountLeverage(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/accountLeverage", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/accountLeverage"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesOrder(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesPositions(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesHistoryPositions(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/historyPositions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/historyPositions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesBalance(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesUserTrades(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/userTrades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/userTrades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesBalanceFlow(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/balanceFlow", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/balanceFlow"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesCommissionRate(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/commissionRate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/commissionRate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesTodayPnl(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/todayPnl", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/todayPnl"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountDownloadDetail(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/download/detail", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/download/detail"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentInviteUserList(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/inviteUserList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/inviteUserList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentCommissionDataList(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/commissionDataList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/commissionDataList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentCommissionDataInfo(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/commissionDataInfo", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/commissionDataInfo"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentInviteRelationCheck(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/inviteRelationCheck", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/inviteRelationCheck"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentDepositDetailList(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/depositDetailList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/depositDetailList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentQuerySubAgentData(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/querySubAgentData", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/querySubAgentData"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentSpotOrdersList(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/spotOrdersList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/spotOrdersList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentFuturesOrdersList(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/futuresOrdersList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/futuresOrdersList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentFuturesPositionsList(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/futuresPositionsList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/futuresPositionsList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentInviteCommissionDetail(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/invite-commission-detail", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/invite-commission-detail"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentUserExport(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/user/export", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/user/export"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentExportList(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/export-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/export-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AgentExportUrl(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/agent/export-url", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/agent/export-url"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1SpotOrderTest(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/orderTest", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/orderTest"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1SpotOrder(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesOrder(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1SpotBatchOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/batchOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/batchOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1SubAccountTransfer(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/subAccount/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/subAccount/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1AccountWithdraw(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesMarginType(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/marginType", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/marginType"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesLeverage(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesBatchOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/batchOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/batchOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesPositionTradingStop(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/position/trading-stop", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/position/trading-stop"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesPositionMargin(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/positionMargin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/positionMargin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesOrderUpdate(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/order/update", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/order/update"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesAutoAddMargin(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/autoAddMargin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/autoAddMargin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesFlashClose(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/flashClose", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/flashClose"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesReversePosition(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/reversePosition", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/reversePosition"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1AccountDownloadApply(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/download/apply", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/download/apply"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1UserDataStream(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/userDataStream", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/userDataStream"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1ListenKey(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/listenKey", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/listenKey"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1SpotOrder(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1FuturesOrder(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1SpotOpenOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/openOrders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/openOrders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1FuturesBatchOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/batchOrders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/batchOrders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1SpotCancelOrderByIds(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/cancelOrderByIds", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/cancelOrderByIds"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1FuturesCancelOrderByIds(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/cancelOrderByIds", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/cancelOrderByIds"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1UserDataStream(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/userDataStream", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/userDataStream"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1ListenKey(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/listenKey", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/listenKey"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutApiV1UserDataStream(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/userDataStream", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "api/v1/userDataStream"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutApiV1ListenKey(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/listenKey", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "api/v1/listenKey"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Toobit(; kwargs...)
@@ -2731,3 +3148,521 @@ function Toobit(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Toobit_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Toobit_fetchStatus
+
+function __ccxt_doc_Toobit_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api-docs.toobit.com/api/spot-market-data.html#check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Toobit_fetchTime
+
+function __ccxt_doc_Toobit_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Toobit_fetchCurrencies
+
+function __ccxt_doc_Toobit_fetchMarkets() end
+"""
+retrieves data on all markets for toobit
+see: https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Toobit_fetchMarkets
+
+function __ccxt_doc_Toobit_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api-docs.toobit.com/api/spot-market-data.html#order-book
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Toobit_fetchOrderBook
+
+function __ccxt_doc_Toobit_fetchTrades() end
+"""
+get a list of the most recent trades for a particular symbol
+see: https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum number of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Toobit_fetchTrades
+
+function __ccxt_doc_Toobit_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api-docs.toobit.com/api/spot-market-data.html#kline-candlestick-data
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#kline-candlestick-data
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#index-price-kline-candlestick-data
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#mark-price-kline-candlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Toobit_fetchOHLCV
+
+function __ccxt_doc_Toobit_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Toobit_fetchTickers
+
+function __ccxt_doc_Toobit_fetchLastPrices() end
+"""
+fetches the last price for multiple markets
+see: https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
+see: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the last prices
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of lastprices structures
+"""
+__ccxt_doc_Toobit_fetchLastPrices
+
+function __ccxt_doc_Toobit_fetchBidsAsks() end
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
+see: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Toobit_fetchBidsAsks
+
+function __ccxt_doc_Toobit_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Toobit_fetchFundingRates
+
+function __ccxt_doc_Toobit_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Toobit_fetchFundingRateHistory
+
+function __ccxt_doc_Toobit_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Toobit_fetchBalance
+
+function __ccxt_doc_Toobit_createOrder() end
+"""
+create a trade order
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market', 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Toobit_createOrder
+
+function __ccxt_doc_Toobit_cancelOrder() end
+"""
+cancels an open order
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Toobit_cancelOrder
+
+function __ccxt_doc_Toobit_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
+
+# Arguments
+- `symbol`::string: unified symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Toobit_cancelAllOrders
+
+function __ccxt_doc_Toobit_cancelOrders() end
+"""
+cancel multiple orders
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Toobit_cancelOrders
+
+function __ccxt_doc_Toobit_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Toobit_fetchOrder
+
+function __ccxt_doc_Toobit_fetchOpenOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Toobit_fetchOpenOrders
+
+function __ccxt_doc_Toobit_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Toobit_fetchOrders
+
+function __ccxt_doc_Toobit_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Toobit_fetchClosedOrders
+
+function __ccxt_doc_Toobit_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Toobit_fetchMyTrades
+
+function __ccxt_doc_Toobit_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'spot', 'swap'
+- `toAccount`::string: 'spot', 'swap'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Toobit_transfer
+
+function __ccxt_doc_Toobit_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Toobit_fetchLedger
+
+function __ccxt_doc_Toobit_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Toobit_fetchTradingFees
+
+function __ccxt_doc_Toobit_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposit structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Toobit_fetchDeposits
+
+function __ccxt_doc_Toobit_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Toobit_fetchWithdrawals
+
+function __ccxt_doc_Toobit_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Toobit_fetchDepositAddress
+
+function __ccxt_doc_Toobit_withdraw() end
+"""
+make a withdrawal
+see: https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string: a memo for the transaction
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.addressType`::string, optional: recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Toobit_withdraw
+
+function __ccxt_doc_Toobit_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Toobit_setMarginMode
+
+function __ccxt_doc_Toobit_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Toobit_setLeverage
+
+function __ccxt_doc_Toobit_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Toobit_fetchLeverage
+
+function __ccxt_doc_Toobit_fetchPositions() end
+"""
+fetch all open positions
+see: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Toobit_fetchPositions

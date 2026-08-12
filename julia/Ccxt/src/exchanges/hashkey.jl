@@ -874,12 +874,32 @@ function describe(self::Hashkey, )
 ))
 
 end
-function fetchTime(self::Hashkey, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://hashkeyglobal-apidoc.readme.io/reference/check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Hashkey; params=Dict())
     response = Base.fetch(self.publicGetApiV1Time(params));
     return safeInteger(response, "serverTime")
 
 end
-function fetchStatus(self::Hashkey, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Hashkey; params=Dict())
     response = Base.fetch(self.publicGetApiV1Ping(params));
     return Dict{Symbol, Any}(
     Symbol("status") => "ok",
@@ -890,11 +910,22 @@ function fetchStatus(self::Hashkey, params=Dict())
 )
 
 end
-function fetchMarkets(self::Hashkey, params=Dict())
+"""
+retrieves data on all markets for the exchange
+see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: the id of the market to fetch
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Hashkey; params=Dict())
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.publicGetApiV1ExchangeInfo(extend(request, params)));
-    spotMarkets = self.safeList(response, "symbols", []);
-    swapMarkets = self.safeList(response, "contracts", []);
+    spotMarkets = self.safeList(response, "symbols", defaultValue = []);
+    swapMarkets = self.safeList(response, "contracts", defaultValue = []);
     markets = arrayConcat(spotMarkets, swapMarkets);
     if functions.ccxtruthy(isEmpty(markets))
         markets = [response];
@@ -938,11 +969,11 @@ function parseMarket(self::Hashkey, market)
             subType = "linear";
         end
     end
-    filtersList = self.safeList(market, "filters", []);
+    filtersList = self.safeList(market, "filters", defaultValue = []);
     filters = indexBy(filtersList, "filterType");
-    priceFilter = self.safeDict(filters, "PRICE_FILTER", Dict{Symbol, Any}());
-    amountFilter = self.safeDict(filters, "LOT_SIZE", Dict{Symbol, Any}());
-    costFilter = self.safeDict(filters, "MIN_NOTIONAL", Dict{Symbol, Any}());
+    priceFilter = self.safeDict(filters, "PRICE_FILTER", defaultValue = Dict{Symbol, Any}());
+    amountFilter = self.safeDict(filters, "LOT_SIZE", defaultValue = Dict{Symbol, Any}());
+    costFilter = self.safeDict(filters, "MIN_NOTIONAL", defaultValue = Dict{Symbol, Any}());
     minCostString = omitZero(safeString(costFilter, "min_notional"));
     contractSizeString = safeString(market, "contractMultiplier");
     amountPrecisionString = safeString(amountFilter, "stepSize");
@@ -970,7 +1001,7 @@ function parseMarket(self::Hashkey, market)
     end
     tradingFees = self.safeDict(self.fees, "trading");
     fees = functions.ccxtruthy(isSpot) ? self.safeDict(tradingFees, "spot") : self.safeDict(tradingFees, "swap");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -1027,7 +1058,17 @@ function parseMarket(self::Hashkey, market)
 ))
 
 end
-function fetchCurrencies(self::Hashkey, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Hashkey; params=Dict())
     response = Base.fetch(self.publicGetApiV1ExchangeInfo(params));
     coins = self.safeList(response, "coins");
     return self.parseCurrencies(coins)
@@ -1042,7 +1083,7 @@ function parseCurrency(self::Hashkey, rawCurrency)
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networks)))
         network = get(networks, j + 1, nothing);
         networkId = safeString(network, "chainType");
-        networkCode = self.networkCodeToId(networkId, code);
+        networkCode = self.networkCodeToId(networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             parsedNetworks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -1094,7 +1135,19 @@ function parseCurrency(self::Hashkey, rawCurrency)
 ))
 
 end
-function fetchOrderBook(self::Hashkey, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (maximum value is 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Hashkey, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1107,10 +1160,23 @@ function fetchOrderBook(self::Hashkey, symbol, limit=nothing, params=Dict())
     end
     response = Base.fetch(self.publicGetQuoteV1Depth(extend(request, params)));
     timestamp = safeInteger(response, "t");
-    return self.parseOrderBook(response, symbol, timestamp, "b", "a")
+    return self.parseOrderBook(response, symbol, timestamp = timestamp, bidsKey = "b", asksKey = "a")
 
 end
-function fetchTrades(self::Hashkey, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (maximum value is 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Hashkey, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1122,10 +1188,31 @@ function fetchTrades(self::Hashkey, symbol, since=nothing, limit=nothing, params
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetQuoteV1Trades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Hashkey, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
+
+# Arguments
+- `symbol`::string: *is mandatory for swap markets* unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum amount of trades to fetch (default 200, max 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch trades for (default 'spot')
+- `params.until`::int, optional: the latest time in ms to fetch trades for, only supports the last 30 days timeframe
+- `params.fromId`::string, optional: srarting trade id
+- `params.toId`::string, optional: ending trade id
+- `params.clientOrderId`::string, optional: *spot markets only* filter trades by orderId
+- `params.accountId`::string, optional: account id to fetch the orders from
+
+# Returns
+- a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+"""
+function fetchMyTrades(self::Hashkey; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     methodName = "fetchMyTrades";
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1136,7 +1223,7 @@ function fetchMyTrades(self::Hashkey, symbol=nothing, since=nothing, limit=nothi
         market = self.market(symbol);
     end
     marketType = "spot";
-    (marketType, params) = self.handleMarketTypeAndParams(methodName, market, params);
+    (marketType, params) = self.handleMarketTypeAndParams(methodName, market = market, params = params);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startTime")] = since;
     end
@@ -1173,13 +1260,13 @@ function fetchMyTrades(self::Hashkey, symbol=nothing, since=nothing, limit=nothi
     else
         throw(NotSupported(string(self.id, " ", methodName, "() is not supported for ", marketType, " type of markets")));
     end
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Hashkey, trade, market=nothing)
+function parseTrade(self::Hashkey, trade; market=nothing)
     timestamp = safeInteger2(trade, "t", "time");
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     side = safeStringLower(trade, "side");
     if functions.ccxtruthy(side != nothing)
         side = safeString(split(side, "_"), 0);
@@ -1226,10 +1313,26 @@ function parseTrade(self::Hashkey, trade, market=nothing)
     Symbol("order") => safeString(trade, "orderId"),
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchOHLCV(self::Hashkey, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Hashkey, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     methodName = "fetchOHLCV";
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1237,7 +1340,7 @@ function fetchOHLCV(self::Hashkey, symbol, timeframe="1m", since=nothing, limit=
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, methodName, "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 1000))
     end
     market = self.market(symbol);
     timeframe = safeString(self.timeframes, timeframe, timeframe);
@@ -1258,14 +1361,25 @@ function fetchOHLCV(self::Hashkey, symbol, timeframe="1m", since=nothing, limit=
     end
     response = Base.fetch(self.publicGetQuoteV1Klines(extend(request, params)));
     ohlcvs = toArray(response);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Hashkey, ohlcv, market=nothing)
+function parseOHLCV(self::Hashkey, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchTicker(self::Hashkey, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Hashkey, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1274,23 +1388,34 @@ function fetchTicker(self::Hashkey, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetQuoteV1Ticker24hr(extend(request, params)));
-    ticker = self.safeDict(response, 0, Dict{Symbol, Any}());
-    return self.parseTicker(ticker, market)
+    ticker = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(ticker, market = market)
 
 end
-function fetchTickers(self::Hashkey, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Hashkey; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetQuoteV1Ticker24hr(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function parseTicker(self::Hashkey, ticker, market=nothing)
+function parseTicker(self::Hashkey, ticker; market=nothing)
     timestamp = safeInteger(ticker, "t");
     marketId = safeString(ticker, "s");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     last_var = safeString(ticker, "c");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1314,22 +1439,34 @@ function parseTicker(self::Hashkey, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "v"),
     Symbol("quoteVolume") => safeString(ticker, "qv"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchLastPrices(self::Hashkey, symbols=nothing, params=Dict())
+"""
+fetches the last price for multiple markets
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the last prices
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: the id of the market to fetch last price for
+
+# Returns
+- a dictionary of lastprices structures
+"""
+function fetchLastPrices(self::Hashkey; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.publicGetQuoteV1TickerPrice(extend(request, params)));
-    return self.parseLastPrices(response, symbols)
+    return self.parseLastPrices(response, symbols = symbols)
 
 end
-function parseLastPrice(self::Hashkey, entry, market=nothing)
+function parseLastPrice(self::Hashkey, entry; market=nothing)
     marketId = safeString(entry, "s");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
     Symbol("timestamp") => nothing,
@@ -1340,17 +1477,29 @@ function parseLastPrice(self::Hashkey, entry, market=nothing)
 )
 
 end
-function fetchBalance(self::Hashkey, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountId`::string, optional: account ID, for Master Key only
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Hashkey; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     methodName = "fetchBalance";
     marketType = "spot";
-    (marketType, params) = self.handleMarketTypeAndParams(methodName, nothing, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams(methodName, market = nothing, params = params, defaultValue = marketType);
     if functions.ccxtruthy(marketType == "swap")
         response = Base.fetch(self.privateGetApiV1FuturesBalance(params));
-        balance = self.safeDict(response, 0, Dict{Symbol, Any}());
+        balance = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
             return self.parseSwapBalance(balance)
     elseif functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.privateGetApiV1Account(extend(request, params)));
@@ -1364,7 +1513,7 @@ function parseBalance(self::Hashkey, balance)
     result = Dict{Symbol, Any}(
         Symbol("info") => balance
     );
-    balances = self.safeList(balance, "balances", []);
+    balances = self.safeList(balance, "balances", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         balanceEntry = get(balances, i + 1, nothing);
@@ -1399,7 +1548,19 @@ function parseSwapBalance(self::Hashkey, balance)
     return self.safeBalance(result)
 
 end
-function fetchDepositAddress(self::Hashkey, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code (default is 'USDT')
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: network for fetch deposit address (default is 'ETH')
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Hashkey, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1412,16 +1573,16 @@ function fetchDepositAddress(self::Hashkey, code, params=Dict())
     if functions.ccxtruthy(networkCode == nothing)
         networkCode = self.defaultNetworkCode(code);
     end
-    request[Symbol("chainType")] = self.networkCodeToId(networkCode, code);
+    request[Symbol("chainType")] = self.networkCodeToId(networkCode, currencyCode = code);
     response = Base.fetch(self.privateGetApiV1AccountDepositAddress(extend(request, params)));
-    depositAddress = self.parseDepositAddress(response, currency);
+    depositAddress = self.parseDepositAddress(response, currency = currency);
     depositAddress[Symbol("network")] = networkCode;
     return depositAddress
 
 end
-function parseDepositAddress(self::Hashkey, depositAddress, currency=nothing)
+function parseDepositAddress(self::Hashkey, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     tag = safeString(depositAddress, "addressExt");
     if functions.ccxtruthy(tag == "")
         tag = nothing;
@@ -1435,7 +1596,22 @@ function parseDepositAddress(self::Hashkey, depositAddress, currency=nothing)
 )
 
 end
-function fetchDeposits(self::Hashkey, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for (default 24 hours ago)
+- `limit`::int, optional: the maximum number of transfer structures to retrieve (default 50, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for (default time now)
+- `params.fromId`::int, optional: starting ID (To be released)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchDeposits(self::Hashkey; code=nothing, since=nothing, limit=nothing, params=Dict())
     methodName = "fetchDeposits";
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1458,12 +1634,26 @@ function fetchDeposits(self::Hashkey, code=nothing, since=nothing, limit=nothing
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.privateGetApiV1AccountDepositOrders(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit, Dict{Symbol, Any}(
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => "deposit"
 ))
 
 end
-function fetchWithdrawals(self::Hashkey, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for (default 24 hours ago)
+- `limit`::int, optional: the maximum number of transfer structures to retrieve (default 50, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for (default time now)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Hashkey; code=nothing, since=nothing, limit=nothing, params=Dict())
     methodName = "fetchWithdrawals";
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1486,12 +1676,29 @@ function fetchWithdrawals(self::Hashkey, code=nothing, since=nothing, limit=noth
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.privateGetApiV1AccountWithdrawOrders(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit, Dict{Symbol, Any}(
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => "withdrawal"
 ))
 
 end
-function withdraw(self::Hashkey, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://hashkeyglobal-apidoc.readme.io/reference/withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: network for withdraw
+- `params.clientOrderId`::string, optional: client order id
+- `params.platform`::string, optional: the platform to withdraw to (hashkey, HashKey HK)
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Hashkey, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1508,18 +1715,18 @@ function withdraw(self::Hashkey, code, amount, address, tag=nothing, params=Dict
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("chainType")] = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        request[Symbol("chainType")] = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     end
     response = Base.fetch(self.privatePostApiV1AccountWithdraw(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseTransaction(self::Hashkey, transaction, currency=nothing)
+function parseTransaction(self::Hashkey, transaction; currency=nothing)
     id = safeString2(transaction, "id", "orderId");
     address = safeString(transaction, "address");
     status = safeString(transaction, "status");
     if functions.ccxtruthy(status == nothing)
-        success = self.safeBool(transaction, "success", false);
+        success = self.safeBool(transaction, "success", defaultValue = false);
         if functions.ccxtruthy(success)
             status = "ok";
         else
@@ -1531,7 +1738,7 @@ function parseTransaction(self::Hashkey, transaction, currency=nothing)
     end
     txid = safeString(transaction, "txId");
     coin = safeString(transaction, "coin");
-    code = self.safeCurrencyCode(coin, currency);
+    code = self.safeCurrencyCode(coin, currency = currency);
     timestamp = safeInteger(transaction, "time");
     amount = self.safeNumber(transaction, "quantity");
     feeCost = self.safeNumber(transaction, "fee");
@@ -1584,7 +1791,23 @@ function parseTransactionStatus(self::Hashkey, status)
     return safeString(statuses, status, status)
 
 end
-function transfer(self::Hashkey, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account id to transfer from
+- `toAccount`::string: account id to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the transfer
+- `params.remark`::string, optional: a note for the transfer
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Hashkey, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1596,14 +1819,14 @@ function transfer(self::Hashkey, code, amount, fromAccount, toAccount, params=Di
         Symbol("toAccountId") => toAccount
     );
     response = Base.fetch(self.privatePostApiV1AccountAssetTransfer(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function parseTransfer(self::Hashkey, transfer, currency=nothing)
+function parseTransfer(self::Hashkey, transfer; currency=nothing)
     timestamp = safeInteger(transfer, "timestamp");
     currencyId = safeString(currency, "id");
     status = nothing;
-    success = self.safeBool(transfer, "success", false);
+    success = self.safeBool(transfer, "success", defaultValue = false);
     if functions.ccxtruthy(success)
         status = "ok";
     end
@@ -1611,7 +1834,7 @@ function parseTransfer(self::Hashkey, transfer, currency=nothing)
     Symbol("id") => safeString(transfer, "orderId"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => nothing,
     Symbol("fromAccount") => nothing,
     Symbol("toAccount") => nothing,
@@ -1620,12 +1843,22 @@ function parseTransfer(self::Hashkey, transfer, currency=nothing)
 )
 
 end
-function fetchAccounts(self::Hashkey, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Hashkey; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetApiV1AccountType(params));
-    return self.parseAccounts(response, params)
+    return self.parseAccounts(response, params = params)
 
 end
 function parseAccount(self::Hashkey, account)
@@ -1676,7 +1909,23 @@ function encodeFlowType(self::Hashkey, type_var)
     return safeInteger(types, type_var, type_var)
 
 end
-function fetchLedger(self::Hashkey, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined (not used)
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.flowType`::int, optional: trade, fee, transfer, deposit, withdrawal
+- `params.accountType`::int, optional: spot, swap, custody
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Hashkey; code=nothing, since=nothing, limit=nothing, params=Dict())
     methodName = "fetchLedger";
     if functions.ccxtruthy(since == nothing)
         throw(ArgumentsRequired(string(self.id, " ", methodName, "() requires a since argument")));
@@ -1707,7 +1956,7 @@ function fetchLedger(self::Hashkey, code=nothing, since=nothing, limit=nothing, 
         request[Symbol("accountType")] = self.encodeAccountType(accountType);
     end
     response = Base.fetch(self.privateGetApiV1AccountBalanceFlow(extend(request, params)));
-    return self.parseLedger(response, currency, since, limit)
+    return self.parseLedger(response, currency = currency, since = since, limit = limit)
 
 end
 function parseLedgerEntryType(self::Hashkey, type_var)
@@ -1721,14 +1970,14 @@ function parseLedgerEntryType(self::Hashkey, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Hashkey, item, currency=nothing)
+function parseLedgerEntry(self::Hashkey, item; currency=nothing)
     id = safeString(item, "id");
     account = safeString(item, "accountId");
     timestamp = safeInteger(item, "created");
     type_var = self.parseLedgerEntryType(safeString(item, "flowTypeValue"));
     currencyId = safeString(item, "coin");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     amountString = safeString(item, "change");
     amount = self.parseNumber(amountString);
     direction = "in";
@@ -1755,24 +2004,58 @@ function parseLedgerEntry(self::Hashkey, item, currency=nothing)
     Symbol("after") => after,
     Symbol("status") => status,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
-function createOrder(self::Hashkey, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+see: https://hashkeyglobal-apidoc.readme.io/reference/create-order
+see: https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.test`::bool, optional: *spot markets only* whether to use the test endpoint or not, default is false
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately
+- `params.timeInForce`::string, optional: "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
+- `params.clientOrderId`::string, optional: a unique id for the order - is mandatory for swap
+- `params.triggerPrice`::float, optional: *swap markets only* The price at which a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Hashkey, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            return Base.fetch(self.createSpotOrder(symbol, type_var, side, amount, price, params))
+            return Base.fetch(self.createSpotOrder(symbol, type_var, side, amount, price = price, params = params))
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
-        return Base.fetch(self.createSwapOrder(symbol, type_var, side, amount, price, params))
+        return Base.fetch(self.createSwapOrder(symbol, type_var, side, amount, price = price, params = params))
     else
         throw(NotSupported(string(self.id, " createOrder() is not supported for ", get(market, Symbol("type"), nothing), " type of markets")));
     end
 
 end
-function createMarketBuyOrderWithCost(self::Hashkey, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Hashkey, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1783,10 +2066,31 @@ function createMarketBuyOrderWithCost(self::Hashkey, symbol, cost, params=Dict()
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = extend(req, params)))
 
 end
-function createSpotOrder(self::Hashkey, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order on spot market
+see: https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+see: https://hashkeyglobal-apidoc.readme.io/reference/create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'LIMIT_MAKER'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.test`::bool, optional: whether to use the test endpoint or not, default is false
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', or 'PO'
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createSpotOrder(self::Hashkey, symbol, type_var, side, amount; price=nothing, params=Dict())
     triggerPrice = safeString2(params, "stopPrice", "triggerPrice");
     if functions.ccxtruthy(triggerPrice != nothing)
         throw(NotSupported(string(self.id, " trigger orders are not supported for spot markets")));
@@ -1800,7 +2104,7 @@ function createSpotOrder(self::Hashkey, symbol, type_var, side, amount, price=no
     if functions.ccxtruthy(@functions.ccxt_and((!functions.ccxtruthy(isMarketBuy)), (cost != nothing)))
         throw(NotSupported(string(self.id, " createOrder() supports cost parameter for spot market buy orders only")));
     end
-    request = self.createSpotOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createSpotOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = Dict{Symbol, Any}();
     test = self.safeBool(params, "test");
     if functions.ccxtruthy(test)
@@ -1811,10 +2115,10 @@ function createSpotOrder(self::Hashkey, symbol, type_var, side, amount, price=no
     else
         response = Base.fetch(self.privatePostApiV1SpotOrder(request));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createOrderRequest(self::Hashkey, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Hashkey, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1823,15 +2127,15 @@ function createOrderRequest(self::Hashkey, symbol, type_var, side, amount, price
     end
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            return self.createSpotOrderRequest(symbol, type_var, side, amount, price, params)
+            return self.createSpotOrderRequest(symbol, type_var, side, amount, price = price, params = params)
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
-        return self.createSwapOrderRequest(symbol, type_var, side, amount, price, params)
+        return self.createSwapOrderRequest(symbol, type_var, side, amount, price = price, params = params)
     else
         throw(NotSupported(string(self.id, " ", "createOrderRequest() is not supported for ", get(market, Symbol("type"), nothing), " type of markets")));
     end
 
 end
-function createSpotOrderRequest(self::Hashkey, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createSpotOrderRequest(self::Hashkey, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1858,7 +2162,7 @@ function createSpotOrderRequest(self::Hashkey, symbol, type_var, side, amount, p
     end
     isMarketOrder = type_var == "MARKET";
     postOnly = false;
-    (postOnly, params) = self.handlePostOnly(isMarketOrder, type_var == "LIMIT_MAKER", params);
+    (postOnly, params) = self.handlePostOnly(isMarketOrder, type_var == "LIMIT_MAKER", params = params);
     if functions.ccxtruthy(@functions.ccxt_and(postOnly, (type_var == "LIMIT")))
         request[Symbol("type")] = "LIMIT_MAKER";
     end
@@ -1870,7 +2174,7 @@ function createSpotOrderRequest(self::Hashkey, symbol, type_var, side, amount, p
     return extend(request, params)
 
 end
-function createSwapOrderRequest(self::Hashkey, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createSwapOrderRequest(self::Hashkey, symbol, type_var, side, amount; price=nothing, params=Dict())
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -1886,7 +2190,7 @@ function createSwapOrderRequest(self::Hashkey, symbol, type_var, side, amount, p
         request[Symbol("priceType")] = "INPUT";
     end
     reduceOnly = false;
-    (reduceOnly, params) = self.handleParamBool(params, "reduceOnly", reduceOnly);
+    (reduceOnly, params) = self.handleParamBool(params, "reduceOnly", defaultValue = reduceOnly);
     suffix = "_OPEN";
     if functions.ccxtruthy(reduceOnly)
         suffix = "_CLOSE";
@@ -1895,7 +2199,7 @@ function createSwapOrderRequest(self::Hashkey, symbol, type_var, side, amount, p
     timeInForce = nothing;
     (timeInForce, params) = self.handleParamString(params, "timeInForce");
     postOnly = false;
-    (postOnly, params) = self.handlePostOnly(isMarketOrder, timeInForce == "LIMIT_MAKER", params);
+    (postOnly, params) = self.handlePostOnly(isMarketOrder, timeInForce == "LIMIT_MAKER", params = params);
     if functions.ccxtruthy(postOnly)
         timeInForce = "LIMIT_MAKER";
     end
@@ -1915,17 +2219,49 @@ function createSwapOrderRequest(self::Hashkey, symbol, type_var, side, amount, p
     return extend(request, params)
 
 end
-function createSwapOrder(self::Hashkey, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order on swap market
+see: https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'STOP'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce only
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.timeInForce`::string, optional: 'GTC', 'FOK', 'IOC', 'LIMIT_MAKER' or 'PO'
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createSwapOrder(self::Hashkey, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createSwapOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createSwapOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = Base.fetch(self.privatePostApiV1FuturesOrder(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createOrders(self::Hashkey, orders, params=Dict())
+"""
+create a list of trade orders (all orders should be of the same symbol)
+see: https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the api endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Hashkey, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1938,8 +2274,8 @@ function createOrders(self::Hashkey, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = self.safeNumber(rawOrder, "amount");
         price = self.safeNumber(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price, orderParams);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = orderParams);
         clientOrderId = safeString(orderRequest, "clientOrderId");
         if functions.ccxtruthy(clientOrderId == nothing)
             orderRequest[Symbol("clientOrderId")] = uuid();
@@ -1961,19 +2297,36 @@ function createOrders(self::Hashkey, orders, params=Dict())
     else
         throw(NotSupported(string(self.id, " ", "createOrderRequest() is not supported for ", get(market, Symbol("type"), nothing), " type of markets")));
     end
-    result = self.safeList(response, "result", []);
+    result = self.safeList(response, "result", defaultValue = []);
     responseOrders = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
-        responseEntry = self.safeDict(result, i, Dict{Symbol, Any}());
-        responseOrder = self.safeDict(responseEntry, "order", Dict{Symbol, Any}());
+        responseEntry = self.safeDict(result, i, defaultValue = Dict{Symbol, Any}());
+        responseOrder = self.safeDict(responseEntry, "order", defaultValue = Dict{Symbol, Any}());
         push!(responseOrders, responseOrder);
         i += 1
     end
     return self.parseOrders(responseOrders)
 
 end
-function cancelOrder(self::Hashkey, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
+see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+- `params.clientOrderId`::string, optional: a unique id for the order that can be used as an alternative for the id
+- `params.trigger`::bool, optional: *swap markets only* true for canceling a trigger order (default false)
+- `params.stop`::bool, optional: *swap markets only* an alternative for trigger param
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Hashkey, id; symbol=nothing, params=Dict())
     methodName = "cancelOrder";
     self.checkTypeParam(methodName, params);
     if functions.ccxtruthy(self.markets == nothing)
@@ -1989,13 +2342,13 @@ function cancelOrder(self::Hashkey, id, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = "spot";
-    (marketType, params) = self.handleMarketTypeAndParams(methodName, market, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams(methodName, market = market, params = params, defaultValue = marketType);
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.privateDeleteApiV1SpotOrder(extend(request, params)));
     elseif functions.ccxtruthy(marketType == "swap")
         isTrigger = false;
-        (isTrigger, params) = self.handleTriggerOptionAndParams(params, methodName, isTrigger);
+        (isTrigger, params) = self.handleTriggerOptionAndParams(params, methodName, defaultValue = isTrigger);
         if functions.ccxtruthy(isTrigger)
             request[Symbol("type")] = "STOP";
         else
@@ -2011,7 +2364,20 @@ function cancelOrder(self::Hashkey, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelAllOrders(self::Hashkey, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string, optional: 'buy' or 'sell'
+
+# Returns
+- response from exchange
+"""
+function cancelAllOrders(self::Hashkey; symbol=nothing, params=Dict())
     methodName = "cancelAllOrders";
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " ", methodName, "() requires a symbol argument")));
@@ -2039,7 +2405,21 @@ function cancelAllOrders(self::Hashkey, symbol=nothing, params=Dict())
     return [order]
 
 end
-function cancelOrders(self::Hashkey, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol (not used by hashkey)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Hashkey, ids; symbol=nothing, params=Dict())
     methodName = "cancelOrders";
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2052,7 +2432,7 @@ function cancelOrders(self::Hashkey, ids, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = "spot";
-    (marketType, params) = self.handleMarketTypeAndParams(methodName, market, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams(methodName, market = market, params = params, defaultValue = marketType);
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.privateDeleteApiV1SpotCancelOrderByIds(request));
     elseif functions.ccxtruthy(marketType == "swap")
@@ -2065,7 +2445,25 @@ function cancelOrders(self::Hashkey, ids, symbol=nothing, params=Dict())
     return [order]
 
 end
-function fetchOrder(self::Hashkey, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-order
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+- `params.clientOrderId`::string, optional: a unique id for the order that can be used as an alternative for the id
+- `params.accountId`::string, optional: *spot markets only* account id to fetch the order from
+- `params.trigger`::bool, optional: *swap markets only* true for fetching a trigger order (default false)
+- `params.stop`::bool, optional: *swap markets only* an alternative for trigger param
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Hashkey, id; symbol=nothing, params=Dict())
     methodName = "fetchOrder";
     self.checkTypeParam(methodName, params);
     if functions.ccxtruthy(self.markets == nothing)
@@ -2082,7 +2480,7 @@ function fetchOrder(self::Hashkey, id, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = "spot";
-    (marketType, params) = self.handleMarketTypeAndParams(methodName, market, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams(methodName, market = market, params = params, defaultValue = marketType);
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(clientOrderId != nothing)
@@ -2091,7 +2489,7 @@ function fetchOrder(self::Hashkey, id, symbol=nothing, params=Dict())
         response = Base.fetch(self.privateGetApiV1SpotOrder(extend(request, params)));
     elseif functions.ccxtruthy(marketType == "swap")
         isTrigger = false;
-        (isTrigger, params) = self.handleTriggerOptionAndParams(params, methodName, isTrigger);
+        (isTrigger, params) = self.handleTriggerOptionAndParams(params, methodName, defaultValue = isTrigger);
         if functions.ccxtruthy(isTrigger)
             request[Symbol("type")] = "STOP";
         end
@@ -2102,7 +2500,30 @@ function fetchOrder(self::Hashkey, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOpenOrders(self::Hashkey, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/sub
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in - is mandatory for swap markets
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve - default 500, maximum 1000
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+- `params.orderId`::string, optional: *spot markets only* the id of the order to fetch
+- `params.side`::string, optional: *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
+- `params.fromOrderId`::string, optional: *swap markets only* the id of the order to start from
+- `params.trigger`::bool, optional: *swap markets only* true for fetching trigger orders (default false)
+- `params.stop`::bool, optional: *swap markets only* an alternative for trigger param
+- `params.accountId`::string, optional: account id to fetch the orders from
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Hashkey; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     methodName = "fetchOpenOrders";
     self.checkTypeParam(methodName, params);
     if functions.ccxtruthy(self.markets == nothing)
@@ -2113,25 +2534,42 @@ function fetchOpenOrders(self::Hashkey, symbol=nothing, since=nothing, limit=not
         market = self.market(symbol);
     end
     marketType = "spot";
-    (marketType, params) = self.handleMarketTypeAndParams(methodName, market, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams(methodName, market = market, params = params, defaultValue = marketType);
     params = extend(Dict{Symbol, Any}(
     Symbol("methodName") => methodName
 ), params);
     if functions.ccxtruthy(marketType == "spot")
-            return Base.fetch(self.fetchOpenSpotOrders(symbol, since, limit, params))
+            return Base.fetch(self.fetchOpenSpotOrders(symbol = symbol, since = since, limit = limit, params = params))
     elseif functions.ccxtruthy(marketType == "swap")
-        return Base.fetch(self.fetchOpenSwapOrders(symbol, since, limit, params))
+        return Base.fetch(self.fetchOpenSwapOrders(symbol = symbol, since = since, limit = limit, params = params))
     else
         throw(NotSupported(string(self.id, " ", methodName, "() is not supported for ", marketType, " type of markets")));
     end
 
 end
-function fetchOpenSpotOrders(self::Hashkey, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders for spot markets
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/sub
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve - default 500, maximum 1000
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.orderId`::string, optional: the id of the order to fetch
+- `params.side`::string, optional: 'buy' or 'sell' - the side of the orders to fetch
+- `params.accountId`::string, optional: account id to fetch the orders from
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenSpotOrders(self::Hashkey; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     methodName = "fetchOpenSpotOrders";
-    (methodName, params) = self.handleParamString(params, "methodName", methodName);
+    (methodName, params) = self.handleParamString(params, "methodName", defaultValue = methodName);
     market = nothing;
     request = Dict{Symbol, Any}();
     response = nothing;
@@ -2150,12 +2588,30 @@ function fetchOpenSpotOrders(self::Hashkey, symbol=nothing, since=nothing, limit
         end
         response = Base.fetch(self.privateGetApiV1SpotOpenOrders(extend(request, params)));
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenSwapOrders(self::Hashkey, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders for swap markets
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+
+# Arguments
+- `symbol`::string: *is mandatory* unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve - maximum 500
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fromOrderId`::string, optional: the id of the order to start from
+- `params.trigger`::bool, optional: true for fetching trigger orders (default false)
+- `params.stop`::bool, optional: an alternative for trigger param
+- `params.accountId`::string, optional: account id to fetch the orders from
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenSwapOrders(self::Hashkey; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     methodName = "fetchOpenSwapOrders";
-    (methodName, params) = self.handleParamString(params, "methodName", methodName);
+    (methodName, params) = self.handleParamString(params, "methodName", defaultValue = methodName);
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " ", methodName, "() requires a symbol argument for swap market orders")));
     end
@@ -2164,7 +2620,7 @@ function fetchOpenSwapOrders(self::Hashkey, symbol=nothing, since=nothing, limit
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     isTrigger = false;
-    (isTrigger, params) = self.handleTriggerOptionAndParams(params, methodName, isTrigger);
+    (isTrigger, params) = self.handleTriggerOptionAndParams(params, methodName, defaultValue = isTrigger);
     if functions.ccxtruthy(isTrigger)
         request[Symbol("type")] = "STOP";
     else
@@ -2182,10 +2638,33 @@ function fetchOpenSwapOrders(self::Hashkey, symbol=nothing, since=nothing, limit
     else
         response = Base.fetch(self.privateGetApiV1FuturesOpenOrders(extend(request, params)));
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchCanceledAndClosedOrders(self::Hashkey, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled and closed orders made by the user
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-history-orders
+
+# Arguments
+- `symbol`::string: *is mandatory for swap markets* unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve - default 500, maximum 1000
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for - only supports the last 90 days timeframe
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+- `params.orderId`::string, optional: *spot markets only* the id of the order to fetch
+- `params.side`::string, optional: *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
+- `params.fromOrderId`::string, optional: *swap markets only* the id of the order to start from
+- `params.trigger`::bool, optional: *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
+- `params.stop`::bool, optional: *swap markets only* the id of the order to start from an alternative for trigger param
+- `params.accountId`::string, optional: account id to fetch the orders from
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Hashkey; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     methodName = "fetchCanceledAndClosedOrders";
     self.checkTypeParam(methodName, params);
     if functions.ccxtruthy(self.markets == nothing)
@@ -2210,7 +2689,7 @@ function fetchCanceledAndClosedOrders(self::Hashkey, symbol=nothing, since=nothi
         market = self.market(symbol);
     end
     marketType = "spot";
-    (marketType, params) = self.handleMarketTypeAndParams(methodName, market, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams(methodName, market = market, params = params, defaultValue = marketType);
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(market != nothing)
@@ -2226,7 +2705,7 @@ function fetchCanceledAndClosedOrders(self::Hashkey, symbol=nothing, since=nothi
         end
         request[Symbol("symbol")] = safeString(market, "id");
         isTrigger = false;
-        (isTrigger, params) = self.handleTriggerOptionAndParams(params, methodName, isTrigger);
+        (isTrigger, params) = self.handleTriggerOptionAndParams(params, methodName, defaultValue = isTrigger);
         if functions.ccxtruthy(isTrigger)
             request[Symbol("type")] = "STOP";
         else
@@ -2241,7 +2720,7 @@ function fetchCanceledAndClosedOrders(self::Hashkey, symbol=nothing, since=nothi
     else
         throw(NotSupported(string(self.id, " ", methodName, "() is not supported for ", marketType, " type of markets")));
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
 function checkTypeParam(self::Hashkey, methodName, params)
@@ -2251,15 +2730,15 @@ function checkTypeParam(self::Hashkey, methodName, params)
     end
 
 end
-function handleTriggerOptionAndParams(self::Hashkey, params, methodName, defaultValue=nothing)
+function handleTriggerOptionAndParams(self::Hashkey, params, methodName; defaultValue=nothing)
     isTrigger = defaultValue;
-    (isTrigger, params) = self.handleOptionAndParams2(params, methodName, "stop", "trigger", isTrigger);
+    (isTrigger, params) = self.handleOptionAndParams2(params, methodName, "stop", "trigger", defaultValue = isTrigger);
     return [isTrigger, params]
 
 end
-function parseOrder(self::Hashkey, order, market=nothing)
+function parseOrder(self::Hashkey, order; market=nothing)
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger2(order, "transactTime", "time");
     status = safeString(order, "status");
     type_var = safeString(order, "type");
@@ -2318,7 +2797,7 @@ function parseOrder(self::Hashkey, order, market=nothing)
     Symbol("reduceOnly") => reduceOnly,
     Symbol("postOnly") => postOnly,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseOrderSideAndReduceOnly(self::Hashkey, unparsed)
@@ -2373,7 +2852,18 @@ function parseOrderType(self::Hashkey, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function fetchFundingRate(self::Hashkey, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Hashkey, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2383,25 +2873,36 @@ function fetchFundingRate(self::Hashkey, symbol, params=Dict())
         Symbol("timestamp") => milliseconds()
     );
     response = Base.fetch(self.publicGetApiV1FuturesFundingRate(extend(request, params)));
-    rate = self.safeDict(response, 0, Dict{Symbol, Any}());
-    return self.parseFundingRate(rate, market)
+    rate = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(rate, market = market)
 
 end
-function fetchFundingRates(self::Hashkey, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Hashkey; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}(
         Symbol("timestamp") => milliseconds()
     );
     response = Base.fetch(self.publicGetApiV1FuturesFundingRate(extend(request, params)));
-    return self.parseFundingRates(response, symbols)
+    return self.parseFundingRates(response, symbols = symbols)
 
 end
-function parseFundingRate(self::Hashkey, contract, market=nothing)
+function parseFundingRate(self::Hashkey, contract; market=nothing)
     marketId = safeString(contract, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "swap");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "swap");
     fundingRate = self.safeNumber(contract, "rate");
     fundingTimestamp = safeInteger(contract, "nextSettleTime");
     return Dict{Symbol, Any}(
@@ -2426,7 +2927,22 @@ function parseFundingRate(self::Hashkey, contract, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Hashkey, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fromId`::int, optional: the id of the entry to start from
+- `params.endId`::int, optional: the id of the entry to end with
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Hashkey; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2449,7 +2965,7 @@ function fetchFundingRateHistory(self::Hashkey, symbol=nothing, since=nothing, l
         timestamp = safeInteger(entry, "settleTime");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
-    Symbol("symbol") => self.safeSymbol(safeString(entry, "symbol"), market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(safeString(entry, "symbol"), market = market, delimiter = nothing, marketType = "swap"),
     Symbol("fundingRate") => self.safeNumber(entry, "settleRate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
@@ -2457,10 +2973,22 @@ function fetchFundingRateHistory(self::Hashkey, symbol=nothing, since=nothing, l
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySinceLimit(sorted, since, limit)
+    return self.filterBySinceLimit(sorted, since = since, limit = limit)
 
 end
-function fetchPositions(self::Hashkey, symbols=nothing, params=Dict())
+"""
+fetch open positions for a market fetch all open positions
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string, optional: 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Hashkey; symbols=nothing, params=Dict())
     methodName = "fetchPositions";
     if functions.ccxtruthy((symbols == nothing))
         throw(ArgumentsRequired(string(self.id, " ", methodName, "() requires a symbol argument with one single market symbol")));
@@ -2473,18 +3001,30 @@ function fetchPositions(self::Hashkey, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    return Base.fetch(self.fetchPositionsForSymbol(get(symbols, 1, nothing), extend(Dict{Symbol, Any}(
+    return Base.fetch(self.fetchPositionsForSymbol(get(symbols, 1, nothing), params = extend(Dict{Symbol, Any}(
     Symbol("methodName") => "fetchPositions"
 ), params)))
 
 end
-function fetchPositionsForSymbol(self::Hashkey, symbol, params=Dict())
+"""
+fetch open positions for a single market fetch all open positions for specific symbol
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string, optional: 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsForSymbol(self::Hashkey, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     methodName = "fetchPosition";
-    (methodName, params) = self.handleParamString(params, "methodName", methodName);
+    (methodName, params) = self.handleParamString(params, "methodName", defaultValue = methodName);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
         throw(NotSupported(string(self.id, " ", methodName, "() supports swap markets only")));
     end
@@ -2492,12 +3032,12 @@ function fetchPositionsForSymbol(self::Hashkey, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetApiV1FuturesPositions(extend(request, params)));
-    return self.parsePositions(response, [symbol])
+    return self.parsePositions(response, symbols = [symbol])
 
 end
-function parsePosition(self::Hashkey, position, market=nothing)
+function parsePosition(self::Hashkey, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     return self.safePosition(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -2531,7 +3071,18 @@ function parsePosition(self::Hashkey, position, market=nothing)
 ))
 
 end
-function fetchLeverage(self::Hashkey, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Hashkey, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2540,11 +3091,11 @@ function fetchLeverage(self::Hashkey, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetApiV1FuturesLeverage(extend(request, params)));
-    leverage = self.safeDict(response, 0, Dict{Symbol, Any}());
-    return self.parseLeverage(leverage, market)
+    leverage = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(leverage, market = market)
 
 end
-function parseLeverage(self::Hashkey, leverage, market=nothing)
+function parseLeverage(self::Hashkey, leverage; market=nothing)
     marginMode = safeStringLower(leverage, "marginType");
     leverageValue = self.safeNumber(leverage, "leverage");
     return Dict{Symbol, Any}(
@@ -2556,7 +3107,19 @@ function parseLeverage(self::Hashkey, leverage, market=nothing)
 )
 
 end
-function setLeverage(self::Hashkey, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Hashkey, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -2569,10 +3132,22 @@ function setLeverage(self::Hashkey, leverage, symbol=nothing, params=Dict())
     market = self.market(symbol);
     request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     response = Base.fetch(self.privatePostApiV1FuturesLeverage(extend(request, params)));
-    return self.parseLeverage(response, market)
+    return self.parseLeverage(response, market = market)
 
 end
-function setMarginMode(self::Hashkey, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Hashkey, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -2597,15 +3172,41 @@ function setMarginMode(self::Hashkey, marginMode, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePostApiV1FuturesMarginType(extend(request, params)))
 
 end
-function addMargin(self::Hashkey, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params))
+"""
+add margin
+see: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string: position side, either 'long' or 'short'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Hashkey, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params = params))
 
 end
-function reduceMargin(self::Hashkey, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params))
+"""
+remove margin from a position
+see: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string: position side, either 'long' or 'short'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Hashkey, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params = params))
 
 end
-function modifyMarginHelper(self::Hashkey, symbol, amount, type_var, params=Dict())
+function modifyMarginHelper(self::Hashkey, symbol, amount, type_var; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2632,15 +3233,15 @@ function modifyMarginHelper(self::Hashkey, symbol, amount, type_var, params=Dict
         Symbol("amount") => amountString
     );
     response = Base.fetch(self.privatePostApiV1FuturesPositionMargin(extend(request, params)));
-    return extend(self.parseMarginModification(response, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(response, market = market), Dict{Symbol, Any}(
     Symbol("type") => type_var,
     Symbol("amount") => amount
 ))
 
 end
-function parseMarginModification(self::Hashkey, data, market=nothing)
+function parseMarginModification(self::Hashkey, data; market=nothing)
     marketId = safeString(data, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "swap");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "swap");
     timestamp = safeInteger(data, "timestamp");
     errorCode = safeString(data, "code");
     success = errorCode == "0000";
@@ -2658,20 +3259,31 @@ function parseMarginModification(self::Hashkey, data, market=nothing)
 )
 
 end
-function fetchLeverageTiers(self::Hashkey, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Hashkey; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetApiV1ExchangeInfo(params));
-    data = self.safeList(response, "contracts", []);
-    symbols = self.marketSymbols(symbols);
-    return self.parseLeverageTiers(data, symbols, "symbol")
+    data = self.safeList(response, "contracts", defaultValue = []);
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.parseLeverageTiers(data, symbols = symbols, marketIdKey = "symbol")
 
 end
-function parseMarketLeverageTiers(self::Hashkey, info, market=nothing)
-    riskLimits = self.safeList(info, "riskLimits", []);
+function parseMarketLeverageTiers(self::Hashkey, info; market=nothing)
+    riskLimits = self.safeList(info, "riskLimits", defaultValue = []);
     marketId = safeString(info, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     tiers = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(riskLimits)))
@@ -2679,7 +3291,7 @@ function parseMarketLeverageTiers(self::Hashkey, info, market=nothing)
         initialMarginRate = safeString(tier, "initialMargin");
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => self.sum(i, 1),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("currency") => get(market, Symbol("settle"), nothing),
     Symbol("minNotional") => nothing,
     Symbol("maxNotional") => self.safeNumber(tier, "quantity"),
@@ -2692,7 +3304,19 @@ function parseMarketLeverageTiers(self::Hashkey, info, market=nothing)
     return tiers
 
 end
-function fetchTradingFee(self::Hashkey, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Hashkey, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2700,28 +3324,38 @@ function fetchTradingFee(self::Hashkey, symbol, params=Dict())
     methodName = "fetchTradingFee";
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-        response = Base.fetch(self.fetchTradingFees(params));
+        response = Base.fetch(self.fetchTradingFees(params = params));
             return self.safeDict(response, symbol)
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         response = Base.fetch(self.privateGetApiV1FuturesCommissionRate(extend(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("id"), nothing)
 ), params)));
-        return self.parseTradingFee(response, market)
+        return self.parseTradingFee(response, market = market)
     else
         throw(NotSupported(string(self.id, " ", methodName, "() is not supported for ", get(market, Symbol("type"), nothing), " type of markets")));
     end
 
 end
-function fetchTradingFees(self::Hashkey, params=Dict())
+"""
+*for spot markets only* fetch the trading fees for multiple markets
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Hashkey; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetApiV1AccountVipInfo(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
-        fee = self.safeDict(data, i, Dict{Symbol, Any}());
+        fee = self.safeDict(data, i, defaultValue = Dict{Symbol, Any}());
         parsedFee = self.parseTradingFee(fee);
         result[Symbol(parsedFee[Symbol("symbol")])] = parsedFee;
         i += 1
@@ -2729,9 +3363,9 @@ function fetchTradingFees(self::Hashkey, params=Dict())
     return result
 
 end
-function parseTradingFee(self::Hashkey, fee, market=nothing)
+function parseTradingFee(self::Hashkey, fee; market=nothing)
     marketId = safeString(fee, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -2742,7 +3376,7 @@ function parseTradingFee(self::Hashkey, fee, market=nothing)
 )
 
 end
-function sign(self::Hashkey, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Hashkey, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", path);
     query = nothing;
     if functions.ccxtruthy(api == "private")
@@ -2763,16 +3397,16 @@ function sign(self::Hashkey, path, api="public", method="GET", params=Dict(), he
         if functions.ccxtruthy(@functions.ccxt_and((method == "POST"), (@functions.ccxt_or((path == "api/v1/spot/batchOrders"), (path == "api/v1/futures/batchOrders")))))
             headers[Symbol("Content-Type")] = "application/json";
             body = json(self.safeList(params, "orders"));
-            signature = self.hmac(self.encode(self.customUrlencode(additionalParams)), self.encode(self.secret), sha256);
-            query = self.customUrlencode(extend(additionalParams, Dict{Symbol, Any}(
+            signature = self.hmac(self.encode(self.customUrlencode(params = additionalParams)), self.encode(self.secret), sha256);
+            query = self.customUrlencode(params = extend(additionalParams, Dict{Symbol, Any}(
     Symbol("signature") => signature
 )));
             url += string("?", query);
         else
             totalParams = extend(additionalParams, params);
-            signature = self.hmac(self.encode(self.customUrlencode(totalParams)), self.encode(self.secret), sha256);
+            signature = self.hmac(self.encode(self.customUrlencode(params = totalParams)), self.encode(self.secret), sha256);
             totalParams[Symbol("signature")] = signature;
-            query = self.customUrlencode(totalParams);
+            query = self.customUrlencode(params = totalParams);
             if functions.ccxtruthy(method == "GET")
                 url += string("?", query);
             else
@@ -2795,7 +3429,7 @@ function sign(self::Hashkey, path, api="public", method="GET", params=Dict(), he
 )
 
 end
-function customUrlencode(self::Hashkey, params=Dict())
+function customUrlencode(self::Hashkey; params=Dict())
     result = self.urlencode(params);
     result = replace(result, "%2C" => ",");
     return result
@@ -2809,7 +3443,7 @@ function handleErrors(self::Hashkey, code, reason, url, method, headers, body, r
     responseCodeString = safeString(response, "code");
     responseCodeInteger = safeInteger(response, "code");
     if functions.ccxtruthy(responseCodeInteger == 0)
-        result = self.safeList(response, "result", []);
+        result = self.safeList(response, "result", defaultValue = []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
             entry = self.safeDict(result, i);
@@ -2838,271 +3472,271 @@ Base.getproperty(self::Hashkey, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetApiV1ExchangeInfo(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/exchangeInfo", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/exchangeInfo"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuoteV1Depth(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuoteV1Trades(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuoteV1Klines(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/klines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/klines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuoteV1Ticker24hr(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/ticker/24hr"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuoteV1TickerPrice(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/ticker/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuoteV1TickerBookTicker(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/ticker/bookTicker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuoteV1DepthMerged(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/depth/merged", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/depth/merged"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuoteV1MarkPrice(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/markPrice", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/markPrice"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuoteV1Index(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/index", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/v1/index"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1FuturesFundingRate(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/fundingRate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/fundingRate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1FuturesHistoryFundingRate(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/historyFundingRate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/historyFundingRate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Ping(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/ping", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/ping"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Time(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SpotOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SpotOpenOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SpotTradeOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/tradeOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/tradeOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesLeverage(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/leverage", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/leverage"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesOpenOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesUserTrades(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/userTrades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/userTrades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesPositions(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesHistoryOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/historyOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/historyOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesBalance(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesLiquidationAssignStatus(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/liquidationAssignStatus", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/liquidationAssignStatus"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesRiskLimit(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/riskLimit", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/riskLimit"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesCommissionRate(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/commissionRate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/commissionRate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesGetBestOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/getBestOrder", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/getBestOrder"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1CoinInfo(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/coinInfo", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/coinInfo"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountVipInfo(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/vipInfo", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/vipInfo"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1Account(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountTrades(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountType(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/type", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/type"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountChainType(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/chainType", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/chainType"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountCheckApiKey(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/checkApiKey", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/checkApiKey"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountBalanceFlow(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/balanceFlow", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/balanceFlow"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SpotSubAccountOpenOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/subAccount/openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/subAccount/openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SpotSubAccountTradeOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/subAccount/tradeOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/subAccount/tradeOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1SubAccountTrades(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/subAccount/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/subAccount/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesSubAccountOpenOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/subAccount/openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/subAccount/openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesSubAccountHistoryOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/subAccount/historyOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/subAccount/historyOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1FuturesSubAccountUserTrades(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/subAccount/userTrades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/subAccount/userTrades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountDepositAddress(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/deposit/address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/deposit/address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountDepositOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/depositOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/depositOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountWithdrawOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/withdrawOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/withdrawOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1UserDataStream(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/userDataStream", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/userDataStream"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1SpotOrderTest(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/orderTest", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/orderTest"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1SpotOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV11SpotOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1.1/spot/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1.1/spot/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1SpotBatchOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/batchOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/batchOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesLeverage(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesMarginType(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/marginType", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/marginType"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesPositionMargin(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/positionMargin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/positionMargin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesPositionTradingStop(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/position/trading-stop", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/position/trading-stop"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1FuturesBatchOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/batchOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/batchOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1AccountAssetTransfer(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/assetTransfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/assetTransfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1AccountAuthAddress(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/authAddress", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/authAddress"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1AccountWithdraw(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutApiV1UserDataStream(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/userDataStream", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "api/v1/userDataStream"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1SpotOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1SpotOpenOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/openOrders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/openOrders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1SpotCancelOrderByIds(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/cancelOrderByIds", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/spot/cancelOrderByIds"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1FuturesOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1FuturesBatchOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/batchOrders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/batchOrders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1FuturesCancelOrderByIds(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/cancelOrderByIds", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/futures/cancelOrderByIds"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1UserDataStream(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/userDataStream", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/userDataStream"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Hashkey(; kwargs...)
@@ -3166,3 +3800,774 @@ function Hashkey(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Hashkey_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://hashkeyglobal-apidoc.readme.io/reference/check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Hashkey_fetchTime
+
+function __ccxt_doc_Hashkey_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Hashkey_fetchStatus
+
+function __ccxt_doc_Hashkey_fetchMarkets() end
+"""
+retrieves data on all markets for the exchange
+see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: the id of the market to fetch
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Hashkey_fetchMarkets
+
+function __ccxt_doc_Hashkey_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Hashkey_fetchCurrencies
+
+function __ccxt_doc_Hashkey_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (maximum value is 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Hashkey_fetchOrderBook
+
+function __ccxt_doc_Hashkey_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (maximum value is 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Hashkey_fetchTrades
+
+function __ccxt_doc_Hashkey_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
+
+# Arguments
+- `symbol`::string: *is mandatory for swap markets* unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum amount of trades to fetch (default 200, max 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch trades for (default 'spot')
+- `params.until`::int, optional: the latest time in ms to fetch trades for, only supports the last 30 days timeframe
+- `params.fromId`::string, optional: srarting trade id
+- `params.toId`::string, optional: ending trade id
+- `params.clientOrderId`::string, optional: *spot markets only* filter trades by orderId
+- `params.accountId`::string, optional: account id to fetch the orders from
+
+# Returns
+- a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+"""
+__ccxt_doc_Hashkey_fetchMyTrades
+
+function __ccxt_doc_Hashkey_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Hashkey_fetchOHLCV
+
+function __ccxt_doc_Hashkey_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Hashkey_fetchTicker
+
+function __ccxt_doc_Hashkey_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Hashkey_fetchTickers
+
+function __ccxt_doc_Hashkey_fetchLastPrices() end
+"""
+fetches the last price for multiple markets
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the last prices
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: the id of the market to fetch last price for
+
+# Returns
+- a dictionary of lastprices structures
+"""
+__ccxt_doc_Hashkey_fetchLastPrices
+
+function __ccxt_doc_Hashkey_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountId`::string, optional: account ID, for Master Key only
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Hashkey_fetchBalance
+
+function __ccxt_doc_Hashkey_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code (default is 'USDT')
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: network for fetch deposit address (default is 'ETH')
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Hashkey_fetchDepositAddress
+
+function __ccxt_doc_Hashkey_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for (default 24 hours ago)
+- `limit`::int, optional: the maximum number of transfer structures to retrieve (default 50, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for (default time now)
+- `params.fromId`::int, optional: starting ID (To be released)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Hashkey_fetchDeposits
+
+function __ccxt_doc_Hashkey_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for (default 24 hours ago)
+- `limit`::int, optional: the maximum number of transfer structures to retrieve (default 50, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for (default time now)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hashkey_fetchWithdrawals
+
+function __ccxt_doc_Hashkey_withdraw() end
+"""
+make a withdrawal
+see: https://hashkeyglobal-apidoc.readme.io/reference/withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: network for withdraw
+- `params.clientOrderId`::string, optional: client order id
+- `params.platform`::string, optional: the platform to withdraw to (hashkey, HashKey HK)
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hashkey_withdraw
+
+function __ccxt_doc_Hashkey_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account id to transfer from
+- `toAccount`::string: account id to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the transfer
+- `params.remark`::string, optional: a note for the transfer
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Hashkey_transfer
+
+function __ccxt_doc_Hashkey_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Hashkey_fetchAccounts
+
+function __ccxt_doc_Hashkey_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined (not used)
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.flowType`::int, optional: trade, fee, transfer, deposit, withdrawal
+- `params.accountType`::int, optional: spot, swap, custody
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Hashkey_fetchLedger
+
+function __ccxt_doc_Hashkey_createOrder() end
+"""
+create a trade order
+see: https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+see: https://hashkeyglobal-apidoc.readme.io/reference/create-order
+see: https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.test`::bool, optional: *spot markets only* whether to use the test endpoint or not, default is false
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately
+- `params.timeInForce`::string, optional: "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
+- `params.clientOrderId`::string, optional: a unique id for the order - is mandatory for swap
+- `params.triggerPrice`::float, optional: *swap markets only* The price at which a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_createOrder
+
+function __ccxt_doc_Hashkey_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Hashkey_createSpotOrder() end
+"""
+create a trade order on spot market
+see: https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+see: https://hashkeyglobal-apidoc.readme.io/reference/create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'LIMIT_MAKER'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.test`::bool, optional: whether to use the test endpoint or not, default is false
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', or 'PO'
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_createSpotOrder
+
+function __ccxt_doc_Hashkey_createSwapOrder() end
+"""
+create a trade order on swap market
+see: https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'STOP'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce only
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.timeInForce`::string, optional: 'GTC', 'FOK', 'IOC', 'LIMIT_MAKER' or 'PO'
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_createSwapOrder
+
+function __ccxt_doc_Hashkey_createOrders() end
+"""
+create a list of trade orders (all orders should be of the same symbol)
+see: https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the api endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_createOrders
+
+function __ccxt_doc_Hashkey_cancelOrder() end
+"""
+cancels an open order
+see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
+see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+- `params.clientOrderId`::string, optional: a unique id for the order that can be used as an alternative for the id
+- `params.trigger`::bool, optional: *swap markets only* true for canceling a trigger order (default false)
+- `params.stop`::bool, optional: *swap markets only* an alternative for trigger param
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_cancelOrder
+
+function __ccxt_doc_Hashkey_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string, optional: 'buy' or 'sell'
+
+# Returns
+- response from exchange
+"""
+__ccxt_doc_Hashkey_cancelAllOrders
+
+function __ccxt_doc_Hashkey_cancelOrders() end
+"""
+cancel multiple orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol (not used by hashkey)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_cancelOrders
+
+function __ccxt_doc_Hashkey_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-order
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+- `params.clientOrderId`::string, optional: a unique id for the order that can be used as an alternative for the id
+- `params.accountId`::string, optional: *spot markets only* account id to fetch the order from
+- `params.trigger`::bool, optional: *swap markets only* true for fetching a trigger order (default false)
+- `params.stop`::bool, optional: *swap markets only* an alternative for trigger param
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_fetchOrder
+
+function __ccxt_doc_Hashkey_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/sub
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in - is mandatory for swap markets
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve - default 500, maximum 1000
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+- `params.orderId`::string, optional: *spot markets only* the id of the order to fetch
+- `params.side`::string, optional: *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
+- `params.fromOrderId`::string, optional: *swap markets only* the id of the order to start from
+- `params.trigger`::bool, optional: *swap markets only* true for fetching trigger orders (default false)
+- `params.stop`::bool, optional: *swap markets only* an alternative for trigger param
+- `params.accountId`::string, optional: account id to fetch the orders from
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_fetchOpenOrders
+
+function __ccxt_doc_Hashkey_fetchOpenSpotOrders() end
+"""
+fetch all unfilled currently open orders for spot markets
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/sub
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve - default 500, maximum 1000
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.orderId`::string, optional: the id of the order to fetch
+- `params.side`::string, optional: 'buy' or 'sell' - the side of the orders to fetch
+- `params.accountId`::string, optional: account id to fetch the orders from
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_fetchOpenSpotOrders
+
+function __ccxt_doc_Hashkey_fetchOpenSwapOrders() end
+"""
+fetch all unfilled currently open orders for swap markets
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+
+# Arguments
+- `symbol`::string: *is mandatory* unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve - maximum 500
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fromOrderId`::string, optional: the id of the order to start from
+- `params.trigger`::bool, optional: true for fetching trigger orders (default false)
+- `params.stop`::bool, optional: an alternative for trigger param
+- `params.accountId`::string, optional: account id to fetch the orders from
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_fetchOpenSwapOrders
+
+function __ccxt_doc_Hashkey_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple canceled and closed orders made by the user
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-history-orders
+
+# Arguments
+- `symbol`::string: *is mandatory for swap markets* unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve - default 500, maximum 1000
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for - only supports the last 90 days timeframe
+- `params.type`::string, optional: 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+- `params.orderId`::string, optional: *spot markets only* the id of the order to fetch
+- `params.side`::string, optional: *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
+- `params.fromOrderId`::string, optional: *swap markets only* the id of the order to start from
+- `params.trigger`::bool, optional: *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
+- `params.stop`::bool, optional: *swap markets only* the id of the order to start from an alternative for trigger param
+- `params.accountId`::string, optional: account id to fetch the orders from
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hashkey_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Hashkey_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Hashkey_fetchFundingRate
+
+function __ccxt_doc_Hashkey_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Hashkey_fetchFundingRates
+
+function __ccxt_doc_Hashkey_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fromId`::int, optional: the id of the entry to start from
+- `params.endId`::int, optional: the id of the entry to end with
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Hashkey_fetchFundingRateHistory
+
+function __ccxt_doc_Hashkey_fetchPositions() end
+"""
+fetch open positions for a market fetch all open positions
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string, optional: 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Hashkey_fetchPositions
+
+function __ccxt_doc_Hashkey_fetchPositionsForSymbol() end
+"""
+fetch open positions for a single market fetch all open positions for specific symbol
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string, optional: 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Hashkey_fetchPositionsForSymbol
+
+function __ccxt_doc_Hashkey_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Hashkey_fetchLeverage
+
+function __ccxt_doc_Hashkey_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Hashkey_setLeverage
+
+function __ccxt_doc_Hashkey_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Hashkey_setMarginMode
+
+function __ccxt_doc_Hashkey_addMargin() end
+"""
+add margin
+see: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string: position side, either 'long' or 'short'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Hashkey_addMargin
+
+function __ccxt_doc_Hashkey_reduceMargin() end
+"""
+remove margin from a position
+see: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string: position side, either 'long' or 'short'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Hashkey_reduceMargin
+
+function __ccxt_doc_Hashkey_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Hashkey_fetchLeverageTiers
+
+function __ccxt_doc_Hashkey_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Hashkey_fetchTradingFee
+
+function __ccxt_doc_Hashkey_fetchTradingFees() end
+"""
+*for spot markets only* fetch the trading fees for multiple markets
+see: https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Hashkey_fetchTradingFees

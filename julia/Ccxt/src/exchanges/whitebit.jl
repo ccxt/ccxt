@@ -727,7 +727,17 @@ function describe(self::Whitebit, )
 ))
 
 end
-function fetchMarkets(self::Whitebit, params=Dict())
+"""
+retrieves data on all markets for whitebit
+see: https://docs.whitebit.com/public/http-v4/#market-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Whitebit; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
@@ -751,7 +761,7 @@ function parseMarket(self::Whitebit, market)
     swap = typeId == "futures";
     margin = @functions.ccxt_and(isCollateral, !functions.ccxtruthy(swap));
     contract = false;
-    amountPrecision = self.parseNumber(self.parsePrecision(safeString(market, "stockPrec")));
+    amountPrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "stockPrec")));
     linear = nothing;
     inverse = nothing;
     if functions.ccxtruthy(swap)
@@ -770,7 +780,7 @@ function parseMarket(self::Whitebit, market)
     makerFeeRate = safeString(market, "makerFee");
     maker = stringDiv(makerFeeRate, "100");
     isSpot = !functions.ccxtruthy(swap);
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -798,7 +808,7 @@ function parseMarket(self::Whitebit, market)
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
         Symbol("amount") => amountPrecision,
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "moneyPrec")))
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "moneyPrec")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -823,7 +833,17 @@ function parseMarket(self::Whitebit, market)
 ))
 
 end
-function fetchCurrencies(self::Whitebit, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.whitebit.com/public/http-v4/#asset-status-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Whitebit; params=Dict())
     response = Base.fetch(self.v4PublicGetAssets(params));
     enhancedArray = self.addKeyInArrayItems(response, "_coin_id");
     return self.parseCurrencies(enhancedArray)
@@ -834,19 +854,19 @@ function parseCurrency(self::Whitebit, rawCurrency)
     code = self.safeCurrencyCode(id);
     hasProvider = (ccxt_in("providers", rawCurrency));
     networks = Dict{Symbol, Any}();
-    rawNetworks = self.safeDict(rawCurrency, "networks", Dict{Symbol, Any}());
-    depositsNetworks = self.safeList(rawNetworks, "deposits", []);
-    withdrawsNetworks = self.safeList(rawNetworks, "withdraws", []);
-    networkLimits = self.safeDict(rawCurrency, "limits", Dict{Symbol, Any}());
-    depositLimits = self.safeDict(networkLimits, "deposit", Dict{Symbol, Any}());
-    withdrawLimits = self.safeDict(networkLimits, "withdraw", Dict{Symbol, Any}());
+    rawNetworks = self.safeDict(rawCurrency, "networks", defaultValue = Dict{Symbol, Any}());
+    depositsNetworks = self.safeList(rawNetworks, "deposits", defaultValue = []);
+    withdrawsNetworks = self.safeList(rawNetworks, "withdraws", defaultValue = []);
+    networkLimits = self.safeDict(rawCurrency, "limits", defaultValue = Dict{Symbol, Any}());
+    depositLimits = self.safeDict(networkLimits, "deposit", defaultValue = Dict{Symbol, Any}());
+    withdrawLimits = self.safeDict(networkLimits, "withdraw", defaultValue = Dict{Symbol, Any}());
     allNetworks = arrayConcat(depositsNetworks, withdrawsNetworks);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(allNetworks)))
         networkId = get(allNetworks, j + 1, nothing);
-        networkCode = self.networkIdToCode(networkId, code);
-        networkDepositLimits = self.safeDict(depositLimits, networkId, Dict{Symbol, Any}());
-        networkWithdrawLimits = self.safeDict(withdrawLimits, networkId, Dict{Symbol, Any}());
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
+        networkDepositLimits = self.safeDict(depositLimits, networkId, defaultValue = Dict{Symbol, Any}());
+        networkWithdrawLimits = self.safeDict(withdrawLimits, networkId, defaultValue = Dict{Symbol, Any}());
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -881,7 +901,7 @@ function parseCurrency(self::Whitebit, rawCurrency)
     Symbol("fee") => nothing,
     Symbol("networks") => networks,
     Symbol("type") => functions.ccxtruthy(hasProvider) ? "fiat" : "crypto",
-    Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(rawCurrency, "currency_precision"))),
+    Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(rawCurrency, "currency_precision"))),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("amount") => Dict{Symbol, Any}(
             Symbol("min") => nothing,
@@ -899,7 +919,18 @@ function parseCurrency(self::Whitebit, rawCurrency)
 ))
 
 end
-function fetchTransactionFees(self::Whitebit, codes=nothing, params=Dict())
+"""
+please use fetchDepositWithdrawFees instead
+see: https://docs.whitebit.com/public/http-v4/#fee
+
+# Arguments
+- `codes`::any: not used by fetchTransactionFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTransactionFees(self::Whitebit; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -910,7 +941,7 @@ function fetchTransactionFees(self::Whitebit, codes=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(currenciesIds)))
         currency = get(currenciesIds, i + 1, nothing);
-        data = self.safeDict(response, currency, Dict{Symbol, Any}());
+        data = self.safeDict(response, currency, defaultValue = Dict{Symbol, Any}());
         code = self.safeCurrencyCode(currency);
         withdraw = safeValue(data, "withdraw", Dict{Symbol, Any}());
         if functions.ccxtruthy(code != nothing)
@@ -929,17 +960,28 @@ function fetchTransactionFees(self::Whitebit, codes=nothing, params=Dict())
 )
 
 end
-function fetchDepositWithdrawFees(self::Whitebit, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://docs.whitebit.com/public/http-v4/#fee
+
+# Arguments
+- `codes`::any: not used by fetchDepositWithdrawFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Whitebit; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v4PublicGetFee(params));
-    return self.parseDepositWithdrawFees(response, codes)
+    return self.parseDepositWithdrawFees(response, codes = codes)
 
 end
-function parseDepositWithdrawFees(self::Whitebit, response, codes=nothing, currencyIdKey=nothing)
+function parseDepositWithdrawFees(self::Whitebit, response; codes=nothing, currencyIdKey=nothing)
     depositWithdrawFees = Dict{Symbol, Any}();
-    codes = self.marketCodes(codes);
+    codes = self.marketCodes(codes = codes);
     currencyIds = objectKeys(response);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(currencyIds)))
@@ -970,7 +1012,7 @@ function parseDepositWithdrawFees(self::Whitebit, response, codes=nothing, curre
             if functions.ccxtruthy(networkId != nothing)
                 networkLength = length(networkId);
                 networkId = functions.ccxt_slice(networkId, 1, networkLength - 1);
-                networkCode = self.networkIdToCode(networkId, code);
+                networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
                 if functions.ccxtruthy(networkCode != nothing)
                     depositWithdrawFees[Symbol(code)][Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                         Symbol("withdraw") => withdrawResult,
@@ -989,13 +1031,23 @@ function parseDepositWithdrawFees(self::Whitebit, response, codes=nothing, curre
     while functions.ccxtruthy(functions.ccxt_lt(i, length(depositWithdrawCodes)))
         code = get(depositWithdrawCodes, i + 1, nothing);
         currency = self.currency(code);
-        depositWithdrawFees[Symbol(code)] = self.assignDefaultDepositWithdrawFees(get(depositWithdrawFees, Symbol(code), nothing), currency);
+        depositWithdrawFees[Symbol(code)] = self.assignDefaultDepositWithdrawFees(get(depositWithdrawFees, Symbol(code), nothing), currency = currency);
         i += 1
     end
     return depositWithdrawFees
 
 end
-function fetchTradingFees(self::Whitebit, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://docs.whitebit.com/public/http-v4/#asset-status-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Whitebit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1024,7 +1076,18 @@ function fetchTradingFees(self::Whitebit, params=Dict())
     return result
 
 end
-function fetchTradingLimits(self::Whitebit, symbols=nothing, params=Dict())
+"""
+fetch the trading limits for a market
+see: https://docs.whitebit.com/public/http-v4/#market-info
+
+# Arguments
+- `symbols`::any: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [trading limits structure]{@link https://docs.ccxt.com/?id=trading-limits-structure}
+"""
+function fetchTradingLimits(self::Whitebit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1088,7 +1151,19 @@ function fetchTradingLimits(self::Whitebit, symbols=nothing, params=Dict())
     return result
 
 end
-function fetchFundingLimits(self::Whitebit, codes=nothing, params=Dict())
+"""
+fetch the deposit and withdrawal limits for a currency
+see: https://docs.whitebit.com/public/http-v4/#asset-status-list
+see: https://docs.whitebit.com/public/http-v4/#fee
+
+# Arguments
+- `codes`::any: unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
+"""
+function fetchFundingLimits(self::Whitebit; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1117,7 +1192,7 @@ function fetchFundingLimits(self::Whitebit, codes=nothing, params=Dict())
             end
             j += 1
         end
-        currencyLimits = self.safeDict(currency, "limits", Dict{Symbol, Any}());
+        currencyLimits = self.safeDict(currency, "limits", defaultValue = Dict{Symbol, Any}());
         limits = Dict{Symbol, Any}(
             Symbol("deposit") => Dict{Symbol, Any}(
                 Symbol("min") => get(get(currencyLimits, Symbol("deposit"), nothing), Symbol("min"), nothing),
@@ -1170,7 +1245,18 @@ function fetchFundingLimits(self::Whitebit, codes=nothing, params=Dict())
     return result
 
 end
-function fetchTicker(self::Whitebit, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.whitebit.com/public/http-v4/#market-activity
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Whitebit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1179,13 +1265,13 @@ function fetchTicker(self::Whitebit, symbol, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PublicGetTicker(extend(request, params)));
-    ticker = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTicker(ticker, market)
+    ticker = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(ticker, market = market)
 
 end
-function parseTicker(self::Whitebit, ticker, market=nothing)
+function parseTicker(self::Whitebit, ticker; market=nothing)
     marketId = safeString2(ticker, "tradingPairs", "ticker_id");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     last_var = safeStringN(ticker, ["last", "last_price", "lastPrice"]);
     close = safeString(ticker, "close", last_var);
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1210,15 +1296,30 @@ function parseTicker(self::Whitebit, ticker, market=nothing)
     Symbol("quoteVolume") => safeStringN(ticker, ["quote_volume", "deal", "quoteVolume24h", "money_volume"]),
     Symbol("indexPrice") => safeString(ticker, "index_price"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Whitebit, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order by the id
+see: https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.checkActive`::bool, optional: whether to check active orders (default: true)
+- `params.checkExecuted`::bool, optional: whether to check executed orders (default: true)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Whitebit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    checkActive = self.safeBool(params, "checkActive", true);
-    checkExecuted = self.safeBool(params, "checkExecuted", true);
+    checkActive = self.safeBool(params, "checkActive", defaultValue = true);
+    checkExecuted = self.safeBool(params, "checkExecuted", defaultValue = true);
     params = omit(params, ["checkActive", "checkExecuted"]);
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
@@ -1238,8 +1339,8 @@ function fetchOrder(self::Whitebit, id, symbol=nothing, params=Dict())
                 orderId = safeString(order, "orderId");
                 if functions.ccxtruthy(orderId == id)
                     marketId = safeString(order, "market");
-                    marketNew = self.safeMarket(marketId, nothing, "_");
-                        return self.parseOrder(order, marketNew)
+                    marketNew = self.safeMarket(marketId = marketId, market = nothing, delimiter = "_");
+                        return self.parseOrder(order, market = marketNew)
                 end
                 i += 1
             end
@@ -1257,14 +1358,14 @@ function fetchOrder(self::Whitebit, id, symbol=nothing, params=Dict())
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
                 marketId = get(marketIds, i + 1, nothing);
-                marketNew = self.safeMarket(marketId, nothing, "_");
-                marketOrders = self.safeList(response, marketId, []);
+                marketNew = self.safeMarket(marketId = marketId, market = nothing, delimiter = "_");
+                marketOrders = self.safeList(response, marketId, defaultValue = []);
                 j = 0
                 while functions.ccxtruthy(functions.ccxt_lt(j, length(marketOrders)))
                     order = get(marketOrders, j + 1, nothing);
                     orderId = safeString(order, "id");
                     if functions.ccxtruthy(orderId == id)
-                            return self.parseOrder(order, marketNew)
+                            return self.parseOrder(order, market = marketNew)
                     end
                     j += 1
                 end
@@ -1280,11 +1381,24 @@ function fetchOrder(self::Whitebit, id, symbol=nothing, params=Dict())
     throw(OrderNotFound(string(self.id, " fetchOrder() order not found: ", id)));
 
 end
-function fetchTickers(self::Whitebit, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.whitebit.com/public/http-v4/#market-activity
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+- `params.method`::string, optional: either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Whitebit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     onlyContractSymbols = true;
     if functions.ccxtruthy(symbols != nothing)
         i = 0
@@ -1302,9 +1416,9 @@ function fetchTickers(self::Whitebit, symbols=nothing, params=Dict())
         onlyContractSymbols = false;
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market = nothing, params = params);
     method = nothing;
-    (method, params) = self.handleOptionAndParams(params, "fetchTickers", "method", method);
+    (method, params) = self.handleOptionAndParams(params, "fetchTickers", "method", defaultValue = method);
     if functions.ccxtruthy(method == nothing)
         if functions.ccxtruthy(@functions.ccxt_or(onlyContractSymbols, (marketType == "swap")))
             method = "v4PublicGetFutures";
@@ -1321,23 +1435,35 @@ function fetchTickers(self::Whitebit, symbols=nothing, params=Dict())
     end
     resultList = self.safeList(response, "result");
     if functions.ccxtruthy(resultList != nothing)
-            return self.parseTickers(resultList, symbols)
+            return self.parseTickers(resultList, symbols = symbols)
     end
     marketIds = objectKeys(response);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
-        market = self.safeMarket(marketId);
-        ticker = self.parseTicker(get(response, Symbol(marketId), nothing), market);
+        market = self.safeMarket(marketId = marketId);
+        ticker = self.parseTicker(get(response, Symbol(marketId), nothing), market = market);
         symbol = get(ticker, Symbol("symbol"), nothing);
         result[Symbol(symbol)] = ticker;
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchOrderBook(self::Whitebit, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.whitebit.com/public/http-v4/#orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Whitebit, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1350,10 +1476,23 @@ function fetchOrderBook(self::Whitebit, symbol, limit=nothing, params=Dict())
     end
     response = Base.fetch(self.v4PublicGetOrderbookMarket(extend(request, params)));
     timestamp = safeTimestamp(response, "timestamp");
-    return self.parseOrderBook(response, symbol, timestamp)
+    return self.parseOrderBook(response, symbol, timestamp = timestamp)
 
 end
-function fetchTrades(self::Whitebit, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.whitebit.com/public/http-v4/#recent-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Whitebit, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1362,10 +1501,23 @@ function fetchTrades(self::Whitebit, symbol, since=nothing, limit=nothing, param
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v4PublicGetTradesMarket(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Whitebit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchMyTrades(self::Whitebit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1377,26 +1529,26 @@ function fetchMyTrades(self::Whitebit, symbol=nothing, since=nothing, limit=noth
     end
     response = Base.fetch(self.v4PrivatePostTradeAccountExecutedHistory(extend(request, params)));
     if functions.ccxtruthy(functions.ccxt_isArray(response))
-            return self.parseTrades(response, market, since, limit)
+            return self.parseTrades(response, market = market, since = since, limit = limit)
     else
         results = [];
         keys_var = objectKeys(response);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(keys_var)))
             marketId = get(keys_var, i + 1, nothing);
-            marketNew = self.safeMarket(marketId, nothing, "_");
+            marketNew = self.safeMarket(marketId = marketId, market = nothing, delimiter = "_");
             rawTrades = safeValue(response, marketId, []);
-            parsed = self.parseTrades(rawTrades, marketNew, since, limit);
+            parsed = self.parseTrades(rawTrades, market = marketNew, since = since, limit = limit);
             results = arrayConcat(results, parsed);
             i += 1
         end
         results = sortBy2(results, "timestamp", "id");
-        return self.filterBySinceLimit(results, since, limit, "timestamp")
+        return self.filterBySinceLimit(results, since = since, limit = limit, key = "timestamp")
     end
 
 end
-function parseTrade(self::Whitebit, trade, market=nothing)
-    market = self.safeMarket(nothing, market);
+function parseTrade(self::Whitebit, trade; market=nothing)
+    market = self.safeMarket(marketId = nothing, market = market);
     timestamp = safeTimestamp2(trade, "time", "trade_timestamp");
     orderId = safeString2(trade, "dealOrderId", "orderId");
     cost = safeString(trade, "deal");
@@ -1432,10 +1584,24 @@ function parseTrade(self::Whitebit, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => cost,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchOHLCV(self::Whitebit, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.whitebit.com/public/http-v1/#kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Whitebit, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1457,15 +1623,25 @@ function fetchOHLCV(self::Whitebit, symbol, timeframe="1m", since=nothing, limit
         request[Symbol("limit")] = min(limit, 1440);
     end
     response = Base.fetch(self.v1PublicGetKline(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseOHLCVs(result, market, timeframe, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOHLCVs(result, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Whitebit, ohlcv, market=nothing)
+function parseOHLCV(self::Whitebit, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchStatus(self::Whitebit, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.whitebit.com/public/http-v4/#server-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Whitebit; params=Dict())
     response = Base.fetch(self.v4PublicGetPing(params));
     status = safeString(response, 0);
     return Dict{Symbol, Any}(
@@ -1477,23 +1653,81 @@ function fetchStatus(self::Whitebit, params=Dict())
 )
 
 end
-function fetchTime(self::Whitebit, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.whitebit.com/public/http-v4/#server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Whitebit; params=Dict())
     response = Base.fetch(self.v4PublicGetTime(params));
     return safeIntegerProduct(response, "time", 1000)
 
 end
-function createMarketOrderWithCost(self::Whitebit, symbol, side, cost, params=Dict())
+"""
+create a market order by providing the symbol, side and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketOrderWithCost(self::Whitebit, symbol, side, cost; params=Dict())
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return Base.fetch(self.createOrder(symbol, "market", side, 0, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", side, 0, price = nothing, params = extend(req, params)))
 
 end
-function createMarketBuyOrderWithCost(self::Whitebit, symbol, cost, params=Dict())
-    return Base.fetch(self.createMarketOrderWithCost(symbol, "buy", cost, params))
+"""
+create a market buy order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Whitebit, symbol, cost; params=Dict())
+    return Base.fetch(self.createMarketOrderWithCost(symbol, "buy", cost, params = params))
 
 end
-function createOrder(self::Whitebit, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.whitebit.com/private/http-trade-v4/#create-limit-order
+see: https://docs.whitebit.com/private/http-trade-v4/#create-market-order
+see: https://docs.whitebit.com/private/http-trade-v4/#create-buy-stock-market-order
+see: https://docs.whitebit.com/private/http-trade-v4/#create-stop-limit-order
+see: https://docs.whitebit.com/private/http-trade-v4/#create-stop-market-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *market orders only* the cost of the order in units of the base currency
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: If true, the order will only be posted to the order book and not executed immediately
+- `params.timeInForce`::string, optional: "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
+- `params.clientOrderId`::string, optional: a unique id for the order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Whitebit, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1531,7 +1765,7 @@ function createOrder(self::Whitebit, symbol, type_var, side, amount, price=nothi
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(@functions.ccxt_and((timeInForce != nothing), (timeInForce != "GTC")), (timeInForce != "IOC")), (timeInForce != "PO")))
         throw(NotSupported(string(self.id, " createOrder() does not support timeInForce ", timeInForce, ", only GTC, IOC and PO are allowed")));
     end
-    postOnly = self.isPostOnly(isMarketOrder, false, params);
+    postOnly = self.isPostOnly(isMarketOrder, false, params = params);
     ioc = (timeInForce == "IOC");
     if functions.ccxtruthy(@functions.ccxt_and(isStopOrder, (@functions.ccxt_or(postOnly, ioc))))
         throw(NotSupported(string(self.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")));
@@ -1539,7 +1773,7 @@ function createOrder(self::Whitebit, symbol, type_var, side, amount, price=nothi
     if functions.ccxtruthy(@functions.ccxt_and(ioc, !functions.ccxtruthy(isLimitOrder)))
         throw(NotSupported(string(self.id, " createOrder() timeInForce IOC is only supported for limit orders")));
     end
-    (marginMode, query) = self.handleMarginModeAndParams("createOrder", params);
+    (marginMode, query) = self.handleMarginModeAndParams("createOrder", params = params);
     if functions.ccxtruthy(postOnly)
         request[Symbol("postOnly")] = true;
     end
@@ -1586,7 +1820,23 @@ function createOrder(self::Whitebit, symbol, type_var, side, amount, price=nothi
     return self.parseOrder(response)
 
 end
-function editOrder(self::Whitebit, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://docs.whitebit.com/private/http-trade-v4/#modify-order
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Whitebit, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1630,7 +1880,19 @@ function editOrder(self::Whitebit, id, symbol, type_var, side, amount=nothing, p
     return self.parseOrder(response)
 
 end
-function cancelOrder(self::Whitebit, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.whitebit.com/private/http-trade-v4/#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Whitebit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -1646,7 +1908,20 @@ function cancelOrder(self::Whitebit, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelAllOrders(self::Whitebit, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'spot']
+- `params.isMargin`::bool, optional: cancel all margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Whitebit; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1657,11 +1932,11 @@ function cancelAllOrders(self::Whitebit, symbol=nothing, params=Dict())
         request[Symbol("market")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("cancelAllOrders", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("cancelAllOrders", market = market, params = params);
     requestType = [];
     if functions.ccxtruthy(type_var == "spot")
         isMargin = nothing;
-        (isMargin, params) = self.handleOptionAndParams(params, "cancelAllOrders", "isMargin", false);
+        (isMargin, params) = self.handleOptionAndParams(params, "cancelAllOrders", "isMargin", defaultValue = false);
         if functions.ccxtruthy(isMargin)
                         push!(requestType, "margin");
         else
@@ -1674,14 +1949,28 @@ function cancelAllOrders(self::Whitebit, symbol=nothing, params=Dict())
     end
     request[Symbol("type")] = requestType;
     response = Base.fetch(self.v4PrivatePostOrderCancelAll(extend(request, params)));
-    return self.parseOrders(response, market)
+    return self.parseOrders(response, market = market)
 
 end
-function fetchOrders(self::Whitebit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user (combines open and closed orders)
+see: https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Whitebit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    (openOrders, closedOrders) = (Base.fetch(asyncmap(Base.fetch, [self.fetchOpenOrders(symbol, since, limit, params), self.fetchClosedOrders(symbol, since, limit, params)])));
+    (openOrders, closedOrders) = (Base.fetch(asyncmap(Base.fetch, [self.fetchOpenOrders(symbol = symbol, since = since, limit = limit, params = params), self.fetchClosedOrders(symbol = symbol, since = since, limit = limit, params = params)])));
     allOrders = arrayConcat(openOrders, closedOrders);
     sortedOrders = sortBy(allOrders, "timestamp", true);
     if functions.ccxtruthy(@functions.ccxt_and(limit != nothing, functions.ccxt_gt(length(sortedOrders), limit)))
@@ -1690,7 +1979,20 @@ function fetchOrders(self::Whitebit, symbol=nothing, since=nothing, limit=nothin
     return sortedOrders
 
 end
-function cancelAllOrdersAfter(self::Whitebit, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.types`::string, optional: Order types value. Example: "spot", "margin", "futures" or null
+- `params.symbol`::string, optional: symbol unified symbol of the market the order was made in
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Whitebit, timeout; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1744,12 +2046,23 @@ function parseBalance(self::Whitebit, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Whitebit, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.whitebit.com/private/http-main-v4/#main-balance
+see: https://docs.whitebit.com/private/http-trade-v4/#trading-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Whitebit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     if functions.ccxtruthy(marketType == "swap")
         response = Base.fetch(self.v4PrivatePostCollateralAccountBalance(params));
     else
@@ -1766,7 +2079,20 @@ function fetchBalance(self::Whitebit, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOpenOrders(self::Whitebit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Whitebit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1780,12 +2106,25 @@ function fetchOpenOrders(self::Whitebit, symbol=nothing, since=nothing, limit=no
         request[Symbol("limit")] = min(limit, 100);
     end
     response = Base.fetch(self.v4PrivatePostOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit, Dict{Symbol, Any}(
+    return self.parseOrders(response, market = market, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("status") => "open"
 ))
 
 end
-function fetchClosedOrders(self::Whitebit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Whitebit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1805,11 +2144,11 @@ function fetchClosedOrders(self::Whitebit, symbol=nothing, since=nothing, limit=
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
-        marketNew = self.safeMarket(marketId, nothing, "_");
-        orders = self.safeList(response, marketId, []);
+        marketNew = self.safeMarket(marketId = marketId, market = nothing, delimiter = "_");
+        orders = self.safeList(response, marketId, defaultValue = []);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(orders)))
-            order = self.parseOrder(get(orders, j + 1, nothing), marketNew);
+            order = self.parseOrder(get(orders, j + 1, nothing), market = marketNew);
             push!(results, extend(order, Dict{Symbol, Any}(
     Symbol("status") => "closed"
 )));
@@ -1818,7 +2157,7 @@ function fetchClosedOrders(self::Whitebit, symbol=nothing, since=nothing, limit=
         i += 1
     end
     results = sortBy(results, "timestamp");
-    results = self.filterBySymbolSinceLimit(results, symbol, since, limit);
+    results = self.filterBySymbolSinceLimit(results, symbol = symbol, since = since, limit = limit);
     return results
 
 end
@@ -1835,9 +2174,9 @@ function parseOrderType(self::Whitebit, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseOrder(self::Whitebit, order, market=nothing)
+function parseOrder(self::Whitebit, order; market=nothing)
     marketId = safeString(order, "market");
-    market = self.safeMarket(marketId, market, "_");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
     symbol = get(market, Symbol("symbol"), nothing);
     side = safeString(order, "side");
     filled = safeString(order, "dealStock");
@@ -1899,7 +2238,7 @@ function parseOrder(self::Whitebit, order, market=nothing)
     Symbol("cost") => cost,
     Symbol("fee") => fee,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Whitebit, status)
@@ -1912,7 +2251,21 @@ function parseOrderStatus(self::Whitebit, status)
     return safeStringLower(statuses, status, status)
 
 end
-function fetchOrderTrades(self::Whitebit, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-deals
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Whitebit, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1928,11 +2281,25 @@ function fetchOrderTrades(self::Whitebit, id, symbol=nothing, since=nothing, lim
         request[Symbol("limit")] = min(limit, 100);
     end
     response = Base.fetch(self.v4PrivatePostTradeAccountOrder(extend(request, params)));
-    data = self.safeList(response, "records", []);
-    return self.parseTrades(data, market)
+    data = self.safeList(response, "records", defaultValue = []);
+    return self.parseTrades(data, market = market)
 
 end
-function fetchWithdrawals(self::Whitebit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transactionMethod`::string, optional: transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Whitebit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1953,10 +2320,24 @@ function fetchWithdrawals(self::Whitebit, code=nothing, since=nothing, limit=not
     end
     request[Symbol("transactionMethod")] = "2";
     response = Base.fetch(self.v4PrivatePostMainAccountHistory(extend(request, params)));
-    return self.parseTransactions(self.safeList(response, "records", []), currency, since, limit)
+    return self.parseTransactions(self.safeList(response, "records", defaultValue = []), currency = currency, since = since, limit = limit)
 
 end
-function fetchTransactions(self::Whitebit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch transactions for
+- `limit`::int, optional: the maximum number of transactions structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transactionMethod`::string, optional: transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchTransactions(self::Whitebit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1976,11 +2357,23 @@ function fetchTransactions(self::Whitebit, code=nothing, since=nothing, limit=no
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v4PrivatePostMainAccountHistory(extend(request, params)));
-    records = self.safeList(response, "records", []);
-    return self.parseTransactions(records, currency, since, limit)
+    records = self.safeList(response, "records", defaultValue = []);
+    return self.parseTransactions(records, currency = currency, since = since, limit = limit)
 
 end
-function fetchDepositAddress(self::Whitebit, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-address
+see: https://docs.whitebit.com/private/http-main-v4/#get-cryptocurrency-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Whitebit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2011,7 +2404,7 @@ function fetchDepositAddress(self::Whitebit, code, params=Dict())
     account = safeValue(response, "account", Dict{Symbol, Any}());
     address = safeString(account, "address", url);
     tag = safeString(account, "memo");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
@@ -2021,7 +2414,20 @@ function fetchDepositAddress(self::Whitebit, code, params=Dict())
 )
 
 end
-function createDepositAddress(self::Whitebit, code, params=Dict())
+"""
+create a currency deposit address
+see: https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network to create a deposit address on
+- `params.type`::string, optional: address type, available for specific currencies
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Whitebit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2030,21 +2436,31 @@ function createDepositAddress(self::Whitebit, code, params=Dict())
         Symbol("ticker") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v4PrivatePostMainAccountCreateNewAddress(extend(request, params)));
-    data = self.safeDict(response, "account", Dict{Symbol, Any}());
-    return self.parseDepositAddress(data, currency)
+    data = self.safeDict(response, "account", defaultValue = Dict{Symbol, Any}());
+    return self.parseDepositAddress(data, currency = currency)
 
 end
-function parseDepositAddress(self::Whitebit, depositAddress, currency=nothing)
+function parseDepositAddress(self::Whitebit, depositAddress; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
-    Symbol("currency") => self.safeCurrencyCode(nothing, currency),
+    Symbol("currency") => self.safeCurrencyCode(nothing, currency = currency),
     Symbol("network") => nothing,
     Symbol("address") => safeString(depositAddress, "address"),
     Symbol("tag") => safeString(depositAddress, "memo")
 )
 
 end
-function fetchAccounts(self::Whitebit, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://docs.whitebit.com/private/http-main-v4/#sub-account-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+"""
+function fetchAccounts(self::Whitebit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2072,7 +2488,19 @@ function fetchAccounts(self::Whitebit, params=Dict())
     return accounts
 
 end
-function setLeverage(self::Whitebit, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://docs.whitebit.com/private/http-trade-v4/#change-collateral-account-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Whitebit, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2088,7 +2516,21 @@ function setLeverage(self::Whitebit, leverage, symbol=nothing, params=Dict())
     return Base.fetch(self.v4PrivatePostCollateralAccountLeverage(extend(request, params)))
 
 end
-function transfer(self::Whitebit, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.whitebit.com/private/http-main-v4/#transfer-between-main-and-trade-balances
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from - main, spot, collateral
+- `toAccount`::string: account to transfer to - main, spot, collateral
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Whitebit, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2104,16 +2546,16 @@ function transfer(self::Whitebit, code, amount, fromAccount, toAccount, params=D
         Symbol("to") => toAccountId
     );
     response = Base.fetch(self.v4PrivatePostMainAccountTransfer(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function parseTransfer(self::Whitebit, transfer, currency=nothing)
+function parseTransfer(self::Whitebit, transfer; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
     Symbol("id") => nothing,
     Symbol("timestamp") => nothing,
     Symbol("datetime") => nothing,
-    Symbol("currency") => self.safeCurrencyCode(nothing, currency),
+    Symbol("currency") => self.safeCurrencyCode(nothing, currency = currency),
     Symbol("amount") => nothing,
     Symbol("fromAccount") => nothing,
     Symbol("toAccount") => nothing,
@@ -2121,7 +2563,21 @@ function parseTransfer(self::Whitebit, transfer, currency=nothing)
 )
 
 end
-function withdraw(self::Whitebit, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://docs.whitebit.com/private/http-main-v4/#create-withdraw-request
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Whitebit, code, amount, address; tag=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2147,13 +2603,13 @@ function withdraw(self::Whitebit, code, amount, address, tag=nothing, params=Dic
         request[Symbol("provider")] = provider;
     end
     response = Base.fetch(self.v4PrivatePostMainAccountWithdraw(extend(request, params)));
-    return extend(self.parseTransaction(response, currency), Dict{Symbol, Any}(
+    return extend(self.parseTransaction(response, currency = currency), Dict{Symbol, Any}(
     Symbol("id") => uniqueId
 ))
 
 end
-function parseTransaction(self::Whitebit, transaction, currency=nothing)
-    currency = self.safeCurrency(nothing, currency);
+function parseTransaction(self::Whitebit, transaction; currency=nothing)
+    currency = self.safeCurrency(nothing, currency = currency);
     address = safeString(transaction, "address");
     timestamp = safeTimestamp(transaction, "createdAt");
     currencyId = safeString(transaction, "ticker");
@@ -2170,7 +2626,7 @@ function parseTransaction(self::Whitebit, transaction, currency=nothing)
     Symbol("addressTo") => functions.ccxtruthy((method == "2")) ? address : nothing,
     Symbol("amount") => self.safeNumber(transaction, "amount"),
     Symbol("type") => functions.ccxtruthy((method == "1")) ? "deposit" : "withdrawal",
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("status") => self.parseTransactionStatus(status),
     Symbol("updated") => nothing,
     Symbol("tagFrom") => nothing,
@@ -2180,7 +2636,7 @@ function parseTransaction(self::Whitebit, transaction, currency=nothing)
     Symbol("internal") => nothing,
     Symbol("fee") => Dict{Symbol, Any}(
         Symbol("cost") => self.safeNumber(transaction, "fee"),
-        Symbol("currency") => self.safeCurrencyCode(currencyId, currency)
+        Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency)
     ),
     Symbol("info") => transaction
 )
@@ -2208,7 +2664,19 @@ function parseTransactionStatus(self::Whitebit, status)
     return safeString(statuses, status, status)
 
 end
-function fetchDeposit(self::Whitebit, id, code=nothing, params=Dict())
+"""
+fetch information on a deposit
+see: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+
+# Arguments
+- `id`::string: deposit id
+- `code`::string: not used by fetchDeposit ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposit(self::Whitebit, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2225,11 +2693,24 @@ function fetchDeposit(self::Whitebit, id, code=nothing, params=Dict())
     end
     response = Base.fetch(self.v4PrivatePostMainAccountHistory(extend(request, params)));
     records = safeValue(response, "records", []);
-    first_var = self.safeDict(records, 0, Dict{Symbol, Any}());
-    return self.parseTransaction(first_var, currency)
+    first_var = self.safeDict(records, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(first_var, currency = currency)
 
 end
-function fetchDeposits(self::Whitebit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Whitebit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2247,15 +2728,29 @@ function fetchDeposits(self::Whitebit, code=nothing, since=nothing, limit=nothin
         request[Symbol("limit")] = min(limit, 100);
     end
     response = Base.fetch(self.v4PrivatePostMainAccountHistory(extend(request, params)));
-    records = self.safeList(response, "records", []);
+    records = self.safeList(response, "records", defaultValue = []);
     recordsList = [];
     if functions.ccxtruthy(records != nothing)
         recordsList = records;
     end
-    return self.parseTransactions(recordsList, currency, since, limit)
+    return self.parseTransactions(recordsList, currency = currency, since = since, limit = limit)
 
 end
-function fetchBorrowInterest(self::Whitebit, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://docs.whitebit.com/private/http-trade-v4/#open-positions
+
+# Arguments
+- `code`::string: unified currency code
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+function fetchBorrowInterest(self::Whitebit; code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2266,13 +2761,13 @@ function fetchBorrowInterest(self::Whitebit, code=nothing, symbol=nothing, since
         request[Symbol("market")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.v4PrivatePostCollateralAccountPositionsOpen(extend(request, params)));
-    interest = self.parseBorrowInterests(response, market);
-    return self.filterByCurrencySinceLimit(interest, code, since, limit)
+    interest = self.parseBorrowInterests(response, market = market);
+    return self.filterByCurrencySinceLimit(interest, code = code, since = since, limit = limit)
 
 end
-function parseBorrowInterest(self::Whitebit, info, market=nothing)
+function parseBorrowInterest(self::Whitebit, info; market=nothing)
     marketId = safeString(info, "market");
-    symbol = self.safeSymbol(marketId, market, "_");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_");
     timestamp = safeTimestamp(info, "modifyDate");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
@@ -2287,28 +2782,50 @@ function parseBorrowInterest(self::Whitebit, info, market=nothing)
 )
 
 end
-function fetchFundingRate(self::Whitebit, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Whitebit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     symbol = self.symbol(symbol);
-    response = Base.fetch(self.fetchFundingRates([symbol], params));
+    response = Base.fetch(self.fetchFundingRates(symbols = [symbol], params = params));
     return safeValue(response, symbol)
 
 end
-function fetchFundingRates(self::Whitebit, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Whitebit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.v4PublicGetFutures(params));
-    data = self.safeList(response, "result", []);
-    return self.parseFundingRates(data, symbols)
+    data = self.safeList(response, "result", defaultValue = []);
+    return self.parseFundingRates(data, symbols = symbols)
 
 end
-function parseFundingRate(self::Whitebit, contract, market=nothing)
+function parseFundingRate(self::Whitebit, contract; market=nothing)
     marketId = safeString(contract, "ticker_id");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     markPrice = self.safeNumber(contract, "markPrice");
     indexPrice = self.safeNumber(contract, "indexPrice");
     interestRate = self.safeNumber(contract, "interestRate");
@@ -2335,7 +2852,21 @@ function parseFundingRate(self::Whitebit, contract, market=nothing)
 )
 
 end
-function fetchFundingHistory(self::Whitebit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.whitebit.com/private/http-trade-v4/#funding-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the starting timestamp in milliseconds
+- `limit`::int, optional: the number of entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch funding history for
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Whitebit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2354,16 +2885,16 @@ function fetchFundingHistory(self::Whitebit, symbol=nothing, since=nothing, limi
     end
     (request, params) = self.handleUntilOption("endDate", request, params);
     response = Base.fetch(self.v4PrivatePostCollateralAccountFundingHistory(request));
-    data = self.safeList(response, "records", []);
-    return self.parseFundingHistories(data, market, since, limit)
+    data = self.safeList(response, "records", defaultValue = []);
+    return self.parseFundingHistories(data, market = market, since = since, limit = limit)
 
 end
-function parseFundingHistory(self::Whitebit, contract, market=nothing)
+function parseFundingHistory(self::Whitebit, contract; market=nothing)
     marketId = safeString(contract, "market");
     timestamp = safeInteger(contract, "fundingTime");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("code") => nothing,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -2372,19 +2903,38 @@ function parseFundingHistory(self::Whitebit, contract, market=nothing)
 )
 
 end
-function parseFundingHistories(self::Whitebit, contracts, market=nothing, since=nothing, limit=nothing)
+function parseFundingHistories(self::Whitebit, contracts; market=nothing, since=nothing, limit=nothing)
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(contracts)))
         contract = get(contracts, i + 1, nothing);
-        push!(result, self.parseFundingHistory(contract, market));
+        push!(result, self.parseFundingHistory(contract, market = market));
         i += 1
     end
     sorted = sortBy(result, "timestamp");
-    return self.filterBySinceLimit(sorted, since, limit)
+    return self.filterBySinceLimit(sorted, since = since, limit = limit)
 
 end
-function fetchDepositsWithdrawals(self::Whitebit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://github.com/whitebit-exchange/api-docs/blob/main/pages/private/http-main-v4.md#get-depositwithdraw-history
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.transactionMethod`::float, optional: Method. Example: 1 to display deposits / 2 to display withdraws. Do not send this parameter in order to receive both deposits and withdraws.
+- `params.address`::string, optional: Can be used for filtering transactions by specific address or memo.
+- `params.addresses`::array, optional: Can be used for filtering transactions by specific addresses or memos (max: 20).
+- `params.uniqueId`::string, optional: Can be used for filtering transactions by specific unique id
+- `params.offset`::int, optional: If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000
+- `params.status`::array, optional: Can be used for filtering transactions by status codes. Caution: You must use this parameter with appropriate transactionMethod and use valid status codes for this method. You can find them below. Example: "status": [3,7]
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Whitebit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2403,10 +2953,23 @@ function fetchDepositsWithdrawals(self::Whitebit, code=nothing, since=nothing, l
     if functions.ccxtruthy(records != nothing)
         recordsList = records;
     end
-    return self.parseTransactions(recordsList, currency, since, limit)
+    return self.parseTransactions(recordsList, currency = currency, since = since, limit = limit)
 
 end
-function fetchConvertQuote(self::Whitebit, fromCode, toCode, amount=nothing, params=Dict())
+"""
+fetch a quote for converting from one currency to another
+see: https://docs.whitebit.com/private/http-trade-v4/#convert-estimate
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertQuote(self::Whitebit, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2419,10 +2982,24 @@ function fetchConvertQuote(self::Whitebit, fromCode, toCode, amount=nothing, par
         Symbol("direction") => "from"
     );
     response = Base.fetch(self.v4PrivatePostConvertEstimate(extend(request, params)));
-    return self.parseConversion(response, fromCurrency, toCurrency)
+    return self.parseConversion(response, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function createConvertTrade(self::Whitebit, id, fromCode, toCode, amount=nothing, params=Dict())
+"""
+convert from one currency to another
+see: https://docs.whitebit.com/private/http-trade-v4/#convert-confirm
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function createConvertTrade(self::Whitebit, id, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2432,10 +3009,27 @@ function createConvertTrade(self::Whitebit, id, fromCode, toCode, amount=nothing
         Symbol("quoteId") => id
     );
     response = Base.fetch(self.v4PrivatePostConvertConfirm(extend(request, params)));
-    return self.parseConversion(response, fromCurrency, toCurrency)
+    return self.parseConversion(response, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function fetchConvertTradeHistory(self::Whitebit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the users history of conversion trades
+see: https://docs.whitebit.com/private/http-trade-v4/#convert-history
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve, default 20, max 200
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::string, optional: the end time in ms
+- `params.fromTicker`::string, optional: the currency that you sold and converted from
+- `params.toTicker`::string, optional: the currency that you bought and converted into
+- `params.quoteId`::string, optional: the quote id of the conversion
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTradeHistory(self::Whitebit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2450,22 +3044,22 @@ function fetchConvertTradeHistory(self::Whitebit, code=nothing, since=nothing, l
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    (request, params) = self.handleUntilOption("to", request, params, 0.001);
+    (request, params) = self.handleUntilOption("to", request, params, multiplier = 0.001);
     response = Base.fetch(self.v4PrivatePostConvertHistory(extend(request, params)));
-    rows = self.safeList(response, "records", []);
-    return self.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit)
+    rows = self.safeList(response, "records", defaultValue = []);
+    return self.parseConversions(rows, code = code, fromCurrencyKey = "fromCurrency", toCurrencyKey = "toCurrency", since = since, limit = limit)
 
 end
-function parseConversion(self::Whitebit, conversion, fromCurrency=nothing, toCurrency=nothing)
-    path = self.safeList(conversion, "path", []);
-    first_var = self.safeDict(path, 0, Dict{Symbol, Any}());
+function parseConversion(self::Whitebit, conversion; fromCurrency=nothing, toCurrency=nothing)
+    path = self.safeList(conversion, "path", defaultValue = []);
+    first_var = self.safeDict(path, 0, defaultValue = Dict{Symbol, Any}());
     fromPath = safeString(first_var, "from");
     toPath = safeString(first_var, "to");
     timestamp = safeTimestamp2(conversion, "date", "expireAt");
     fromCoin = safeString(conversion, "from", fromPath);
-    fromCode = self.safeCurrencyCode(fromCoin, fromCurrency);
+    fromCode = self.safeCurrencyCode(fromCoin, currency = fromCurrency);
     toCoin = safeString(conversion, "to", toPath);
-    toCode = self.safeCurrencyCode(toCoin, toCurrency);
+    toCode = self.safeCurrencyCode(toCoin, currency = toCurrency);
     return Dict{Symbol, Any}(
     Symbol("info") => conversion,
     Symbol("timestamp") => timestamp,
@@ -2480,7 +3074,21 @@ function parseConversion(self::Whitebit, conversion, fromCurrency=nothing, toCur
 )
 
 end
-function fetchPositionHistory(self::Whitebit, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://docs.whitebit.com/private/http-trade-v4/#positions-history
+
+# Arguments
+- `symbol`::string: unified contract symbol
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum amount of records to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::int, optional: the id of the requested position
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionHistory(self::Whitebit, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2497,19 +3105,41 @@ function fetchPositionHistory(self::Whitebit, symbol, since=nothing, limit=nothi
     (request, params) = self.handleUntilOption("endDate", request, params);
     response = Base.fetch(self.v4PrivatePostCollateralAccountPositionsHistory(extend(request, params)));
     positions = self.parsePositions(response);
-    return self.filterBySymbolSinceLimit(positions, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(positions, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchPositions(self::Whitebit, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.whitebit.com/private/http-trade-v4/#open-positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Whitebit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.v4PrivatePostCollateralAccountPositionsOpen(params));
-    return self.parsePositions(response, symbols)
+    return self.parsePositions(response, symbols = symbols)
 
 end
-function fetchPosition(self::Whitebit, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://docs.whitebit.com/private/http-trade-v4/#open-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Whitebit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2518,19 +3148,19 @@ function fetchPosition(self::Whitebit, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v4PrivatePostCollateralAccountPositionsOpen(extend(request, params)));
-    data = self.safeDict(response, 0, Dict{Symbol, Any}());
-    return self.parsePosition(data, market)
+    data = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parsePosition(data, market = market)
 
 end
-function parsePosition(self::Whitebit, position, market=nothing)
+function parsePosition(self::Whitebit, position; market=nothing)
     marketId = safeString(position, "market");
     timestamp = safeTimestamp(position, "openDate");
-    tpsl = self.safeDict(position, "tpsl", Dict{Symbol, Any}());
-    orderDetail = self.safeDict(position, "orderDetail", Dict{Symbol, Any}());
+    tpsl = self.safeDict(position, "tpsl", defaultValue = Dict{Symbol, Any}());
+    orderDetail = self.safeDict(position, "orderDetail", defaultValue = Dict{Symbol, Any}());
     return self.safePosition(Dict{Symbol, Any}(
     Symbol("info") => position,
     Symbol("id") => safeString(position, "positionId"),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("notional") => nothing,
     Symbol("marginMode") => nothing,
     Symbol("liquidationPrice") => self.safeNumber(position, "liquidationPrice"),
@@ -2564,7 +3194,21 @@ function isFiat(self::Whitebit, currency)
     return inArray(currency, fiatCurrencies)
 
 end
-function fetchFundingRateHistory(self::Whitebit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://docs.whitebit.com/api-reference/market-data/funding-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Whitebit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -2572,7 +3216,7 @@ function fetchFundingRateHistory(self::Whitebit, symbol=nothing, since=nothing, 
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params, maxEntriesPerRequest = maxLimit))
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2584,17 +3228,17 @@ function fetchFundingRateHistory(self::Whitebit, symbol=nothing, since=nothing, 
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startDate")] = round(since / 1000);
     end
-    (request, params) = self.handleUntilOption("until_timestamp", request, params, 0.001);
+    (request, params) = self.handleUntilOption("until_timestamp", request, params, multiplier = 0.001);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v4PublicGetFundingHistoryMarket(extend(request, params)));
-    return self.parseFundingRateHistories(response, market, since, limit)
+    return self.parseFundingRateHistories(response, market = market, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Whitebit, info, market=nothing)
+function parseFundingRateHistory(self::Whitebit, info; market=nothing)
     marketId = safeString(info, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeTimestamp(info, "fundingTime");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
@@ -2609,7 +3253,7 @@ function nonce(self::Whitebit, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function sign(self::Whitebit, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Whitebit, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     query = omit(params, self.extractParams(path));
     version = safeValue(api, 0);
     accessibility = safeValue(api, 1);
@@ -2629,7 +3273,7 @@ function sign(self::Whitebit, path, api="public", method="GET", params=Dict(), h
         nonce = string(self.nonce());
         secret = self.encode(self.secret);
         request = string("/", "api", "/", version, pathWithParams);
-        (nonceWindow, requestParams) = self.handleOptionAndParams(params, "sign", "nonceWindow", false);
+        (nonceWindow, requestParams) = self.handleOptionAndParams(params, "sign", "nonceWindow", defaultValue = false);
         body = json(extend(Dict{Symbol, Any}(
     Symbol("request") => request,
     Symbol("nonce") => nonce,
@@ -2671,7 +3315,7 @@ function handleErrors(self::Whitebit, code, reason, url, method, headers, body, 
             if functions.ccxtruthy(hasErrorStatus)
                 errorInfo = status;
             else
-                errorObject = self.safeDict(response, "errors", Dict{Symbol, Any}());
+                errorObject = self.safeDict(response, "errors", defaultValue = Dict{Symbol, Any}());
                 errorKeys = objectKeys(errorObject);
                 errorsLength = length(errorKeys);
                 if functions.ccxtruthy(functions.ccxt_gt(errorsLength, 0))
@@ -2685,15 +3329,15 @@ function handleErrors(self::Whitebit, code, reason, url, method, headers, body, 
             self.throwBroadlyMatchedException(get(self.exceptions, Symbol("broad"), nothing), body, feedback);
             throw(ExchangeError(feedback));
         end
-        success = self.safeBool(response, "success", true);
+        success = self.safeBool(response, "success", defaultValue = true);
         if functions.ccxtruthy(!functions.ccxtruthy(success))
-            errMsg = self.safeDict(response, "message", Dict{Symbol, Any}());
+            errMsg = self.safeDict(response, "message", defaultValue = Dict{Symbol, Any}());
             errKeys = objectKeys(errMsg);
             errKeysLength = length(errKeys);
             errorInfo = body;
             if functions.ccxtruthy(functions.ccxt_gt(errKeysLength, 0))
                 errorKey = get(errKeys, 1, nothing);
-                errorMessageArray = self.safeList(errMsg, errorKey, []);
+                errorMessageArray = self.safeList(errMsg, errorKey, defaultValue = []);
                 errorMessageLength = length(errorMessageArray);
                 errorInfo = functions.ccxtruthy((functions.ccxt_gt(errorMessageLength, 0))) ? get(errorMessageArray, 1, nothing) : body;
             end
@@ -2772,3 +3416,799 @@ function Whitebit(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Whitebit_fetchMarkets() end
+"""
+retrieves data on all markets for whitebit
+see: https://docs.whitebit.com/public/http-v4/#market-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Whitebit_fetchMarkets
+
+function __ccxt_doc_Whitebit_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.whitebit.com/public/http-v4/#asset-status-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Whitebit_fetchCurrencies
+
+function __ccxt_doc_Whitebit_fetchTransactionFees() end
+"""
+please use fetchDepositWithdrawFees instead
+see: https://docs.whitebit.com/public/http-v4/#fee
+
+# Arguments
+- `codes`::any: not used by fetchTransactionFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Whitebit_fetchTransactionFees
+
+function __ccxt_doc_Whitebit_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://docs.whitebit.com/public/http-v4/#fee
+
+# Arguments
+- `codes`::any: not used by fetchDepositWithdrawFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Whitebit_fetchDepositWithdrawFees
+
+function __ccxt_doc_Whitebit_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://docs.whitebit.com/public/http-v4/#asset-status-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Whitebit_fetchTradingFees
+
+function __ccxt_doc_Whitebit_fetchTradingLimits() end
+"""
+fetch the trading limits for a market
+see: https://docs.whitebit.com/public/http-v4/#market-info
+
+# Arguments
+- `symbols`::any: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [trading limits structure]{@link https://docs.ccxt.com/?id=trading-limits-structure}
+"""
+__ccxt_doc_Whitebit_fetchTradingLimits
+
+function __ccxt_doc_Whitebit_fetchFundingLimits() end
+"""
+fetch the deposit and withdrawal limits for a currency
+see: https://docs.whitebit.com/public/http-v4/#asset-status-list
+see: https://docs.whitebit.com/public/http-v4/#fee
+
+# Arguments
+- `codes`::any: unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
+"""
+__ccxt_doc_Whitebit_fetchFundingLimits
+
+function __ccxt_doc_Whitebit_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.whitebit.com/public/http-v4/#market-activity
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Whitebit_fetchTicker
+
+function __ccxt_doc_Whitebit_fetchOrder() end
+"""
+fetches information on an order by the id
+see: https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.checkActive`::bool, optional: whether to check active orders (default: true)
+- `params.checkExecuted`::bool, optional: whether to check executed orders (default: true)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Whitebit_fetchOrder
+
+function __ccxt_doc_Whitebit_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.whitebit.com/public/http-v4/#market-activity
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+- `params.method`::string, optional: either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Whitebit_fetchTickers
+
+function __ccxt_doc_Whitebit_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.whitebit.com/public/http-v4/#orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Whitebit_fetchOrderBook
+
+function __ccxt_doc_Whitebit_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.whitebit.com/public/http-v4/#recent-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Whitebit_fetchTrades
+
+function __ccxt_doc_Whitebit_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Whitebit_fetchMyTrades
+
+function __ccxt_doc_Whitebit_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.whitebit.com/public/http-v1/#kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Whitebit_fetchOHLCV
+
+function __ccxt_doc_Whitebit_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.whitebit.com/public/http-v4/#server-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Whitebit_fetchStatus
+
+function __ccxt_doc_Whitebit_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.whitebit.com/public/http-v4/#server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Whitebit_fetchTime
+
+function __ccxt_doc_Whitebit_createMarketOrderWithCost() end
+"""
+create a market order by providing the symbol, side and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Whitebit_createMarketOrderWithCost
+
+function __ccxt_doc_Whitebit_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Whitebit_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Whitebit_createOrder() end
+"""
+create a trade order
+see: https://docs.whitebit.com/private/http-trade-v4/#create-limit-order
+see: https://docs.whitebit.com/private/http-trade-v4/#create-market-order
+see: https://docs.whitebit.com/private/http-trade-v4/#create-buy-stock-market-order
+see: https://docs.whitebit.com/private/http-trade-v4/#create-stop-limit-order
+see: https://docs.whitebit.com/private/http-trade-v4/#create-stop-market-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *market orders only* the cost of the order in units of the base currency
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: If true, the order will only be posted to the order book and not executed immediately
+- `params.timeInForce`::string, optional: "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
+- `params.clientOrderId`::string, optional: a unique id for the order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Whitebit_createOrder
+
+function __ccxt_doc_Whitebit_editOrder() end
+"""
+edit a trade order
+see: https://docs.whitebit.com/private/http-trade-v4/#modify-order
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Whitebit_editOrder
+
+function __ccxt_doc_Whitebit_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.whitebit.com/private/http-trade-v4/#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Whitebit_cancelOrder
+
+function __ccxt_doc_Whitebit_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'spot']
+- `params.isMargin`::bool, optional: cancel all margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Whitebit_cancelAllOrders
+
+function __ccxt_doc_Whitebit_fetchOrders() end
+"""
+fetches information on multiple orders made by the user (combines open and closed orders)
+see: https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Whitebit_fetchOrders
+
+function __ccxt_doc_Whitebit_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.types`::string, optional: Order types value. Example: "spot", "margin", "futures" or null
+- `params.symbol`::string, optional: symbol unified symbol of the market the order was made in
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Whitebit_cancelAllOrdersAfter
+
+function __ccxt_doc_Whitebit_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.whitebit.com/private/http-main-v4/#main-balance
+see: https://docs.whitebit.com/private/http-trade-v4/#trading-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Whitebit_fetchBalance
+
+function __ccxt_doc_Whitebit_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Whitebit_fetchOpenOrders
+
+function __ccxt_doc_Whitebit_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Whitebit_fetchClosedOrders
+
+function __ccxt_doc_Whitebit_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-deals
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Whitebit_fetchOrderTrades
+
+function __ccxt_doc_Whitebit_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transactionMethod`::string, optional: transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Whitebit_fetchWithdrawals
+
+function __ccxt_doc_Whitebit_fetchTransactions() end
+"""
+fetch history of deposits and withdrawals
+see: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch transactions for
+- `limit`::int, optional: the maximum number of transactions structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transactionMethod`::string, optional: transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Whitebit_fetchTransactions
+
+function __ccxt_doc_Whitebit_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-address
+see: https://docs.whitebit.com/private/http-main-v4/#get-cryptocurrency-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Whitebit_fetchDepositAddress
+
+function __ccxt_doc_Whitebit_createDepositAddress() end
+"""
+create a currency deposit address
+see: https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network to create a deposit address on
+- `params.type`::string, optional: address type, available for specific currencies
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Whitebit_createDepositAddress
+
+function __ccxt_doc_Whitebit_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://docs.whitebit.com/private/http-main-v4/#sub-account-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+"""
+__ccxt_doc_Whitebit_fetchAccounts
+
+function __ccxt_doc_Whitebit_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://docs.whitebit.com/private/http-trade-v4/#change-collateral-account-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Whitebit_setLeverage
+
+function __ccxt_doc_Whitebit_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.whitebit.com/private/http-main-v4/#transfer-between-main-and-trade-balances
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from - main, spot, collateral
+- `toAccount`::string: account to transfer to - main, spot, collateral
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Whitebit_transfer
+
+function __ccxt_doc_Whitebit_withdraw() end
+"""
+make a withdrawal
+see: https://docs.whitebit.com/private/http-main-v4/#create-withdraw-request
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Whitebit_withdraw
+
+function __ccxt_doc_Whitebit_fetchDeposit() end
+"""
+fetch information on a deposit
+see: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+
+# Arguments
+- `id`::string: deposit id
+- `code`::string: not used by fetchDeposit ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Whitebit_fetchDeposit
+
+function __ccxt_doc_Whitebit_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Whitebit_fetchDeposits
+
+function __ccxt_doc_Whitebit_fetchBorrowInterest() end
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://docs.whitebit.com/private/http-trade-v4/#open-positions
+
+# Arguments
+- `code`::string: unified currency code
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+__ccxt_doc_Whitebit_fetchBorrowInterest
+
+function __ccxt_doc_Whitebit_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Whitebit_fetchFundingRate
+
+function __ccxt_doc_Whitebit_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Whitebit_fetchFundingRates
+
+function __ccxt_doc_Whitebit_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.whitebit.com/private/http-trade-v4/#funding-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the starting timestamp in milliseconds
+- `limit`::int, optional: the number of entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch funding history for
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Whitebit_fetchFundingHistory
+
+function __ccxt_doc_Whitebit_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://github.com/whitebit-exchange/api-docs/blob/main/pages/private/http-main-v4.md#get-depositwithdraw-history
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.transactionMethod`::float, optional: Method. Example: 1 to display deposits / 2 to display withdraws. Do not send this parameter in order to receive both deposits and withdraws.
+- `params.address`::string, optional: Can be used for filtering transactions by specific address or memo.
+- `params.addresses`::array, optional: Can be used for filtering transactions by specific addresses or memos (max: 20).
+- `params.uniqueId`::string, optional: Can be used for filtering transactions by specific unique id
+- `params.offset`::int, optional: If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000
+- `params.status`::array, optional: Can be used for filtering transactions by status codes. Caution: You must use this parameter with appropriate transactionMethod and use valid status codes for this method. You can find them below. Example: "status": [3,7]
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Whitebit_fetchDepositsWithdrawals
+
+function __ccxt_doc_Whitebit_fetchConvertQuote() end
+"""
+fetch a quote for converting from one currency to another
+see: https://docs.whitebit.com/private/http-trade-v4/#convert-estimate
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Whitebit_fetchConvertQuote
+
+function __ccxt_doc_Whitebit_createConvertTrade() end
+"""
+convert from one currency to another
+see: https://docs.whitebit.com/private/http-trade-v4/#convert-confirm
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Whitebit_createConvertTrade
+
+function __ccxt_doc_Whitebit_fetchConvertTradeHistory() end
+"""
+fetch the users history of conversion trades
+see: https://docs.whitebit.com/private/http-trade-v4/#convert-history
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve, default 20, max 200
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::string, optional: the end time in ms
+- `params.fromTicker`::string, optional: the currency that you sold and converted from
+- `params.toTicker`::string, optional: the currency that you bought and converted into
+- `params.quoteId`::string, optional: the quote id of the conversion
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Whitebit_fetchConvertTradeHistory
+
+function __ccxt_doc_Whitebit_fetchPositionHistory() end
+"""
+fetches historical positions
+see: https://docs.whitebit.com/private/http-trade-v4/#positions-history
+
+# Arguments
+- `symbol`::string: unified contract symbol
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum amount of records to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::int, optional: the id of the requested position
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Whitebit_fetchPositionHistory
+
+function __ccxt_doc_Whitebit_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.whitebit.com/private/http-trade-v4/#open-positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Whitebit_fetchPositions
+
+function __ccxt_doc_Whitebit_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://docs.whitebit.com/private/http-trade-v4/#open-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Whitebit_fetchPosition
+
+function __ccxt_doc_Whitebit_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://docs.whitebit.com/api-reference/market-data/funding-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Whitebit_fetchFundingRateHistory

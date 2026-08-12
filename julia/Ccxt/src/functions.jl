@@ -432,6 +432,20 @@ end
 setTimeout(f, ms) = (Base.sleep(Float64(ms) / 1000.0); f())
 clearTimeout(_) = nothing
 
+# --- AbortController / abort (synchronous Julia port) ---
+# The transpiled `fetch` path builds an `AbortController` and wires a `setTimeout`
+# that calls `abort(controller)` after `self.timeout` ms. In the synchronous
+# Julia backend `setTimeout` already blocks (via `Base.sleep`) before the
+# request returns, so the abort signal is never inspected mid-flight. We model
+# `AbortController` as a trivial placeholder Dict carrying a `:signal` entry, so
+# the transpiled `get(controller, Symbol("signal"), nothing)` lookup resolves
+# natively, and `abort` as a no-op. The transpiled code only calls
+# `AbortController()` (a 0-arg constructor) and never names the type directly.
+function AbortController()
+    return Dict{Symbol, Any}(Symbol("signal") => Dict{Symbol, Any}())
+end
+abort(_) = nothing
+
 # --- JS Error base type ---
 const Error = ErrorException
 

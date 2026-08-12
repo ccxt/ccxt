@@ -540,371 +540,371 @@ Base.getproperty(self::Binanceus, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetPing(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "ping", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTime(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetExchangeInfo(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchangeInfo"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrades(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetHistoricalTrades(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAggTrades(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "aggTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "aggTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDepth(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetKlines(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "klines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "klines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerPrice(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAvgPrice(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "avgPrice", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "avgPrice"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerBookTicker(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/bookTicker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker24hr(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/24hr"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccount(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRateLimitOrder(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "rateLimit/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "rateLimit/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrder(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenOrders(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMyTrades(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "myTrades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "myTrades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMyPreventedMatches(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "myPreventedMatches", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "myPreventedMatches"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAllOrders(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "allOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "allOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderList(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "orderList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAllOrderList(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "allOrderList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "allOrderList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenOrderList(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "openOrderList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrderList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrder(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderTest(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "order/test", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/test"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderCancelReplace(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "order/cancelReplace", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancelReplace"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOco(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "order/oco", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/oco"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrder(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOpenOrders(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrderList(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "orderList", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orderList"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSystemStatus(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "system/status", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "system/status"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetAssetDistributionHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "asset/assetDistributionHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/assetDistributionHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetQueryTradingFee(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "asset/query/trading-fee", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/query/trading-fee"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetQueryTradingVolume(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "asset/query/trading-volume", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/query/trading-volume"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountSpotSummary(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "sub-account/spotSummary", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/spotSummary"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountStatus(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "sub-account/status", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/status"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetOtcCoinPairs(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "otc/coinPairs", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "otc/coinPairs"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetOtcOrdersOrderId(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "otc/orders/{orderId}", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "otc/orders/{orderId}"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetOtcOrders(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "otc/orders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "otc/orders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetOcbsOrders(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "ocbs/orders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "ocbs/orders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalConfigGetall(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "capital/config/getall", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/config/getall"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalWithdrawHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/withdraw/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetFiatpaymentQueryWithdrawHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "fiatpayment/query/withdraw/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "fiatpayment/query/withdraw/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalDepositAddress(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/address", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/address"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalDepositHisrec(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/hisrec", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/hisrec"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetFiatpaymentQueryDepositHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "fiatpayment/query/deposit/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "fiatpayment/query/deposit/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalSubAccountDepositAddress(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "capital/sub-account/deposit/address", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/sub-account/deposit/address"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalSubAccountDepositHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "capital/sub-account/deposit/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/sub-account/deposit/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetQueryDustLogs(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "asset/query/dust-logs", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/query/dust-logs"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetQueryDustAssets(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "asset/query/dust-assets", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/query/dust-assets"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarketingReferralRewardHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "marketing/referral/reward/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "marketing/referral/reward/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetStakingAsset(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "staking/asset", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/asset"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetStakingStakingBalance(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "staking/stakingBalance", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/stakingBalance"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetStakingHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "staking/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetStakingStakingRewardsHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "staking/stakingRewardsHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/stakingRewardsHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCustodianBalance(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/balance", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "custodian/balance"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCustodianSupportedAssetList(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/supportedAssetList", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "custodian/supportedAssetList"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCustodianWalletTransferHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/walletTransferHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "custodian/walletTransferHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCustodianCustodianTransferHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/custodianTransferHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "custodian/custodianTransferHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCustodianOpenOrders(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/openOrders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "custodian/openOrders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCustodianOrder(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/order", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "custodian/order"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCustodianOrderHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/orderHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "custodian/orderHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCustodianTradeHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/tradeHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "custodian/tradeHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCustodianSettlementSetting(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/settlementSetting", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "custodian/settlementSetting"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCustodianSettlementHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/settlementHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "custodian/settlementHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetClTransferHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "cl/transferHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cl/transferHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetApipartnerCheckEligibility(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "apipartner/checkEligibility", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "apipartner/checkEligibility"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetApipartnerRebateHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "apipartner/rebateHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "apipartner/rebateHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostOtcQuotes(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "otc/quotes", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "otc/quotes"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostOtcOrders(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "otc/orders", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "otc/orders"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostFiatpaymentWithdrawApply(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "fiatpayment/withdraw/apply", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "fiatpayment/withdraw/apply"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostCapitalWithdrawApply(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/apply", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "capital/withdraw/apply"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAssetDust(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "asset/dust", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/dust"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostStakingStake(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "staking/stake", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "staking/stake"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostStakingUnstake(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "staking/unstake", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "staking/unstake"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostCustodianWalletTransfer(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/walletTransfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "custodian/walletTransfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostCustodianCustodianTransfer(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/custodianTransfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "custodian/custodianTransfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostCustodianUndoTransfer(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/undoTransfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "custodian/undoTransfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostCustodianOrder(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/order", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "custodian/order"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostCustodianOcoOrder(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/ocoOrder", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "custodian/ocoOrder"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostClTransfer(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "cl/transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "cl/transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteCustodianCancelOrder(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/cancelOrder", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "custodian/cancelOrder"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteCustodianCancelOrdersBySymbol(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/cancelOrdersBySymbol", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "custodian/cancelOrdersBySymbol"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteCustodianCancelOcoOrder(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "custodian/cancelOcoOrder", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "custodian/cancelOcoOrder"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetClAccount(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "cl/account", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "cl/account"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetClAlertHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "cl/alertHistory", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "cl/alertHistory"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV3GetAccountStatus(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "accountStatus", "sapiV3", "GET", params, nothing, nothing, Dict())
+    return request(self, "accountStatus"; api="sapiV3", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV3GetApiTradingStatus(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "apiTradingStatus", "sapiV3", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiTradingStatus"; api="sapiV3", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV3GetSubAccountList(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "sub-account/list", "sapiV3", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/list"; api="sapiV3", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV3GetSubAccountTransferHistory(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "sub-account/transfer/history", "sapiV3", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/transfer/history"; api="sapiV3", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV3GetSubAccountAssets(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "sub-account/assets", "sapiV3", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/assets"; api="sapiV3", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV3PostSubAccountTransfer(self::Binanceus, params=Dict(), context=Dict())
-    return request(self, "sub-account/transfer", "sapiV3", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/transfer"; api="sapiV3", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Binanceus(; kwargs...)

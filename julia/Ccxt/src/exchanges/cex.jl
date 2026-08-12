@@ -421,13 +421,23 @@ function describe(self::Cex, )
 ))
 
 end
-function fetchCurrencies(self::Cex, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://trade.cex.io/docs/#rest-public-api-calls-currencies-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Cex; params=Dict())
     promises = [];
     push!(promises, self.publicPostGetCurrenciesInfo(params));
     push!(promises, self.publicPostGetProcessingInfo(params));
     responses = Base.fetch(asyncmap(Base.fetch, promises));
-    dataCurrencies = self.safeList(get(responses, 1, nothing), "data", []);
-    dataNetworks = self.safeDict(get(responses, 2, nothing), "data", Dict{Symbol, Any}());
+    dataCurrencies = self.safeList(get(responses, 1, nothing), "data", defaultValue = []);
+    dataNetworks = self.safeDict(get(responses, 2, nothing), "data", defaultValue = Dict{Symbol, Any}());
     currenciesIndexed = indexBy(dataCurrencies, "currency");
     data = deepExtend(currenciesIndexed, dataNetworks);
     return self.parseCurrencies(toArray(data))
@@ -437,15 +447,15 @@ function parseCurrency(self::Cex, rawCurrency)
     id = safeString(rawCurrency, "currency");
     code = self.safeCurrencyCode(id);
     type_var = functions.ccxtruthy(self.safeBool(rawCurrency, "fiat")) ? "fiat" : "crypto";
-    currencyPrecision = self.parseNumber(self.parsePrecision(safeString(rawCurrency, "precision")));
+    currencyPrecision = self.parseNumber(self.parsePrecision(precision = safeString(rawCurrency, "precision")));
     networks = Dict{Symbol, Any}();
-    rawNetworks = self.safeDict(rawCurrency, "blockchains", Dict{Symbol, Any}());
+    rawNetworks = self.safeDict(rawCurrency, "blockchains", defaultValue = Dict{Symbol, Any}());
     keys_var = objectKeys(rawNetworks);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(keys_var)))
         networkId = get(keys_var, j + 1, nothing);
         rawNetwork = get(rawNetworks, Symbol(networkId), nothing);
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         deposit = safeString(rawNetwork, "deposit") == "enabled";
         withdraw = safeString(rawNetwork, "withdrawal") == "enabled";
         if functions.ccxtruthy(networkCode != nothing)
@@ -498,9 +508,19 @@ function parseCurrency(self::Cex, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Cex, params=Dict())
+"""
+retrieves data on all markets for ace
+see: https://trade.cex.io/docs/#rest-public-api-calls-pairs-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Cex; params=Dict())
     response = Base.fetch(self.publicPostGetPairsInfo(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseMarkets(data)
 
 end
@@ -511,7 +531,7 @@ function parseMarket(self::Cex, market)
     quote_var = self.safeCurrencyCode(quoteId);
     id = string(base, "-", quote_var);
     symbol = string(base, "/", quote_var);
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -554,9 +574,9 @@ function parseMarket(self::Cex, market)
     ),
     Symbol("precision") => Dict{Symbol, Any}(
         Symbol("amount") => safeString(market, "baseLotSize"),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "pricePrecision"))),
-        Symbol("base") => self.parseNumber(self.parsePrecision(safeString(market, "basePrecision"))),
-        Symbol("quote") => self.parseNumber(self.parsePrecision(safeString(market, "quotePrecision")))
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "pricePrecision"))),
+        Symbol("base") => self.parseNumber(self.parsePrecision(precision = safeString(market, "basePrecision"))),
+        Symbol("quote") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quotePrecision")))
     ),
     Symbol("active") => nothing,
     Symbol("created") => nothing,
@@ -564,37 +584,69 @@ function parseMarket(self::Cex, market)
 ))
 
 end
-function fetchTime(self::Cex, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://trade.cex.io/docs/#rest-public-api-calls-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Cex; params=Dict())
     response = Base.fetch(self.publicPostGetServerTime(params));
     data = self.safeDict(response, "data");
     timestamp = safeInteger(data, "timestamp");
     return timestamp
 
 end
-function fetchTicker(self::Cex, symbol, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://trade.cex.io/docs/#rest-public-api-calls-ticker
+
+# Arguments
+- `symbol`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Cex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    response = Base.fetch(self.fetchTickers([symbol], params));
-    return self.safeDict(response, symbol, Dict{Symbol, Any}())
+    response = Base.fetch(self.fetchTickers(symbols = [symbol], params = params));
+    return self.safeDict(response, symbol, defaultValue = Dict{Symbol, Any}())
 
 end
-function fetchTickers(self::Cex, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://trade.cex.io/docs/#rest-public-api-calls-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Cex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
-        request[Symbol("pairs")] = self.marketIds(symbols);
+        request[Symbol("pairs")] = self.marketIds(symbols = symbols);
     end
     response = Base.fetch(self.publicPostGetTicker(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTickers(data, symbols)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTickers(data, symbols = symbols)
 
 end
-function parseTicker(self::Cex, ticker, market=nothing)
+function parseTicker(self::Cex, ticker; market=nothing)
     marketId = safeString(ticker, "id");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => nothing,
@@ -615,10 +667,24 @@ function parseTicker(self::Cex, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "volume"),
     Symbol("quoteVolume") => safeString(ticker, "quoteVolume"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Cex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://trade.cex.io/docs/#rest-public-api-calls-trade-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest entry
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Cex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -638,15 +704,15 @@ function fetchTrades(self::Cex, symbol, since=nothing, limit=nothing, params=Dic
         request[Symbol("pageSize")] = min(limit, 10000);
     end
     response = Base.fetch(self.publicPostGetTradeHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    trades = self.safeList(data, "trades", []);
-    return self.parseTrades(trades, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    trades = self.safeList(data, "trades", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Cex, trade, market=nothing)
+function parseTrade(self::Cex, trade; market=nothing)
     dateStr = safeString(trade, "dateISO");
     timestamp = self.parse8601(dateStr);
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     return self.safeTrade(Dict{Symbol, Any}(
     Symbol("info") => trade,
     Symbol("timestamp") => timestamp,
@@ -661,10 +727,22 @@ function parseTrade(self::Cex, trade, market=nothing)
     Symbol("amount") => safeString(trade, "amount"),
     Symbol("cost") => nothing,
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function fetchOrderBook(self::Cex, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://trade.cex.io/docs/#rest-public-api-calls-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Cex, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -673,12 +751,27 @@ function fetchOrderBook(self::Cex, symbol, limit=nothing, params=Dict())
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicPostGetOrderBook(extend(request, params)));
-    orderBook = self.safeDict(response, "data", Dict{Symbol, Any}());
+    orderBook = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(orderBook, "timestamp");
-    return self.parseOrderBook(orderBook, get(market, Symbol("symbol"), nothing), timestamp)
+    return self.parseOrderBook(orderBook, get(market, Symbol("symbol"), nothing), timestamp = timestamp)
 
 end
-function fetchOHLCV(self::Cex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://trade.cex.io/docs/#rest-public-api-calls-candles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest entry
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Cex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     dataType = nothing;
     (dataType, params) = self.handleOptionAndParams(params, "fetchOHLCV", "dataType");
     if functions.ccxtruthy(dataType == nothing)
@@ -712,25 +805,35 @@ function fetchOHLCV(self::Cex, symbol, timeframe="1m", since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicPostGetCandles(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Cex, ohlcv, market=nothing)
+function parseOHLCV(self::Cex, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "timestamp"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchTradingFees(self::Cex, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://trade.cex.io/docs/#rest-public-api-calls-candles
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Cex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privatePostGetMyCurrentFee(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    fees = self.safeDict(data, "tradingFee", Dict{Symbol, Any}());
-    return self.parseTradingFees(fees, true)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    fees = self.safeDict(data, "tradingFee", defaultValue = Dict{Symbol, Any}());
+    return self.parseTradingFees(fees, useKeyAsId = true)
 
 end
-function parseTradingFees(self::Cex, response, useKeyAsId=false)
+function parseTradingFees(self::Cex, response; useKeyAsId=false)
     result = Dict{Symbol, Any}();
     keys_var = objectKeys(response);
     i = 0
@@ -738,9 +841,9 @@ function parseTradingFees(self::Cex, response, useKeyAsId=false)
         key = get(keys_var, i + 1, nothing);
         market = nothing;
         if functions.ccxtruthy(useKeyAsId)
-            market = self.safeMarket(key);
+            market = self.safeMarket(marketId = key);
         end
-        parsed = self.parseTradingFee(get(response, Symbol(key), nothing), market);
+        parsed = self.parseTradingFee(get(response, Symbol(key), nothing), market = market);
         if functions.ccxtruthy(get(parsed, Symbol("symbol"), nothing) != nothing)
             result[Symbol(parsed[Symbol("symbol")])] = parsed;
         end
@@ -752,14 +855,14 @@ function parseTradingFees(self::Cex, response, useKeyAsId=false)
         symbol = get(symbols, i + 1, nothing);
         if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(symbol, result))))
             market = self.market(symbol);
-            result[Symbol(symbol)] = self.parseTradingFee(response, market);
+            result[Symbol(symbol)] = self.parseTradingFee(response, market = market);
         end
         i += 1
     end
     return result
 
 end
-function parseTradingFee(self::Cex, fee, market=nothing)
+function parseTradingFee(self::Cex, fee; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => safeString(market, "symbol"),
@@ -770,15 +873,15 @@ function parseTradingFee(self::Cex, fee, market=nothing)
 )
 
 end
-function fetchAccounts(self::Cex, params=Dict())
+function fetchAccounts(self::Cex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privatePostGetMyAccountStatusV3(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    balances = self.safeDict(data, "balancesPerAccounts", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    balances = self.safeDict(data, "balancesPerAccounts", defaultValue = Dict{Symbol, Any}());
     arrays = toArray(balances);
-    return self.parseAccounts(arrays, params)
+    return self.parseAccounts(arrays, params = params)
 
 end
 function parseAccount(self::Cex, account)
@@ -790,20 +893,32 @@ function parseAccount(self::Cex, account)
 )
 
 end
-function fetchBalance(self::Cex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::object, optional: 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
+- `params.account`::object, optional: in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Cex; params=Dict())
     accountName = nothing;
-    (accountName, params) = self.handleParamString(params, "account", "");
+    (accountName, params) = self.handleParamString(params, "account", defaultValue = "");
     method = nothing;
-    (method, params) = self.handleParamString(params, "method", "privatePostGetMyWalletBalance");
+    (method, params) = self.handleParamString(params, "method", defaultValue = "privatePostGetMyWalletBalance");
     accountBalance = nothing;
     if functions.ccxtruthy(method == "privatePostGetMyAccountStatusV3")
         response = Base.fetch(self.privatePostGetMyAccountStatusV3(params));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        balances = self.safeDict(data, "balancesPerAccounts", Dict{Symbol, Any}());
-        accountBalance = self.safeDict(balances, accountName, Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        balances = self.safeDict(data, "balancesPerAccounts", defaultValue = Dict{Symbol, Any}());
+        accountBalance = self.safeDict(balances, accountName, defaultValue = Dict{Symbol, Any}());
     else
         response = Base.fetch(self.privatePostGetMyWalletBalance(params));
-        accountBalance = self.safeDict(response, "data", Dict{Symbol, Any}());
+        accountBalance = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     end
     return self.parseBalance(accountBalance)
 
@@ -816,7 +931,7 @@ function parseBalance(self::Cex, response)
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(keys_var)))
         key = get(keys_var, i + 1, nothing);
-        balance = self.safeDict(response, key, Dict{Symbol, Any}());
+        balance = self.safeDict(response, key, defaultValue = Dict{Symbol, Any}());
         code = self.safeCurrencyCode(key);
         account = Dict{Symbol, Any}(
             Symbol("used") => safeString(balance, "balanceOnHold"),
@@ -830,7 +945,22 @@ function parseBalance(self::Cex, response)
     return self.safeBalance(result)
 
 end
-function fetchOrdersByStatus(self::Cex, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+# Arguments
+- `status`::string: order status to fetch for
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest entry
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrdersByStatus(self::Cex, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -858,37 +988,87 @@ function fetchOrdersByStatus(self::Cex, status, symbol=nothing, since=nothing, l
         request[Symbol("serverCreateTimestampTo")] = until;
     end
     response = Base.fetch(self.privatePostGetMyOrders(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Cex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStatus("closed", symbol, since, limit, params))
+"""
+fetches information on multiple canceled orders made by the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Cex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStatus("closed", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOpenOrders(self::Cex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStatus("open", symbol, since, limit, params))
+"""
+fetches information on multiple canceled orders made by the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Cex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStatus("open", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOpenOrder(self::Cex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an open order made by the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrder(self::Cex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderId") => ccxt_parseInt(id)
     );
-    result = Base.fetch(self.fetchOpenOrders(symbol, nothing, nothing, extend(request, params)));
+    result = Base.fetch(self.fetchOpenOrders(symbol = symbol, since = nothing, limit = nothing, params = extend(request, params)));
     return get(result, 1, nothing)
 
 end
-function fetchClosedOrder(self::Cex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an closed order made by the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrder(self::Cex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderId") => ccxt_parseInt(id)
     );
-    result = Base.fetch(self.fetchClosedOrders(symbol, nothing, nothing, extend(request, params)));
+    result = Base.fetch(self.fetchClosedOrders(symbol = symbol, since = nothing, limit = nothing, params = extend(request, params)));
     return get(result, 1, nothing)
 
 end
@@ -906,14 +1086,14 @@ function parseOrderStatus(self::Cex, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Cex, order, market=nothing)
+function parseOrder(self::Cex, order; market=nothing)
     currency1 = safeString(order, "currency1");
     currency2 = safeString(order, "currency2");
     marketId = nothing;
     if functions.ccxtruthy(@functions.ccxt_and(currency1 != nothing, currency2 != nothing))
         marketId = string(currency1, "-", currency2);
     end
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     status = self.parseOrderStatus(safeString(order, "status"));
     fee = Dict{Symbol, Any}();
@@ -951,10 +1131,27 @@ function parseOrder(self::Cex, order, market=nothing)
     Symbol("fee") => fee,
     Symbol("trades") => nothing,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
-function createOrder(self::Cex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://trade.cex.io/docs/#rest-private-api-calls-new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountId`::string, optional: account-id to use (default is empty string)
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Cex, symbol, type_var, side, amount; price=nothing, params=Dict())
     accountId = nothing;
     (accountId, params) = self.handleOptionAndParams(params, "createOrder", "accountId");
     if functions.ccxtruthy(accountId == nothing)
@@ -978,7 +1175,7 @@ function createOrder(self::Cex, symbol, type_var, side, amount, price=nothing, p
         Symbol("amountCcy1") => self.amountToPrecision(symbol, amount)
     );
     timeInForce = nothing;
-    (timeInForce, params) = self.handleOptionAndParams(params, "createOrder", "timeInForce", "GTC");
+    (timeInForce, params) = self.handleOptionAndParams(params, "createOrder", "timeInForce", defaultValue = "GTC");
     if functions.ccxtruthy(type_var == "limit")
         request[Symbol("price")] = self.priceToPrecision(symbol, price);
         request[Symbol("timeInForce")] = timeInForce;
@@ -990,11 +1187,23 @@ function createOrder(self::Cex, symbol, type_var, side, amount, price=nothing, p
         request[Symbol("stopPrice")] = triggerPrice;
     end
     response = Base.fetch(self.privatePostDoMyNewOrder(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function cancelOrder(self::Cex, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://trade.cex.io/docs/#rest-private-api-calls-cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Cex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1004,17 +1213,28 @@ function cancelOrder(self::Cex, id, symbol=nothing, params=Dict())
         Symbol("timestamp") => milliseconds()
     );
     response = Base.fetch(self.privatePostDoCancelMyOrder(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(data)
 
 end
-function cancelAllOrders(self::Cex, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Cex; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privatePostDoCancelAllOrders(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    ids = self.safeList(data, "clientOrderIds", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    ids = self.safeList(data, "clientOrderIds", defaultValue = []);
     orders = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(ids)))
@@ -1027,7 +1247,21 @@ function cancelAllOrders(self::Cex, symbol=nothing, params=Dict())
     return self.parseOrders(orders)
 
 end
-function fetchLedger(self::Cex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-transaction-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Cex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1049,11 +1283,11 @@ function fetchLedger(self::Cex, code=nothing, since=nothing, limit=nothing, para
         request[Symbol("dateTo")] = until;
     end
     response = Base.fetch(self.privatePostGetMyTransactionHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseLedger(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLedger(data, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Cex, item, currency=nothing)
+function parseLedgerEntry(self::Cex, item; currency=nothing)
     amount = safeString(item, "amount");
     direction = nothing;
     if functions.ccxtruthy(stringLe(amount, "0"))
@@ -1063,8 +1297,8 @@ function parseLedgerEntry(self::Cex, item, currency=nothing)
         direction = "in";
     end
     currencyId = safeString(item, "currency");
-    currency = self.safeCurrency(currencyId, currency);
-    code = self.safeCurrencyCode(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestampString = safeString(item, "timestamp");
     timestamp = self.parse8601(timestampString);
     type_var = safeString(item, "type");
@@ -1084,7 +1318,7 @@ function parseLedgerEntry(self::Cex, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => nothing,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Cex, type_var)
@@ -1096,7 +1330,20 @@ function parseLedgerEntryType(self::Cex, type_var)
     return safeString(ledgerType, type_var, type_var)
 
 end
-function fetchDepositsWithdrawals(self::Cex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://trade.cex.io/docs/#rest-private-api-calls-funding-history
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Cex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1117,15 +1364,15 @@ function fetchDepositsWithdrawals(self::Cex, code=nothing, since=nothing, limit=
         request[Symbol("dateTo")] = until;
     end
     response = Base.fetch(self.privatePostGetMyFundingHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Cex, transaction, currency=nothing)
+function parseTransaction(self::Cex, transaction; currency=nothing)
     currencyId = safeString(transaction, "currency");
     direction = safeString(transaction, "direction");
     type_var = functions.ccxtruthy((direction == "withdraw")) ? "withdrawal" : "deposit";
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     updatedAt = safeString(transaction, "updatedAt");
     timestamp = self.parse8601(updatedAt);
     return Dict{Symbol, Any}(
@@ -1164,14 +1411,28 @@ function parseTransactionStatus(self::Cex, status)
     return safeString(statuses, status, status)
 
 end
-function transfer(self::Cex, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'SPOT', 'FUND', or 'CONTRACT'
+- `toAccount`::string: 'SPOT', 'FUND', or 'CONTRACT'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Cex, code, amount, fromAccount, toAccount; params=Dict())
     transfer = nothing;
     if functions.ccxtruthy(@functions.ccxt_and(toAccount != "", fromAccount != ""))
-        transfer = Base.fetch(self.transferBetweenSubAccounts(code, amount, fromAccount, toAccount, params));
+        transfer = Base.fetch(self.transferBetweenSubAccounts(code, amount, fromAccount, toAccount, params = params));
     else
-        transfer = Base.fetch(self.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, params));
+        transfer = Base.fetch(self.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, params = params));
     end
-    fillResponseFromRequest = self.handleOption("transfer", "fillResponseFromRequest", true);
+    fillResponseFromRequest = self.handleOption("transfer", "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         transfer[Symbol("fromAccount")] = fromAccount;
         transfer[Symbol("toAccount")] = toAccount;
@@ -1179,7 +1440,7 @@ function transfer(self::Cex, code, amount, fromAccount, toAccount, params=Dict()
     return transfer
 
 end
-function transferBetweenMainAndSubAccount(self::Cex, code, amount, fromAccount, toAccount, params=Dict())
+function transferBetweenMainAndSubAccount(self::Cex, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1199,11 +1460,11 @@ function transferBetweenMainAndSubAccount(self::Cex, code, amount, fromAccount, 
     else
         response = Base.fetch(self.privatePostDoWithdrawalFundsToWallet(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransfer(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransfer(data, currency = currency)
 
 end
-function transferBetweenSubAccounts(self::Cex, code, amount, fromAccount, toAccount, params=Dict())
+function transferBetweenSubAccounts(self::Cex, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1215,13 +1476,13 @@ function transferBetweenSubAccounts(self::Cex, code, amount, fromAccount, toAcco
         Symbol("toAccountId") => toAccount
     );
     response = Base.fetch(self.privatePostDoMyInternalTransfer(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransfer(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransfer(data, currency = currency)
 
 end
-function parseTransfer(self::Cex, transfer, currency=nothing)
+function parseTransfer(self::Cex, transfer; currency=nothing)
     currencyId = safeString(transfer, "currency");
-    currencyCode = self.safeCurrencyCode(currencyId, currency);
+    currencyCode = self.safeCurrencyCode(currencyId, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
     Symbol("id") => safeString2(transfer, "transactionId", "clientTxId"),
@@ -1235,7 +1496,19 @@ function parseTransfer(self::Cex, transfer, currency=nothing)
 )
 
 end
-function fetchDepositAddress(self::Cex, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountId`::string, optional: account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Cex, code; params=Dict())
     accountId = nothing;
     (accountId, params) = self.handleOptionAndParams(params, "createOrder", "accountId");
     if functions.ccxtruthy(accountId == nothing)
@@ -1250,28 +1523,28 @@ function fetchDepositAddress(self::Cex, code, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("accountId") => accountId,
         Symbol("currency") => get(currency, Symbol("id"), nothing),
-        Symbol("blockchain") => self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing))
+        Symbol("blockchain") => self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing))
     );
     response = Base.fetch(self.privatePostGetDepositAddress(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseDepositAddress(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseDepositAddress(data, currency = currency)
 
 end
-function parseDepositAddress(self::Cex, depositAddress, currency=nothing)
+function parseDepositAddress(self::Cex, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
     currencyId = safeString(depositAddress, "currency");
-    currency = self.safeCurrency(currencyId, currency);
-    self.checkAddress(address);
+    currency = self.safeCurrency(currencyId, currency = currency);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => get(currency, Symbol("code"), nothing),
-    Symbol("network") => self.networkIdToCode(safeString(depositAddress, "blockchain"), get(currency, Symbol("code"), nothing)),
+    Symbol("network") => self.networkIdToCode(networkId = safeString(depositAddress, "blockchain"), currencyCode = get(currency, Symbol("code"), nothing)),
     Symbol("address") => address,
     Symbol("tag") => nothing
 )
 
 end
-function sign(self::Cex, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Cex, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
     if functions.ccxtruthy(api == "public")
@@ -1325,7 +1598,7 @@ function handleErrors(self::Cex, code, reason, url, method, headers, body, respo
         throw(ExchangeError(feedback));
     end
     if functions.ccxtruthy(findfirst("do_my_new_order", url) !== nothing)
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         rejectReason = safeString(data, "rejectReason");
         if functions.ccxtruthy(rejectReason != nothing)
             self.throwBroadlyMatchedException(get(self.exceptions, Symbol("broad"), nothing), rejectReason, rejectReason);
@@ -1342,115 +1615,115 @@ Base.getproperty(self::Cex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicPostGetServerTime(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_server_time", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_server_time"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetPairsInfo(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_pairs_info", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_pairs_info"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetCurrenciesInfo(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_currencies_info", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_currencies_info"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetProcessingInfo(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_processing_info", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_processing_info"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetTicker(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_ticker", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_ticker"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetTradeHistory(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_trade_history", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_trade_history"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetOrderBook(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_order_book", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_order_book"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostGetCandles(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_candles", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_candles"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetMyCurrentFee(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_current_fee", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_my_current_fee"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetFeeStrategy(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_fee_strategy", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_fee_strategy"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetMyVolume(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_volume", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_my_volume"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDoCreateAccount(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_create_account", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "do_create_account"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetMyAccountStatusV3(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_account_status_v3", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_my_account_status_v3"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetMyWalletBalance(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_wallet_balance", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_my_wallet_balance"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetMyOrders(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_my_orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDoMyNewOrder(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_my_new_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "do_my_new_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDoCancelMyOrder(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_cancel_my_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "do_cancel_my_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDoCancelAllOrders(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_cancel_all_orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "do_cancel_all_orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOrderBook(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_order_book", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_order_book"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetCandles(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_candles", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_candles"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetTradeHistory(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_trade_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_trade_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetMyTransactionHistory(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_transaction_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_my_transaction_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetMyFundingHistory(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_funding_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_my_funding_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDoMyInternalTransfer(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_my_internal_transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "do_my_internal_transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetProcessingInfo(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_processing_info", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_processing_info"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetDepositAddress(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_deposit_address", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_deposit_address"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDoDepositFundsFromWallet(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_deposit_funds_from_wallet", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "do_deposit_funds_from_wallet"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDoWithdrawalFundsToWallet(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_withdrawal_funds_to_wallet", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "do_withdrawal_funds_to_wallet"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Cex(; kwargs...)
@@ -1514,3 +1787,344 @@ function Cex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Cex_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://trade.cex.io/docs/#rest-public-api-calls-currencies-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Cex_fetchCurrencies
+
+function __ccxt_doc_Cex_fetchMarkets() end
+"""
+retrieves data on all markets for ace
+see: https://trade.cex.io/docs/#rest-public-api-calls-pairs-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Cex_fetchMarkets
+
+function __ccxt_doc_Cex_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://trade.cex.io/docs/#rest-public-api-calls-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Cex_fetchTime
+
+function __ccxt_doc_Cex_fetchTicker() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://trade.cex.io/docs/#rest-public-api-calls-ticker
+
+# Arguments
+- `symbol`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Cex_fetchTicker
+
+function __ccxt_doc_Cex_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://trade.cex.io/docs/#rest-public-api-calls-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Cex_fetchTickers
+
+function __ccxt_doc_Cex_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://trade.cex.io/docs/#rest-public-api-calls-trade-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest entry
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Cex_fetchTrades
+
+function __ccxt_doc_Cex_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://trade.cex.io/docs/#rest-public-api-calls-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Cex_fetchOrderBook
+
+function __ccxt_doc_Cex_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://trade.cex.io/docs/#rest-public-api-calls-candles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest entry
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Cex_fetchOHLCV
+
+function __ccxt_doc_Cex_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://trade.cex.io/docs/#rest-public-api-calls-candles
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Cex_fetchTradingFees
+
+function __ccxt_doc_Cex_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::object, optional: 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
+- `params.account`::object, optional: in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Cex_fetchBalance
+
+function __ccxt_doc_Cex_fetchOrdersByStatus() end
+"""
+fetches information on multiple orders made by the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+# Arguments
+- `status`::string: order status to fetch for
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest entry
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cex_fetchOrdersByStatus
+
+function __ccxt_doc_Cex_fetchClosedOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cex_fetchClosedOrders
+
+function __ccxt_doc_Cex_fetchOpenOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cex_fetchOpenOrders
+
+function __ccxt_doc_Cex_fetchOpenOrder() end
+"""
+fetches information on an open order made by the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cex_fetchOpenOrder
+
+function __ccxt_doc_Cex_fetchClosedOrder() end
+"""
+fetches information on an closed order made by the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cex_fetchClosedOrder
+
+function __ccxt_doc_Cex_createOrder() end
+"""
+create a trade order
+see: https://trade.cex.io/docs/#rest-private-api-calls-new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountId`::string, optional: account-id to use (default is empty string)
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cex_createOrder
+
+function __ccxt_doc_Cex_cancelOrder() end
+"""
+cancels an open order
+see: https://trade.cex.io/docs/#rest-private-api-calls-cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cex_cancelOrder
+
+function __ccxt_doc_Cex_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cex_cancelAllOrders
+
+function __ccxt_doc_Cex_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://trade.cex.io/docs/#rest-private-api-calls-transaction-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Cex_fetchLedger
+
+function __ccxt_doc_Cex_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://trade.cex.io/docs/#rest-private-api-calls-funding-history
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Cex_fetchDepositsWithdrawals
+
+function __ccxt_doc_Cex_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'SPOT', 'FUND', or 'CONTRACT'
+- `toAccount`::string: 'SPOT', 'FUND', or 'CONTRACT'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Cex_transfer
+
+function __ccxt_doc_Cex_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountId`::string, optional: account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Cex_fetchDepositAddress

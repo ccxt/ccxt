@@ -375,9 +375,20 @@ function describe(self::Zebpay, )
 ))
 
 end
-function fetchStatus(self::Zebpay, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#system-status
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Zebpay; params=Dict())
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchStatus", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchStatus", market = nothing, params = params);
     isSpot = (type_var == "spot");
     response = nothing;
     data = Dict{Symbol, Any}();
@@ -386,7 +397,7 @@ function fetchStatus(self::Zebpay, params=Dict())
         data = response;
     else
         response = Base.fetch(self.publicSwapGetV1SystemStatus(params));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     end
     status = safeString2(data, "systemStatus", "status");
     return Dict{Symbol, Any}(
@@ -398,9 +409,20 @@ function fetchStatus(self::Zebpay, params=Dict())
 )
 
 end
-function fetchTime(self::Zebpay, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the poloniexfutures server
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the poloniexfutures server
+"""
+function fetchTime(self::Zebpay; params=Dict())
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTime", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTime", market = nothing, params = params);
     isSpot = (type_var == "spot");
     response = nothing;
     data = Dict{Symbol, Any}();
@@ -409,38 +431,59 @@ function fetchTime(self::Zebpay, params=Dict())
         data = response;
     else
         response = Base.fetch(self.publicSwapGetV1SystemTime(params));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     end
     time = safeInteger(data, "timestamp");
     return time
 
 end
-function fetchMarkets(self::Zebpay, params=Dict())
+"""
+retrieves data on all markets for zebpay
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Zebpay; params=Dict())
     promisesUnresolved = [];
     fetchMarketsOptions = self.safeDict(self.options, "fetchMarkets");
     defaultMarkets = ["spot", "swap"];
-    types = self.safeList(fetchMarketsOptions, "types", defaultMarkets);
+    types = self.safeList(fetchMarketsOptions, "types", defaultValue = defaultMarkets);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(types)))
         type_var = get(types, i + 1, nothing);
         if functions.ccxtruthy(type_var == "spot")
-                        push!(promisesUnresolved, self.fetchSpotMarkets(params));
+                        push!(promisesUnresolved, self.fetchSpotMarkets(params = params));
         elseif functions.ccxtruthy(type_var == "swap")
-            push!(promisesUnresolved, self.fetchSwapMarkets(params));
+            push!(promisesUnresolved, self.fetchSwapMarkets(params = params));
         else
             throw(ExchangeError(string(self.id, " fetchMarkets() this.options fetchMarkets \"", type_var, "\" is not a supported market type")));
         end
         i += 1
     end
     promises = Base.fetch(asyncmap(Base.fetch, promisesUnresolved));
-    spotMarkets = self.safeList(promises, 0, []);
-    futureMarkets = self.safeList(promises, 1, []);
+    spotMarkets = self.safeList(promises, 0, defaultValue = []);
+    futureMarkets = self.safeList(promises, 1, defaultValue = []);
     return arrayConcat(spotMarkets, futureMarkets)
 
 end
-function fetchCurrencies(self::Zebpay, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-coin-settings
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Zebpay; params=Dict())
     response = Base.fetch(self.publicSpotGetV2ExCurrencies(params));
-    rows = self.safeList(response, "data", []);
+    rows = self.safeList(response, "data", defaultValue = []);
     return self.parseCurrencies(rows)
 
 end
@@ -448,8 +491,8 @@ function parseCurrency(self::Zebpay, rawCurrency)
     currencyId = safeString(rawCurrency, "currency");
     code = self.safeCurrencyCode(currencyId);
     name = safeString(rawCurrency, "name");
-    precision = self.parseNumber(self.parsePrecision(safeString(rawCurrency, "precision")));
-    chains = self.safeList(rawCurrency, "chains", []);
+    precision = self.parseNumber(self.parsePrecision(precision = safeString(rawCurrency, "precision")));
+    chains = self.safeList(rawCurrency, "chains", defaultValue = []);
     networks = Dict{Symbol, Any}();
     minWithdrawFeeString = nothing;
     minWithdrawString = nothing;
@@ -460,7 +503,7 @@ function parseCurrency(self::Zebpay, rawCurrency)
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "chainId");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         depositAllowed = self.safeBool(chain, "isDepositEnabled");
         deposit = functions.ccxtruthy((depositAllowed)) ? depositAllowed : deposit;
         withdrawAllowed = self.safeBool(chain, "isWithdrawEnabled");
@@ -529,7 +572,20 @@ function parseCurrency(self::Zebpay, rawCurrency)
 ))
 
 end
-function fetchTradingFee(self::Zebpay, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-exchange-fee
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fee-single-symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::object, optional: side to fetch trading fee
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchTradingFee(self::Zebpay, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -540,25 +596,35 @@ function fetchTradingFee(self::Zebpay, symbol, params=Dict())
     );
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         response = Base.fetch(self.privateSpotGetV2ExTradefee(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     else
         response = Base.fetch(self.publicSwapGetV1ExchangeTradefee(extend(request, params)));
-        responseData = self.safeList(response, "data", []);
-        data = self.safeDict(responseData, 0, Dict{Symbol, Any}());
+        responseData = self.safeList(response, "data", defaultValue = []);
+        data = self.safeDict(responseData, 0, defaultValue = Dict{Symbol, Any}());
     end
-    return self.parseTradingFee(data, market)
+    return self.parseTradingFee(data, market = market)
 
 end
-function fetchTradingFees(self::Zebpay, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchTradingFees(self::Zebpay; params=Dict())
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTradingFees", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTradingFees", market = nothing, params = params);
     response = nothing;
     if functions.ccxtruthy(type_var == "spot")
         response = Base.fetch(self.publicSpotGetV2ExTradefees(params));
     else
         response = Base.fetch(self.publicSwapGetV1ExchangeTradefees(params));
     end
-    fees = self.safeList(response, "data", []);
+    fees = self.safeList(response, "data", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fees)))
@@ -572,7 +638,20 @@ function fetchTradingFees(self::Zebpay, params=Dict())
     return result
 
 end
-function fetchOrderBook(self::Zebpay, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Zebpay, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -589,13 +668,25 @@ function fetchOrderBook(self::Zebpay, symbol, limit=nothing, params=Dict())
     else
         response = Base.fetch(self.publicSwapGetV1MarketOrderBook(extend(request, params)));
     end
-    bookData = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orderbook = self.parseOrderBook(bookData, get(market, Symbol("symbol"), nothing), nothing, "bids", "asks", 0, 1);
+    bookData = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orderbook = self.parseOrderBook(bookData, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "bids", asksKey = "asks", priceKey = 0, amountKey = 1);
     orderbook[Symbol("nonce")] = safeInteger(bookData, "nonce");
     return orderbook
 
 end
-function fetchTicker(self::Zebpay, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-ticker
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-24hr-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Zebpay, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -609,26 +700,53 @@ function fetchTicker(self::Zebpay, symbol, params=Dict())
     else
         response = Base.fetch(self.publicSwapGetV1MarketTicker24Hr(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTicker(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(data, market = market)
 
 end
-function fetchTickers(self::Zebpay, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-all-tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Zebpay; symbols=nothing, params=Dict())
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = nothing, params = params);
     if functions.ccxtruthy(type_var != "spot")
         throw(NotSupported(string(self.id, " fetchTickers() does not support ", type_var, " markets")));
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicSpotGetV2MarketAllTickers(params));
-    tickerList = self.safeList(response, "data", []);
-    return self.parseTickers(tickerList, symbols)
+    tickerList = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(tickerList, symbols = symbols)
 
 end
-function fetchOHLCV(self::Zebpay, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-klinescandlesticks
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#-get-k-lines-ohlcv-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.endtime`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Zebpay, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -668,11 +786,25 @@ function fetchOHLCV(self::Zebpay, symbol, timeframe="1m", since=nothing, limit=n
     else
         response = Base.fetch(self.publicSwapPostV1MarketKlines(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchTrades(self::Zebpay, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-recent-trades
+see: https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-aggregate-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Zebpay, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -689,11 +821,24 @@ function fetchTrades(self::Zebpay, symbol, since=nothing, limit=nothing, params=
     else
         response = Base.fetch(self.publicSwapGetV1MarketAggTrade(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Zebpay, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-trade-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchMyTrades(self::Zebpay; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -702,21 +847,35 @@ function fetchMyTrades(self::Zebpay, symbol=nothing, since=nothing, limit=nothin
         market = self.market(symbol);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(type_var == "spot")
         throw(NotSupported(string(self.id, " fetchMyTrades() does not support spot markets")));
     else
         response = Base.fetch(self.privateSwapGetV1TradeHistory(params));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    items = self.safeList(data, "items", []);
-    return self.parseTrades(items, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    items = self.safeList(data, "items", defaultValue = []);
+    return self.parseTrades(items, market = market, since = since, limit = limit)
 
 end
-function fetchOrderTrades(self::Zebpay, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Zebpay, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOrderTrades", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOrderTrades", market = nothing, params = params);
     if functions.ccxtruthy(type_var != "spot")
         throw(NotSupported(string(self.id, " fetchOrderTrades() does not support ", type_var, " markets")));
     end
@@ -727,17 +886,17 @@ function fetchOrderTrades(self::Zebpay, id, symbol=nothing, since=nothing, limit
         Symbol("orderId") => id
     );
     response = Base.fetch(self.privateSpotGetV2ExOrderFills(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     trades = [data];
     return self.parseTrades(trades)
 
 end
-function parseTrade(self::Zebpay, trade, market=nothing)
+function parseTrade(self::Zebpay, trade; market=nothing)
     id = safeString2(trade, "id", "aggregateTradeId");
     orderId = safeString2(trade, "id", "order");
     timestamp = safeInteger2(trade, "timestamp", "tradeTime");
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market, "_");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
     symbol = get(market, Symbol("symbol"), nothing);
     side = safeStringLower(trade, "side");
     priceString = safeString(trade, "price");
@@ -756,15 +915,26 @@ function parseTrade(self::Zebpay, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => safeString(trade, "cost"),
     Symbol("fee") => self.safeDict(trade, "fee")
-), market)
+), market = market)
 
 end
-function fetchBalance(self::Zebpay, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-account-balance
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md#get-wallet-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Zebpay; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     isSpot = (type_var == "spot");
     response = nothing;
     if functions.ccxtruthy(isSpot)
@@ -775,7 +945,28 @@ function fetchBalance(self::Zebpay, params=Dict())
     return self.parseBalance(response)
 
 end
-function createOrder(self::Zebpay, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+Create an order on the exchange
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#place-new-order
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--create-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.formType`::string, optional: The price at which a trigger order is triggered at
+- `params.marginAsset`::string, optional: The asset the order creates, default is INR.
+- `params.takeProfit`::bool, optional: Takeprofit flag for the order.
+- `params.stopLoss`::bool, optional: Stop loss flag for the order.
+- `params.positionId`::string, optional: PositionId of the order.
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Zebpay, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -793,7 +984,7 @@ function createOrder(self::Zebpay, symbol, type_var, side, amount, price=nothing
     );
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-        (request, params) = self.orderRequest(symbol, type_var, amount, request, price, params);
+        (request, params) = self.orderRequest(symbol, type_var, amount, request, price = price, params = params);
         response = Base.fetch(self.privateSpotPostV2ExOrders(extend(request, params)));
     else
         marginAsset = safeString(params, "marginAsset", "INR");
@@ -822,11 +1013,11 @@ function createOrder(self::Zebpay, symbol, type_var, side, amount, price=nothing
             response = Base.fetch(self.privateSwapPostV1TradeOrder(extend(request, params)));
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function orderRequest(self::Zebpay, symbol, type_var, amount, request, price=nothing, params=Dict())
+function orderRequest(self::Zebpay, symbol, type_var, amount, request; price=nothing, params=Dict())
     upperCaseType = uppercase(type_var);
     triggerPrice = safeString(params, "stopLossPrice");
     quoteOrderQty = safeString2(params, "quoteOrderQty", "cost", nothing);
@@ -851,7 +1042,21 @@ function orderRequest(self::Zebpay, symbol, type_var, amount, request, price=not
     return [request, params]
 
 end
-function cancelOrder(self::Zebpay, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-order
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timestamp`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Zebpay, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -870,12 +1075,24 @@ function cancelOrder(self::Zebpay, id, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.privateSwapDeleteV1TradeOrder(extend(request, params)));
     end
-    return self.parseOrder(self.safeDict(response, "data", Dict{Symbol, Any}()))
+    return self.parseOrder(self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}()))
 
 end
-function cancelAllOrders(self::Zebpay, symbol=nothing, params=Dict())
+"""
+cancels all open orders
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market the orders were made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timestamp`::int, optional: the timestamp of the request in ms
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Zebpay; symbol=nothing, params=Dict())
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("cancelAllOrders", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("cancelAllOrders", market = nothing, params = params);
     if functions.ccxtruthy(type_var != "spot")
         throw(NotSupported(string(self.id, " cancelAllOrders() does not support ", type_var, " markets")));
     end
@@ -883,12 +1100,26 @@ function cancelAllOrders(self::Zebpay, symbol=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateSpotDeleteV2ExOrdersCancelAll(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     parsedOrder = self.parseOrder(data);
     return [parsedOrder]
 
 end
-function fetchOpenOrders(self::Zebpay, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple open orders made by the user
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-orders
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Zebpay; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -904,8 +1135,8 @@ function fetchOpenOrders(self::Zebpay, symbol=nothing, since=nothing, limit=noth
             request[Symbol("pageSize")] = limit;
         end
         response = Base.fetch(self.privateSpotGetV2ExOrders(extend(request, params)));
-        responseData = self.safeDict(response, "data", Dict{Symbol, Any}());
-        orders = self.safeList(responseData, "items", []);
+        responseData = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        orders = self.safeList(responseData, "items", defaultValue = []);
     else
         if functions.ccxtruthy(since != nothing)
             request[Symbol("since")] = since;
@@ -914,13 +1145,28 @@ function fetchOpenOrders(self::Zebpay, symbol=nothing, since=nothing, limit=noth
             request[Symbol("limit")] = limit;
         end
         response = Base.fetch(self.privateSwapGetV1TradeOrderOpenOrders(extend(request, params)));
-        responseData = self.safeDict(response, "data", Dict{Symbol, Any}());
-        orders = self.safeList(responseData, "data", []);
+        responseData = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        orders = self.safeList(responseData, "data", defaultValue = []);
     end
-    return self.parseOrders(orders, market, nothing, limit)
+    return self.parseOrders(orders, market = market, since = nothing, limit = limit)
 
 end
-function fetchOrder(self::Zebpay, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-details
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-order-details
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: cancel order by client order id
+- `params.timestamp`::string, optional: cancel order by client order id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Zebpay, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -934,13 +1180,13 @@ function fetchOrder(self::Zebpay, id, symbol=nothing, params=Dict())
         request[Symbol("id")] = id;
         response = Base.fetch(self.privateSwapGetV1TradeOrder(extend(request, params)));
     end
-    responseData = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(responseData, market)
+    responseData = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(responseData, market = market)
 
 end
-function parseOrder(self::Zebpay, order, market=nothing)
+function parseOrder(self::Zebpay, order; market=nothing)
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     type_var = safeString(order, "type");
     timestamp = self.safeNumber(order, "timestamp");
@@ -976,11 +1222,24 @@ function parseOrder(self::Zebpay, order, market=nothing)
         Symbol("lastUpdateTimestamp") => nothing,
         Symbol("average") => nothing,
         Symbol("trades") => nothing
-    ), market);
+    ), market = market);
     return parsedOrder
 
 end
-function closePosition(self::Zebpay, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a market
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string: not used by kucoinfutures closePositions
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::string, optional: client order id of the order
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closePosition(self::Zebpay, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -989,20 +1248,42 @@ function closePosition(self::Zebpay, symbol, side=nothing, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateSwapPostV1TradePositionClose(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function fetchLeverages(self::Zebpay, symbols=nothing, params=Dict())
+"""
+fetch the set leverage for all contract and margin markets
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-all-user-leverages
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverages(self::Zebpay; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateSwapGetV1TradeUserLeverages(params));
-    leveragePreferences = self.safeList(response, "data", []);
-    return self.parseLeverages(leveragePreferences, symbols, "symbol")
+    leveragePreferences = self.safeList(response, "data", defaultValue = []);
+    return self.parseLeverages(leveragePreferences, symbols = symbols, symbolKey = "symbol")
 
 end
-function fetchLeverage(self::Zebpay, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#get-user-leverage-single-symbol
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Zebpay, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1011,11 +1292,23 @@ function fetchLeverage(self::Zebpay, symbol, params=Dict())
         Symbol("symbol") => safeStringUpper(market, "id")
     );
     response = Base.fetch(self.privateSwapGetV1TradeUserLeverage(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function setLeverage(self::Zebpay, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-update-user-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Zebpay, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -1031,21 +1324,46 @@ function setLeverage(self::Zebpay, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchPositions(self::Zebpay, symbols=nothing, params=Dict())
+"""
+Fetches current contract trading positions
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--get-positions
+
+# Arguments
+- `symbols`::array: List of unified symbols
+- `params`::object, optional: Not used by krakenfutures
+
+# Returns
+- Parsed exchange response for positions
+"""
+function fetchPositions(self::Zebpay; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
-        request[Symbol("symbols")] = self.marketIds(symbols);
+        request[Symbol("symbols")] = self.marketIds(symbols = symbols);
     end
     response = Base.fetch(self.privateSwapGetV1TradePositions(extend(request, params)));
-    positions = self.safeList(response, "data", []);
+    positions = self.safeList(response, "data", defaultValue = []);
     result = self.parsePositions(positions);
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function addMargin(self::Zebpay, symbol, amount, params=Dict())
+"""
+add margin
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint.
+- `params.positionId`::string, optional: PositionId of the order to add margin.
+- `params.timestamp`::string, optional: Tiemstamp.
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Zebpay, symbol, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1055,14 +1373,28 @@ function addMargin(self::Zebpay, symbol, amount, params=Dict())
         Symbol("amount") => amount
     );
     response = Base.fetch(self.privateSwapPostV1TradeAddMargin(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return extend(self.parseMarginModification(data, market), Dict{Symbol, Any}(
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return extend(self.parseMarginModification(data, market = market), Dict{Symbol, Any}(
     Symbol("amount") => amount,
     Symbol("direction") => "in"
 ))
 
 end
-function reduceMargin(self::Zebpay, symbol, amount, params=Dict())
+"""
+add margin
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
+
+# Arguments
+- `symbol`::string: unified market symbol.
+- `amount`::float: amount of margin to add.
+- `params`::object, optional: extra parameters specific to the exchange API endpoint.
+- `params.positionId`::string, optional: PositionId of the order to add margin.
+- `params.timestamp`::string, optional: Tiemstamp.
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Zebpay, symbol, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1072,18 +1404,18 @@ function reduceMargin(self::Zebpay, symbol, amount, params=Dict())
         Symbol("amount") => amount
     );
     response = Base.fetch(self.privateSwapPostV1TradeReduceMargin(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return extend(self.parseMarginModification(data, market), Dict{Symbol, Any}(
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return extend(self.parseMarginModification(data, market = market), Dict{Symbol, Any}(
     Symbol("amount") => amount,
     Symbol("direction") => "out"
 ))
 
 end
-function fetchSpotMarkets(self::Zebpay, params=Dict())
+function fetchSpotMarkets(self::Zebpay; params=Dict())
     response = Base.fetch(self.publicSpotGetV2ExExchangeInfo(params));
     result = [];
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    markets = self.safeList(data, "symbols", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    markets = self.safeList(data, "symbols", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
         market = get(markets, i + 1, nothing);
@@ -1137,11 +1469,11 @@ function fetchSpotMarkets(self::Zebpay, params=Dict())
     return result
 
 end
-function fetchSwapMarkets(self::Zebpay, params=Dict())
+function fetchSwapMarkets(self::Zebpay; params=Dict())
     response = Base.fetch(self.publicSwapGetV1MarketMarkets(params));
     result = [];
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    markets = self.safeList(data, "symbols", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    markets = self.safeList(data, "symbols", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
         market = get(markets, i + 1, nothing);
@@ -1153,7 +1485,7 @@ function fetchSwapMarkets(self::Zebpay, params=Dict())
         settle = self.safeCurrencyCode(quoteId);
         status = safeString(market, "status");
         symbol = string(base, "/", quote_var);
-        push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(symbol, ":", settle),
     Symbol("base") => base,
@@ -1195,7 +1527,7 @@ function parseBalance(self::Zebpay, response)
         Symbol("timestamp") => nothing,
         Symbol("datetime") => nothing
     );
-    currencyList = self.safeList(response, "data", []);
+    currencyList = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(currencyList)))
         entry = get(currencyList, i + 1, nothing);
@@ -1213,11 +1545,11 @@ function parseBalance(self::Zebpay, response)
     return self.safeBalance(result)
 
 end
-function parsePosition(self::Zebpay, position, market=nothing)
+function parsePosition(self::Zebpay, position; market=nothing)
     leverage = self.safeNumber(position, "leverage");
     datetime = safeString(position, "datetime");
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => position,
     Symbol("symbol") => marketId,
@@ -1243,7 +1575,7 @@ function parsePosition(self::Zebpay, position, market=nothing)
 )
 
 end
-function parseLeverage(self::Zebpay, leverage, market=nothing)
+function parseLeverage(self::Zebpay, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
     info = self.safeDict(leverage, "info");
     leverageValue = safeInteger(leverage, "longLeverage");
@@ -1258,9 +1590,9 @@ function parseLeverage(self::Zebpay, leverage, market=nothing)
 )
 
 end
-function parseTradingFee(self::Zebpay, fee, market=nothing)
+function parseTradingFee(self::Zebpay, fee; market=nothing)
     marketId = safeString(fee, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => symbol,
@@ -1271,10 +1603,10 @@ function parseTradingFee(self::Zebpay, fee, market=nothing)
 )
 
 end
-function parseTicker(self::Zebpay, ticker, market=nothing)
+function parseTicker(self::Zebpay, ticker; market=nothing)
     timestamp = safeInteger2(ticker, "timestamp", "ts");
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId);
+    market = self.safeMarket(marketId = marketId);
     close = safeString(ticker, "close");
     last_var = safeString(ticker, "last");
     percentage = safeString(ticker, "percentage");
@@ -1303,10 +1635,10 @@ function parseTicker(self::Zebpay, ticker, market=nothing)
     Symbol("quoteVolume") => safeString(ticker, "quoteVolume"),
     Symbol("markPrice") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function parseMarginModification(self::Zebpay, info, market=nothing)
+function parseMarginModification(self::Zebpay, info; market=nothing)
     timestamp = milliseconds();
     return Dict{Symbol, Any}(
     Symbol("info") => info,
@@ -1322,7 +1654,7 @@ function parseMarginModification(self::Zebpay, info, market=nothing)
 )
 
 end
-function sign(self::Zebpay, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Zebpay, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     params = omit(params, "defaultType");
     isV1 = findfirst("v1/", path) !== nothing;
     marketType = functions.ccxtruthy(isV1) ? "swap" : "spot";
@@ -1394,171 +1726,171 @@ Base.getproperty(self::Zebpay, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicSpotGetV2SystemTime(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/system/time", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/system/time"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SystemStatus(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/system/status", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/system/status"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2MarketOrderbook(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/market/orderbook", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/market/orderbook"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2MarketTrades(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/market/trades", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/market/trades"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2MarketTicker(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/market/ticker", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/market/ticker"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2MarketAllTickers(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/market/allTickers", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/market/allTickers"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2ExExchangeInfo(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/exchangeInfo", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/exchangeInfo"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2ExCurrencies(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/currencies"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2MarketKlines(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/market/klines", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/market/klines"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2ExTradefees(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/tradefees", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/tradefees"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetV1SystemTime(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/system/time", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/system/time"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetV1SystemStatus(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/system/status", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/system/status"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetV1ExchangeTradefee(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/tradefee", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/exchange/tradefee"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetV1ExchangeTradefees(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/tradefees", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/exchange/tradefees"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetV1MarketOrderBook(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/market/orderBook", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/market/orderBook"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetV1MarketTicker24Hr(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/market/ticker24Hr", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/market/ticker24Hr"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetV1MarketMarkets(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/market/markets", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/market/markets"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapGetV1MarketAggTrade(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/market/aggTrade", ["public", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/market/aggTrade"; api=["public", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSwapPostV1MarketKlines(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/market/klines", ["public", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/market/klines"; api=["public", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2ExOrders(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/orders"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2ExOrders(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/orders", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/orders"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2AccountBalance(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/account/balance", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/balance"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2ExTradefee(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/tradefee", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/tradefee"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2ExOrder(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/order"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2ExOrderFills(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/order/fills", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/order/fills"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotDeleteV2ExOrder(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/order", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/order"; api=["private", "spot"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotDeleteV2ExOrders(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/orders", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/orders"; api=["private", "spot"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotDeleteV2ExOrdersCancelAll(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/orders/cancelAll", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/ex/orders/cancelAll"; api=["private", "spot"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetV1WalletBalance(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/wallet/balance", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/wallet/balance"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetV1TradeOrder(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/order", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/order"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetV1TradeOrderOpenOrders(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/order/open-orders", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/order/open-orders"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetV1TradeUserLeverages(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/userLeverages", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/userLeverages"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetV1TradeUserLeverage(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/userLeverage", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/userLeverage"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetV1TradePositions(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/positions", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/positions"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapGetV1TradeHistory(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/history", ["private", "swap"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/history"; api=["private", "swap"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostV1TradeOrder(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/order", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/order"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostV1TradeOrderAddTPSL(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/order/addTPSL", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/order/addTPSL"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostV1TradeAddMargin(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/addMargin", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/addMargin"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostV1TradeReduceMargin(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/reduceMargin", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/reduceMargin"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostV1TradePositionClose(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/position/close", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/position/close"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapPostV1TradeUpdateUserLeverage(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/update/userLeverage", ["private", "swap"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/update/userLeverage"; api=["private", "swap"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSwapDeleteV1TradeOrder(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/order", ["private", "swap"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v1/trade/order"; api=["private", "swap"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Zebpay(; kwargs...)
@@ -1622,3 +1954,415 @@ function Zebpay(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Zebpay_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#system-status
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Zebpay_fetchStatus
+
+function __ccxt_doc_Zebpay_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the poloniexfutures server
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the poloniexfutures server
+"""
+__ccxt_doc_Zebpay_fetchTime
+
+function __ccxt_doc_Zebpay_fetchMarkets() end
+"""
+retrieves data on all markets for zebpay
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Zebpay_fetchMarkets
+
+function __ccxt_doc_Zebpay_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-coin-settings
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Zebpay_fetchCurrencies
+
+function __ccxt_doc_Zebpay_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-exchange-fee
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fee-single-symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::object, optional: side to fetch trading fee
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Zebpay_fetchTradingFee
+
+function __ccxt_doc_Zebpay_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Zebpay_fetchTradingFees
+
+function __ccxt_doc_Zebpay_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Zebpay_fetchOrderBook
+
+function __ccxt_doc_Zebpay_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-ticker
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-24hr-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Zebpay_fetchTicker
+
+function __ccxt_doc_Zebpay_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-all-tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Zebpay_fetchTickers
+
+function __ccxt_doc_Zebpay_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-klinescandlesticks
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#-get-k-lines-ohlcv-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.endtime`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Zebpay_fetchOHLCV
+
+function __ccxt_doc_Zebpay_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-recent-trades
+see: https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-aggregate-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Zebpay_fetchTrades
+
+function __ccxt_doc_Zebpay_fetchMyTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-trade-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Zebpay_fetchMyTrades
+
+function __ccxt_doc_Zebpay_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Zebpay_fetchOrderTrades
+
+function __ccxt_doc_Zebpay_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-account-balance
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md#get-wallet-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Zebpay_fetchBalance
+
+function __ccxt_doc_Zebpay_createOrder() end
+"""
+Create an order on the exchange
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#place-new-order
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--create-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.formType`::string, optional: The price at which a trigger order is triggered at
+- `params.marginAsset`::string, optional: The asset the order creates, default is INR.
+- `params.takeProfit`::bool, optional: Takeprofit flag for the order.
+- `params.stopLoss`::bool, optional: Stop loss flag for the order.
+- `params.positionId`::string, optional: PositionId of the order.
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Zebpay_createOrder
+
+function __ccxt_doc_Zebpay_cancelOrder() end
+"""
+cancels an open order
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-order
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timestamp`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Zebpay_cancelOrder
+
+function __ccxt_doc_Zebpay_cancelAllOrders() end
+"""
+cancels all open orders
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market the orders were made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timestamp`::int, optional: the timestamp of the request in ms
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Zebpay_cancelAllOrders
+
+function __ccxt_doc_Zebpay_fetchOpenOrders() end
+"""
+fetches information on multiple open orders made by the user
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-orders
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Zebpay_fetchOpenOrders
+
+function __ccxt_doc_Zebpay_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-details
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-order-details
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: cancel order by client order id
+- `params.timestamp`::string, optional: cancel order by client order id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Zebpay_fetchOrder
+
+function __ccxt_doc_Zebpay_closePosition() end
+"""
+closes open positions for a market
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string: not used by kucoinfutures closePositions
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::string, optional: client order id of the order
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Zebpay_closePosition
+
+function __ccxt_doc_Zebpay_fetchLeverages() end
+"""
+fetch the set leverage for all contract and margin markets
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-all-user-leverages
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Zebpay_fetchLeverages
+
+function __ccxt_doc_Zebpay_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#get-user-leverage-single-symbol
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Zebpay_fetchLeverage
+
+function __ccxt_doc_Zebpay_setLeverage() end
+"""
+set the level of leverage for a market
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-update-user-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Zebpay_setLeverage
+
+function __ccxt_doc_Zebpay_fetchPositions() end
+"""
+Fetches current contract trading positions
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--get-positions
+
+# Arguments
+- `symbols`::array: List of unified symbols
+- `params`::object, optional: Not used by krakenfutures
+
+# Returns
+- Parsed exchange response for positions
+"""
+__ccxt_doc_Zebpay_fetchPositions
+
+function __ccxt_doc_Zebpay_addMargin() end
+"""
+add margin
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint.
+- `params.positionId`::string, optional: PositionId of the order to add margin.
+- `params.timestamp`::string, optional: Tiemstamp.
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Zebpay_addMargin
+
+function __ccxt_doc_Zebpay_reduceMargin() end
+"""
+add margin
+see: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
+
+# Arguments
+- `symbol`::string: unified market symbol.
+- `amount`::float: amount of margin to add.
+- `params`::object, optional: extra parameters specific to the exchange API endpoint.
+- `params.positionId`::string, optional: PositionId of the order to add margin.
+- `params.timestamp`::string, optional: Tiemstamp.
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Zebpay_reduceMargin

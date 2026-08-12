@@ -103,7 +103,7 @@ function Base.getproperty(o::CcxtExchange, name::Symbol)
     if hasfield(typeof(o), name)
         value = getfield(o, name)
         if value isa Function
-            return (args...) -> (ccxt_takes_self(value) ? value(o, args...) : value(args...))
+            return (args...; kwargs...) -> (ccxt_takes_self(value) ? value(o, args...; kwargs...) : value(args...; kwargs...))
         else
             return value
         end
@@ -117,7 +117,7 @@ function Base.getproperty(o::CcxtExchange, name::Symbol)
         maybe_fn = getfield(@__MODULE__, name)
         if maybe_fn isa Function
             if ccxt_takes_self(maybe_fn)
-                return (args...) -> maybe_fn(o, args...)
+                return (args...; kwargs...) -> maybe_fn(o, args...; kwargs...)
             else
                 return maybe_fn
             end
@@ -172,7 +172,7 @@ function ccxt_getproperty(self::CcxtExchange, name::Symbol)
     if hasfield(typeof(self), name)
         value = getfield(self, name)
         if value isa Function
-            return (args...) -> (ccxt_takes_self(value) ? value(self, args...) : value(args...))
+            return (args...; kwargs...) -> (ccxt_takes_self(value) ? value(self, args...; kwargs...) : value(args...; kwargs...))
         end
         return value
     end
@@ -180,14 +180,14 @@ function ccxt_getproperty(self::CcxtExchange, name::Symbol)
     if parent isa Exchange && isdefined(@__MODULE__, name)
         fn = getfield(@__MODULE__, name)
         if fn isa Function && ccxt_takes_self(fn)
-            return (args...) -> fn(self, args...)
+            return (args...; kwargs...) -> fn(self, args...; kwargs...)
         end
     end
     if parent !== nothing
         try
             pvalue = getproperty(parent, name)
             if pvalue isa Function
-                return (args...) -> (ccxt_takes_self(pvalue) ? pvalue(self, args...) : pvalue(args...))
+                return (args...; kwargs...) -> (ccxt_takes_self(pvalue) ? pvalue(self, args...; kwargs...) : pvalue(args...; kwargs...))
             end
             return pvalue
         catch e
@@ -199,9 +199,40 @@ function ccxt_getproperty(self::CcxtExchange, name::Symbol)
     if isdefined(@__MODULE__, name)
         fn = getfield(@__MODULE__, name)
         if fn isa Function
-            return (args...) -> (ccxt_takes_self(fn) ? fn(self, args...) : fn(args...))
+            return (args...; kwargs...) -> (ccxt_takes_self(fn) ? fn(self, args...; kwargs...) : fn(args...; kwargs...))
         end
     end
     error("Property $name not found")
 end
 export ccxt_getproperty
+
+# ---------------------------------------------------------------------------
+# Docstring resolution for instance-method access (`@doc e.fetchOHLCV`).
+#
+# The `@doc` macro resolves `@doc e.method` by building a `Docs.Binding(e,
+# :method)` and looking it up via `binding_module`/`getfield`. But `Binding`
+# only accepts `(::Module, ::Symbol)` — there is no `(::CcxtExchange, ::Symbol)`
+# constructor — so by default `@doc e.fetchOHLCV` raises
+# `MethodError: no method matching Base.Docs.Binding(::Binance, ::Symbol)`.
+#
+# The generated exchange functions are registered as module-level bindings
+# (`Ccxt.fetchOHLCV`, …) carrying their TS-sourced docstrings. An exchange
+# instance `e` merely *exposes* those via `getproperty`. We therefore redirect
+# an instance binding to the module binding of the same name, so `@doc` finds
+# the function's real, registered docstring. This covers every unified method
+# on every exchange at once — no per-method annotation needed.
+# ---------------------------------------------------------------------------
+# Redirect an instance-method binding (`@doc e.fetchOHLCV`) to the per-exchange
+# docstring holder generated for that method (see buildDocRegistrySource in
+# build/juliaTranspileCLI.ts). `nameof(typeof(o))` is the PascalCase exchange
+# struct (e.g. `Binance`), matching the holder name `__ccxt_doc_Binance_fetchOHLCV`.
+# If a given method has no generated holder, fall back to the generic module
+# binding so `@doc` still resolves whatever docstring exists.
+function Base.Docs.Binding(o::CcxtExchange, v::Symbol)
+    ex = nameof(typeof(o))
+    docSym = Symbol("__ccxt_doc_", ex, "_", v)
+    if isdefined(@__MODULE__, docSym)
+        return Base.Docs.Binding(@__MODULE__, docSym)
+    end
+    return Base.Docs.Binding(@__MODULE__, v)
+end

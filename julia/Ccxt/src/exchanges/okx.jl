@@ -2823,18 +2823,18 @@ function describe(self::Okx, )
 ))
 
 end
-function handleMarketTypeAndParams(self::Okx, methodName, market=nothing, params=Dict(), defaultValue=nothing)
+function handleMarketTypeAndParams(self::Okx, methodName; market=nothing, params=Dict(), defaultValue=nothing)
     instType = safeString(params, "instType");
     params = omit(params, "instType");
     type_var = safeString(params, "type");
     if functions.ccxtruthy(@functions.ccxt_and((type_var == nothing), (instType != nothing)))
         params[Symbol("type")] = instType;
     end
-    return handleMarketTypeAndParams(self.parent, methodName, market, params, defaultValue)
+    return handleMarketTypeAndParams(self.parent, methodName, market = market, params = params, defaultValue = defaultValue)
 
 end
 function convertToInstrumentType(self::Okx, type_var)
-    exchangeTypes = self.safeDict(self.options, "exchangeType", Dict{Symbol, Any}());
+    exchangeTypes = self.safeDict(self.options, "exchangeType", defaultValue = Dict{Symbol, Any}());
     return safeString(exchangeTypes, type_var, type_var)
 
 end
@@ -2900,7 +2900,7 @@ function createExpiredOptionMarket(self::Okx, symbol)
 )
 
 end
-function safeMarket(self::Okx, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
+function safeMarket(self::Okx; marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = false;
     if functions.ccxtruthy(marketId != nothing)
         parts = split(marketId, "-");
@@ -2910,12 +2910,22 @@ function safeMarket(self::Okx, marketId=nothing, market=nothing, delimiter=nothi
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(isOption, (marketId != nothing)), (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
-    return safeMarket(self.parent, marketId, market, delimiter, marketType)
+    return safeMarket(self.parent, marketId = marketId, market = market, delimiter = delimiter, marketType = marketType)
 
 end
-function fetchStatus(self::Okx, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://www.okx.com/docs-v5/en/#status-get-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Okx; params=Dict())
     response = Base.fetch(self.publicGetSystemStatus(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     dataLength = length(data);
     update = Dict{Symbol, Any}(
         Symbol("updated") => nothing,
@@ -2947,16 +2957,36 @@ function fetchStatus(self::Okx, params=Dict())
     return update
 
 end
-function fetchTime(self::Okx, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-system-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Okx; params=Dict())
     response = Base.fetch(self.publicGetPublicTime(params));
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     return safeInteger(first_var, "ts")
 
 end
-function fetchAccounts(self::Okx, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Okx; params=Dict())
     response = Base.fetch(self.privateGetAccountConfig(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -2979,22 +3009,32 @@ function nonce(self::Okx, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function fetchMarkets(self::Okx, params=Dict())
+"""
+retrieves data on all markets for okx
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Okx; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
     types = ["spot", "future", "swap", "option"];
     fetchMarketsOption = self.safeDict(self.options, "fetchMarkets");
     if functions.ccxtruthy(fetchMarketsOption != nothing)
-        types = self.safeList(fetchMarketsOption, "types", types);
+        types = self.safeList(fetchMarketsOption, "types", defaultValue = types);
     else
-        types = self.safeList(self.options, "fetchMarkets", types);
+        types = self.safeList(self.options, "fetchMarkets", defaultValue = types);
     end
     promises = [];
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(types)))
-        push!(promises, self.fetchMarketsByType(get(types, i + 1, nothing), params));
+        push!(promises, self.fetchMarketsByType(get(types, i + 1, nothing), params = params));
         i += 1
     end
     promises = Base.fetch(asyncmap(Base.fetch, promises));
@@ -3064,7 +3104,7 @@ function parseMarket(self::Okx, market)
         end
     end
     feesType = functions.ccxtruthy((type_var == nothing)) ? "" : type_var;
-    fees = self.safeDict2(self.fees, feesType, "trading", Dict{Symbol, Any}());
+    fees = self.safeDict2(self.fees, feesType, "trading", defaultValue = Dict{Symbol, Any}());
     maxLeverage = safeString(market, "lever", "1");
     maxLeverage = stringMax(maxLeverage, "1");
     maxSpotCost = self.safeNumber(market, "maxMktSz");
@@ -3125,12 +3165,12 @@ function parseMarket(self::Okx, market)
 ))
 
 end
-function fetchMarketsByType(self::Okx, type_var, params=Dict())
+function fetchMarketsByType(self::Okx, type_var; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("instType") => self.convertToInstrumentType(type_var)
     );
     if functions.ccxtruthy(type_var == "option")
-        optionsUnderlying = self.safeList(self.options, "defaultUnderlying", ["BTC-USD", "ETH-USD"]);
+        optionsUnderlying = self.safeList(self.options, "defaultUnderlying", defaultValue = ["BTC-USD", "ETH-USD"]);
         promises = [];
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(optionsUnderlying)))
@@ -3144,8 +3184,8 @@ function fetchMarketsByType(self::Okx, type_var, params=Dict())
         markets = [];
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(promisesResult)))
-            res = self.safeDict(promisesResult, i, Dict{Symbol, Any}());
-            options = self.safeList(res, "data", []);
+            res = self.safeDict(promisesResult, i, defaultValue = Dict{Symbol, Any}());
+            options = self.safeList(res, "data", defaultValue = []);
             markets = arrayConcat(markets, options);
             i += 1
         end
@@ -3153,7 +3193,7 @@ function fetchMarketsByType(self::Okx, type_var, params=Dict())
             return self.parseMarkets(markets)
     end
     response = Base.fetch(self.publicGetPublicInstruments(extend(request, params)));
-    dataResponse = self.safeList(response, "data", []);
+    dataResponse = self.safeList(response, "data", defaultValue = []);
     marketsWithoutTest = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(dataResponse)))
@@ -3174,13 +3214,23 @@ function fetchMarketsByType(self::Okx, type_var, params=Dict())
     return self.parseMarkets(marketsWithoutTest)
 
 end
-function fetchCurrencies(self::Okx, params=Dict())
-    isSandboxMode = self.safeBool(self.options, "sandboxMode", false);
-    if functions.ccxtruthy(@functions.ccxt_or(!functions.ccxtruthy(self.checkRequiredCredentials(false)), isSandboxMode))
+"""
+fetches all available currencies on an exchange
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Okx; params=Dict())
+    isSandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
+    if functions.ccxtruthy(@functions.ccxt_or(!functions.ccxtruthy(self.checkRequiredCredentials(error = false)), isSandboxMode))
             return Dict{Symbol, Any}()
     end
     response = Base.fetch(self.privateGetAssetCurrencies(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     dataByCurrencyId = groupBy(data, "ccy");
     currencies = objectValues(dataByCurrencyId);
     return self.parseCurrencies(currencies)
@@ -3188,7 +3238,7 @@ function fetchCurrencies(self::Okx, params=Dict())
 end
 function parseCurrency(self::Okx, currency)
     chains = currency;
-    firstChain = self.safeDict(chains, 0, Dict{Symbol, Any}());
+    firstChain = self.safeDict(chains, 0, defaultValue = Dict{Symbol, Any}());
     currencyId = safeString(firstChain, "ccy");
     code = self.safeCurrencyCode(currencyId);
     networks = Dict{Symbol, Any}();
@@ -3204,7 +3254,7 @@ function parseCurrency(self::Okx, currency)
         idParts = split(networkId, "-");
         parts = self.arraySlice(idParts, 1);
         chainPart = join(parts, "-");
-        networkCode = self.networkIdToCode(chainPart, code);
+        networkCode = self.networkIdToCode(networkId = chainPart, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -3213,7 +3263,7 @@ function parseCurrency(self::Okx, currency)
                 Symbol("deposit") => self.safeBool(chain, "canDep"),
                 Symbol("withdraw") => self.safeBool(chain, "canWd"),
                 Symbol("fee") => self.safeNumber(chain, "fee"),
-                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chain, "wdTickSz"))),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(chain, "wdTickSz"))),
                 Symbol("limits") => Dict{Symbol, Any}(
                     Symbol("withdraw") => Dict{Symbol, Any}(
                         Symbol("min") => self.safeNumber(chain, "minWd"),
@@ -3246,7 +3296,21 @@ function parseCurrency(self::Okx, currency)
 ))
 
 end
-function fetchOrderBook(self::Okx, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Okx, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3255,7 +3319,7 @@ function fetchOrderBook(self::Okx, symbol, limit=nothing, params=Dict())
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
     method = nothing;
-    (method, params) = self.handleOptionAndParams(params, "fetchOrderBook", "method", "publicGetMarketBooks");
+    (method, params) = self.handleOptionAndParams(params, "fetchOrderBook", "method", defaultValue = "publicGetMarketBooks");
     if functions.ccxtruthy(@functions.ccxt_and(method == "publicGetMarketBooksFull", limit == nothing))
         limit = 5000;
     end
@@ -3269,13 +3333,13 @@ function fetchOrderBook(self::Okx, symbol, limit=nothing, params=Dict())
     else
         response = Base.fetch(self.publicGetMarketBooks(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(first_var, "ts");
-    return self.parseOrderBook(first_var, symbol, timestamp)
+    return self.parseOrderBook(first_var, symbol, timestamp = timestamp)
 
 end
-function parseTicker(self::Okx, ticker, market=nothing)
+function parseTicker(self::Okx, ticker; market=nothing)
     instType = safeString(ticker, "instType");
     marketType = nothing;
     if functions.ccxtruthy(instType != nothing)
@@ -3283,11 +3347,11 @@ function parseTicker(self::Okx, ticker, market=nothing)
     end
     timestamp = safeInteger(ticker, "ts");
     marketId = safeString(ticker, "instId");
-    market = self.safeMarket(marketId, market, "-", marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-", marketType = marketType);
     symbol = get(market, Symbol("symbol"), nothing);
     last_var = safeString(ticker, "last");
     open = safeString(ticker, "open24h");
-    spot = self.safeBool(market, "spot", false);
+    spot = self.safeBool(market, "spot", defaultValue = false);
     quoteVolume = functions.ccxtruthy(spot) ? safeString(ticker, "volCcy24h") : nothing;
     baseVolume = safeString(ticker, "vol24h");
     high = safeString(ticker, "high24h");
@@ -3315,10 +3379,21 @@ function parseTicker(self::Okx, ticker, market=nothing)
     Symbol("markPrice") => safeString(ticker, "markPx"),
     Symbol("indexPrice") => safeString(ticker, "idxPx"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Okx, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Okx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3327,19 +3402,30 @@ function fetchTicker(self::Okx, symbol, params=Dict())
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketTicker(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTicker(first_var, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(first_var, market = market)
 
 end
-function fetchTickers(self::Okx, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Okx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
+    market = self.getMarketFromSymbols(symbols = symbols);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("instType") => self.convertToInstrumentType(marketType)
     );
@@ -3353,11 +3439,22 @@ function fetchTickers(self::Okx, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.publicGetMarketTickers(extend(request, params)));
-    tickers = self.safeList(response, "data", []);
-    return self.parseTickers(tickers, symbols)
+    tickers = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function fetchMarkPrice(self::Okx, symbol, params=Dict())
+"""
+fetches mark price for the market
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrice(self::Okx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3367,17 +3464,28 @@ function fetchMarkPrice(self::Okx, symbol, params=Dict())
     );
     response = Base.fetch(self.publicGetPublicMarkPrice(extend(request, params)));
     data = self.safeList(response, "data");
-    return self.parseTicker(self.safeDict(data, 0), market)
+    return self.parseTicker(self.safeDict(data, 0), market = market)
 
 end
-function fetchMarkPrices(self::Okx, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrices(self::Okx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
+    market = self.getMarketFromSymbols(symbols = symbols);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchMarkPrices", market, params, "swap");
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMarkPrices", market = market, params = params, defaultValue = "swap");
     request = Dict{Symbol, Any}(
         Symbol("instType") => self.convertToInstrumentType(marketType)
     );
@@ -3391,14 +3499,14 @@ function fetchMarkPrices(self::Okx, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.publicGetPublicMarkPrice(extend(request, params)));
-    tickers = self.safeList(response, "data", []);
-    return self.parseTickers(tickers, symbols)
+    tickers = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function parseTrade(self::Okx, trade, market=nothing)
+function parseTrade(self::Okx, trade; market=nothing)
     id = safeString(trade, "tradeId");
     marketId = safeString(trade, "instId");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger(trade, "ts");
     price = safeString2(trade, "fillPx", "px");
@@ -3436,17 +3544,34 @@ function parseTrade(self::Okx, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Okx, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
+- `params.paginate`::bool, optional: *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Okx, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchTrades", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "tradeId", cursorSent = "after", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -3460,25 +3585,49 @@ function fetchTrades(self::Okx, symbol, since=nothing, limit=nothing, params=Dic
             request[Symbol("limit")] = limit;
         end
         method = nothing;
-        (method, params) = self.handleOptionAndParams(params, "fetchTrades", "method", "publicGetMarketTrades");
+        (method, params) = self.handleOptionAndParams(params, "fetchTrades", "method", defaultValue = "publicGetMarketTrades");
         if functions.ccxtruthy(method == "publicGetMarketTrades")
             response = Base.fetch(self.publicGetMarketTrades(extend(request, params)));
         elseif functions.ccxtruthy(method == "publicGetMarketHistoryTrades")
             response = Base.fetch(self.publicGetMarketHistoryTrades(extend(request, params)));
         end
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Okx, ohlcv, market=nothing)
-    res = self.handleMarketTypeAndParams("fetchOHLCV", market, nothing);
+function parseOHLCV(self::Okx, ohlcv; market=nothing)
+    res = self.handleMarketTypeAndParams("fetchOHLCV", market = market, params = nothing);
     type_var = get(res, 1, nothing);
     volumeIndex = functions.ccxtruthy((type_var == "spot")) ? 5 : 6;
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, volumeIndex)]
 
 end
-function fetchOHLCV(self::Okx, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.type`::string, optional: "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Okx, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3486,12 +3635,12 @@ function fetchOHLCV(self::Okx, symbol, timeframe="1m", since=nothing, limit=noth
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 200))
     end
     priceType = safeString(params, "price");
     isMarkOrIndex = inArray(priceType, ["mark", "index"]);
     params = omit(params, "price");
-    options = self.safeDict(self.options, "fetchOHLCV", Dict{Symbol, Any}());
+    options = self.safeDict(self.options, "fetchOHLCV", defaultValue = Dict{Symbol, Any}());
     timezone = safeString(options, "timezone", "UTC");
     limitIsUndefined = (limit == nothing);
     if functions.ccxtruthy(limit == nothing)
@@ -3558,11 +3707,25 @@ function fetchOHLCV(self::Okx, symbol, timeframe="1m", since=nothing, limit=noth
             response = Base.fetch(self.publicGetMarketCandles(extend(request, params)));
         end
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchFundingRateHistory(self::Okx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Okx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -3572,7 +3735,7 @@ function fetchFundingRateHistory(self::Okx, symbol=nothing, since=nothing, limit
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params, maxEntriesPerRequest = 100))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -3586,7 +3749,7 @@ function fetchFundingRateHistory(self::Okx, symbol=nothing, since=nothing, limit
     end
     response = Base.fetch(self.publicGetPublicFundingRateHistory(extend(request, params)));
     rates = [];
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         rate = get(data, i + 1, nothing);
@@ -3601,7 +3764,7 @@ function fetchFundingRateHistory(self::Okx, symbol=nothing, since=nothing, limit
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
 function parseBalanceByType(self::Okx, type_var, response)
@@ -3616,10 +3779,10 @@ function parseTradingBalance(self::Okx, response)
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(first_var, "uTime");
-    details = self.safeList(first_var, "details", []);
+    details = self.safeList(first_var, "details", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(details)))
         balance = get(details, i + 1, nothing);
@@ -3649,7 +3812,7 @@ function parseFundingBalance(self::Okx, response)
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         balance = get(data, i + 1, nothing);
@@ -3667,10 +3830,10 @@ function parseFundingBalance(self::Okx, response)
     return self.safeBalance(result)
 
 end
-function parseTradingFee(self::Okx, fee, market=nothing)
+function parseTradingFee(self::Okx, fee; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("maker") => self.parseNumber(stringNeg(safeString2(fee, "maker", "makerU"))),
     Symbol("taker") => self.parseNumber(stringNeg(safeString2(fee, "taker", "takerU"))),
     Symbol("percentage") => nothing,
@@ -3678,7 +3841,18 @@ function parseTradingFee(self::Okx, fee, market=nothing)
 )
 
 end
-function fetchTradingFee(self::Okx, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Okx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3694,16 +3868,28 @@ function fetchTradingFee(self::Okx, symbol, params=Dict())
         throw(NotSupported(string(self.id, " fetchTradingFee() supports spot, swap, future or option markets only")));
     end
     response = Base.fetch(self.privateGetAccountTradeFee(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTradingFee(first_var, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTradingFee(first_var, market = market)
 
 end
-function fetchBalance(self::Okx, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: wallet type, ['funding' or 'trading'] default is 'trading'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Okx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    (marketType, query) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (marketType, query) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     request = Dict{Symbol, Any}();
     response = nothing;
     if functions.ccxtruthy(marketType == "funding")
@@ -3714,7 +3900,19 @@ function fetchBalance(self::Okx, params=Dict())
     return self.parseBalanceByType(marketType, response)
 
 end
-function createMarketBuyOrderWithCost(self::Okx, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Okx, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3726,10 +3924,22 @@ function createMarketBuyOrderWithCost(self::Okx, symbol, cost, params=Dict())
         Symbol("createMarketBuyOrderRequiresPrice") => false,
         Symbol("tgtCcy") => "quote_ccy"
     );
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = extend(req, params)))
 
 end
-function createMarketSellOrderWithCost(self::Okx, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketSellOrderWithCost(self::Okx, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3741,10 +3951,10 @@ function createMarketSellOrderWithCost(self::Okx, symbol, cost, params=Dict())
         Symbol("createMarketBuyOrderRequiresPrice") => false,
         Symbol("tgtCcy") => "quote_ccy"
     );
-    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, price = nothing, params = extend(req, params)))
 
 end
-function createOrderRequest(self::Okx, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Okx, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -3792,7 +4002,7 @@ function createOrderRequest(self::Okx, symbol, type_var, side, amount, price=not
         margin = true;
     else
         marginMode = defaultMarginMode;
-        margin = self.safeBool(params, "margin", false);
+        margin = self.safeBool(params, "margin", defaultValue = false);
     end
     if functions.ccxtruthy(spot)
         if functions.ccxtruthy(margin)
@@ -3829,7 +4039,7 @@ function createOrderRequest(self::Okx, symbol, type_var, side, amount, price=not
     end
     isMarketOrder = type_var == "market";
     postOnly = false;
-    (postOnly, params) = self.handlePostOnly(isMarketOrder, type_var == "post_only", params);
+    (postOnly, params) = self.handlePostOnly(isMarketOrder, type_var == "post_only", params = params);
     params = omit(params, ["currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent"]);
     ioc = @functions.ccxt_or((timeInForce == "IOC"), (type_var == "ioc"));
     fok = @functions.ccxt_or((timeInForce == "FOK"), (type_var == "fok"));
@@ -3844,7 +4054,7 @@ function createOrderRequest(self::Okx, symbol, type_var, side, amount, price=not
         if functions.ccxtruthy(@functions.ccxt_and(spot, (side == "buy")))
             if functions.ccxtruthy(tgtCcy == "quote_ccy")
                 createMarketBuyOrderRequiresPrice = true;
-                (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
                 notional = self.safeNumber2(params, "cost", "sz");
                 params = omit(params, ["cost", "sz"]);
                 if functions.ccxtruthy(createMarketBuyOrderRequiresPrice)
@@ -4031,12 +4241,44 @@ function createOrderRequest(self::Okx, symbol, type_var, side, amount, price=not
     return extend(request, params)
 
 end
-function createOrder(self::Okx, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.reduceOnly`::bool, optional: a mark to reduce the position size for margin, swap and future orders
+- `params.postOnly`::bool, optional: true to place a post only order
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.takeProfit.price`::float, optional: used for take profit limit orders, not used for take profit market price orders
+- `params.takeProfit.type`::string, optional: 'market' or 'limit' used to specify the take profit price type
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.stopLoss.price`::float, optional: used for stop loss limit orders, not used for stop loss market price orders
+- `params.stopLoss.type`::string, optional: 'market' or 'limit' used to specify the stop loss price type
+- `params.positionSide`::string, optional: if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
+- `params.trailingPercent`::string, optional: the percent to trail away from the current market price
+- `params.tpOrdKind`::string, optional: 'condition' or 'limit', the default is 'condition'
+- `params.hedged`::bool, optional: *swap and future only* true for hedged mode, false for one way mode
+- `params.marginMode`::string, optional: 'cross' or 'isolated', the default is 'cross'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Okx, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     method = safeString(self.options, "createOrder", "privatePostTradeBatchOrders");
     requestOrdType = safeString(request, "ordType");
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((requestOrdType == "trigger"), (requestOrdType == "conditional")), (requestOrdType == "move_order_stop")), (type_var == "move_order_stop")), (type_var == "oco")), (type_var == "iceberg")), (type_var == "twap")))
@@ -4056,15 +4298,26 @@ function createOrder(self::Okx, symbol, type_var, side, amount, price=nothing, p
     else
         response = Base.fetch(self.privatePostTradeBatchOrders(request));
     end
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    order = self.parseOrder(first_var, market);
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    order = self.parseOrder(first_var, market = market);
     order[Symbol("type")] = type_var;
     order[Symbol("side")] = side;
     return order
 
 end
-function createOrders(self::Okx, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Okx, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4080,18 +4333,18 @@ function createOrders(self::Okx, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         extendedParams = extend(orderParams, params);
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, extendedParams);
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = extendedParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
     response = Base.fetch(self.privatePostTradeBatchOrders(ordersRequests));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseOrders(data)
 
 end
-function editOrderRequest(self::Okx, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+function editOrderRequest(self::Okx, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("instId") => get(market, Symbol("id"), nothing)
@@ -4185,12 +4438,45 @@ function editOrderRequest(self::Okx, id, symbol, type_var, side, amount=nothing,
     return extend(request, params)
 
 end
-function editOrder(self::Okx, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-amend-algo-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, uses id if not passed
+- `params.stopLossPrice`::float, optional: stop loss trigger price
+- `params.newSlOrdPx`::float, optional: the stop loss order price, set to stopLossPrice if the type is market
+- `params.newSlTriggerPxType`::string, optional: 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
+- `params.takeProfitPrice`::float, optional: take profit trigger price
+- `params.newTpOrdPx`::float, optional: the take profit order price, set to takeProfitPrice if the type is market
+- `params.newTpTriggerPxType`::string, optional: 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.stopLoss.price`::float, optional: used for stop loss limit orders, not used for stop loss market price orders
+- `params.stopLoss.type`::string, optional: 'market' or 'limit' used to specify the stop loss price type
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.takeProfit.price`::float, optional: used for take profit limit orders, not used for take profit market price orders
+- `params.takeProfit.type`::string, optional: 'market' or 'limit' used to specify the take profit price type
+- `params.newTpOrdKind`::string, optional: 'condition' or 'limit', the default is 'condition'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Okx, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.editOrderRequest(id, symbol, type_var, side, amount, price, params);
+    request = self.editOrderRequest(id, symbol, type_var, side, amount = amount, price = price, params = params);
     isAlgoOrder = nothing;
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((type_var == "trigger"), (type_var == "conditional")), (type_var == "move_order_stop")), (type_var == "oco")), (type_var == "iceberg")), (type_var == "twap")))
         isAlgoOrder = true;
@@ -4201,22 +4487,37 @@ function editOrder(self::Okx, id, symbol, type_var, side, amount=nothing, price=
     else
         response = Base.fetch(self.privatePostTradeAmendOrder(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    order = self.parseOrder(first_var, market);
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    order = self.parseOrder(first_var, market = market);
     order[Symbol("type")] = type_var;
     order[Symbol("side")] = side;
     return order
 
 end
-function cancelOrder(self::Okx, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if trigger orders
+- `params.trailing`::bool, optional: set to true if you want to cancel a trailing order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Okx, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
     trigger = safeValue2(params, "stop", "trigger");
-    trailing = self.safeBool(params, "trailing", false);
+    trailing = self.safeBool(params, "trailing", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_or(trigger, trailing))
-        orderInner = Base.fetch(self.cancelOrders([id], symbol, params));
+        orderInner = Base.fetch(self.cancelOrders([id], symbol = symbol, params = params));
             return self.safeDict(orderInner, 0)
     end
     if functions.ccxtruthy(self.markets == nothing)
@@ -4236,7 +4537,7 @@ function cancelOrder(self::Okx, id, symbol=nothing, params=Dict())
     response = Base.fetch(self.privatePostTradeCancelOrder(extend(request, query)));
     data = safeValue(response, "data", []);
     order = self.safeDict(data, 0);
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
 function parseIds(self::Okx, ids)
@@ -4247,7 +4548,22 @@ function parseIds(self::Okx, ids)
     end
 
 end
-function cancelOrders(self::Okx, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/trigger order
+- `params.trailing`::bool, optional: set to true if you want to cancel trailing orders
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Okx, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -4262,7 +4578,7 @@ function cancelOrders(self::Okx, ids, symbol=nothing, params=Dict())
     clientOrderIds = self.parseIds(safeValue2(params, "clOrdId", "clientOrderId"));
     algoIds = self.parseIds(safeValue(params, "algoId"));
     trigger = safeValue2(params, "stop", "trigger");
-    trailing = self.safeBool(params, "trailing", false);
+    trailing = self.safeBool(params, "trailing", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_or(trigger, trailing))
         method = "privatePostTradeCancelAlgos";
     end
@@ -4318,20 +4634,34 @@ function cancelOrders(self::Okx, ids, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.privatePostTradeCancelBatchOrders(request));
     end
-    ordersData = self.safeList(response, "data", []);
-    return self.parseOrders(ordersData, market, nothing, nothing, params)
+    ordersData = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(ordersData, market = market, since = nothing, limit = nothing, params = params)
 
 end
-function cancelOrdersForSymbols(self::Okx, orders, params=Dict())
+"""
+cancel multiple orders for multiple symbols
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+
+# Arguments
+- `orders`::array: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/trigger order
+- `params.trailing`::bool, optional: set to true if you want to cancel trailing orders
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrdersForSymbols(self::Okx, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = [];
-    options = self.safeDict(self.options, "cancelOrders", Dict{Symbol, Any}());
+    options = self.safeDict(self.options, "cancelOrders", defaultValue = Dict{Symbol, Any}());
     defaultMethod = safeString(options, "method", "privatePostTradeCancelBatchOrders");
     method = safeString(params, "method", defaultMethod);
     trigger = self.safeBool2(params, "stop", "trigger");
-    trailing = self.safeBool(params, "trailing", false);
+    trailing = self.safeBool(params, "trailing", defaultValue = false);
     isStopOrTrailing = @functions.ccxt_or(trigger, trailing);
     if functions.ccxtruthy(isStopOrTrailing)
         method = "privatePostTradeCancelAlgos";
@@ -4369,11 +4699,22 @@ function cancelOrdersForSymbols(self::Okx, orders, params=Dict())
     else
         response = Base.fetch(self.privatePostTradeCancelBatchOrders(request));
     end
-    ordersData = self.safeList(response, "data", []);
-    return self.parseOrders(ordersData, nothing, nothing, nothing, params)
+    ordersData = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(ordersData, market = nothing, since = nothing, limit = nothing, params = params)
 
 end
-function cancelAllOrdersAfter(self::Okx, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Okx, timeout; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4403,7 +4744,7 @@ function parseOrderStatus(self::Okx, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Okx, order, market=nothing)
+function parseOrder(self::Okx, order; market=nothing)
     scode = safeString(order, "sCode");
     if functions.ccxtruthy(@functions.ccxt_and((scode != nothing), (scode != "0")))
             return self.safeOrder(Dict{Symbol, Any}(
@@ -4435,8 +4776,8 @@ function parseOrder(self::Okx, order, market=nothing)
 
     end
     marketId = safeString(order, "instId");
-    market = self.safeMarket(marketId, market);
-    symbol = self.safeSymbol(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market);
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "-");
     filled = safeString(order, "accFillSz");
     price = safeString2(order, "px", "ordPx");
     average = safeString(order, "avgPx");
@@ -4499,10 +4840,24 @@ function parseOrder(self::Okx, order, market=nothing)
     Symbol("fee") => fee,
     Symbol("trades") => nothing,
     Symbol("reduceOnly") => reduceOnly
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Okx, id, symbol=nothing, params=Dict())
+"""
+fetch an order by the id
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-details
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-details
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra and exchange specific parameters
+- `params.trigger`::bool, optional: true if fetching trigger orders
+
+# Returns
+- [an order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Okx, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -4541,10 +4896,29 @@ function fetchOrder(self::Okx, id, symbol=nothing, params=Dict())
     end
     data = safeValue(response, "data", []);
     order = self.safeDict(data, 0);
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function fetchOpenOrders(self::Okx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-list
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if fetching trigger or conditional orders
+- `params.ordType`::string, optional: market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
+- `params.algoId`::string, optional: Algo ID "'433845797218942976'"
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Okx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4552,7 +4926,7 @@ function fetchOpenOrders(self::Okx, symbol=nothing, since=nothing, limit=nothing
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOpenOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -4569,7 +4943,7 @@ function fetchOpenOrders(self::Okx, symbol=nothing, since=nothing, limit=nothing
     method = safeString(params, "method", defaultMethod);
     ordType = safeString(params, "ordType");
     trigger = safeValue2(params, "stop", "trigger");
-    trailing = self.safeBool(params, "trailing", false);
+    trailing = self.safeBool(params, "trailing", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(trailing, trigger), (@functions.ccxt_and((ordType != nothing), (ccxt_in(ordType, algoOrderTypes))))))
         method = "privateGetTradeOrdersAlgoPending";
     end
@@ -4585,11 +4959,30 @@ function fetchOpenOrders(self::Okx, symbol=nothing, since=nothing, limit=nothing
     else
         response = Base.fetch(self.privateGetTradeOrdersPending(extend(request, query)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchCanceledOrders(self::Okx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if fetching trigger or conditional orders
+- `params.ordType`::string, optional: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+- `params.algoId`::string, optional: Algo ID "'433845797218942976'"
+- `params.until`::int, optional: timestamp in ms to fetch orders for
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Okx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4600,7 +4993,7 @@ function fetchCanceledOrders(self::Okx, symbol=nothing, since=nothing, limit=not
         request[Symbol("instId")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, query) = self.handleMarketTypeAndParams("fetchCanceledOrders", market, params);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchCanceledOrders", market = market, params = params);
     request[Symbol("instType")] = self.convertToInstrumentType(type_var);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
@@ -4612,7 +5005,7 @@ function fetchCanceledOrders(self::Okx, symbol=nothing, since=nothing, limit=not
     method = safeString(params, "method", defaultMethod);
     ordType = safeString(params, "ordType");
     trigger = safeValue2(params, "stop", "trigger");
-    trailing = self.safeBool(params, "trailing", false);
+    trailing = self.safeBool(params, "trailing", defaultValue = false);
     if functions.ccxtruthy(trailing)
         method = "privateGetTradeOrdersAlgoHistory";
         request[Symbol("ordType")] = "move_order_stop";
@@ -4645,11 +5038,33 @@ function fetchCanceledOrders(self::Okx, symbol=nothing, since=nothing, limit=not
     else
         response = Base.fetch(self.privateGetTradeOrdersHistory(extend(request, send)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Okx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if fetching trigger or conditional orders
+- `params.ordType`::string, optional: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+- `params.algoId`::string, optional: Algo ID "'433845797218942976'"
+- `params.until`::int, optional: timestamp in ms to fetch orders for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.method`::string, optional: method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Okx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4657,7 +5072,7 @@ function fetchClosedOrders(self::Okx, symbol=nothing, since=nothing, limit=nothi
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -4666,18 +5081,18 @@ function fetchClosedOrders(self::Okx, symbol=nothing, since=nothing, limit=nothi
         request[Symbol("instId")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, query) = self.handleMarketTypeAndParams("fetchClosedOrders", market, params);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchClosedOrders", market = market, params = params);
     request[Symbol("instType")] = self.convertToInstrumentType(type_var);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, maxLimit);
     end
-    options = self.safeDict(self.options, "fetchClosedOrders", Dict{Symbol, Any}());
-    algoOrderTypes = self.safeDict(self.options, "algoOrderTypes", Dict{Symbol, Any}());
+    options = self.safeDict(self.options, "fetchClosedOrders", defaultValue = Dict{Symbol, Any}());
+    algoOrderTypes = self.safeDict(self.options, "algoOrderTypes", defaultValue = Dict{Symbol, Any}());
     defaultMethod = safeString(options, "method", "privateGetTradeOrdersHistory");
     method = safeString(params, "method", defaultMethod);
     ordType = safeString(params, "ordType");
     trigger = self.safeBool2(params, "stop", "trigger");
-    trailing = self.safeBool(params, "trailing", false);
+    trailing = self.safeBool(params, "trailing", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(trailing, trigger), (@functions.ccxt_and((ordType != nothing), (ccxt_in(ordType, algoOrderTypes))))))
         method = "privateGetTradeOrdersAlgoHistory";
         request[Symbol("state")] = "effective";
@@ -4708,18 +5123,33 @@ function fetchClosedOrders(self::Okx, symbol=nothing, since=nothing, limit=nothi
     else
         response = Base.fetch(self.privateGetTradeOrdersHistory(extend(request, send)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Okx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: Timestamp in ms of the latest time to retrieve trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Okx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -4731,39 +5161,71 @@ function fetchMyTrades(self::Okx, symbol=nothing, since=nothing, limit=nothing, 
         request[Symbol("begin")] = since;
     end
     (request, params) = self.handleUntilOption("end", request, params);
-    (type_var, query) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     request[Symbol("instType")] = self.convertToInstrumentType(type_var);
     if functions.ccxtruthy(@functions.ccxt_and((limit != nothing), (since == nothing)))
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetTradeFillsHistory(extend(request, query)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit, query)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit, params = query)
 
 end
-function fetchOrderTrades(self::Okx, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Okx, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("ordId") => id
     );
-    return Base.fetch(self.fetchMyTrades(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchMyTrades(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchLedger(self::Okx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered balance of the user
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Okx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", symbol = code, since = since, limit = limit, params = params))
     end
-    options = self.safeDict(self.options, "fetchLedger", Dict{Symbol, Any}());
+    options = self.safeDict(self.options, "fetchLedger", defaultValue = Dict{Symbol, Any}());
     method = safeString(options, "method");
     method = safeString(params, "method", method);
     params = omit(params, "method");
     request = Dict{Symbol, Any}();
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchLedger", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchLedger", params = params);
     if functions.ccxtruthy(marginMode == nothing)
         marginMode = safeString(params, "mgnMode");
     end
@@ -4772,7 +5234,7 @@ function fetchLedger(self::Okx, code=nothing, since=nothing, limit=nothing, para
             request[Symbol("mgnMode")] = marginMode;
         end
     end
-    (type_var, query) = self.handleMarketTypeAndParams("fetchLedger", nothing, params);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchLedger", market = nothing, params = params);
     if functions.ccxtruthy(type_var != nothing)
         request[Symbol("instType")] = self.convertToInstrumentType(type_var);
     end
@@ -4793,8 +5255,8 @@ function fetchLedger(self::Okx, code=nothing, since=nothing, limit=nothing, para
     else
         response = Base.fetch(self.privateGetAccountBills(extend(request, query)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseLedger(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLedger(data, currency = currency, since = since, limit = limit)
 
 end
 function parseLedgerEntryType(self::Okx, type_var)
@@ -4814,10 +5276,10 @@ function parseLedgerEntryType(self::Okx, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Okx, item, currency=nothing)
+function parseLedgerEntry(self::Okx, item; currency=nothing)
     currencyId = safeString(item, "ccy");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     timestamp = safeInteger(item, "ts");
     feeCostString = safeString(item, "fee");
     fee = nothing;
@@ -4828,7 +5290,7 @@ function parseLedgerEntry(self::Okx, item, currency=nothing)
         );
     end
     marketId = safeString(item, "instId");
-    symbol = self.safeSymbol(marketId, nothing, "-");
+    symbol = self.safeSymbol(marketId, market = nothing, delimiter = "-");
     return self.safeLedgerEntry(Dict{Symbol, Any}(
     Symbol("info") => item,
     Symbol("id") => safeString(item, "billId"),
@@ -4845,10 +5307,10 @@ function parseLedgerEntry(self::Okx, item, currency=nothing)
     Symbol("after") => self.safeNumber(item, "bal"),
     Symbol("status") => "ok",
     Symbol("fee") => fee
-), currency)
+), currency = currency)
 
 end
-function parseDepositAddress(self::Okx, depositAddress, currency=nothing)
+function parseDepositAddress(self::Okx, depositAddress; currency=nothing)
     address = safeString(depositAddress, "addr");
     tag = safeStringN(depositAddress, ["tag", "pmtId", "memo"]);
     if functions.ccxtruthy(tag == nothing)
@@ -4856,7 +5318,7 @@ function parseDepositAddress(self::Okx, depositAddress, currency=nothing)
         tag = safeString(addrEx, "comment");
     end
     currencyId = safeString(depositAddress, "ccy");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     code = get(currency, Symbol("code"), nothing);
     chain = safeString(depositAddress, "chain");
     networks = safeValue(currency, "networks", Dict{Symbol, Any}());
@@ -4866,8 +5328,8 @@ function parseDepositAddress(self::Okx, depositAddress, currency=nothing)
         networkData = safeValue2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon");
     end
     network = safeString(networkData, "network");
-    networkCode = self.networkIdToCode(network, code);
-    self.checkAddress(address);
+    networkCode = self.networkIdToCode(networkId = network, currencyCode = code);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
@@ -4877,7 +5339,18 @@ function parseDepositAddress(self::Okx, depositAddress, currency=nothing)
 )
 
 end
-function fetchDepositAddressesByNetwork(self::Okx, code, params=Dict())
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+function fetchDepositAddressesByNetwork(self::Okx, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4886,21 +5359,33 @@ function fetchDepositAddressesByNetwork(self::Okx, code, params=Dict())
         Symbol("ccy") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetAssetDepositAddress(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     filtered = filterBy(data, "selected", true);
-    parsed = self.parseDepositAddresses(filtered, [get(currency, Symbol("code"), nothing)], false);
+    parsed = self.parseDepositAddresses(filtered, codes = [get(currency, Symbol("code"), nothing)], indexed = false);
     return indexBy(parsed, "network")
 
 end
-function fetchDepositAddress(self::Okx, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the network name for the deposit address
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Okx, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     rawNetwork = safeString(params, "network");
     params = omit(params, "network");
     code = self.safeCurrencyCode(code);
-    network = self.networkIdToCode(rawNetwork, code);
-    responseRaw = Base.fetch(self.fetchDepositAddressesByNetwork(code, params));
+    network = self.networkIdToCode(networkId = rawNetwork, currencyCode = code);
+    responseRaw = Base.fetch(self.fetchDepositAddressesByNetwork(code, params = params));
     response = responseRaw;
     if functions.ccxtruthy(network != nothing)
         result = self.safeDict(response, network);
@@ -4909,7 +5394,7 @@ function fetchDepositAddress(self::Okx, code, params=Dict())
         end
             return result
     end
-    codeNetwork = self.networkIdToCode(code, code);
+    codeNetwork = self.networkIdToCode(networkId = code, currencyCode = code);
     if functions.ccxtruthy(@functions.ccxt_and((codeNetwork != nothing), (ccxt_in(codeNetwork, response))))
             return get(response, Symbol(codeNetwork), nothing)
     end
@@ -4918,9 +5403,23 @@ function fetchDepositAddress(self::Okx, code, params=Dict())
     return self.safeDict(response, first_var)
 
 end
-function withdraw(self::Okx, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Okx, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4936,7 +5435,7 @@ function withdraw(self::Okx, code, amount, address, tag=nothing, params=Dict())
     );
     network = safeString(params, "network");
     if functions.ccxtruthy(network != nothing)
-        networks = self.safeDict(self.options, "networks", Dict{Symbol, Any}());
+        networks = self.safeDict(self.options, "networks", defaultValue = Dict{Symbol, Any}());
         network = safeString(networks, uppercase(network), network);
         request[Symbol("chain")] = string(get(currency, Symbol("id"), nothing), "-", network);
         params = omit(params, "network");
@@ -4945,8 +5444,8 @@ function withdraw(self::Okx, code, amount, address, tag=nothing, params=Dict())
     if functions.ccxtruthy(fee == nothing)
         currencies = Base.fetch(self.fetchCurrencies());
         self.currencies = self.mapToSafeMap(deepExtend(self.currencies, currencies));
-        networkCodeResolved = self.networkIdToCode(network, get(currency, Symbol("code"), nothing));
-        targetNetwork = functions.ccxtruthy((networkCodeResolved == nothing)) ? Dict{Symbol, Any}() : self.safeDict(get(currency, Symbol("networks"), nothing), networkCodeResolved, Dict{Symbol, Any}());
+        networkCodeResolved = self.networkIdToCode(networkId = network, currencyCode = get(currency, Symbol("code"), nothing));
+        targetNetwork = functions.ccxtruthy((networkCodeResolved == nothing)) ? Dict{Symbol, Any}() : self.safeDict(get(currency, Symbol("networks"), nothing), networkCodeResolved, defaultValue = Dict{Symbol, Any}());
         fee = safeString(targetNetwork, "fee");
         if functions.ccxtruthy(fee == nothing)
             throw(ArgumentsRequired(string(self.id, " withdraw() requires a \"fee\" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set \"0\". Withdrawing to external digital asset address requires network transaction fee.")));
@@ -4955,19 +5454,34 @@ function withdraw(self::Okx, code, amount, address, tag=nothing, params=Dict())
     request[Symbol("fee")] = numberToString(fee);
     query = omit(params, ["fee"]);
     response = Base.fetch(self.privatePostAssetWithdrawal(extend(request, query)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     transaction = self.safeDict(data, 0);
-    return self.parseTransaction(transaction, currency)
+    return self.parseTransaction(transaction, currency = currency)
 
 end
-function fetchDeposits(self::Okx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Okx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", symbol = code, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -4983,11 +5497,23 @@ function fetchDeposits(self::Okx, code=nothing, since=nothing, limit=nothing, pa
     end
     (request, params) = self.handleUntilOption("after", request, params);
     response = Base.fetch(self.privateGetAssetDepositHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit, params)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchDeposit(self::Okx, id, code=nothing, params=Dict())
+"""
+fetch data on a currency deposit via the deposit id
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
+
+# Arguments
+- `id`::string: deposit id
+- `code`::string: filter by currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposit(self::Okx, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5001,18 +5527,33 @@ function fetchDeposit(self::Okx, id, code=nothing, params=Dict())
     end
     response = Base.fetch(self.privateGetAssetDepositHistory(extend(request, params)));
     data = safeValue(response, "data");
-    deposit = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTransaction(deposit, currency)
+    deposit = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(deposit, currency = currency)
 
 end
-function fetchWithdrawals(self::Okx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Okx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", symbol = code, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -5028,11 +5569,23 @@ function fetchWithdrawals(self::Okx, code=nothing, since=nothing, limit=nothing,
     end
     (request, params) = self.handleUntilOption("after", request, params);
     response = Base.fetch(self.privateGetAssetWithdrawalHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit, params)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchWithdrawal(self::Okx, id, code=nothing, params=Dict())
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+
+# Arguments
+- `id`::string: withdrawal id
+- `code`::string: unified currency code of the currency withdrawn, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawal(self::Okx, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5045,8 +5598,8 @@ function fetchWithdrawal(self::Okx, id, code=nothing, params=Dict())
         request[Symbol("ccy")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetAssetWithdrawalHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    withdrawal = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    withdrawal = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     return self.parseTransaction(withdrawal)
 
 end
@@ -5076,7 +5629,7 @@ function parseTransactionStatus(self::Okx, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Okx, transaction, currency=nothing)
+function parseTransaction(self::Okx, transaction; currency=nothing)
     type_var = nothing;
     id = nothing;
     withdrawalId = safeString(transaction, "wdId");
@@ -5101,7 +5654,7 @@ function parseTransaction(self::Okx, transaction, currency=nothing)
         networkParts = self.arraySlice(chainParts, 1);
         networkId = join(networkParts, "-");
         if functions.ccxtruthy(networkId != nothing)
-            network = self.networkIdToCode(networkId, code);
+            network = self.networkIdToCode(networkId = networkId, currencyCode = code);
         end
     end
     amount = self.safeNumber(transaction, "amt");
@@ -5141,12 +5694,24 @@ function parseTransaction(self::Okx, transaction, currency=nothing)
 )
 
 end
-function fetchLeverage(self::Okx, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Okx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchLeverage", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchLeverage", params = params);
     if functions.ccxtruthy(marginMode == nothing)
         marginMode = safeString(params, "mgnMode", "cross");
     end
@@ -5159,11 +5724,11 @@ function fetchLeverage(self::Okx, symbol, params=Dict())
         Symbol("mgnMode") => marginMode
     );
     response = Base.fetch(self.privateGetAccountLeverageInfo(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseLeverage(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Okx, leverage, market=nothing)
+function parseLeverage(self::Okx, leverage; market=nothing)
     marketId = nothing;
     marginMode = nothing;
     longLeverage = nothing;
@@ -5186,19 +5751,31 @@ function parseLeverage(self::Okx, leverage, market=nothing)
     end
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => marginMode,
     Symbol("longLeverage") => longLeverage,
     Symbol("shortLeverage") => shortLeverage
 )
 
 end
-function fetchPosition(self::Okx, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.instType`::string, optional: MARGIN, SWAP, FUTURES, OPTION
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Okx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    (type_var, query) = self.handleMarketTypeAndParams("fetchPosition", market, params);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchPosition", market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
@@ -5206,15 +5783,28 @@ function fetchPosition(self::Okx, symbol, params=Dict())
         request[Symbol("instType")] = self.convertToInstrumentType(type_var);
     end
     response = Base.fetch(self.privateGetAccountPositions(extend(request, query)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     position = self.safeDict(data, 0);
     if functions.ccxtruthy(position == nothing)
         throw(NullResponse(string(self.id, " fetchPosition() could not find a position for ", symbol)));
     end
-    return self.parsePosition(position, market)
+    return self.parsePosition(position, market = market)
 
 end
-function fetchPositions(self::Okx, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history history
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.instType`::string, optional: MARGIN, SWAP, FUTURES, OPTION
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Okx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5234,7 +5824,7 @@ function fetchPositions(self::Okx, symbols=nothing, params=Dict())
             request[Symbol("instId")] =             join(marketIds, ",");
         end
     end
-    fetchPositionsOptions = self.safeDict(self.options, "fetchPositions", Dict{Symbol, Any}());
+    fetchPositionsOptions = self.safeDict(self.options, "fetchPositions", defaultValue = Dict{Symbol, Any}());
     method = safeString(fetchPositionsOptions, "method", "privateGetAccountPositions");
     response = nothing;
     if functions.ccxtruthy(method == "privateGetAccountPositionsHistory")
@@ -5242,23 +5832,35 @@ function fetchPositions(self::Okx, symbols=nothing, params=Dict())
     else
         response = Base.fetch(self.privateGetAccountPositions(extend(request, params)));
     end
-    positions = self.safeList(response, "data", []);
+    positions = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         push!(result, self.parsePosition(get(positions, i + 1, nothing)));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", self.marketSymbols(symbols), false)
+    return self.filterByArrayPositions(result, "symbol", values = self.marketSymbols(symbols = symbols), indexed = false)
 
 end
-function fetchPositionsForSymbol(self::Okx, symbol, params=Dict())
-    return Base.fetch(self.fetchPositions([symbol], params))
+"""
+fetch all open positions for specific symbol
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.instType`::string, optional: MARGIN (if needed)
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsForSymbol(self::Okx, symbol; params=Dict())
+    return Base.fetch(self.fetchPositions(symbols = [symbol], params = params))
 
 end
-function parsePosition(self::Okx, position, market=nothing)
+function parsePosition(self::Okx, position; market=nothing)
     marketId = safeString(position, "instId");
-    market = self.safeMarket(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
     symbol = get(market, Symbol("symbol"), nothing);
     pos = safeString(position, "pos");
     contractsAbs = stringAbs(pos);
@@ -5363,12 +5965,26 @@ function parsePosition(self::Okx, position, market=nothing)
 ))
 
 end
-function transfer(self::Okx, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Okx, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(accountsByType, fromAccount, fromAccount);
     toId = safeString(accountsByType, toAccount, toAccount);
     request = Dict{Symbol, Any}(
@@ -5390,19 +6006,19 @@ function transfer(self::Okx, code, amount, fromAccount, toAccount, params=Dict()
         request[Symbol("to")] = safeString(params, "to", "6");
     end
     response = Base.fetch(self.privatePostAssetTransfer(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    rawTransfer = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTransfer(rawTransfer, currency)
+    data = self.safeList(response, "data", defaultValue = []);
+    rawTransfer = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTransfer(rawTransfer, currency = currency)
 
 end
-function parseTransfer(self::Okx, transfer, currency=nothing)
+function parseTransfer(self::Okx, transfer; currency=nothing)
     id = safeString2(transfer, "transId", "billId");
     currencyId = safeString(transfer, "ccy");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     amount = self.safeNumber(transfer, "amt");
     fromAccountId = safeString(transfer, "from");
     toAccountId = safeString(transfer, "to");
-    accountsById = self.safeDict(self.options, "accountsById", Dict{Symbol, Any}());
+    accountsById = self.safeDict(self.options, "accountsById", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(transfer, "ts");
     balanceChange = safeString(transfer, "sz");
     if functions.ccxtruthy(balanceChange != nothing)
@@ -5431,7 +6047,19 @@ function parseTransferStatus(self::Okx, status)
     return safeString(statuses, status, status)
 
 end
-function fetchTransfer(self::Okx, id, code=nothing, params=Dict())
+"""
+fetch a transfer
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state
+
+# Arguments
+- `id`::string: transfer id
+- `code`::string, optional: unified currency code of the currency transferred
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfer(self::Okx, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5439,12 +6067,25 @@ function fetchTransfer(self::Okx, id, code=nothing, params=Dict())
         Symbol("transId") => id
     );
     response = Base.fetch(self.privateGetAssetTransferState(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     transfer = self.safeDict(data, 0);
     return self.parseTransfer(transfer)
 
 end
-function fetchTransfers(self::Okx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Okx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5463,11 +6104,11 @@ function fetchTransfers(self::Okx, code=nothing, since=nothing, limit=nothing, p
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetAccountBillsArchive(extend(request, params)));
-    transfers = self.safeList(response, "data", []);
-    return self.parseTransfers(transfers, currency, since, limit, params)
+    transfers = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransfers(transfers, currency = currency, since = since, limit = limit, params = params)
 
 end
-function sign(self::Okx, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Okx, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     isArray = functions.ccxt_isArray(params);
     request = string("/api/", self.version, "/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
@@ -5532,10 +6173,10 @@ function sign(self::Okx, path, api="public", method="GET", params=Dict(), header
 )
 
 end
-function parseFundingRate(self::Okx, contract, market=nothing)
+function parseFundingRate(self::Okx, contract; market=nothing)
     nextFundingRateTimestamp = safeInteger(contract, "nextFundingTime");
     marketId = safeString(contract, "instId");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     nextFundingRate = self.safeNumber(contract, "nextFundingRate");
     fundingTime = safeInteger(contract, "fundingTime");
     fundingTimeString = safeString(contract, "fundingTime");
@@ -5575,16 +6216,38 @@ function parseFundingInterval(self::Okx, interval)
     return safeString(intervals, interval, interval)
 
 end
-function fetchFundingInterval(self::Okx, symbol, params=Dict())
-    return Base.fetch(self.fetchFundingRate(symbol, params))
+"""
+fetch the current funding rate interval
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingInterval(self::Okx, symbol; params=Dict())
+    return Base.fetch(self.fetchFundingRate(symbol, params = params))
 
 end
-function fetchFundingRate(self::Okx, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Okx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    marketInfo = self.safeDict(market, "info", Dict{Symbol, Any}());
+    marketInfo = self.safeDict(market, "info", defaultValue = Dict{Symbol, Any}());
     ruleType = safeString(marketInfo, "ruleType");
     isExtendedPerpetual = (ruleType == "xperp");
     if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)), !functions.ccxtruthy(isExtendedPerpetual)))
@@ -5594,21 +6257,32 @@ function fetchFundingRate(self::Okx, symbol, params=Dict())
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetPublicFundingRate(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    entry = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseFundingRate(entry, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    entry = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(entry, market = market)
 
 end
-function fetchFundingRates(self::Okx, symbols=nothing, params=Dict())
+"""
+fetches the current funding rates for multiple symbols
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [funding rates structure]{@link https://docs.ccxt.com/?id=funding-rates-structure}
+"""
+function fetchFundingRates(self::Okx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true);
     if functions.ccxtruthy(symbols != nothing)
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
             market = self.market(get(symbols, i + 1, nothing));
-            marketInfo = self.safeDict(market, "info", Dict{Symbol, Any}());
+            marketInfo = self.safeDict(market, "info", defaultValue = Dict{Symbol, Any}());
             ruleType = safeString(marketInfo, "ruleType");
             isExtendedPerpetual = (ruleType == "xperp");
             if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)), !functions.ccxtruthy(isExtendedPerpetual)))
@@ -5622,11 +6296,24 @@ function fetchFundingRates(self::Okx, symbols=nothing, params=Dict())
         Symbol("instId") => "ANY"
     );
     response = Base.fetch(self.publicGetPublicFundingRate(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseFundingRates(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseFundingRates(data, symbols = symbols)
 
 end
-function fetchFundingHistory(self::Okx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Okx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5650,19 +6337,19 @@ function fetchFundingHistory(self::Okx, symbol=nothing, since=nothing, limit=not
             end
         end
     end
-    (type_var, query) = self.handleMarketTypeAndParams("fetchFundingHistory", market, params);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchFundingHistory", market = market, params = params);
     if functions.ccxtruthy(type_var == "swap")
         request[Symbol("instType")] = self.convertToInstrumentType(type_var);
     end
     response = Base.fetch(self.privateGetAccountBillsArchive(extend(request, query)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
         timestamp = safeInteger(entry, "ts");
         instId = safeString(entry, "instId");
-        marketInner = self.safeMarket(instId);
+        marketInner = self.safeMarket(marketId = instId);
         currencyId = safeString(entry, "ccy");
         code = self.safeCurrencyCode(currencyId);
         balanceChange = safeString(entry, "balChg");
@@ -5685,10 +6372,24 @@ function fetchFundingHistory(self::Okx, symbol=nothing, since=nothing, limit=not
         i += 1
     end
     sorted = sortBy(result, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function setLeverage(self::Okx, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+- `params.posSide`::string, optional: 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Okx, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -5700,7 +6401,7 @@ function setLeverage(self::Okx, leverage, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params);
+    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params);
     if functions.ccxtruthy(marginMode == nothing)
         marginMode = safeString(params, "mgnMode", "cross");
     end
@@ -5723,7 +6424,19 @@ function setLeverage(self::Okx, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchPositionMode(self::Okx, symbol=nothing, params=Dict())
+"""
+fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountId`::string, optional: if you have multiple accounts, you must specify the account id to fetch the position mode
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+function fetchPositionMode(self::Okx; symbol=nothing, params=Dict())
     accounts = Base.fetch(self.fetchAccounts());
     len = length(accounts);
     if functions.ccxtruthy(functions.ccxt_gt(len, 1))
@@ -5747,7 +6460,19 @@ function fetchPositionMode(self::Okx, symbol=nothing, params=Dict())
 )
 
 end
-function setPositionMode(self::Okx, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
+
+# Arguments
+- `hedged`::bool: set to true to use long_short_mode, false for net_mode
+- `symbol`::string: not used by okx setPositionMode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Okx, hedged; symbol=nothing, params=Dict())
     hedgeMode = nothing;
     if functions.ccxtruthy(hedged)
         hedgeMode = "long_short_mode";
@@ -5761,7 +6486,20 @@ function setPositionMode(self::Okx, hedged, symbol=nothing, params=Dict())
     return response
 
 end
-function setMarginMode(self::Okx, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::int, optional: leverage
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Okx, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -5787,12 +6525,22 @@ function setMarginMode(self::Okx, marginMode, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchCrossBorrowRates(self::Okx, params=Dict())
+"""
+fetch the borrow interest rates of all currencies
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchCrossBorrowRates(self::Okx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetAccountInterestRate(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     rates = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -5806,7 +6554,18 @@ function fetchCrossBorrowRates(self::Okx, params=Dict())
     return rates
 
 end
-function fetchCrossBorrowRate(self::Okx, code, params=Dict())
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchCrossBorrowRate(self::Okx, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5815,12 +6574,12 @@ function fetchCrossBorrowRate(self::Okx, code, params=Dict())
         Symbol("ccy") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetAccountInterestRate(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    rate = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    rate = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     return self.parseBorrowRate(rate)
 
 end
-function parseBorrowRate(self::Okx, info, currency=nothing)
+function parseBorrowRate(self::Okx, info; currency=nothing)
     ccy = safeString(info, "ccy");
     timestamp = safeInteger(info, "ts");
     return Dict{Symbol, Any}(
@@ -5854,13 +6613,26 @@ function parseBorrowRateHistories(self::Okx, response, codes, since, limit)
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(keys_var)))
         code = get(keys_var, i + 1, nothing);
-        borrowRateHistories[Symbol(code)] = self.filterByCurrencySinceLimit(get(borrowRateHistories, Symbol(code), nothing), code, since, limit);
+        borrowRateHistories[Symbol(code)] = self.filterByCurrencySinceLimit(get(borrowRateHistories, Symbol(code), nothing), code = code, since = since, limit = limit);
         i += 1
     end
     return borrowRateHistories
 
 end
-function fetchBorrowRateHistories(self::Okx, codes=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+see: https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest borrowRate, default is undefined
+- `limit`::int, optional: max number of borrow rate prices to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
+"""
+function fetchBorrowRateHistories(self::Okx; codes=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5872,11 +6644,24 @@ function fetchBorrowRateHistories(self::Okx, codes=nothing, since=nothing, limit
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetFinanceSavingsLendingRateHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseBorrowRateHistories(data, codes, since, limit)
 
 end
-function fetchBorrowRateHistory(self::Okx, code, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves a history of a currencies borrow interest rate at specific time slots
+see: https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: timestamp for the earliest borrow rate
+- `limit`::int, optional: the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchBorrowRateHistory(self::Okx, code; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5891,11 +6676,11 @@ function fetchBorrowRateHistory(self::Okx, code, since=nothing, limit=nothing, p
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetFinanceSavingsLendingRateHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseBorrowRateHistory(data, code, since, limit)
 
 end
-function modifyMarginHelper(self::Okx, symbol, amount, type_var, params=Dict())
+function modifyMarginHelper(self::Okx, symbol, amount, type_var; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5909,15 +6694,15 @@ function modifyMarginHelper(self::Okx, symbol, amount, type_var, params=Dict())
         Symbol("posSide") => posSide
     );
     response = Base.fetch(self.privatePostAccountPositionMarginBalance(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    entry = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    entry = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     errorCode = safeString(response, "code");
-    return extend(self.parseMarginModification(entry, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(entry, market = market), Dict{Symbol, Any}(
     Symbol("status") => functions.ccxtruthy((errorCode == "0")) ? "ok" : "failed"
 ))
 
 end
-function parseMarginModification(self::Okx, data, market=nothing)
+function parseMarginModification(self::Okx, data; market=nothing)
     amountRaw = safeString2(data, "amt", "posBalChg");
     typeRaw = safeString(data, "type");
     type_var = nothing;
@@ -5928,7 +6713,7 @@ function parseMarginModification(self::Okx, data, market=nothing)
     end
     amount = stringAbs(amountRaw);
     marketId = safeString(data, "instId");
-    responseMarket = self.safeMarket(marketId, market);
+    responseMarket = self.safeMarket(marketId = marketId, market = market);
     code = functions.ccxtruthy(get(responseMarket, Symbol("inverse"), nothing)) ? get(responseMarket, Symbol("base"), nothing) : get(responseMarket, Symbol("quote"), nothing);
     timestamp = safeInteger(data, "ts");
     return Dict{Symbol, Any}(
@@ -5945,15 +6730,51 @@ function parseMarginModification(self::Okx, data, market=nothing)
 )
 
 end
-function reduceMargin(self::Okx, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params))
+"""
+remove margin from a position
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Okx, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params = params))
 
 end
-function addMargin(self::Okx, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params))
+"""
+add margin
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Okx, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params = params))
 
 end
-function fetchMarketLeverageTiers(self::Okx, symbol, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+function fetchMarketLeverageTiers(self::Okx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5966,7 +6787,7 @@ function fetchMarketLeverageTiers(self::Okx, symbol, params=Dict())
         end
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchMarketLeverageTiers", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchMarketLeverageTiers", params = params);
     if functions.ccxtruthy(marginMode == nothing)
         marginMode = safeString(params, "tdMode", "cross");
     end
@@ -5979,11 +6800,11 @@ function fetchMarketLeverageTiers(self::Okx, symbol, params=Dict())
         request[Symbol("instId")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.publicGetPublicPositionTiers(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseMarketLeverageTiers(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseMarketLeverageTiers(data, market = market)
 
 end
-function parseMarketLeverageTiers(self::Okx, info, market=nothing)
+function parseMarketLeverageTiers(self::Okx, info; market=nothing)
     tiers = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(info)))
@@ -5991,7 +6812,7 @@ function parseMarketLeverageTiers(self::Okx, info, market=nothing)
         marketId = safeString(tier, "instId");
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => safeInteger(tier, "tier"),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("currency") => safeString(market, "quote"),
     Symbol("minNotional") => self.safeNumber(tier, "minSz"),
     Symbol("maxNotional") => self.safeNumber(tier, "maxSz"),
@@ -6004,12 +6825,28 @@ function parseMarketLeverageTiers(self::Okx, info, market=nothing)
     return tiers
 
 end
-function fetchBorrowInterest(self::Okx, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the interest owed b the user for borrowing currency for margin trading
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
+
+# Arguments
+- `code`::string: the unified currency code for the currency of the interest
+- `symbol`::string: the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
+- `since`::int, optional: timestamp in ms of the earliest time to receive interest records for
+- `limit`::int, optional: the number of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure} to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.type`::int, optional: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+function fetchBorrowInterest(self::Okx; code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBorrowInterest", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBorrowInterest", params = params);
     if functions.ccxtruthy(marginMode == nothing)
         marginMode = safeString(params, "mgnMode", "cross");
     end
@@ -6032,15 +6869,15 @@ function fetchBorrowInterest(self::Okx, code=nothing, symbol=nothing, since=noth
         request[Symbol("instId")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetAccountInterestAccrued(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     interest = self.parseBorrowInterests(data);
-    return self.filterByCurrencySinceLimit(interest, code, since, limit)
+    return self.filterByCurrencySinceLimit(interest, code = code, since = since, limit = limit)
 
 end
-function parseBorrowInterest(self::Okx, info, market=nothing)
+function parseBorrowInterest(self::Okx, info; market=nothing)
     instId = safeString(info, "instId");
     if functions.ccxtruthy(instId != nothing)
-        market = self.safeMarket(instId, market);
+        market = self.safeMarket(marketId = instId, market = market);
     end
     timestamp = safeInteger(info, "ts");
     return Dict{Symbol, Any}(
@@ -6056,7 +6893,19 @@ function parseBorrowInterest(self::Okx, info, market=nothing)
 )
 
 end
-function borrowCrossMargin(self::Okx, code, amount, params=Dict())
+"""
+create a loan to borrow margin (need to be VIP 5 and above)
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowCrossMargin(self::Okx, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6067,12 +6916,25 @@ function borrowCrossMargin(self::Okx, code, amount, params=Dict())
         Symbol("side") => "borrow"
     );
     response = Base.fetch(self.privatePostAccountBorrowRepay(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    loan = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseMarginLoan(loan, currency)
+    data = self.safeList(response, "data", defaultValue = []);
+    loan = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginLoan(loan, currency = currency)
 
 end
-function repayCrossMargin(self::Okx, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.id`::string, optional: the order ID of borrowing, it is necessary while repaying
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayCrossMargin(self::Okx, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6089,16 +6951,16 @@ function repayCrossMargin(self::Okx, code, amount, params=Dict())
         Symbol("ordId") => id
     );
     response = Base.fetch(self.privatePostAccountBorrowRepay(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    loan = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseMarginLoan(loan, currency)
+    data = self.safeList(response, "data", defaultValue = []);
+    loan = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginLoan(loan, currency = currency)
 
 end
-function parseMarginLoan(self::Okx, info, currency=nothing)
+function parseMarginLoan(self::Okx, info; currency=nothing)
     currencyId = safeString(info, "ccy");
     return Dict{Symbol, Any}(
     Symbol("id") => nothing,
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(info, "amt"),
     Symbol("symbol") => nothing,
     Symbol("timestamp") => nothing,
@@ -6107,7 +6969,18 @@ function parseMarginLoan(self::Okx, info, currency=nothing)
 )
 
 end
-function fetchOpenInterest(self::Okx, symbol, params=Dict())
+"""
+Retrieves the open interest of a currency
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Okx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6123,21 +6996,35 @@ function fetchOpenInterest(self::Okx, symbol, params=Dict())
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetPublicOpenInterest(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOpenInterest(get(data, 1, nothing), market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOpenInterest(get(data, 1, nothing), market = market)
 
 end
-function fetchOpenInterests(self::Okx, symbols=nothing, params=Dict())
+"""
+Retrieves the open interests of some currencies
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+
+# Arguments
+- `symbols`::array: Unified CCXT market symbols
+- `params`::object, optional: exchange specific parameters
+- `params.instType`::string: Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+- `params.uly`::string: Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+- `params.instFamily`::string: Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+
+# Returns
+- an dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterests(self::Okx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true);
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
         market = self.market(get(symbols, 1, nothing));
     end
     marketType = nothing;
-    (marketType, params) = self.handleSubTypeAndParams("fetchOpenInterests", market, params, "swap");
+    (marketType, params) = self.handleSubTypeAndParams("fetchOpenInterests", market = market, params = params, defaultValue = "swap");
     instType = "SWAP";
     if functions.ccxtruthy(marketType == "future")
         instType = "FUTURES";
@@ -6159,13 +7046,29 @@ function fetchOpenInterests(self::Okx, symbols=nothing, params=Dict())
         throw(BadRequest(string(self.id, " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")));
     end
     response = Base.fetch(self.publicGetPublicOpenInterest(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOpenInterests(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOpenInterests(data, symbols = symbols)
 
 end
-function fetchOpenInterestHistory(self::Okx, symbol, timeframe="1d", since=nothing, limit=nothing, params=Dict())
-    options = self.safeDict(self.options, "fetchOpenInterestHistory", Dict{Symbol, Any}());
-    timeframes = self.safeDict(options, "timeframes", Dict{Symbol, Any}());
+"""
+Retrieves the open interest history of a currency
+see: https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
+see: https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
+
+# Arguments
+- `symbol`::string: Unified CCXT currency code or unified symbol
+- `timeframe`::string: "5m", "1h", or "1d" for option only "1d" or "8h"
+- `since`::int, optional: The time in ms of the earliest record to retrieve as a unix timestamp
+- `limit`::int, optional: Not used by okx, but parsed internally by CCXT
+- `params`::object, optional: Exchange specific parameters
+- `params.until`::int, optional: The time in ms of the latest record to retrieve as a unix timestamp
+
+# Returns
+- An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterestHistory(self::Okx, symbol; timeframe="1d", since=nothing, limit=nothing, params=Dict())
+    options = self.safeDict(self.options, "fetchOpenInterestHistory", defaultValue = Dict{Symbol, Any}());
+    timeframes = self.safeDict(options, "timeframes", defaultValue = Dict{Symbol, Any}());
     timeframe = safeString(timeframes, timeframe, timeframe);
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(timeframe != "5m", timeframe != "1H"), timeframe != "1D"))
         throw(BadRequest(string(self.id, " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")));
@@ -6188,7 +7091,7 @@ function fetchOpenInterestHistory(self::Okx, symbol, timeframe="1d", since=nothi
     );
     type_var = nothing;
     response = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOpenInterestHistory", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOpenInterestHistory", market = market, params = params);
     if functions.ccxtruthy(type_var == "option")
         response = Base.fetch(self.publicGetRubikStatOptionOpenInterestVolume(extend(request, params)));
     else
@@ -6202,13 +7105,13 @@ function fetchOpenInterestHistory(self::Okx, symbol, timeframe="1d", since=nothi
         end
         response = Base.fetch(self.publicGetRubikStatContractsOpenInterestVolume(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOpenInterestsHistory(data, nothing, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOpenInterestsHistory(data, market = nothing, since = since, limit = limit)
 
 end
-function parseOpenInterest(self::Okx, interest, market=nothing)
+function parseOpenInterest(self::Okx, interest; market=nothing)
     id = safeString(interest, "instId");
-    market = self.safeMarket(id, market);
+    market = self.safeMarket(marketId = id, market = market);
     time = safeInteger(interest, "ts");
     timestamp = safeInteger(interest, 0, time);
     baseVolume = nothing;
@@ -6238,7 +7141,7 @@ function parseOpenInterest(self::Okx, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
 function setSandboxMode(self::Okx, enable)
@@ -6251,23 +7154,34 @@ function setSandboxMode(self::Okx, enable)
     end
 
 end
-function fetchDepositWithdrawFees(self::Okx, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Okx; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(codes != nothing)
-        ids = self.currencyIds(codes);
+        ids = self.currencyIds(codes = codes);
         request[Symbol("ccy")] =         join(ids, ",");
     end
     response = Base.fetch(self.privateGetAssetCurrencies(extend(request, params)));
     data = self.safeList(response, "data");
-    return self.parseDepositWithdrawFees(data, codes)
+    return self.parseDepositWithdrawFees(data, codes = codes)
 
 end
-function parseDepositWithdrawFees(self::Okx, response, codes=nothing, currencyIdKey=nothing)
+function parseDepositWithdrawFees(self::Okx, response; codes=nothing, currencyIdKey=nothing)
     depositWithdrawFees = Dict{Symbol, Any}();
-    codes = self.marketCodes(codes);
+    codes = self.marketCodes(codes = codes);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         feeInfo = get(response, i + 1, nothing);
@@ -6296,7 +7210,7 @@ function parseDepositWithdrawFees(self::Okx, response, codes=nothing, currencyId
                 Symbol("fee") => nothing,
                 Symbol("percentage") => nothing
             );
-            networkCode = self.networkIdToCode(networkId, code);
+            networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
             if functions.ccxtruthy(networkCode != nothing)
                 depositWithdrawFees[Symbol(code)][Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                     Symbol("withdraw") => withdrawResult,
@@ -6311,13 +7225,26 @@ function parseDepositWithdrawFees(self::Okx, response, codes=nothing, currencyId
     while functions.ccxtruthy(functions.ccxt_lt(i, length(depositWithdrawCodes)))
         code = get(depositWithdrawCodes, i + 1, nothing);
         currency = self.currency(code);
-        depositWithdrawFees[Symbol(code)] = self.assignDefaultDepositWithdrawFees(get(depositWithdrawFees, Symbol(code), nothing), currency);
+        depositWithdrawFees[Symbol(code)] = self.assignDefaultDepositWithdrawFees(get(depositWithdrawFees, Symbol(code), nothing), currency = currency);
         i += 1
     end
     return depositWithdrawFees
 
 end
-function fetchSettlementHistory(self::Okx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-delivery-exercise-history
+
+# Arguments
+- `symbol`::string: unified market symbol to fetch the settlement history for
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+function fetchSettlementHistory(self::Okx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchSettlementHistory() requires a symbol argument")));
     end
@@ -6326,7 +7253,7 @@ function fetchSettlementHistory(self::Okx, symbol=nothing, since=nothing, limit=
     end
     market = self.market(symbol);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchSettlementHistory", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchSettlementHistory", market = market, params = params);
     if functions.ccxtruthy(@functions.ccxt_and(type_var != "future", type_var != "option"))
         throw(NotSupported(string(self.id, " fetchSettlementHistory() supports futures and options markets only")));
     end
@@ -6341,17 +7268,17 @@ function fetchSettlementHistory(self::Okx, symbol=nothing, since=nothing, limit=
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetPublicDeliveryExerciseHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     settlements = self.parseSettlements(data, market);
     sorted = sortBy(settlements, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
 function parseSettlement(self::Okx, settlement, market)
     marketId = safeString(settlement, "insId");
     return Dict{Symbol, Any}(
     Symbol("info") => settlement,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("price") => self.safeNumber(settlement, "px"),
     Symbol("timestamp") => nothing,
     Symbol("datetime") => nothing
@@ -6364,7 +7291,7 @@ function parseSettlements(self::Okx, settlements, market)
     while functions.ccxtruthy(functions.ccxt_lt(i, length(settlements)))
         entry = get(settlements, i + 1, nothing);
         timestamp = safeInteger(entry, "ts");
-        details = self.safeList(entry, "details", []);
+        details = self.safeList(entry, "details", defaultValue = []);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(details)))
             settlement = self.parseSettlement(get(details, j + 1, nothing), market);
@@ -6379,12 +7306,23 @@ function parseSettlements(self::Okx, settlements, market)
     return result
 
 end
-function fetchUnderlyingAssets(self::Okx, params=Dict())
+"""
+fetches the market ids of underlying assets for a specific contract market type
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+
+# Arguments
+- `params`::object, optional: exchange specific params
+- `params.type`::string, optional: the contract market type, 'option', 'swap' or 'future', the default is 'option'
+
+# Returns
+- a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
+"""
+function fetchUnderlyingAssets(self::Okx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchUnderlyingAssets", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchUnderlyingAssets", market = nothing, params = params);
     if functions.ccxtruthy(@functions.ccxt_or((marketType == nothing), (marketType == "spot")))
         marketType = "option";
     end
@@ -6395,11 +7333,22 @@ function fetchUnderlyingAssets(self::Okx, params=Dict())
         Symbol("instType") => self.convertToInstrumentType(marketType)
     );
     response = Base.fetch(self.publicGetPublicUnderlying(extend(request, params)));
-    underlyings = self.safeList(response, "data", []);
+    underlyings = self.safeList(response, "data", defaultValue = []);
     return get(underlyings, 1, nothing)
 
 end
-function fetchGreeks(self::Okx, symbol, params=Dict())
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchGreeks(self::Okx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6412,25 +7361,38 @@ function fetchGreeks(self::Okx, symbol, params=Dict())
         Symbol("expTime") => safeString(optionParts, 2)
     );
     response = Base.fetch(self.publicGetPublicOptSummary(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
         entryMarketId = safeString(entry, "instId");
         if functions.ccxtruthy(entryMarketId == marketId)
-                return self.parseGreeks(entry, market)
+                return self.parseGreeks(entry, market = market)
         end
         i += 1
     end
     throw(NullResponse(string(self.id, " fetchGreeks() could not find greeks for ", symbol)));
 
 end
-function fetchAllGreeks(self::Okx, symbols=nothing, params=Dict())
+"""
+fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uly`::string: Underlying, either uly or instFamily is required
+- `params.instFamily`::string: Instrument family, either uly or instFamily is required
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchAllGreeks(self::Okx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     symbolsLength = nothing;
     if functions.ccxtruthy(symbols != nothing)
         symbolsLength = length(symbols);
@@ -6461,14 +7423,14 @@ function fetchAllGreeks(self::Okx, symbols=nothing, params=Dict())
     end
     params = omit(params, ["uly", "instFamily"]);
     response = Base.fetch(self.publicGetPublicOptSummary(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseAllGreeks(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseAllGreeks(data, symbols = symbols)
 
 end
-function parseGreeks(self::Okx, greeks, market=nothing)
+function parseGreeks(self::Okx, greeks; market=nothing)
     timestamp = safeInteger(greeks, "ts");
     marketId = safeString(greeks, "instId");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => timestamp,
@@ -6492,7 +7454,24 @@ function parseGreeks(self::Okx, greeks, market=nothing)
 )
 
 end
-function closePosition(self::Okx, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a market
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: 'buy' or 'sell', leave as undefined in net mode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique identifier for the order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', default is 'cross;
+- `params.code`::string, optional: *required in the case of closing cross MARGIN position for Single-currency margin* margin currency EXCHANGE SPECIFIC PARAMETERS
+- `params.autoCxl`::bool, optional: whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
+- `params.tag`::string, optional: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closePosition(self::Okx, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6500,7 +7479,7 @@ function closePosition(self::Okx, symbol, side=nothing, params=Dict())
     clientOrderId = safeString(params, "clientOrderId");
     code = safeString(params, "code");
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("closePosition", params, "cross");
+    (marginMode, params) = self.handleMarginModeAndParams("closePosition", params = params, defaultValue = "cross");
     request = Dict{Symbol, Any}(
         Symbol("instId") => get(market, Symbol("id"), nothing),
         Symbol("mgnMode") => marginMode
@@ -6522,12 +7501,23 @@ function closePosition(self::Okx, symbol, side=nothing, params=Dict())
         request[Symbol("ccy")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostTradeClosePosition(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     order = self.safeDict(data, 0);
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function fetchOption(self::Okx, symbol, params=Dict())
+"""
+fetches option data that is commonly found in an option chain
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+function fetchOption(self::Okx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6536,12 +7526,24 @@ function fetchOption(self::Okx, symbol, params=Dict())
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketTicker(extend(request, params)));
-    result = self.safeList(response, "data", []);
-    chain = self.safeDict(result, 0, Dict{Symbol, Any}());
-    return self.parseOption(chain, nothing, market)
+    result = self.safeList(response, "data", defaultValue = []);
+    chain = self.safeDict(result, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOption(chain, currency = nothing, market = market)
 
 end
-function fetchOptionChain(self::Okx, code, params=Dict())
+"""
+fetches data for an underlying asset that is commonly found in an option chain
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+
+# Arguments
+- `code`::string: base currency to fetch an option chain for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uly`::string, optional: the underlying asset, can be obtained from fetchUnderlyingAssets ()
+
+# Returns
+- a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+function fetchOptionChain(self::Okx, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6551,13 +7553,13 @@ function fetchOptionChain(self::Okx, code, params=Dict())
         Symbol("instType") => "OPTION"
     );
     response = Base.fetch(self.publicGetMarketTickers(extend(request, params)));
-    result = self.safeList(response, "data", []);
-    return self.parseOptionChain(result, nothing, "instId")
+    result = self.safeList(response, "data", defaultValue = []);
+    return self.parseOptionChain(result, currencyKey = nothing, symbolKey = "instId")
 
 end
-function parseOption(self::Okx, chain, currency=nothing, market=nothing)
+function parseOption(self::Okx, chain; currency=nothing, market=nothing)
     marketId = safeString(chain, "instId");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(chain, "ts");
     return Dict{Symbol, Any}(
     Symbol("info") => chain,
@@ -6580,7 +7582,20 @@ function parseOption(self::Okx, chain, currency=nothing, market=nothing)
 )
 
 end
-function fetchConvertQuote(self::Okx, fromCode, toCode, amount=nothing, params=Dict())
+"""
+fetch a quote for converting from one currency to another
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertQuote(self::Okx, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6592,16 +7607,30 @@ function fetchConvertQuote(self::Okx, fromCode, toCode, amount=nothing, params=D
         Symbol("side") => "sell"
     );
     response = Base.fetch(self.privatePostAssetConvertEstimateQuote(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    result = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     fromCurrencyId = safeString(result, "baseCcy", fromCode);
     fromCurrency = self.currency(fromCurrencyId);
     toCurrencyId = safeString(result, "quoteCcy", toCode);
     toCurrency = self.currency(toCurrencyId);
-    return self.parseConversion(result, fromCurrency, toCurrency)
+    return self.parseConversion(result, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function createConvertTrade(self::Okx, id, fromCode, toCode, amount=nothing, params=Dict())
+"""
+convert from one currency to another
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function createConvertTrade(self::Okx, id, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6614,16 +7643,28 @@ function createConvertTrade(self::Okx, id, fromCode, toCode, amount=nothing, par
         Symbol("side") => "sell"
     );
     response = Base.fetch(self.privatePostAssetConvertTrade(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    result = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     fromCurrencyId = safeString(result, "baseCcy", fromCode);
     fromCurrency = self.currency(fromCurrencyId);
     toCurrencyId = safeString(result, "quoteCcy", toCode);
     toCurrency = self.currency(toCurrencyId);
-    return self.parseConversion(result, fromCurrency, toCurrency)
+    return self.parseConversion(result, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function fetchConvertTrade(self::Okx, id, code=nothing, params=Dict())
+"""
+fetch the data for a conversion trade
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+
+# Arguments
+- `id`::string: the id of the trade that you want to fetch
+- `code`::string, optional: the unified currency code of the conversion trade
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTrade(self::Okx, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6631,8 +7672,8 @@ function fetchConvertTrade(self::Okx, id, code=nothing, params=Dict())
         Symbol("clTReqId") => id
     );
     response = Base.fetch(self.privateGetAssetConvertHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    result = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     fromCurrencyId = safeString(result, "baseCcy");
     toCurrencyId = safeString(result, "quoteCcy");
     fromCurrency = nothing;
@@ -6643,10 +7684,24 @@ function fetchConvertTrade(self::Okx, id, code=nothing, params=Dict())
     if functions.ccxtruthy(toCurrencyId != nothing)
         toCurrency = self.currency(toCurrencyId);
     end
-    return self.parseConversion(result, fromCurrency, toCurrency)
+    return self.parseConversion(result, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function fetchConvertTradeHistory(self::Okx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the users history of conversion trades
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest conversion to fetch
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTradeHistory(self::Okx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6659,16 +7714,16 @@ function fetchConvertTradeHistory(self::Okx, code=nothing, since=nothing, limit=
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetAssetConvertHistory(extend(request, params)));
-    rows = self.safeList(response, "data", []);
-    return self.parseConversions(rows, code, "baseCcy", "quoteCcy", since, limit)
+    rows = self.safeList(response, "data", defaultValue = []);
+    return self.parseConversions(rows, code = code, fromCurrencyKey = "baseCcy", toCurrencyKey = "quoteCcy", since = since, limit = limit)
 
 end
-function parseConversion(self::Okx, conversion, fromCurrency=nothing, toCurrency=nothing)
+function parseConversion(self::Okx, conversion; fromCurrency=nothing, toCurrency=nothing)
     timestamp = safeInteger2(conversion, "quoteTime", "ts");
     fromCoin = safeString(conversion, "baseCcy");
-    fromCode = self.safeCurrencyCode(fromCoin, fromCurrency);
+    fromCode = self.safeCurrencyCode(fromCoin, currency = fromCurrency);
     to = safeString(conversion, "quoteCcy");
-    toCode = self.safeCurrencyCode(to, toCurrency);
+    toCode = self.safeCurrencyCode(to, currency = toCurrency);
     return Dict{Symbol, Any}(
     Symbol("info") => conversion,
     Symbol("timestamp") => timestamp,
@@ -6683,13 +7738,23 @@ function parseConversion(self::Okx, conversion, fromCurrency=nothing, toCurrency
 )
 
 end
-function fetchConvertCurrencies(self::Okx, params=Dict())
+"""
+fetches all available currencies that can be converted
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchConvertCurrencies(self::Okx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetAssetConvertCurrencies(params));
     result = Dict{Symbol, Any}();
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
@@ -6737,7 +7802,7 @@ function handleErrors(self::Okx, httpCode, reason, url, method, headers, body, r
     code = safeString(response, "code");
     if functions.ccxtruthy(@functions.ccxt_and((code != "0"), (code != "2")))
         feedback = string(self.id, " ", body);
-        data = self.safeList(response, "data", []);
+        data = self.safeList(response, "data", defaultValue = []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
             error = get(data, i + 1, nothing);
@@ -6754,7 +7819,23 @@ function handleErrors(self::Okx, httpCode, reason, url, method, headers, body, r
     return nothing
 
 end
-function fetchMarginAdjustmentHistory(self::Okx, symbol=nothing, type_var=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches the history of margin added or reduced from contract isolated positions
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+
+# Arguments
+- `symbol`::string, optional: not used by okx fetchMarginAdjustmentHistory
+- `type`::string, optional: "add" or "reduce"
+- `since`::int, optional: the earliest time in ms to fetch margin adjustment history for
+- `limit`::int, optional: the maximum number of entries to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.auto`::bool, optional: true if fetching auto margin increases
+
+# Returns
+- a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function fetchMarginAdjustmentHistory(self::Okx; symbol=nothing, type_var=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6797,12 +7878,31 @@ function fetchMarginAdjustmentHistory(self::Okx, symbol=nothing, type_var=nothin
     else
         throw(BadRequest(string(self.id, " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months")));
     end
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     modifications = self.parseMarginModifications(data);
-    return self.filterBySymbolSinceLimit(modifications, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(modifications, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchPositionsHistory(self::Okx, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
+
+# Arguments
+- `symbols`::string, optional: unified market symbols
+- `since`::int, optional: timestamp in ms of the earliest position to fetch
+- `limit`::int, optional: the maximum amount of records to fetch, default=100, max=100
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: "cross" or "isolated" EXCHANGE SPECIFIC PARAMETERS
+- `params.instType`::string, optional: margin, swap, futures or option
+- `params.type`::string, optional: the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+- `params.posId`::string, optional: position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+- `params.before`::string, optional: timestamp in ms of the earliest position to fetch based on the last update time of the position
+- `params.after`::string, optional: timestamp in ms of the latest position to fetch based on the last update time of the position
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsHistory(self::Okx; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6829,12 +7929,27 @@ function fetchPositionsHistory(self::Okx, symbols=nothing, since=nothing, limit=
         request[Symbol("instType")] = instType;
     end
     response = Base.fetch(self.privateGetAccountPositionsHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    positions = self.parsePositions(data, symbols, params);
-    return self.filterBySinceLimit(positions, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    positions = self.parsePositions(data, symbols = symbols, params = params);
+    return self.filterBySinceLimit(positions, since = since, limit = limit)
 
 end
-function fetchLongShortRatioHistory(self::Okx, symbol=nothing, timeframe=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches the long short ratio history for a unified market symbol
+see: https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the long short ratio for
+- `timeframe`::string, optional: the period for the ratio
+- `since`::int, optional: the earliest time in ms to fetch ratios for
+- `limit`::int, optional: the maximum number of long short ratio structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ratio to fetch
+
+# Returns
+- an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
+"""
+function fetchLongShortRatioHistory(self::Okx; symbol=nothing, timeframe=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6860,7 +7975,7 @@ function fetchLongShortRatioHistory(self::Okx, symbol=nothing, timeframe=nothing
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetRubikStatContractsLongShortAccountRatioContract(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -6871,10 +7986,10 @@ function fetchLongShortRatioHistory(self::Okx, symbol=nothing, timeframe=nothing
 ));
         i += 1
     end
-    return self.parseLongShortRatioHistory(result, market)
+    return self.parseLongShortRatioHistory(result, market = market)
 
 end
-function parseLongShortRatio(self::Okx, info, market=nothing)
+function parseLongShortRatio(self::Okx, info; market=nothing)
     timestamp = safeInteger(info, "timestamp");
     symbol = nothing;
     if functions.ccxtruthy(market != nothing)
@@ -6897,1735 +8012,1735 @@ Base.getproperty(self::Okx, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarketTickers(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketTicker(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketBooks(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/books", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/books"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketBooksFull(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/books-full", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/books-full"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketCandles(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketHistoryCandles(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/history-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/history-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketTrades(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketHistoryTrades(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/history-trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/history-trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketOptionInstrumentFamilyTrades(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/option/instrument-family-trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/option/instrument-family-trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketPlatform24Volume(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/platform-24-volume", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/platform-24-volume"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketCallAuctionDetail(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/call-auction-detail", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/call-auction-detail"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketCallAuctionDetails(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/call-auction-details", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/call-auction-details"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketBooksSbe(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/books-sbe", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/books-sbe"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketBlockTickers(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/block-tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/block-tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketBlockTicker(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/block-ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/block-ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketSprdTicker(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/sprd-ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/sprd-ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketSprdCandles(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/sprd-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/sprd-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketSprdHistoryCandles(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/sprd-history-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/sprd-history-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketIndexTickers(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/index-tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/index-tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketIndexCandles(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/index-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/index-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketHistoryIndexCandles(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/history-index-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/history-index-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketMarkPriceCandles(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/mark-price-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/mark-price-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketHistoryMarkPriceCandles(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/history-mark-price-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/history-mark-price-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketExchangeRate(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/exchange-rate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/exchange-rate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketIndexComponents(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/index-components", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/index-components"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketOpenOracle(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/open-oracle", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/open-oracle"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketBooksLite(self::Okx, params=Dict(), context=Dict())
-    return request(self, "market/books-lite", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/books-lite"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicOptionTrades(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/option-trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/option-trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicBlockTrades(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/block-trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/block-trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicInstruments(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/instruments", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/instruments"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicEstimatedPrice(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/estimated-price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/estimated-price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicDeliveryExerciseHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/delivery-exercise-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/delivery-exercise-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicEstimatedSettlementInfo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/estimated-settlement-info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/estimated-settlement-info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicSettlementHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/settlement-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/settlement-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicFundingRate(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/funding-rate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/funding-rate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicFundingRateHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/funding-rate-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/funding-rate-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicOpenInterest(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/open-interest", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/open-interest"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicPriceLimit(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/price-limit", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/price-limit"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicOptSummary(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/opt-summary", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/opt-summary"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicDiscountRateInterestFreeQuota(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/discount-rate-interest-free-quota", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/discount-rate-interest-free-quota"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicTime(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicMarkPrice(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/mark-price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/mark-price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicPositionTiers(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/position-tiers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/position-tiers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicInterestRateLoanQuota(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/interest-rate-loan-quota", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/interest-rate-loan-quota"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicUnderlying(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/underlying", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/underlying"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicInsuranceFund(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/insurance-fund", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/insurance-fund"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicConvertContractCoin(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/convert-contract-coin", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/convert-contract-coin"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicInstrumentTickBands(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/instrument-tick-bands", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/instrument-tick-bands"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicPremiumHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/premium-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/premium-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicEconomicCalendar(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/economic-calendar", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/economic-calendar"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicMarketDataHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/market-data-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/market-data-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicEventContractEvents(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/event-contract/events", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/event-contract/events"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicEventContractMarkets(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/event-contract/markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/event-contract/markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicEventContractSeries(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/event-contract/series", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/event-contract/series"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPublicVipInterestRateLoanQuota(self::Okx, params=Dict(), context=Dict())
-    return request(self, "public/vip-interest-rate-loan-quota", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/vip-interest-rate-loan-quota"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatTradingDataSupportCoin(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/trading-data/support-coin", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/trading-data/support-coin"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatContractsOpenInterestHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/contracts/open-interest-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/contracts/open-interest-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatTakerVolume(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/taker-volume", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/taker-volume"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatTakerVolumeContract(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/taker-volume-contract", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/taker-volume-contract"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatMarginLoanRatio(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/margin/loan-ratio", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/margin/loan-ratio"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatContractsLongShortAccountRatioContractTopTrader(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/contracts/long-short-account-ratio-contract-top-trader", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/contracts/long-short-account-ratio-contract-top-trader"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatContractsLongShortPositionRatioContractTopTrader(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/contracts/long-short-position-ratio-contract-top-trader", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/contracts/long-short-position-ratio-contract-top-trader"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatContractsLongShortAccountRatioContract(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/contracts/long-short-account-ratio-contract", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/contracts/long-short-account-ratio-contract"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatContractsLongShortAccountRatio(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/contracts/long-short-account-ratio", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/contracts/long-short-account-ratio"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatContractsOpenInterestVolume(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/contracts/open-interest-volume", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/contracts/open-interest-volume"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatOptionOpenInterestVolume(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/option/open-interest-volume", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/option/open-interest-volume"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatOptionOpenInterestVolumeRatio(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/option/open-interest-volume-ratio", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/option/open-interest-volume-ratio"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatOptionOpenInterestVolumeExpiry(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/option/open-interest-volume-expiry", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/option/open-interest-volume-expiry"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatOptionOpenInterestVolumeStrike(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/option/open-interest-volume-strike", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/option/open-interest-volume-strike"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRubikStatOptionTakerBlockVolume(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rubik/stat/option/taker-block-volume", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "rubik/stat/option/taker-block-volume"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSystemStatus(self::Okx, params=Dict(), context=Dict())
-    return request(self, "system/status", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "system/status"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSprdSpreads(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/spreads", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "sprd/spreads"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSprdBooks(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/books", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "sprd/books"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSprdPublicTrades(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/public-trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "sprd/public-trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSprdTicker(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "sprd/ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradingBotGridAiParam(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/ai-param", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/ai-param"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradingBotGridMinInvestment(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/min-investment", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/min-investment"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradingBotPublicRsiBackTesting(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/public/rsi-back-testing", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/public/rsi-back-testing"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradingBotGridGridQuantity(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/grid-quantity", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/grid-quantity"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetExchangeList(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/exchange-list", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/exchange-list"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFinanceStakingDefiEthApyHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/eth/apy-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/eth/apy-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFinanceStakingDefiSolApyHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/sol/apy-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/sol/apy-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFinanceSavingsLendingRateSummary(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/savings/lending-rate-summary", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/savings/lending-rate-summary"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFinanceSavingsLendingRateHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/savings/lending-rate-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/savings/lending-rate-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFinanceFixedLoanLendingOffers(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/fixed-loan/lending-offers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/fixed-loan/lending-offers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFinanceFixedLoanLendingApyHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/fixed-loan/lending-apy-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/fixed-loan/lending-apy-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFinanceFixedLoanPendingLendingVolume(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/fixed-loan/pending-lending-volume", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/fixed-loan/pending-lending-volume"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFinanceSfpDcdProducts(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/products", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/products"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCopytradingPublicConfig(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/public-config", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/public-config"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCopytradingPublicLeadTraders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/public-lead-traders", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/public-lead-traders"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCopytradingPublicWeeklyPnl(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/public-weekly-pnl", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/public-weekly-pnl"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCopytradingPublicPnl(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/public-pnl", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/public-pnl"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCopytradingPublicStats(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/public-stats", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/public-stats"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCopytradingPublicPreferenceCurrency(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/public-preference-currency", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/public-preference-currency"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCopytradingPublicCurrentSubpositions(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/public-current-subpositions", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/public-current-subpositions"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCopytradingPublicSubpositionsHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/public-subpositions-history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/public-subpositions-history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCopytradingPublicCopyTraders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/public-copy-traders", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/public-copy-traders"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSupportAnnouncements(self::Okx, params=Dict(), context=Dict())
-    return request(self, "support/announcements", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "support/announcements"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSupportAnnouncementsTypes(self::Okx, params=Dict(), context=Dict())
-    return request(self, "support/announcements-types", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "support/announcements-types"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSupportAnnouncementTypes(self::Okx, params=Dict(), context=Dict())
-    return request(self, "support/announcement-types", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "support/announcement-types"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostTradingBotGridMinInvestment(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/min-investment", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/min-investment"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRfqCounterparties(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/counterparties", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "rfq/counterparties"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRfqMakerInstrumentSettings(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/maker-instrument-settings", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "rfq/maker-instrument-settings"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRfqMmpConfig(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/mmp-config", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "rfq/mmp-config"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRfqRfqs(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/rfqs", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "rfq/rfqs"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRfqQuotes(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/quotes", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "rfq/quotes"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRfqTrades(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "rfq/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRfqPublicTrades(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/public-trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "rfq/public-trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSprdOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sprd/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSprdOrdersPending(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/orders-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sprd/orders-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSprdOrdersHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/orders-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sprd/orders-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSprdOrdersHistoryArchive(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/orders-history-archive", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sprd/orders-history-archive"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSprdTrades(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sprd/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersPending(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/orders-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/orders-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersHistoryArchive(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/orders-history-archive", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-history-archive"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeFills(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeFillsHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/fills-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/fills-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeFillsArchive(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/fills-archive", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/fills-archive"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/order-algo", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/order-algo"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersAlgoPending(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/orders-algo-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-algo-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersAlgoHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/orders-algo-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders-algo-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeEasyConvertCurrencyList(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/easy-convert-currency-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/easy-convert-currency-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeEasyConvertHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/easy-convert-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/easy-convert-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOneClickRepayCurrencyList(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/one-click-repay-currency-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/one-click-repay-currency-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOneClickRepayCurrencyListV2(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/one-click-repay-currency-list-v2", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/one-click-repay-currency-list-v2"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOneClickRepayHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/one-click-repay-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/one-click-repay-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOneClickRepayHistoryV2(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/one-click-repay-history-v2", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/one-click-repay-history-v2"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeAccountRateLimit(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/account-rate-limit", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/account-rate-limit"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetCurrencies(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/currencies", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/currencies"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetBalances(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetNonTradableAssets(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/non-tradable-assets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/non-tradable-assets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetAssetValuation(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/asset-valuation", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/asset-valuation"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetTransferState(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/transfer-state", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/transfer-state"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetBills(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/bills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/bills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetBillsHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/bills-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/bills-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetDepositLightning(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/deposit-lightning", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/deposit-lightning"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetDepositAddress(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/deposit-address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/deposit-address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetDepositHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/deposit-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/deposit-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetWithdrawalHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/withdrawal-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/withdrawal-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetDepositWithdrawStatus(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/deposit-withdraw-status", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/deposit-withdraw-status"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetMonthlyStatement(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/monthly-statement", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/monthly-statement"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetConvertCurrencies(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/convert/currencies", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/convert/currencies"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetConvertCurrencyPair(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/convert/currency-pair", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/convert/currency-pair"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetConvertHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/convert/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/convert/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountInstruments(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/instruments", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/instruments"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountBalance(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountPositions(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountPositionsHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/positions-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/positions-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountAccountPositionRisk(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/account-position-risk", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/account-position-risk"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountBills(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/bills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/bills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountBillsArchive(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/bills-archive", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/bills-archive"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountBillsHistoryArchive(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/bills-history-archive", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/bills-history-archive"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountConfig(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/config", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/config"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSubtypes(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/subtypes", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subtypes"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountMaxSize(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/max-size", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/max-size"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountMaxAvailSize(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/max-avail-size", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/max-avail-size"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountLeverageInfo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/leverage-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/leverage-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountAdjustLeverageInfo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/adjust-leverage-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/adjust-leverage-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountMaxLoan(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/max-loan", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/max-loan"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountTradeFee(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/trade-fee", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/trade-fee"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountInterestAccrued(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/interest-accrued", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/interest-accrued"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountInterestRate(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/interest-rate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/interest-rate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountMaxWithdrawal(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/max-withdrawal", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/max-withdrawal"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountRiskState(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/risk-state", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/risk-state"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountInterestLimits(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/interest-limits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/interest-limits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSpotBorrowRepayHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/spot-borrow-repay-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/spot-borrow-repay-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountGreeks(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/greeks", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/greeks"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountPositionTiers(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/position-tiers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/position-tiers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSetAccountSwitchPrecheck(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-account-switch-precheck", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/set-account-switch-precheck"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountCollateralAssets(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/collateral-assets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/collateral-assets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountMmpConfig(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/mmp-config", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/mmp-config"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountMovePositionsHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/move-positions-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/move-positions-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountPrecheckSetDeltaNeutral(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/precheck-set-delta-neutral", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/precheck-set-delta-neutral"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountQuickMarginBorrowRepayHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/quick-margin-borrow-repay-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/quick-margin-borrow-repay-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountBorrowRepayHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/borrow-repay-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/borrow-repay-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountVipInterestAccrued(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/vip-interest-accrued", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/vip-interest-accrued"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountVipInterestDeducted(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/vip-interest-deducted", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/vip-interest-deducted"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountVipLoanOrderList(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/vip-loan-order-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/vip-loan-order-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountVipLoanOrderDetail(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/vip-loan-order-detail", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/vip-loan-order-detail"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountFixedLoanBorrowingLimit(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/fixed-loan/borrowing-limit", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/fixed-loan/borrowing-limit"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountFixedLoanBorrowingQuote(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/fixed-loan/borrowing-quote", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/fixed-loan/borrowing-quote"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountFixedLoanBorrowingOrdersList(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/fixed-loan/borrowing-orders-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/fixed-loan/borrowing-orders-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSpotManualBorrowRepay(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/spot-manual-borrow-repay", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/spot-manual-borrow-repay"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSetAutoRepay(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-auto-repay", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/set-auto-repay"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersSubaccountList(self::Okx, params=Dict(), context=Dict())
-    return request(self, "users/subaccount/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/subaccount/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSubaccountBalances(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subaccount/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetSubaccountBalances(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/subaccount/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/subaccount/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSubaccountMaxWithdrawal(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/max-withdrawal", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subaccount/max-withdrawal"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetSubaccountBills(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/subaccount/bills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/subaccount/bills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetSubaccountManagedSubaccountBills(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/subaccount/managed-subaccount-bills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/subaccount/managed-subaccount-bills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersEntrustSubaccountList(self::Okx, params=Dict(), context=Dict())
-    return request(self, "users/entrust-subaccount-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/entrust-subaccount-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSubaccountInterestLimits(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/interest-limits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subaccount/interest-limits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersSubaccountApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "users/subaccount/apikey", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/subaccount/apikey"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotGridOrdersAlgoPending(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/orders-algo-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/orders-algo-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotGridOrdersAlgoHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/orders-algo-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/orders-algo-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotGridOrdersAlgoDetails(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/orders-algo-details", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/orders-algo-details"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotGridSubOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/sub-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/sub-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotGridPositions(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotGridAiParam(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/ai-param", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/ai-param"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotSignalSignals(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/signals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/signals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotSignalOrdersAlgoDetails(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/orders-algo-details", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/orders-algo-details"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotSignalOrdersAlgoPending(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/orders-algo-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/orders-algo-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotSignalOrdersAlgoHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/orders-algo-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/orders-algo-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotSignalPositions(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotSignalPositionsHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/positions-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/positions-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotSignalSubOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/sub-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/sub-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotSignalEventHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/event-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/event-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotRecurringOrdersAlgoPending(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/orders-algo-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/orders-algo-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotRecurringOrdersAlgoHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/orders-algo-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/orders-algo-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotRecurringOrdersAlgoDetails(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/orders-algo-details", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/orders-algo-details"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotRecurringSubOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/sub-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/sub-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotDcaOngoingList(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/ongoing-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/ongoing-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotDcaHistoryList(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/history-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/history-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotDcaOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotDcaPositionDetails(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/position-details", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/position-details"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradingBotDcaCycleList(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/cycle-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/cycle-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceSavingsBalance(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/savings/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/savings/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceSavingsLendingHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/savings/lending-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/savings/lending-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceStakingDefiOffers(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/offers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/offers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceStakingDefiOrdersActive(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/orders-active", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/orders-active"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceStakingDefiOrdersHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/orders-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/orders-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceStakingDefiEthProductInfo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/eth/product-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/eth/product-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceStakingDefiEthBalance(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/eth/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/eth/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceStakingDefiEthPurchaseRedeemHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/eth/purchase-redeem-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/eth/purchase-redeem-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceStakingDefiSolProductInfo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/sol/product-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/sol/product-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceStakingDefiSolBalance(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/sol/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/sol/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceStakingDefiSolPurchaseRedeemHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/sol/purchase-redeem-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/sol/purchase-redeem-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceFlexibleLoanBorrowCurrencies(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/flexible-loan/borrow-currencies", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/flexible-loan/borrow-currencies"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceFlexibleLoanCollateralAssets(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/flexible-loan/collateral-assets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/flexible-loan/collateral-assets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/flexible-loan/max-collateral-redeem-amount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/flexible-loan/max-collateral-redeem-amount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceFlexibleLoanLoanInfo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/flexible-loan/loan-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/flexible-loan/loan-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceFlexibleLoanLoanHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/flexible-loan/loan-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/flexible-loan/loan-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceFlexibleLoanInterestAccrued(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/flexible-loan/interest-accrued", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/flexible-loan/interest-accrued"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingCurrentSubpositions(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/current-subpositions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/current-subpositions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingSubpositionsHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/subpositions-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/subpositions-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingInstruments(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/instruments", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/instruments"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingProfitSharingDetails(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/profit-sharing-details", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/profit-sharing-details"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingTotalProfitSharing(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/total-profit-sharing", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/total-profit-sharing"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingUnrealizedProfitSharingDetails(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/unrealized-profit-sharing-details", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/unrealized-profit-sharing-details"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingTotalUnrealizedProfitSharing(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/total-unrealized-profit-sharing", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/total-unrealized-profit-sharing"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingConfig(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/config", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/config"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingCopySettings(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/copy-settings", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/copy-settings"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingCurrentLeadTraders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/current-lead-traders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/current-lead-traders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingBatchLeverageInfo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/batch-leverage-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/batch-leverage-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCopytradingLeadTradersHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/lead-traders-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "copytrading/lead-traders-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerDmaSubaccountInfo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/dma/subaccount-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/dma/subaccount-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerDmaSubaccountTradeFee(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/dma/subaccount-trade-fee", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/dma/subaccount-trade-fee"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerDmaSubaccountApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/dma/subaccount/apikey", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/dma/subaccount/apikey"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerDmaRebatePerOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/dma/rebate-per-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/dma/rebate-per-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerFdRebatePerOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/fd/rebate-per-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/fd/rebate-per-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerFdIfRebate(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/fd/if-rebate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/fd/if-rebate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerNdInfo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerNdSubaccountInfo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/subaccount-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/subaccount-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerNdSubaccountApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/subaccount/apikey", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/subaccount/apikey"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetBrokerNdSubaccountDepositAddress(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/broker/nd/subaccount-deposit-address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/broker/nd/subaccount-deposit-address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetBrokerNdSubaccountDepositHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/broker/nd/subaccount-deposit-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/broker/nd/subaccount-deposit-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetBrokerNdSubaccountWithdrawalHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/broker/nd/subaccount-withdrawal-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/broker/nd/subaccount-withdrawal-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerNdRebateDaily(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/rebate-daily", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/rebate-daily"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerNdRebatePerOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/rebate-per-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/rebate-per-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceSfpDcdOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceSfpDcdOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceSfpDcdCurrencyPair(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/currency-pair", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/currency-pair"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceSfpDcdOrderStatus(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/order-status", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/order-status"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFinanceSfpDcdOrderHistory(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/order-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/order-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAffiliateInviteeDetail(self::Okx, params=Dict(), context=Dict())
-    return request(self, "affiliate/invitee/detail", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "affiliate/invitee/detail"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersPartnerIfRebate(self::Okx, params=Dict(), context=Dict())
-    return request(self, "users/partner/if-rebate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/partner/if-rebate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSupportAnnouncements(self::Okx, params=Dict(), context=Dict())
-    return request(self, "support/announcements", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "support/announcements"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqCreateRfq(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/create-rfq", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/create-rfq"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqCancelRfq(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/cancel-rfq", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/cancel-rfq"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqCancelBatchRfqs(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/cancel-batch-rfqs", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/cancel-batch-rfqs"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqCancelAllRfqs(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/cancel-all-rfqs", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/cancel-all-rfqs"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqExecuteQuote(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/execute-quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/execute-quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqMakerInstrumentSettings(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/maker-instrument-settings", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/maker-instrument-settings"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqMmpReset(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/mmp-reset", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/mmp-reset"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqMmpConfig(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/mmp-config", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/mmp-config"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqCreateQuote(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/create-quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/create-quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqCancelQuote(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/cancel-quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/cancel-quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqCancelBatchQuotes(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/cancel-batch-quotes", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/cancel-batch-quotes"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqCancelAllQuotes(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/cancel-all-quotes", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/cancel-all-quotes"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRfqCancelAllAfter(self::Okx, params=Dict(), context=Dict())
-    return request(self, "rfq/cancel-all-after", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rfq/cancel-all-after"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSprdOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sprd/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSprdCancelOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/cancel-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sprd/cancel-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSprdMassCancel(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/mass-cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sprd/mass-cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSprdAmendOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/amend-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sprd/amend-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSprdCancelAllAfter(self::Okx, params=Dict(), context=Dict())
-    return request(self, "sprd/cancel-all-after", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sprd/cancel-all-after"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeBatchOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/batch-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/batch-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancelOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancelBatchOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-batch-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel-batch-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeAmendOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/amend-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/amend-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeAmendBatchOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/amend-batch-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/amend-batch-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeClosePosition(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/close-position", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/close-position"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeFillsArchive(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/fills-archive", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/fills-archive"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancelAdvanceAlgos(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-advance-algos", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel-advance-algos"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeEasyConvert(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/easy-convert", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/easy-convert"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeOneClickRepay(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/one-click-repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/one-click-repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeOneClickRepayV2(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/one-click-repay-v2", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/one-click-repay-v2"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeMassCancel(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/mass-cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/mass-cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancelAllAfter(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-all-after", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel-all-after"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeOrderPrecheck(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/order-precheck", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order-precheck"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancelAlgos(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-algos", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel-algos"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeAmendAlgos(self::Okx, params=Dict(), context=Dict())
-    return request(self, "trade/amend-algos", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/amend-algos"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetTransfer(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetWithdrawal(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetWithdrawalLightning(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/withdrawal-lightning", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/withdrawal-lightning"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetCancelWithdrawal(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/cancel-withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/cancel-withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetConvertDustAssets(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/convert-dust-assets", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/convert-dust-assets"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetMonthlyStatement(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/monthly-statement", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/monthly-statement"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetConvertEstimateQuote(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/convert/estimate-quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/convert/estimate-quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetConvertTrade(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/convert/trade", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/convert/trade"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountBillsHistoryArchive(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/bills-history-archive", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/bills-history-archive"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetPositionMode(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-position-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-position-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetLeverage(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountPositionMarginBalance(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/position/margin-balance", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/position/margin-balance"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetFeeType(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-fee-type", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-fee-type"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetGreeks(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-greeks", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-greeks"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetIsolatedMode(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-isolated-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-isolated-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSpotManualBorrowRepay(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/spot-manual-borrow-repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/spot-manual-borrow-repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetAutoRepay(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-auto-repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-auto-repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountQuickMarginBorrowRepay(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/quick-margin-borrow-repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/quick-margin-borrow-repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountBorrowRepay(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/borrow-repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/borrow-repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSimulatedMargin(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/simulated_margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/simulated_margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountPositionBuilder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/position-builder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/position-builder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountPositionBuilderGraph(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/position-builder-graph", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/position-builder-graph"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetRiskOffsetType(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-riskOffset-type", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-riskOffset-type"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetRiskOffsetAmt(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-riskOffset-amt", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-riskOffset-amt"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountActivateOption(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/activate-option", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/activate-option"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetAutoLoan(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-auto-loan", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-auto-loan"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountAccountLevelSwitchPreset(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/account-level-switch-preset", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/account-level-switch-preset"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetAccountLevel(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-account-level", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-account-level"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetCollateralAssets(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-collateral-assets", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-collateral-assets"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountMmpReset(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/mmp-reset", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/mmp-reset"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountMmpConfig(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/mmp-config", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/mmp-config"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountFixedLoanBorrowingOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/fixed-loan/borrowing-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/fixed-loan/borrowing-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountFixedLoanAmendBorrowingOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/fixed-loan/amend-borrowing-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/fixed-loan/amend-borrowing-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountFixedLoanManualReborrow(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/fixed-loan/manual-reborrow", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/fixed-loan/manual-reborrow"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountFixedLoanRepayBorrowingOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/fixed-loan/repay-borrowing-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/fixed-loan/repay-borrowing-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountMovePositions(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/move-positions", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/move-positions"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetAutoEarn(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-auto-earn", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-auto-earn"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetSettleCurrency(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-settle-currency", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-settle-currency"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSetTradingConfig(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/set-trading-config", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/set-trading-config"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountDemoAdjustBalance(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/demo-adjust-balance", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/demo-adjust-balance"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetSubaccountTransfer(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/subaccount/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/subaccount/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSubaccountSetLoanAllocation(self::Okx, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/set-loan-allocation", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subaccount/set-loan-allocation"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsersSubaccountCreateSubaccount(self::Okx, params=Dict(), context=Dict())
-    return request(self, "users/subaccount/create-subaccount", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "users/subaccount/create-subaccount"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsersSubaccountApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "users/subaccount/apikey", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "users/subaccount/apikey"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsersSubaccountModifyApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "users/subaccount/modify-apikey", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "users/subaccount/modify-apikey"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsersSubaccountSubaccountApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "users/subaccount/subaccount-apikey", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "users/subaccount/subaccount-apikey"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsersSubaccountDeleteApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "users/subaccount/delete-apikey", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "users/subaccount/delete-apikey"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsersSubaccountSetTransferOut(self::Okx, params=Dict(), context=Dict())
-    return request(self, "users/subaccount/set-transfer-out", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "users/subaccount/set-transfer-out"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridCopyOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/copy-order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/copy-order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridAmendAlgoBasicParam(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/amend-algo-basic-param", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/amend-algo-basic-param"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridAmendOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/amend-order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/amend-order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridStopOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/stop-order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/stop-order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridClosePosition(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/close-position", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/close-position"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridCancelCloseOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/cancel-close-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/cancel-close-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridOrderInstantTrigger(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/order-instant-trigger", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/order-instant-trigger"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridWithdrawIncome(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/withdraw-income", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/withdraw-income"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridComputeMarginBalance(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/compute-margin-balance", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/compute-margin-balance"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridMarginBalance(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/margin-balance", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/margin-balance"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridMinInvestment(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/min-investment", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/min-investment"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotGridAdjustInvestment(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/grid/adjust-investment", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/grid/adjust-investment"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotSignalCreateSignal(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/create-signal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/create-signal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotSignalOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotSignalStopOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/stop-order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/stop-order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotSignalMarginBalance(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/margin-balance", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/margin-balance"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotSignalAmendTPSL(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/amendTPSL", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/amendTPSL"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotSignalSetInstruments(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/set-instruments", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/set-instruments"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotSignalClosePosition(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/close-position", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/close-position"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotSignalSubOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/sub-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/sub-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotSignalCancelSubOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/signal/cancel-sub-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/signal/cancel-sub-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotRecurringOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotRecurringAmendOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/amend-order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/amend-order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotRecurringStopOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/stop-order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/stop-order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotDcaCreate(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotDcaAmendOrderAlgo(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/amend-order-algo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/amend-order-algo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotDcaStop(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/stop", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/stop"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotDcaOrdersManualBuy(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/orders/manual-buy", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/orders/manual-buy"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotDcaSettingsReinvestment(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/settings/reinvestment", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/settings/reinvestment"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotDcaSettingsTakeProfit(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/settings/take-profit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/settings/take-profit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotDcaMarginAdd(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/margin/add", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/margin/add"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotDcaMarginReduce(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/dca/margin/reduce", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/dca/margin/reduce"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotRecurringAddInvestment(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/add-investment", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/add-investment"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotRecurringAmendPriceRange(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/amend-price-range", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/amend-price-range"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotRecurringAmendRecurringAmount(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/amend-recurring-amount", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/amend-recurring-amount"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotRecurringAmendRecurringTime(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/amend-recurring-time", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/amend-recurring-time"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotRecurringPause(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/pause", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/pause"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradingBotRecurringRestart(self::Okx, params=Dict(), context=Dict())
-    return request(self, "tradingBot/recurring/restart", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradingBot/recurring/restart"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceSavingsPurchaseRedempt(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/savings/purchase-redempt", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/savings/purchase-redempt"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceSavingsSetLendingRate(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/savings/set-lending-rate", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/savings/set-lending-rate"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceStakingDefiPurchase(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/purchase", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/purchase"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceStakingDefiRedeem(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/redeem", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/redeem"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceStakingDefiCancel(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceStakingDefiEthPurchase(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/eth/purchase", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/eth/purchase"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceStakingDefiEthRedeem(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/eth/redeem", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/eth/redeem"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceStakingDefiEthCancelRedeem(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/eth/cancel-redeem", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/eth/cancel-redeem"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceStakingDefiSolPurchase(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/sol/purchase", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/sol/purchase"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceStakingDefiSolRedeem(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/sol/redeem", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/sol/redeem"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceStakingDefiSolCancelRedeem(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/staking-defi/sol/cancel-redeem", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/staking-defi/sol/cancel-redeem"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceFlexibleLoanMaxLoan(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/flexible-loan/max-loan", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/flexible-loan/max-loan"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceFlexibleLoanAdjustCollateral(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/flexible-loan/adjust-collateral", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/flexible-loan/adjust-collateral"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingAlgoOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/algo-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/algo-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingCloseSubposition(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/close-subposition", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/close-subposition"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingSetInstruments(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/set-instruments", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/set-instruments"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingAmendProfitSharingRatio(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/amend-profit-sharing-ratio", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/amend-profit-sharing-ratio"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingFirstCopySettings(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/first-copy-settings", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/first-copy-settings"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingAmendCopySettings(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/amend-copy-settings", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/amend-copy-settings"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingStopCopyTrading(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/stop-copy-trading", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/stop-copy-trading"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCopytradingBatchSetLeverage(self::Okx, params=Dict(), context=Dict())
-    return request(self, "copytrading/batch-set-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "copytrading/batch-set-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerNdCreateSubaccount(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/create-subaccount", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/create-subaccount"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerNdDeleteSubaccount(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/delete-subaccount", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/delete-subaccount"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerNdSubaccountApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/subaccount/apikey", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/subaccount/apikey"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerNdSubaccountModifyApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/subaccount/modify-apikey", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/subaccount/modify-apikey"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerNdSubaccountDeleteApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/subaccount/delete-apikey", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/subaccount/delete-apikey"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerNdSetSubaccountLevel(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/set-subaccount-level", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/set-subaccount-level"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerNdSetSubaccountFeeRate(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/set-subaccount-fee-rate", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/set-subaccount-fee-rate"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerNdSetSubaccountAssets(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/set-subaccount-assets", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/set-subaccount-assets"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetBrokerNdSubaccountDepositAddress(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/broker/nd/subaccount-deposit-address", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/broker/nd/subaccount-deposit-address"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetBrokerNdModifySubaccountDepositAddress(self::Okx, params=Dict(), context=Dict())
-    return request(self, "asset/broker/nd/modify-subaccount-deposit-address", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/broker/nd/modify-subaccount-deposit-address"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerNdRebatePerOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/rebate-per-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/rebate-per-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceSfpDcdQuote(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceSfpDcdOrder(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceSfpDcdTrade(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/trade", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/trade"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceSfpDcdRedeemQuote(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/redeem-quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/redeem-quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFinanceSfpDcdRedeem(self::Okx, params=Dict(), context=Dict())
-    return request(self, "finance/sfp/dcd/redeem", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "finance/sfp/dcd/redeem"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerNdReportSubaccountIp(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/nd/report-subaccount-ip", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/report-subaccount-ip"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerDmaSubaccountApikey(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/dma/subaccount/apikey", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/dma/subaccount/apikey"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerDmaTrades(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/dma/trades", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/dma/trades"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBrokerFdRebatePerOrders(self::Okx, params=Dict(), context=Dict())
-    return request(self, "broker/fd/rebate-per-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/fd/rebate-per-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Okx(; kwargs...)
@@ -8689,3 +9804,1366 @@ function Okx(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Okx_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://www.okx.com/docs-v5/en/#status-get-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Okx_fetchStatus
+
+function __ccxt_doc_Okx_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-system-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Okx_fetchTime
+
+function __ccxt_doc_Okx_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Okx_fetchAccounts
+
+function __ccxt_doc_Okx_fetchMarkets() end
+"""
+retrieves data on all markets for okx
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Okx_fetchMarkets
+
+function __ccxt_doc_Okx_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Okx_fetchCurrencies
+
+function __ccxt_doc_Okx_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Okx_fetchOrderBook
+
+function __ccxt_doc_Okx_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Okx_fetchTicker
+
+function __ccxt_doc_Okx_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Okx_fetchTickers
+
+function __ccxt_doc_Okx_fetchMarkPrice() end
+"""
+fetches mark price for the market
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Okx_fetchMarkPrice
+
+function __ccxt_doc_Okx_fetchMarkPrices() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Okx_fetchMarkPrices
+
+function __ccxt_doc_Okx_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
+- `params.paginate`::bool, optional: *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Okx_fetchTrades
+
+function __ccxt_doc_Okx_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
+see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.type`::string, optional: "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Okx_fetchOHLCV
+
+function __ccxt_doc_Okx_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Okx_fetchFundingRateHistory
+
+function __ccxt_doc_Okx_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Okx_fetchTradingFee
+
+function __ccxt_doc_Okx_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: wallet type, ['funding' or 'trading'] default is 'trading'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Okx_fetchBalance
+
+function __ccxt_doc_Okx_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Okx_createMarketSellOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_createMarketSellOrderWithCost
+
+function __ccxt_doc_Okx_createOrder() end
+"""
+create a trade order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.reduceOnly`::bool, optional: a mark to reduce the position size for margin, swap and future orders
+- `params.postOnly`::bool, optional: true to place a post only order
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.takeProfit.price`::float, optional: used for take profit limit orders, not used for take profit market price orders
+- `params.takeProfit.type`::string, optional: 'market' or 'limit' used to specify the take profit price type
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.stopLoss.price`::float, optional: used for stop loss limit orders, not used for stop loss market price orders
+- `params.stopLoss.type`::string, optional: 'market' or 'limit' used to specify the stop loss price type
+- `params.positionSide`::string, optional: if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
+- `params.trailingPercent`::string, optional: the percent to trail away from the current market price
+- `params.tpOrdKind`::string, optional: 'condition' or 'limit', the default is 'condition'
+- `params.hedged`::bool, optional: *swap and future only* true for hedged mode, false for one way mode
+- `params.marginMode`::string, optional: 'cross' or 'isolated', the default is 'cross'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_createOrder
+
+function __ccxt_doc_Okx_createOrders() end
+"""
+create a list of trade orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_createOrders
+
+function __ccxt_doc_Okx_editOrder() end
+"""
+edit a trade order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-amend-algo-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, uses id if not passed
+- `params.stopLossPrice`::float, optional: stop loss trigger price
+- `params.newSlOrdPx`::float, optional: the stop loss order price, set to stopLossPrice if the type is market
+- `params.newSlTriggerPxType`::string, optional: 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
+- `params.takeProfitPrice`::float, optional: take profit trigger price
+- `params.newTpOrdPx`::float, optional: the take profit order price, set to takeProfitPrice if the type is market
+- `params.newTpTriggerPxType`::string, optional: 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.stopLoss.price`::float, optional: used for stop loss limit orders, not used for stop loss market price orders
+- `params.stopLoss.type`::string, optional: 'market' or 'limit' used to specify the stop loss price type
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.takeProfit.price`::float, optional: used for take profit limit orders, not used for take profit market price orders
+- `params.takeProfit.type`::string, optional: 'market' or 'limit' used to specify the take profit price type
+- `params.newTpOrdKind`::string, optional: 'condition' or 'limit', the default is 'condition'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_editOrder
+
+function __ccxt_doc_Okx_cancelOrder() end
+"""
+cancels an open order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if trigger orders
+- `params.trailing`::bool, optional: set to true if you want to cancel a trailing order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_cancelOrder
+
+function __ccxt_doc_Okx_cancelOrders() end
+"""
+cancel multiple orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/trigger order
+- `params.trailing`::bool, optional: set to true if you want to cancel trailing orders
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_cancelOrders
+
+function __ccxt_doc_Okx_cancelOrdersForSymbols() end
+"""
+cancel multiple orders for multiple symbols
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+
+# Arguments
+- `orders`::array: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/trigger order
+- `params.trailing`::bool, optional: set to true if you want to cancel trailing orders
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_cancelOrdersForSymbols
+
+function __ccxt_doc_Okx_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Okx_cancelAllOrdersAfter
+
+function __ccxt_doc_Okx_fetchOrder() end
+"""
+fetch an order by the id
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-details
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-details
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra and exchange specific parameters
+- `params.trigger`::bool, optional: true if fetching trigger orders
+
+# Returns
+- [an order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_fetchOrder
+
+function __ccxt_doc_Okx_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-list
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if fetching trigger or conditional orders
+- `params.ordType`::string, optional: market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
+- `params.algoId`::string, optional: Algo ID "'433845797218942976'"
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_fetchOpenOrders
+
+function __ccxt_doc_Okx_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if fetching trigger or conditional orders
+- `params.ordType`::string, optional: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+- `params.algoId`::string, optional: Algo ID "'433845797218942976'"
+- `params.until`::int, optional: timestamp in ms to fetch orders for
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_fetchCanceledOrders
+
+function __ccxt_doc_Okx_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
+see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if fetching trigger or conditional orders
+- `params.ordType`::string, optional: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+- `params.algoId`::string, optional: Algo ID "'433845797218942976'"
+- `params.until`::int, optional: timestamp in ms to fetch orders for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.method`::string, optional: method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Okx_fetchClosedOrders
+
+function __ccxt_doc_Okx_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: Timestamp in ms of the latest time to retrieve trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Okx_fetchMyTrades
+
+function __ccxt_doc_Okx_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Okx_fetchOrderTrades
+
+function __ccxt_doc_Okx_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered balance of the user
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Okx_fetchLedger
+
+function __ccxt_doc_Okx_fetchDepositAddressesByNetwork() end
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+__ccxt_doc_Okx_fetchDepositAddressesByNetwork
+
+function __ccxt_doc_Okx_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the network name for the deposit address
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Okx_fetchDepositAddress
+
+function __ccxt_doc_Okx_withdraw() end
+"""
+make a withdrawal
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Okx_withdraw
+
+function __ccxt_doc_Okx_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Okx_fetchDeposits
+
+function __ccxt_doc_Okx_fetchDeposit() end
+"""
+fetch data on a currency deposit via the deposit id
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
+
+# Arguments
+- `id`::string: deposit id
+- `code`::string: filter by currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Okx_fetchDeposit
+
+function __ccxt_doc_Okx_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Okx_fetchWithdrawals
+
+function __ccxt_doc_Okx_fetchWithdrawal() end
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+
+# Arguments
+- `id`::string: withdrawal id
+- `code`::string: unified currency code of the currency withdrawn, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Okx_fetchWithdrawal
+
+function __ccxt_doc_Okx_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Okx_fetchLeverage
+
+function __ccxt_doc_Okx_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.instType`::string, optional: MARGIN, SWAP, FUTURES, OPTION
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Okx_fetchPosition
+
+function __ccxt_doc_Okx_fetchPositions() end
+"""
+fetch all open positions
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history history
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.instType`::string, optional: MARGIN, SWAP, FUTURES, OPTION
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Okx_fetchPositions
+
+function __ccxt_doc_Okx_fetchPositionsForSymbol() end
+"""
+fetch all open positions for specific symbol
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.instType`::string, optional: MARGIN (if needed)
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Okx_fetchPositionsForSymbol
+
+function __ccxt_doc_Okx_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Okx_transfer
+
+function __ccxt_doc_Okx_fetchTransfer() end
+"""
+fetch a transfer
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state
+
+# Arguments
+- `id`::string: transfer id
+- `code`::string, optional: unified currency code of the currency transferred
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Okx_fetchTransfer
+
+function __ccxt_doc_Okx_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Okx_fetchTransfers
+
+function __ccxt_doc_Okx_fetchFundingInterval() end
+"""
+fetch the current funding rate interval
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Okx_fetchFundingInterval
+
+function __ccxt_doc_Okx_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Okx_fetchFundingRate
+
+function __ccxt_doc_Okx_fetchFundingRates() end
+"""
+fetches the current funding rates for multiple symbols
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [funding rates structure]{@link https://docs.ccxt.com/?id=funding-rates-structure}
+"""
+__ccxt_doc_Okx_fetchFundingRates
+
+function __ccxt_doc_Okx_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Okx_fetchFundingHistory
+
+function __ccxt_doc_Okx_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+- `params.posSide`::string, optional: 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Okx_setLeverage
+
+function __ccxt_doc_Okx_fetchPositionMode() end
+"""
+fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountId`::string, optional: if you have multiple accounts, you must specify the account id to fetch the position mode
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+__ccxt_doc_Okx_fetchPositionMode
+
+function __ccxt_doc_Okx_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
+
+# Arguments
+- `hedged`::bool: set to true to use long_short_mode, false for net_mode
+- `symbol`::string: not used by okx setPositionMode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Okx_setPositionMode
+
+function __ccxt_doc_Okx_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::int, optional: leverage
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Okx_setMarginMode
+
+function __ccxt_doc_Okx_fetchCrossBorrowRates() end
+"""
+fetch the borrow interest rates of all currencies
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Okx_fetchCrossBorrowRates
+
+function __ccxt_doc_Okx_fetchCrossBorrowRate() end
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Okx_fetchCrossBorrowRate
+
+function __ccxt_doc_Okx_fetchBorrowRateHistories() end
+"""
+retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+see: https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest borrowRate, default is undefined
+- `limit`::int, optional: max number of borrow rate prices to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
+"""
+__ccxt_doc_Okx_fetchBorrowRateHistories
+
+function __ccxt_doc_Okx_fetchBorrowRateHistory() end
+"""
+retrieves a history of a currencies borrow interest rate at specific time slots
+see: https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: timestamp for the earliest borrow rate
+- `limit`::int, optional: the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Okx_fetchBorrowRateHistory
+
+function __ccxt_doc_Okx_reduceMargin() end
+"""
+remove margin from a position
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Okx_reduceMargin
+
+function __ccxt_doc_Okx_addMargin() end
+"""
+add margin
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Okx_addMargin
+
+function __ccxt_doc_Okx_fetchMarketLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+__ccxt_doc_Okx_fetchMarketLeverageTiers
+
+function __ccxt_doc_Okx_fetchBorrowInterest() end
+"""
+fetch the interest owed b the user for borrowing currency for margin trading
+see: https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
+
+# Arguments
+- `code`::string: the unified currency code for the currency of the interest
+- `symbol`::string: the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
+- `since`::int, optional: timestamp in ms of the earliest time to receive interest records for
+- `limit`::int, optional: the number of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure} to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.type`::int, optional: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+__ccxt_doc_Okx_fetchBorrowInterest
+
+function __ccxt_doc_Okx_borrowCrossMargin() end
+"""
+create a loan to borrow margin (need to be VIP 5 and above)
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Okx_borrowCrossMargin
+
+function __ccxt_doc_Okx_repayCrossMargin() end
+"""
+repay borrowed margin and interest
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.id`::string, optional: the order ID of borrowing, it is necessary while repaying
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Okx_repayCrossMargin
+
+function __ccxt_doc_Okx_fetchOpenInterest() end
+"""
+Retrieves the open interest of a currency
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Okx_fetchOpenInterest
+
+function __ccxt_doc_Okx_fetchOpenInterests() end
+"""
+Retrieves the open interests of some currencies
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+
+# Arguments
+- `symbols`::array: Unified CCXT market symbols
+- `params`::object, optional: exchange specific parameters
+- `params.instType`::string: Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+- `params.uly`::string: Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+- `params.instFamily`::string: Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+
+# Returns
+- an dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Okx_fetchOpenInterests
+
+function __ccxt_doc_Okx_fetchOpenInterestHistory() end
+"""
+Retrieves the open interest history of a currency
+see: https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
+see: https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
+
+# Arguments
+- `symbol`::string: Unified CCXT currency code or unified symbol
+- `timeframe`::string: "5m", "1h", or "1d" for option only "1d" or "8h"
+- `since`::int, optional: The time in ms of the earliest record to retrieve as a unix timestamp
+- `limit`::int, optional: Not used by okx, but parsed internally by CCXT
+- `params`::object, optional: Exchange specific parameters
+- `params.until`::int, optional: The time in ms of the latest record to retrieve as a unix timestamp
+
+# Returns
+- An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Okx_fetchOpenInterestHistory
+
+function __ccxt_doc_Okx_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Okx_fetchDepositWithdrawFees
+
+function __ccxt_doc_Okx_fetchSettlementHistory() end
+"""
+fetches historical settlement records
+see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-delivery-exercise-history
+
+# Arguments
+- `symbol`::string: unified market symbol to fetch the settlement history for
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+__ccxt_doc_Okx_fetchSettlementHistory
+
+function __ccxt_doc_Okx_fetchUnderlyingAssets() end
+"""
+fetches the market ids of underlying assets for a specific contract market type
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+
+# Arguments
+- `params`::object, optional: exchange specific params
+- `params.type`::string, optional: the contract market type, 'option', 'swap' or 'future', the default is 'option'
+
+# Returns
+- a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
+"""
+__ccxt_doc_Okx_fetchUnderlyingAssets
+
+function __ccxt_doc_Okx_fetchGreeks() end
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Okx_fetchGreeks
+
+function __ccxt_doc_Okx_fetchAllGreeks() end
+"""
+fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uly`::string: Underlying, either uly or instFamily is required
+- `params.instFamily`::string: Instrument family, either uly or instFamily is required
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Okx_fetchAllGreeks
+
+function __ccxt_doc_Okx_closePosition() end
+"""
+closes open positions for a market
+see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: 'buy' or 'sell', leave as undefined in net mode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique identifier for the order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', default is 'cross;
+- `params.code`::string, optional: *required in the case of closing cross MARGIN position for Single-currency margin* margin currency EXCHANGE SPECIFIC PARAMETERS
+- `params.autoCxl`::bool, optional: whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
+- `params.tag`::string, optional: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Okx_closePosition
+
+function __ccxt_doc_Okx_fetchOption() end
+"""
+fetches option data that is commonly found in an option chain
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+__ccxt_doc_Okx_fetchOption
+
+function __ccxt_doc_Okx_fetchOptionChain() end
+"""
+fetches data for an underlying asset that is commonly found in an option chain
+see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+
+# Arguments
+- `code`::string: base currency to fetch an option chain for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uly`::string, optional: the underlying asset, can be obtained from fetchUnderlyingAssets ()
+
+# Returns
+- a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+__ccxt_doc_Okx_fetchOptionChain
+
+function __ccxt_doc_Okx_fetchConvertQuote() end
+"""
+fetch a quote for converting from one currency to another
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Okx_fetchConvertQuote
+
+function __ccxt_doc_Okx_createConvertTrade() end
+"""
+convert from one currency to another
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Okx_createConvertTrade
+
+function __ccxt_doc_Okx_fetchConvertTrade() end
+"""
+fetch the data for a conversion trade
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+
+# Arguments
+- `id`::string: the id of the trade that you want to fetch
+- `code`::string, optional: the unified currency code of the conversion trade
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Okx_fetchConvertTrade
+
+function __ccxt_doc_Okx_fetchConvertTradeHistory() end
+"""
+fetch the users history of conversion trades
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest conversion to fetch
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Okx_fetchConvertTradeHistory
+
+function __ccxt_doc_Okx_fetchConvertCurrencies() end
+"""
+fetches all available currencies that can be converted
+see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Okx_fetchConvertCurrencies
+
+function __ccxt_doc_Okx_fetchMarginAdjustmentHistory() end
+"""
+fetches the history of margin added or reduced from contract isolated positions
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+
+# Arguments
+- `symbol`::string, optional: not used by okx fetchMarginAdjustmentHistory
+- `type`::string, optional: "add" or "reduce"
+- `since`::int, optional: the earliest time in ms to fetch margin adjustment history for
+- `limit`::int, optional: the maximum number of entries to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.auto`::bool, optional: true if fetching auto margin increases
+
+# Returns
+- a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Okx_fetchMarginAdjustmentHistory
+
+function __ccxt_doc_Okx_fetchPositionsHistory() end
+"""
+fetches historical positions
+see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
+
+# Arguments
+- `symbols`::string, optional: unified market symbols
+- `since`::int, optional: timestamp in ms of the earliest position to fetch
+- `limit`::int, optional: the maximum amount of records to fetch, default=100, max=100
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: "cross" or "isolated" EXCHANGE SPECIFIC PARAMETERS
+- `params.instType`::string, optional: margin, swap, futures or option
+- `params.type`::string, optional: the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+- `params.posId`::string, optional: position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+- `params.before`::string, optional: timestamp in ms of the earliest position to fetch based on the last update time of the position
+- `params.after`::string, optional: timestamp in ms of the latest position to fetch based on the last update time of the position
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Okx_fetchPositionsHistory
+
+function __ccxt_doc_Okx_fetchLongShortRatioHistory() end
+"""
+fetches the long short ratio history for a unified market symbol
+see: https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the long short ratio for
+- `timeframe`::string, optional: the period for the ratio
+- `since`::int, optional: the earliest time in ms to fetch ratios for
+- `limit`::int, optional: the maximum number of long short ratio structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ratio to fetch
+
+# Returns
+- an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
+"""
+__ccxt_doc_Okx_fetchLongShortRatioHistory

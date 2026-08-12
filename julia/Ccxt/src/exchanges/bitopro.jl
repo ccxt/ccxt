@@ -429,14 +429,24 @@ function describe(self::Bitopro, )
 ))
 
 end
-function fetchCurrencies(self::Bitopro, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bitopro; params=Dict())
     response = Base.fetch(self.publicGetProvisioningCurrencies(params));
-    currencies = self.safeList(response, "data", []);
+    currencies = self.safeList(response, "data", defaultValue = []);
     return self.parseCurrencies(currencies)
 
 end
 function parseCurrency(self::Bitopro, rawCurrency)
-    fiatCurrencies = self.handleOption("fetchCurrencies", "fiatCurrencies", []);
+    fiatCurrencies = self.handleOption("fetchCurrencies", "fiatCurrencies", defaultValue = []);
     currencyId = safeString(rawCurrency, "currency");
     code = self.safeCurrencyCode(currencyId);
     deposit = self.safeBool(rawCurrency, "deposit");
@@ -467,9 +477,19 @@ function parseCurrency(self::Bitopro, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Bitopro, params=Dict())
+"""
+retrieves data on all markets for bitopro
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitopro; params=Dict())
     response = Base.fetch(self.publicGetProvisioningTradingPairs());
-    markets = self.safeList(response, "data", []);
+    markets = self.safeList(response, "data", defaultValue = []);
     return self.parseMarkets(markets)
 
 end
@@ -503,7 +523,7 @@ function parseMarket(self::Bitopro, market)
             Symbol("max") => nothing
         )
     );
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("uppercaseId") => uppercaseId,
     Symbol("symbol") => symbol,
@@ -529,8 +549,8 @@ function parseMarket(self::Bitopro, market)
     Symbol("optionType") => nothing,
     Symbol("limits") => limits,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "quotePrecision"))),
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "basePrecision")))
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quotePrecision"))),
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "basePrecision")))
     ),
     Symbol("active") => active,
     Symbol("created") => nothing,
@@ -538,9 +558,9 @@ function parseMarket(self::Bitopro, market)
 ))
 
 end
-function parseTicker(self::Bitopro, ticker, market=nothing)
+function parseTicker(self::Bitopro, ticker; market=nothing)
     marketId = safeString(ticker, "pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = safeString(market, "symbol");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -563,10 +583,21 @@ function parseTicker(self::Bitopro, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "volume24hr"),
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bitopro, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bitopro, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -575,20 +606,43 @@ function fetchTicker(self::Bitopro, symbol, params=Dict())
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTickersPair(extend(request, params)));
-    ticker = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTicker(ticker, market)
+    ticker = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(ticker, market = market)
 
 end
-function fetchTickers(self::Bitopro, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bitopro; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetTickers());
-    tickers = self.safeList(response, "data", []);
-    return self.parseTickers(tickers, symbols)
+    tickers = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function fetchOrderBook(self::Bitopro, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_orderbook_data.md
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitopro, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -600,10 +654,10 @@ function fetchOrderBook(self::Bitopro, symbol, limit=nothing, params=Dict())
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetOrderBookPair(extend(request, params)));
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), nothing, "bids", "asks", "price", "amount")
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "amount")
 
 end
-function parseTrade(self::Bitopro, trade, market=nothing)
+function parseTrade(self::Bitopro, trade; market=nothing)
     id = safeString(trade, "tradeId");
     orderId = safeString(trade, "orderId");
     timestamp = nothing;
@@ -613,7 +667,7 @@ function parseTrade(self::Bitopro, trade, market=nothing)
         timestamp = safeInteger(trade, "timestamp");
     end
     marketId = safeString(trade, "pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = safeString(market, "symbol");
     price = safeString(trade, "price");
     type_var = safeStringLower(trade, "type");
@@ -663,10 +717,23 @@ function parseTrade(self::Bitopro, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bitopro, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trades_data.md
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bitopro, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -675,16 +742,26 @@ function fetchTrades(self::Bitopro, symbol, since=nothing, limit=nothing, params
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTradesPair(extend(request, params)));
-    trades = self.safeList(response, "data", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFees(self::Bitopro, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_limitations_and_fees.md
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Bitopro; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetProvisioningLimitationsAndFees(params));
-    tradingFeeRate = self.safeDict(response, "tradingFeeRate", Dict{Symbol, Any}());
+    tradingFeeRate = self.safeDict(response, "tradingFeeRate", defaultValue = Dict{Symbol, Any}());
     first_var = safeValue(tradingFeeRate, 0);
     result = Dict{Symbol, Any}();
     maker = self.safeNumber(first_var, "makerFee");
@@ -706,11 +783,25 @@ function fetchTradingFees(self::Bitopro, params=Dict())
     return result
 
 end
-function parseOHLCV(self::Bitopro, ohlcv, market=nothing)
+function parseOHLCV(self::Bitopro, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "timestamp"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchOHLCV(self::Bitopro, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ohlc_data.md
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bitopro, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -737,8 +828,8 @@ function fetchOHLCV(self::Bitopro, symbol, timeframe="1m", since=nothing, limit=
         request[Symbol("to")] = self.sum(get(request, Symbol("from"), nothing), limit * timeframeInSeconds);
     end
     response = Base.fetch(self.publicGetTradingHistoryPair(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    sparse = self.parseOHLCVs(data, market, timeframe, since, limit);
+    data = self.safeList(response, "data", defaultValue = []);
+    sparse = self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit);
     return self.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limit)
 
 end
@@ -802,12 +893,22 @@ function parseBalance(self::Bitopro, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bitopro, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_account_balance.md
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bitopro; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetAccountsBalance(params));
-    balances = self.safeList(response, "data", []);
+    balances = self.safeList(response, "data", defaultValue = []);
     return self.parseBalance(balances)
 
 end
@@ -824,7 +925,7 @@ function parseOrderStatus(self::Bitopro, status)
     return functions.ccxtruthy((status == nothing)) ? nothing : safeString(statuses, status)
 
 end
-function parseOrder(self::Bitopro, order, market=nothing)
+function parseOrder(self::Bitopro, order; market=nothing)
     id = safeString2(order, "id", "orderId");
     timestamp = safeInteger2(order, "timestamp", "createdTimestamp");
     side = safeString(order, "action");
@@ -835,7 +936,7 @@ function parseOrder(self::Bitopro, order, market=nothing)
     amount = safeString2(order, "amount", "originalAmount");
     price = safeString(order, "price");
     marketId = safeString(order, "pair");
-    market = self.safeMarket(marketId, market, "_");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
     symbol = safeString(market, "symbol");
     orderStatus = safeString(order, "status");
     status = self.parseOrderStatus(orderStatus);
@@ -879,10 +980,26 @@ function parseOrder(self::Bitopro, order, market=nothing)
     Symbol("fee") => fee,
     Symbol("trades") => nothing,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
-function createOrder(self::Bitopro, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_order.md
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::object, optional: the price at which a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bitopro, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -914,15 +1031,27 @@ function createOrder(self::Bitopro, symbol, type_var, side, amount, price=nothin
             request[Symbol("condition")] = condition;
         end
     end
-    postOnly = self.isPostOnly(orderType == "MARKET", nothing, params);
+    postOnly = self.isPostOnly(orderType == "MARKET", nothing, params = params);
     if functions.ccxtruthy(postOnly)
         request[Symbol("timeInForce")] = "POST_ONLY";
     end
     response = Base.fetch(self.privatePostOrdersPair(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Bitopro, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_an_order.md
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bitopro, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -935,7 +1064,7 @@ function cancelOrder(self::Bitopro, id, symbol=nothing, params=Dict())
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateDeleteOrdersPairId(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
 function parseCancelOrders(self::Bitopro, data)
@@ -959,7 +1088,19 @@ function parseCancelOrders(self::Bitopro, data)
     return orders
 
 end
-function cancelOrders(self::Bitopro, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_batch_orders.md
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Bitopro, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -977,7 +1118,18 @@ function cancelOrders(self::Bitopro, ids, symbol=nothing, params=Dict())
     return self.parseCancelOrders(data)
 
 end
-function cancelAllOrders(self::Bitopro, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bitopro; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -990,11 +1142,23 @@ function cancelAllOrders(self::Bitopro, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.privateDeleteOrdersAll(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseCancelOrders(data)
 
 end
-function fetchOrder(self::Bitopro, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_order_data.md
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bitopro, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -1007,10 +1171,23 @@ function fetchOrder(self::Bitopro, id, symbol=nothing, params=Dict())
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetOrdersPairOrderId(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOrders(self::Bitopro, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Bitopro; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -1028,14 +1205,27 @@ function fetchOrders(self::Bitopro, symbol=nothing, since=nothing, limit=nothing
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetOrdersAllPair(extend(request, params)));
-    orders = self.safeList(response, "data", []);
+    orders = self.safeList(response, "data", defaultValue = []);
     if functions.ccxtruthy(orders == nothing)
         orders = [];
     end
-    return self.parseOrders(orders, market, since, limit)
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Bitopro, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bitopro; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1046,18 +1236,44 @@ function fetchOpenOrders(self::Bitopro, symbol=nothing, since=nothing, limit=not
         request[Symbol("pair")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetOrdersOpen(extend(request, params)));
-    orders = self.safeList(response, "data", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Bitopro, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Bitopro; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("statusKind") => "DONE"
     );
-    return self.fetchOrders(symbol, since, limit, extend(request, params))
+    return self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params))
 
 end
-function fetchMyTrades(self::Bitopro, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_trades_data.md
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bitopro; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -1069,8 +1285,8 @@ function fetchMyTrades(self::Bitopro, symbol=nothing, since=nothing, limit=nothi
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetOrdersTradesPair(extend(request, params)));
-    trades = self.safeList(response, "data", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
 function parseTransactionStatus(self::Bitopro, status)
@@ -1088,9 +1304,9 @@ function parseTransactionStatus(self::Bitopro, status)
     return safeString(states, status, status)
 
 end
-function parseTransaction(self::Bitopro, transaction, currency=nothing)
+function parseTransaction(self::Bitopro, transaction; currency=nothing)
     currencyId = safeString(transaction, "coin");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeInteger(transaction, "timestamp");
     address = safeString(transaction, "address");
     tag = safeString(transaction, "message");
@@ -1105,7 +1321,7 @@ function parseTransaction(self::Bitopro, transaction, currency=nothing)
     Symbol("txid") => safeString(transaction, "txid"),
     Symbol("type") => nothing,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("amount") => self.safeNumber(transaction, "total"),
     Symbol("status") => self.parseTransactionStatus(status),
     Symbol("timestamp") => timestamp,
@@ -1127,7 +1343,20 @@ function parseTransaction(self::Bitopro, transaction, currency=nothing)
 )
 
 end
-function fetchDeposits(self::Bitopro, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_deposit_invoices_data.md
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bitopro; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchDeposits() requires the code argument")));
     end
@@ -1145,13 +1374,26 @@ function fetchDeposits(self::Bitopro, code=nothing, since=nothing, limit=nothing
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetWalletDepositHistoryCurrency(extend(request, params)));
-    result = self.safeList(response, "data", []);
-    return self.parseTransactions(result, currency, since, limit, Dict{Symbol, Any}(
+    result = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(result, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => "deposit"
 ))
 
 end
-function fetchWithdrawals(self::Bitopro, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_withdraw_invoices_data.md
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bitopro; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchWithdrawals() requires the code argument")));
     end
@@ -1169,13 +1411,25 @@ function fetchWithdrawals(self::Bitopro, code=nothing, since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetWalletWithdrawHistoryCurrency(extend(request, params)));
-    result = self.safeList(response, "data", []);
-    return self.parseTransactions(result, currency, since, limit, Dict{Symbol, Any}(
+    result = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(result, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => "withdrawal"
 ))
 
 end
-function fetchWithdrawal(self::Bitopro, id, code=nothing, params=Dict())
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_withdraw_invoice_data.md
+
+# Arguments
+- `id`::string: withdrawal id
+- `code`::string: unified currency code of the currency withdrawn, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawal(self::Bitopro, id; code=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchWithdrawal() requires the code argument")));
     end
@@ -1188,16 +1442,30 @@ function fetchWithdrawal(self::Bitopro, id, code=nothing, params=Dict())
         Symbol("currency") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetWalletWithdrawCurrencySerial(extend(request, params)));
-    result = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransaction(result, currency)
+    result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(result, currency = currency)
 
 end
-function withdraw(self::Bitopro, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_withdraw_invoice.md
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bitopro, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("id"), nothing),
@@ -1205,7 +1473,7 @@ function withdraw(self::Bitopro, code, amount, address, tag=nothing, params=Dict
         Symbol("address") => address
     );
     if functions.ccxtruthy(ccxt_in("network", params))
-        networks = self.safeDict(self.options, "networks", Dict{Symbol, Any}());
+        networks = self.safeDict(self.options, "networks", defaultValue = Dict{Symbol, Any}());
         requestedNetwork = safeStringUpper(params, "network");
         params = omit(params, ["network"]);
         networkId = functions.ccxtruthy((requestedNetwork == nothing)) ? nothing : safeString(networks, requestedNetwork);
@@ -1218,11 +1486,11 @@ function withdraw(self::Bitopro, code, amount, address, tag=nothing, params=Dict
         request[Symbol("message")] = tag;
     end
     response = Base.fetch(self.privatePostWalletWithdrawCurrency(extend(request, params)));
-    result = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransaction(result, currency)
+    result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(result, currency = currency)
 
 end
-function parseDepositWithdrawFee(self::Bitopro, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Bitopro, fee; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("withdraw") => Dict{Symbol, Any}(
@@ -1237,16 +1505,27 @@ function parseDepositWithdrawFee(self::Bitopro, fee, currency=nothing)
 )
 
 end
-function fetchDepositWithdrawFees(self::Bitopro, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Bitopro; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetProvisioningCurrencies(params));
-    data = self.safeList(response, "data", []);
-    return self.parseDepositWithdrawFees(data, codes, "currency")
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseDepositWithdrawFees(data, codes = codes, currencyIdKey = "currency")
 
 end
-function sign(self::Bitopro, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitopro, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string("/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
     if functions.ccxtruthy(headers == nothing)
@@ -1312,107 +1591,107 @@ Base.getproperty(self::Bitopro, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetOrderBookPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "order-book/{pair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "order-book/{pair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickers(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickersPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "tickers/{pair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers/{pair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradesPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "trades/{pair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades/{pair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProvisioningCurrencies(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "provisioning/currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "provisioning/currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProvisioningTradingPairs(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "provisioning/trading-pairs", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "provisioning/trading-pairs"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProvisioningLimitationsAndFees(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "provisioning/limitations-and-fees", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "provisioning/limitations-and-fees"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradingHistoryPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "trading-history/{pair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trading-history/{pair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPriceOtcCurrency(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "price/otc/{currency}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "price/otc/{currency}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsBalance(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "accounts/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersHistory(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersAllPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/all/{pair}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/all/{pair}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersTradesPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/trades/{pair}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/trades/{pair}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersPairOrderId(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/{pair}/{orderId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{pair}/{orderId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletWithdrawCurrencySerial(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "wallet/withdraw/{currency}/{serial}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/withdraw/{currency}/{serial}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletWithdrawCurrencyIdId(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "wallet/withdraw/{currency}/id/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/withdraw/{currency}/id/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletDepositHistoryCurrency(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "wallet/depositHistory/{currency}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/depositHistory/{currency}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletWithdrawHistoryCurrency(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "wallet/withdrawHistory/{currency}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/withdrawHistory/{currency}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersOpen(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/open", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/open"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/{pair}", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/{pair}"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersBatch(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWalletWithdrawCurrency(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "wallet/withdraw/{currency}", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wallet/withdraw/{currency}"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOrders(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersPairId(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/{pair}/{id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{pair}/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersAll(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/all", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/all"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/{pair}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{pair}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitopro(; kwargs...)
@@ -1476,3 +1755,353 @@ function Bitopro(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitopro_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bitopro_fetchCurrencies
+
+function __ccxt_doc_Bitopro_fetchMarkets() end
+"""
+retrieves data on all markets for bitopro
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitopro_fetchMarkets
+
+function __ccxt_doc_Bitopro_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitopro_fetchTicker
+
+function __ccxt_doc_Bitopro_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitopro_fetchTickers
+
+function __ccxt_doc_Bitopro_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_orderbook_data.md
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitopro_fetchOrderBook
+
+function __ccxt_doc_Bitopro_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trades_data.md
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bitopro_fetchTrades
+
+function __ccxt_doc_Bitopro_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_limitations_and_fees.md
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Bitopro_fetchTradingFees
+
+function __ccxt_doc_Bitopro_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ohlc_data.md
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bitopro_fetchOHLCV
+
+function __ccxt_doc_Bitopro_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_account_balance.md
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bitopro_fetchBalance
+
+function __ccxt_doc_Bitopro_createOrder() end
+"""
+create a trade order
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_order.md
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::object, optional: the price at which a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitopro_createOrder
+
+function __ccxt_doc_Bitopro_cancelOrder() end
+"""
+cancels an open order
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_an_order.md
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitopro_cancelOrder
+
+function __ccxt_doc_Bitopro_cancelOrders() end
+"""
+cancel multiple orders
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_batch_orders.md
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitopro_cancelOrders
+
+function __ccxt_doc_Bitopro_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitopro_cancelAllOrders
+
+function __ccxt_doc_Bitopro_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_order_data.md
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitopro_fetchOrder
+
+function __ccxt_doc_Bitopro_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitopro_fetchOrders
+
+function __ccxt_doc_Bitopro_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitopro_fetchOpenOrders
+
+function __ccxt_doc_Bitopro_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitopro_fetchClosedOrders
+
+function __ccxt_doc_Bitopro_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_trades_data.md
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitopro_fetchMyTrades
+
+function __ccxt_doc_Bitopro_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_deposit_invoices_data.md
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitopro_fetchDeposits
+
+function __ccxt_doc_Bitopro_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_withdraw_invoices_data.md
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitopro_fetchWithdrawals
+
+function __ccxt_doc_Bitopro_fetchWithdrawal() end
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_withdraw_invoice_data.md
+
+# Arguments
+- `id`::string: withdrawal id
+- `code`::string: unified currency code of the currency withdrawn, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitopro_fetchWithdrawal
+
+function __ccxt_doc_Bitopro_withdraw() end
+"""
+make a withdrawal
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_withdraw_invoice.md
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitopro_withdraw
+
+function __ccxt_doc_Bitopro_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitopro_fetchDepositWithdrawFees

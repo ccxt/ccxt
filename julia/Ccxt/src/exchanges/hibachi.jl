@@ -423,7 +423,7 @@ function parseMarket(self::Hibachi, market)
     settle = self.safeCurrencyCode(settleId);
     symbol = string(base, "/", quote_var, ":", settle);
     created = safeIntegerProduct(market, "marketCreationTimestamp", 1000);
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("numericId") => numericId,
     Symbol("symbol") => symbol,
@@ -449,8 +449,8 @@ function parseMarket(self::Hibachi, market)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "underlyingDecimals"))),
-        Symbol("price") => self.parseNumber(safeValue(self.safeList(market, "orderbookGranularities", []), 0)) / 10000
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "underlyingDecimals"))),
+        Symbol("price") => self.parseNumber(safeValue(self.safeList(market, "orderbookGranularities", defaultValue = []), 0)) / 10000
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -475,7 +475,17 @@ function parseMarket(self::Hibachi, market)
 ))
 
 end
-function fetchMarkets(self::Hibachi, params=Dict())
+"""
+retrieves data on all markets for hibachi
+see: https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Hibachi; params=Dict())
     response = Base.fetch(self.publicGetMarketExchangeInfo(params));
     rows = self.safeList(response, "futureContracts");
     return self.parseMarkets(rows)
@@ -546,7 +556,17 @@ function parseBalance(self::Hibachi, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Hibachi, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Hibachi; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("accountId") => self.getAccountId()
     );
@@ -554,7 +574,7 @@ function fetchBalance(self::Hibachi, params=Dict())
     return self.parseBalance(response)
 
 end
-function parseTicker(self::Hibachi, ticker, market=nothing)
+function parseTicker(self::Hibachi, ticker; market=nothing)
     prices = self.safeDict(ticker, "prices");
     stats = self.safeDict(ticker, "stats");
     bid = self.safeNumber(prices, "bidPrice");
@@ -564,7 +584,7 @@ function parseTicker(self::Hibachi, ticker, market=nothing)
     low = self.safeNumber(stats, "low24h");
     volume = self.safeNumber(stats, "volume24h");
     return self.safeTicker(Dict{Symbol, Any}(
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("timestamp") => nothing,
     Symbol("datetime") => nothing,
     Symbol("bid") => bid,
@@ -584,12 +604,12 @@ function parseTicker(self::Hibachi, ticker, market=nothing)
     Symbol("baseVolume") => nothing,
     Symbol("quoteVolume") => volume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function parseTrade(self::Hibachi, trade, market=nothing)
+function parseTrade(self::Hibachi, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     id = safeString(trade, "id");
     price = safeString(trade, "price");
@@ -631,10 +651,23 @@ function parseTrade(self::Hibachi, trade, market=nothing)
     Symbol("type") => orderType,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Hibachi, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://api-doc.hibachi.xyz/#86a53bc1-d3bb-4b93-8a11-7034d4698caa
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (maximum value is 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of recent [trade structures]
+"""
+function fetchTrades(self::Hibachi, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -643,15 +676,27 @@ function fetchTrades(self::Hibachi, symbol, since=nothing, limit=nothing, params
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketDataTrades(extend(request, params)));
-    trades = self.safeList(response, "trades", []);
+    trades = self.safeList(response, "trades", defaultValue = []);
     tradesList = [];
     if functions.ccxtruthy(trades != nothing)
         tradesList = trades;
     end
-    return self.parseTrades(tradesList, market)
+    return self.parseTrades(tradesList, market = market)
 
 end
-function fetchTicker(self::Hibachi, symbol, params=Dict())
+"""
+fetches a price ticker and the related information for the past 24h
+see: https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+see: https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
+
+# Arguments
+- `symbol`::string: unified symbol of the market
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Hibachi, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -667,7 +712,7 @@ function fetchTicker(self::Hibachi, symbol, params=Dict())
         Symbol("prices") => pricesResponse,
         Symbol("stats") => statsResponse
     );
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
 function parseOrderStatus(self::Hibachi, status)
@@ -686,9 +731,9 @@ function parseOrderStatus(self::Hibachi, status)
     return safeString(statuses, uppercaseStatus, status)
 
 end
-function parseOrder(self::Hibachi, order, market=nothing)
+function parseOrder(self::Hibachi, order; market=nothing)
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     status = safeString(order, "status");
     type_var = safeStringLower(order, "orderType");
     price = safeString2(order, "price", "avgFillPrice");
@@ -755,10 +800,22 @@ function parseOrder(self::Hibachi, order, market=nothing)
     Symbol("reduceOnly") => reduceOnly,
     Symbol("postOnly") => postOnly,
     Symbol("triggerPrice") => self.safeNumber(order, "triggerPrice")
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Hibachi, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://api-doc.hibachi.xyz/#096a8854-b918-4de8-8731-b2a28d26b96d
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Hibachi, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -771,10 +828,20 @@ function fetchOrder(self::Hibachi, id, symbol=nothing, params=Dict())
         Symbol("accountId") => self.getAccountId()
     );
     response = Base.fetch(self.privateGetTradeOrder(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchTradingFees(self::Hibachi, params=Dict())
+"""
+fetch the trading fee
+see: https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFees(self::Hibachi; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -801,7 +868,7 @@ function fetchTradingFees(self::Hibachi, params=Dict())
     return result
 
 end
-function orderMessage(self::Hibachi, market, nonce, feeRate, type_var, side, amount, price=nothing)
+function orderMessage(self::Hibachi, market, nonce, feeRate, type_var, side, amount; price=nothing)
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -851,7 +918,7 @@ function orderMessage(self::Hibachi, market, nonce, feeRate, type_var, side, amo
     return message
 
 end
-function createOrderRequest(self::Hibachi, nonce, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Hibachi, nonce, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -859,8 +926,8 @@ function createOrderRequest(self::Hibachi, nonce, symbol, type_var, side, amount
         throw(ArgumentsRequired(string(self.id, " requires a side argument")));
     end
     market = self.market(symbol);
-    takerFee = self.safeNumber(market, "taker", self.safeNumber(self.options, "defaultTakerFee", 0.00045));
-    makerFee = self.safeNumber(market, "maker", self.safeNumber(self.options, "defaultMakerFee", 0.00015));
+    takerFee = self.safeNumber(market, "taker", defaultNumber = self.safeNumber(self.options, "defaultTakerFee", defaultNumber = 0.00045));
+    makerFee = self.safeNumber(market, "maker", defaultNumber = self.safeNumber(self.options, "defaultMakerFee", defaultNumber = 0.00015));
     takerFeeValue = functions.ccxtruthy((takerFee == nothing)) ? 0 : takerFee;
     makerFeeValue = functions.ccxtruthy((makerFee == nothing)) ? 0 : makerFee;
     feeRate = max(takerFeeValue, makerFeeValue);
@@ -874,7 +941,7 @@ function createOrderRequest(self::Hibachi, nonce, symbol, type_var, side, amount
     if functions.ccxtruthy(price)
         priceInternal = self.priceToPrecision(symbol, price);
     end
-    message = self.orderMessage(market, nonce, feeRate, type_var, side, amount, price);
+    message = self.orderMessage(market, nonce, feeRate, type_var, side, amount, price = price);
     signature = self.signMessage(message, self.privateKey);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => safeString(market, "id"),
@@ -886,7 +953,7 @@ function createOrderRequest(self::Hibachi, nonce, symbol, type_var, side, amount
         Symbol("signature") => signature,
         Symbol("maxFeesPercent") => numberToString(feeRate)
     );
-    postOnly = self.isPostOnly(uppercase(type_var) == "MARKET", nothing, params);
+    postOnly = self.isPostOnly(uppercase(type_var) == "MARKET", nothing, params = params);
     reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only");
     timeInForce = safeStringLower(params, "timeInForce");
     triggerPrice = safeString2(params, "triggerPrice", "stopPrice");
@@ -907,12 +974,27 @@ function createOrderRequest(self::Hibachi, nonce, symbol, type_var, side, amount
     return extend(request, params)
 
 end
-function createOrder(self::Hibachi, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://api-doc.hibachi.xyz/#00f6d5ad-5275-41cb-a1a8-19ed5d142124
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Hibachi, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     nonce = self.nonce();
-    request = self.createOrderRequest(nonce, symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(nonce, symbol, type_var, side, amount, price = price, params = params);
     request[Symbol("accountId")] = self.getAccountId();
     response = Base.fetch(self.privatePostTradeOrder(request));
     return self.safeOrder(Dict{Symbol, Any}(
@@ -921,7 +1003,18 @@ function createOrder(self::Hibachi, symbol, type_var, side, amount, price=nothin
 ))
 
 end
-function createOrders(self::Hibachi, orders, params=Dict())
+"""
+*contract only* create a list of trade orders
+see: https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Hibachi, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -935,8 +1028,8 @@ function createOrders(self::Hibachi, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createOrderRequest(nonce + i, symbol, type_var, side, amount, price, orderParams);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.createOrderRequest(nonce + i, symbol, type_var, side, amount, price = price, params = orderParams);
         orderRequest[Symbol("action")] = "place";
         push!(requestOrders, orderRequest);
         i += 1
@@ -947,7 +1040,7 @@ function createOrders(self::Hibachi, orders, params=Dict())
     );
     response = Base.fetch(self.privatePostTradeOrders(extend(request, params)));
     ret = [];
-    responseOrders = self.safeList(response, "orders", []);
+    responseOrders = self.safeList(response, "orders", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(responseOrders)))
         responseOrder = get(responseOrders, i + 1, nothing);
@@ -961,7 +1054,7 @@ function createOrders(self::Hibachi, orders, params=Dict())
     return ret
 
 end
-function editOrderRequest(self::Hibachi, nonce, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+function editOrderRequest(self::Hibachi, nonce, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -969,12 +1062,12 @@ function editOrderRequest(self::Hibachi, nonce, id, symbol, type_var, side, amou
         throw(ArgumentsRequired(string(self.id, " requires a side argument")));
     end
     market = self.market(symbol);
-    takerFee = self.safeNumber(market, "taker", 0);
-    makerFee = self.safeNumber(market, "maker", 0);
+    takerFee = self.safeNumber(market, "taker", defaultNumber = 0);
+    makerFee = self.safeNumber(market, "maker", defaultNumber = 0);
     takerFeeValue = functions.ccxtruthy((takerFee == nothing)) ? 0 : takerFee;
     makerFeeValue = functions.ccxtruthy((makerFee == nothing)) ? 0 : makerFee;
     feeRate = max(takerFeeValue, makerFeeValue);
-    message = self.orderMessage(market, nonce, feeRate, type_var, side, amount, price);
+    message = self.orderMessage(market, nonce, feeRate, type_var, side, amount, price = price);
     signature = self.signMessage(message, self.privateKey);
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id,
@@ -987,12 +1080,28 @@ function editOrderRequest(self::Hibachi, nonce, id, symbol, type_var, side, amou
     return extend(request, params)
 
 end
-function editOrder(self::Hibachi, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a limit order that is not matched
+see: https://api-doc.hibachi.xyz/#94d2cdaf-1c71-440f-a981-da1112824810
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell', should stay the same with original side
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Hibachi, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     nonce = self.nonce();
-    request = self.editOrderRequest(nonce, id, symbol, type_var, side, amount, price, params);
+    request = self.editOrderRequest(nonce, id, symbol, type_var, side, amount = amount, price = price, params = params);
     request[Symbol("accountId")] = self.getAccountId();
     Base.fetch(self.privatePutTradeOrder(request));
     return self.safeOrder(Dict{Symbol, Any}(
@@ -1001,7 +1110,18 @@ function editOrder(self::Hibachi, id, symbol, type_var, side, amount=nothing, pr
 ))
 
 end
-function editOrders(self::Hibachi, orders, params=Dict())
+"""
+edit a list of trade orders
+see: https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+
+# Arguments
+- `orders`::array: list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrders(self::Hibachi, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1016,8 +1136,8 @@ function editOrders(self::Hibachi, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.editOrderRequest(nonce + i, id, symbol, type_var, side, amount, price, orderParams);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.editOrderRequest(nonce + i, id, symbol, type_var, side, amount = amount, price = price, params = orderParams);
         orderRequest[Symbol("action")] = "modify";
         push!(requestOrders, orderRequest);
         i += 1
@@ -1028,7 +1148,7 @@ function editOrders(self::Hibachi, orders, params=Dict())
     );
     response = Base.fetch(self.privatePostTradeOrders(extend(request, params)));
     ret = [];
-    responseOrders = self.safeList(response, "orders", []);
+    responseOrders = self.safeList(response, "orders", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(responseOrders)))
         responseOrder = get(responseOrders, i + 1, nothing);
@@ -1054,7 +1174,19 @@ function cancelOrderRequest(self::Hibachi, id)
 )
 
 end
-function cancelOrder(self::Hibachi, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://api-doc.hibachi.xyz/#e99c4f48-e610-4b7c-b7f6-1b4bb7af0271
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: is unused
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Hibachi, id; symbol=nothing, params=Dict())
     request = self.cancelOrderRequest(id);
     request[Symbol("accountId")] = self.getAccountId();
     response = Base.fetch(self.privateDeleteTradeOrder(extend(request, params)));
@@ -1065,7 +1197,19 @@ function cancelOrder(self::Hibachi, id, symbol=nothing, params=Dict())
 ))
 
 end
-function cancelOrders(self::Hibachi, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol, unused
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Hibachi, ids; symbol=nothing, params=Dict())
     orders = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(ids)))
@@ -1080,7 +1224,7 @@ function cancelOrders(self::Hibachi, ids, symbol=nothing, params=Dict())
     );
     response = Base.fetch(self.privatePostTradeOrders(extend(request, params)));
     ret = [];
-    responseOrders = self.safeList(response, "orders", []);
+    responseOrders = self.safeList(response, "orders", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(responseOrders)))
         responseOrder = get(responseOrders, i + 1, nothing);
@@ -1094,7 +1238,18 @@ function cancelOrders(self::Hibachi, ids, symbol=nothing, params=Dict())
     return ret
 
 end
-function cancelAllOrders(self::Hibachi, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Hibachi; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1140,7 +1295,21 @@ function encodeWithdrawMessage(self::Hibachi, amount, maxFees, address)
     return message
 
 end
-function withdraw(self::Hibachi, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://api-doc.hibachi.xyz/#6421625d-3e45-45fa-be9b-d2a0e780c090
+
+# Arguments
+- `code`::string: unified currency code, only support USDT
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Hibachi, code, amount, address; tag=nothing, params=Dict())
     withdrawAddress = functions.ccxt_slice(address, -40);
     exchangeInfo = Base.fetch(self.publicGetMarketExchangeInfo(params));
     feeConfig = self.safeDict(exchangeInfo, "feeConfig");
@@ -1202,7 +1371,19 @@ function signMessage(self::Hibachi, message, privateKey)
     end
 
 end
-function fetchOrderBook(self::Hibachi, symbol, limit=nothing, params=Dict())
+"""
+fetches the state of the open orders on the orderbook
+see: https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
+
+# Arguments
+- `symbol`::string: unified symbol of the market
+- `limit`::int, optional: currently unused
+- `params`::object, optional: extra parameters to be passed -- see documentation link above
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Hibachi, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1214,10 +1395,23 @@ function fetchOrderBook(self::Hibachi, symbol, limit=nothing, params=Dict())
     formattedResponse = Dict{Symbol, Any}();
     formattedResponse[Symbol("ask")] = self.safeList(self.safeDict(response, "ask"), "levels");
     formattedResponse[Symbol("bid")] = self.safeList(self.safeDict(response, "bid"), "levels");
-    return self.parseOrderBook(formattedResponse, symbol, milliseconds(), "bid", "ask", "price", "quantity")
+    return self.parseOrderBook(formattedResponse, symbol, timestamp = milliseconds(), bidsKey = "bid", asksKey = "ask", priceKey = "price", amountKey = "quantity")
 
 end
-function fetchMyTrades(self::Hibachi, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://api-doc.hibachi.xyz/#0adbf143-189f-40e0-afdc-88af4cba3c79
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Hibachi; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1234,14 +1428,27 @@ function fetchMyTrades(self::Hibachi, symbol=nothing, since=nothing, limit=nothi
     if functions.ccxtruthy(trades != nothing)
         tradesList = trades;
     end
-    return self.parseTrades(tradesList, market, since, limit, params)
+    return self.parseTrades(tradesList, market = market, since = since, limit = limit, params = params)
 
 end
-function parseOHLCV(self::Hibachi, ohlcv, market=nothing)
+function parseOHLCV(self::Hibachi, ohlcv; market=nothing)
     return [safeIntegerProduct(ohlcv, "timestamp", 1000), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volumeNotional")]
 
 end
-function fetchOpenOrders(self::Hibachi, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches all current open orders
+see: https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
+
+# Arguments
+- `symbol`::string, optional: unified market symbol to filter by
+- `since`::int, optional: milisecond timestamp of the earliest order
+- `limit`::int, optional: the maximum number of open orders to return
+- `params`::object, optional: extra parameters
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Hibachi; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1253,10 +1460,26 @@ function fetchOpenOrders(self::Hibachi, symbol=nothing, since=nothing, limit=not
         Symbol("accountId") => self.getAccountId()
     );
     response = Base.fetch(self.privateGetTradeOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrdersByStatus(self::Hibachi, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch orders filtered by terminal status
+see: https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+
+# Arguments
+- `status`::string: exchange specific terminal status
+- `symbol`::string, optional: unified market symbol to filter by
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of orders to return
+- `params`::object, optional: extra parameters
+- `params.until`::int, optional: timestamp in ms of the latest order
+- `params.cursorOrderId`::string, optional: pagination cursor, returns orders with orderId strictly less than this value
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrdersByStatus(self::Hibachi, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1279,24 +1502,69 @@ function fetchOrdersByStatus(self::Hibachi, status, symbol=nothing, since=nothin
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.privateGetTradeOrdersHistory(extend(request, params)));
-    orders = self.safeList(response, "orders", []);
-    parsedOrders = self.parseOrders(orders, market);
-    return self.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit)
+    orders = self.safeList(response, "orders", defaultValue = []);
+    parsedOrders = self.parseOrders(orders, market = market);
+    return self.filterBySymbolSinceLimit(parsedOrders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Hibachi, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    orders = Base.fetch(self.fetchOrdersByStatus("filled", symbol, since, limit, params));
+"""
+fetches information on multiple closed orders made by the user
+see: https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of closed order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order
+- `params.cursorOrderId`::string, optional: pagination cursor, returns orders with orderId strictly less than this value
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Hibachi; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    orders = Base.fetch(self.fetchOrdersByStatus("filled", symbol = symbol, since = since, limit = limit, params = params));
     filtered = filterBy(orders, "status", "closed");
-    return self.filterBySinceLimit(filtered, since, limit)
+    return self.filterBySinceLimit(filtered, since = since, limit = limit)
 
 end
-function fetchCanceledOrders(self::Hibachi, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    orders = Base.fetch(self.fetchOrdersByStatus(nothing, symbol, since, limit, params));
+"""
+fetches information on multiple canceled orders made by the user
+see: https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of canceled order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order
+- `params.cursorOrderId`::string, optional: pagination cursor, returns orders with orderId strictly less than this value
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Hibachi; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    orders = Base.fetch(self.fetchOrdersByStatus(nothing, symbol = symbol, since = since, limit = limit, params = params));
     filtered = filterBy(orders, "status", "canceled");
-    return self.filterBySinceLimit(filtered, since, limit)
+    return self.filterBySinceLimit(filtered, since = since, limit = limit)
 
 end
-function fetchOHLCV(self::Hibachi, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
+see: https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Hibachi, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1315,26 +1583,37 @@ function fetchOHLCV(self::Hibachi, symbol, timeframe="1m", since=nothing, limit=
         request[Symbol("toMs")] = until;
     end
     response = Base.fetch(self.publicGetMarketDataKlines(extend(request, params)));
-    klines = self.safeList(response, "klines", []);
-    return self.parseOHLCVs(klines, market, timeframe, since, limit)
+    klines = self.safeList(response, "klines", defaultValue = []);
+    return self.parseOHLCVs(klines, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchPositions(self::Hibachi, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Hibachi; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}(
         Symbol("accountId") => self.getAccountId()
     );
     response = Base.fetch(self.privateGetTradeAccountInfo(extend(request, params)));
-    data = self.safeList(response, "positions", []);
-    return self.parsePositions(data, symbols)
+    data = self.safeList(response, "positions", defaultValue = []);
+    return self.parsePositions(data, symbols = symbols)
 
 end
-function parsePosition(self::Hibachi, position, market=nothing)
+function parsePosition(self::Hibachi, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     side = safeStringLower(position, "direction");
     quantity = safeString(position, "quantity");
@@ -1368,7 +1647,7 @@ function parsePosition(self::Hibachi, position, market=nothing)
 ))
 
 end
-function sign(self::Hibachi, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Hibachi, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     endpoint = string("/", self.implodeParams(path, params));
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), endpoint);
     headers = Dict{Symbol, Any}(
@@ -1436,7 +1715,7 @@ function parseTransactionStatus(self::Hibachi, status)
     return safeString(statuses, status, status)
 
 end
-function parseLedgerEntry(self::Hibachi, item, currency=nothing)
+function parseLedgerEntry(self::Hibachi, item; currency=nothing)
     transactionType = safeString(item, "transactionType");
     timestamp = nothing;
     type_var = nothing;
@@ -1491,10 +1770,23 @@ function parseLedgerEntry(self::Hibachi, item, currency=nothing)
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("type") => type_var,
     Symbol("info") => item
-), currency)
+), currency = currency)
 
 end
-function fetchLedger(self::Hibachi, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Hibachi; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1505,14 +1797,26 @@ function fetchLedger(self::Hibachi, code=nothing, since=nothing, limit=nothing, 
     rawPromises = [self.privateGetCapitalHistory(extend(request, params)), self.privateGetTradeAccountTradingHistory(extend(request, params))];
     promises = Base.fetch(asyncmap(Base.fetch, rawPromises));
     responseCapitalHistory = get(promises, 1, nothing);
-    rowsCapitalHistory = self.safeList(responseCapitalHistory, "transactions", []);
+    rowsCapitalHistory = self.safeList(responseCapitalHistory, "transactions", defaultValue = []);
     responseTradingHistory = get(promises, 2, nothing);
-    rowsTradingHistory = self.safeList(responseTradingHistory, "tradingHistory", []);
+    rowsTradingHistory = self.safeList(responseTradingHistory, "tradingHistory", defaultValue = []);
     rows = arrayConcat(rowsCapitalHistory, rowsTradingHistory);
-    return self.parseLedger(rows, currency, since, limit, params)
+    return self.parseLedger(rows, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchDepositAddress(self::Hibachi, code, params=Dict())
+"""
+fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
+see: https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters for API
+- `params.publicKey`::string, optional: your public key, you can get it from UI after creating API key
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Hibachi, code; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("publicKey") => safeString(params, "publicKey"),
         Symbol("accountId") => self.getAccountId()
@@ -1527,7 +1831,7 @@ function fetchDepositAddress(self::Hibachi, code, params=Dict())
 )
 
 end
-function parseTransaction(self::Hibachi, transaction, currency=nothing)
+function parseTransaction(self::Hibachi, transaction; currency=nothing)
     timestamp = safeIntegerProduct(transaction, "timestampSec", 1000);
     address = safeString(transaction, "withdrawalAddress");
     transactionType = safeString(transaction, "transactionType");
@@ -1558,51 +1862,104 @@ function parseTransaction(self::Hibachi, transaction, currency=nothing)
 )
 
 end
-function fetchDepositsWithdrawals(self::Hibachi, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch deposit and withdrawal history for the account
+see: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest transaction
+- `limit`::int, optional: the maximum number of transactions to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Hibachi; code=nothing, since=nothing, limit=nothing, params=Dict())
     currency = self.safeCurrency(code);
     request = Dict{Symbol, Any}(
         Symbol("accountId") => self.getAccountId()
     );
     response = Base.fetch(self.privateGetCapitalHistory(extend(request, params)));
-    transactions = self.safeList(response, "transactions", []);
-    return self.parseTransactions(transactions, currency, since, limit, params)
+    transactions = self.safeList(response, "transactions", defaultValue = []);
+    return self.parseTransactions(transactions, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchDeposits(self::Hibachi, code=nothing, since=nothing, limit=nothing, params=Dict())
-    transactions = Base.fetch(self.fetchDepositsWithdrawals(code, since, nothing, params));
+"""
+fetch deposits made to account
+see: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: filter by earliest timestamp (ms)
+- `limit`::int, optional: maximum number of deposits to be returned
+- `params`::object, optional: extra parameters to be passed to API
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Hibachi; code=nothing, since=nothing, limit=nothing, params=Dict())
+    transactions = Base.fetch(self.fetchDepositsWithdrawals(code = code, since = since, limit = nothing, params = params));
     deposits = filterBy(transactions, "type", "deposit");
-    return self.filterBySinceLimit(deposits, since, limit, "timestamp")
+    return self.filterBySinceLimit(deposits, since = since, limit = limit, key = "timestamp")
 
 end
-function fetchWithdrawals(self::Hibachi, code=nothing, since=nothing, limit=nothing, params=Dict())
-    transactions = Base.fetch(self.fetchDepositsWithdrawals(code, since, nothing, params));
+"""
+fetch withdrawals made from account
+see: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: filter by earliest timestamp (ms)
+- `limit`::int, optional: maximum number of deposits to be returned
+- `params`::object, optional: extra parameters to be passed to API
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Hibachi; code=nothing, since=nothing, limit=nothing, params=Dict())
+    transactions = Base.fetch(self.fetchDepositsWithdrawals(code = code, since = since, limit = nothing, params = params));
     withdrawals = filterBy(transactions, "type", "withdrawal");
-    return self.filterBySinceLimit(withdrawals, since, limit, "timestamp")
+    return self.filterBySinceLimit(withdrawals, since = since, limit = limit, key = "timestamp")
 
 end
-function parseSettlement(self::Hibachi, settlement, market=nothing)
+function parseSettlement(self::Hibachi, settlement; market=nothing)
     timestamp = safeTimestamp(settlement, "timestamp");
     marketId = safeString(settlement, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => settlement,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("price") => self.safeNumber(settlement, "indexPrice"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 )
 
 end
-function parseSettlements(self::Hibachi, settlements, market=nothing)
+function parseSettlements(self::Hibachi, settlements; market=nothing)
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(settlements)))
-        push!(result, self.parseSettlement(get(settlements, i + 1, nothing), market));
+        push!(result, self.parseSettlement(get(settlements, i + 1, nothing), market = market));
         i += 1
     end
     return result
 
 end
-function fetchMySettlementHistory(self::Hibachi, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records of the user
+see: https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms of the earliest settlement
+- `limit`::int, optional: the maximum number of settlements to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest settlement
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+"""
+function fetchMySettlementHistory(self::Hibachi; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = nothing;
     request = Dict{Symbol, Any}(
@@ -1625,18 +1982,39 @@ function fetchMySettlementHistory(self::Hibachi, symbol=nothing, since=nothing, 
         request[Symbol("endTime")] = self.parseToInt(until / 1000);
     end
     response = Base.fetch(self.privateGetTradeAccountSettlementsHistory(extend(request, params)));
-    data = self.safeList(response, "settlements", []);
-    settlements = self.parseSettlements(data, market);
+    data = self.safeList(response, "settlements", defaultValue = []);
+    settlements = self.parseSettlements(data, market = market);
     sorted = sortBy(settlements, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchTime(self::Hibachi, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Hibachi; params=Dict())
     response = Base.fetch(self.publicGetExchangeUtcTimestamp(params));
     return safeInteger(response, "timestampMs")
 
 end
-function fetchOpenInterest(self::Hibachi, symbol, params=Dict())
+"""
+retrieves the open interest of a contract trading pair
+see: https://api-doc.hibachi.xyz/#bc34e8ae-e094-4802-8d56-3efe3a7bad49
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Hibachi, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1653,10 +2031,21 @@ function fetchOpenInterest(self::Hibachi, symbol, params=Dict())
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => response
-), market)
+), market = market)
 
 end
-function fetchFundingRate(self::Hibachi, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Hibachi, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1665,7 +2054,7 @@ function fetchFundingRate(self::Hibachi, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketDataPrices(extend(request, params)));
-    funding = self.safeDict(response, "fundingRateEstimation", Dict{Symbol, Any}());
+    funding = self.safeDict(response, "fundingRateEstimation", defaultValue = Dict{Symbol, Any}());
     timestamp = milliseconds();
     nextFundingTimestamp = safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
     return Dict{Symbol, Any}(
@@ -1690,7 +2079,20 @@ function fetchFundingRate(self::Hibachi, symbol, params=Dict())
 )
 
 end
-function fetchFundingRateHistory(self::Hibachi, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Hibachi; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1699,7 +2101,7 @@ function fetchFundingRateHistory(self::Hibachi, symbol=nothing, since=nothing, l
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketDataFundingRates(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     rates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -1715,7 +2117,7 @@ function fetchFundingRateHistory(self::Hibachi, symbol=nothing, since=nothing, l
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
 
@@ -1725,115 +2127,115 @@ Base.getproperty(self::Hibachi, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarketExchangeInfo(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/exchange-info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/exchange-info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketInventory(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/inventory", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/inventory"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketDataPrices(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/prices", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/data/prices"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketDataStats(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/stats", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/data/stats"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketDataTrades(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/data/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketDataKlines(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/klines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/data/klines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketDataOpenInterest(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/open-interest", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/data/open-interest"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketDataOrderbook(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/data/orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketDataFundingRates(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/funding-rates", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/data/funding-rates"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetExchangeUtcTimestamp(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "exchange/utc-timestamp", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/utc-timestamp"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCapitalBalance(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "capital/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCapitalHistory(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "capital/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCapitalDepositInfo(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "capital/deposit-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeAccountInfo(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/account/info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/account/info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeAccountTrades(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/account/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/account/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeAccountTradingHistory(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/account/trading_history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/account/trading_history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeAccountSettlementsHistory(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/account/settlements_history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/account/settlements_history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrders(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrder(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeOrdersHistory(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/orders/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orders/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutTradeOrder(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteTradeOrder(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteTradeOrders(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeOrder(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeOrders(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCapitalWithdraw(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "capital/withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCapitalTransfer(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "capital/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "capital/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeAccountLeverage(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/account/leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/account/leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Hibachi(; kwargs...)
@@ -1897,3 +2299,503 @@ function Hibachi(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Hibachi_fetchMarkets() end
+"""
+retrieves data on all markets for hibachi
+see: https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Hibachi_fetchMarkets
+
+function __ccxt_doc_Hibachi_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Hibachi_fetchBalance
+
+function __ccxt_doc_Hibachi_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://api-doc.hibachi.xyz/#86a53bc1-d3bb-4b93-8a11-7034d4698caa
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (maximum value is 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of recent [trade structures]
+"""
+__ccxt_doc_Hibachi_fetchTrades
+
+function __ccxt_doc_Hibachi_fetchTicker() end
+"""
+fetches a price ticker and the related information for the past 24h
+see: https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+see: https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
+
+# Arguments
+- `symbol`::string: unified symbol of the market
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Hibachi_fetchTicker
+
+function __ccxt_doc_Hibachi_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://api-doc.hibachi.xyz/#096a8854-b918-4de8-8731-b2a28d26b96d
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_fetchOrder
+
+function __ccxt_doc_Hibachi_fetchTradingFees() end
+"""
+fetch the trading fee
+see: https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Hibachi_fetchTradingFees
+
+function __ccxt_doc_Hibachi_createOrder() end
+"""
+create a trade order
+see: https://api-doc.hibachi.xyz/#00f6d5ad-5275-41cb-a1a8-19ed5d142124
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_createOrder
+
+function __ccxt_doc_Hibachi_createOrders() end
+"""
+*contract only* create a list of trade orders
+see: https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_createOrders
+
+function __ccxt_doc_Hibachi_editOrder() end
+"""
+edit a limit order that is not matched
+see: https://api-doc.hibachi.xyz/#94d2cdaf-1c71-440f-a981-da1112824810
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell', should stay the same with original side
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_editOrder
+
+function __ccxt_doc_Hibachi_editOrders() end
+"""
+edit a list of trade orders
+see: https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+
+# Arguments
+- `orders`::array: list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_editOrders
+
+function __ccxt_doc_Hibachi_cancelOrder() end
+"""
+cancels an open order
+see: https://api-doc.hibachi.xyz/#e99c4f48-e610-4b7c-b7f6-1b4bb7af0271
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: is unused
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_cancelOrder
+
+function __ccxt_doc_Hibachi_cancelOrders() end
+"""
+cancel multiple orders
+see: https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol, unused
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_cancelOrders
+
+function __ccxt_doc_Hibachi_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_cancelAllOrders
+
+function __ccxt_doc_Hibachi_withdraw() end
+"""
+make a withdrawal
+see: https://api-doc.hibachi.xyz/#6421625d-3e45-45fa-be9b-d2a0e780c090
+
+# Arguments
+- `code`::string: unified currency code, only support USDT
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hibachi_withdraw
+
+function __ccxt_doc_Hibachi_fetchOrderBook() end
+"""
+fetches the state of the open orders on the orderbook
+see: https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
+
+# Arguments
+- `symbol`::string: unified symbol of the market
+- `limit`::int, optional: currently unused
+- `params`::object, optional: extra parameters to be passed -- see documentation link above
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Hibachi_fetchOrderBook
+
+function __ccxt_doc_Hibachi_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://api-doc.hibachi.xyz/#0adbf143-189f-40e0-afdc-88af4cba3c79
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Hibachi_fetchMyTrades
+
+function __ccxt_doc_Hibachi_fetchOpenOrders() end
+"""
+fetches all current open orders
+see: https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
+
+# Arguments
+- `symbol`::string, optional: unified market symbol to filter by
+- `since`::int, optional: milisecond timestamp of the earliest order
+- `limit`::int, optional: the maximum number of open orders to return
+- `params`::object, optional: extra parameters
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_fetchOpenOrders
+
+function __ccxt_doc_Hibachi_fetchOrdersByStatus() end
+"""
+fetch orders filtered by terminal status
+see: https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+
+# Arguments
+- `status`::string: exchange specific terminal status
+- `symbol`::string, optional: unified market symbol to filter by
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of orders to return
+- `params`::object, optional: extra parameters
+- `params.until`::int, optional: timestamp in ms of the latest order
+- `params.cursorOrderId`::string, optional: pagination cursor, returns orders with orderId strictly less than this value
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_fetchOrdersByStatus
+
+function __ccxt_doc_Hibachi_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of closed order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order
+- `params.cursorOrderId`::string, optional: pagination cursor, returns orders with orderId strictly less than this value
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_fetchClosedOrders
+
+function __ccxt_doc_Hibachi_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of canceled order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order
+- `params.cursorOrderId`::string, optional: pagination cursor, returns orders with orderId strictly less than this value
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hibachi_fetchCanceledOrders
+
+function __ccxt_doc_Hibachi_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
+see: https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Hibachi_fetchOHLCV
+
+function __ccxt_doc_Hibachi_fetchPositions() end
+"""
+fetch all open positions
+see: https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Hibachi_fetchPositions
+
+function __ccxt_doc_Hibachi_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Hibachi_fetchLedger
+
+function __ccxt_doc_Hibachi_fetchDepositAddress() end
+"""
+fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
+see: https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters for API
+- `params.publicKey`::string, optional: your public key, you can get it from UI after creating API key
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Hibachi_fetchDepositAddress
+
+function __ccxt_doc_Hibachi_fetchDepositsWithdrawals() end
+"""
+fetch deposit and withdrawal history for the account
+see: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest transaction
+- `limit`::int, optional: the maximum number of transactions to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hibachi_fetchDepositsWithdrawals
+
+function __ccxt_doc_Hibachi_fetchDeposits() end
+"""
+fetch deposits made to account
+see: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: filter by earliest timestamp (ms)
+- `limit`::int, optional: maximum number of deposits to be returned
+- `params`::object, optional: extra parameters to be passed to API
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hibachi_fetchDeposits
+
+function __ccxt_doc_Hibachi_fetchWithdrawals() end
+"""
+fetch withdrawals made from account
+see: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: filter by earliest timestamp (ms)
+- `limit`::int, optional: maximum number of deposits to be returned
+- `params`::object, optional: extra parameters to be passed to API
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hibachi_fetchWithdrawals
+
+function __ccxt_doc_Hibachi_fetchMySettlementHistory() end
+"""
+fetches historical settlement records of the user
+see: https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms of the earliest settlement
+- `limit`::int, optional: the maximum number of settlements to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest settlement
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+"""
+__ccxt_doc_Hibachi_fetchMySettlementHistory
+
+function __ccxt_doc_Hibachi_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Hibachi_fetchTime
+
+function __ccxt_doc_Hibachi_fetchOpenInterest() end
+"""
+retrieves the open interest of a contract trading pair
+see: https://api-doc.hibachi.xyz/#bc34e8ae-e094-4802-8d56-3efe3a7bad49
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Hibachi_fetchOpenInterest
+
+function __ccxt_doc_Hibachi_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Hibachi_fetchFundingRate
+
+function __ccxt_doc_Hibachi_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Hibachi_fetchFundingRateHistory

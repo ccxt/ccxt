@@ -746,7 +746,17 @@ function describe(self::Bitmex, )
 ))
 
 end
-function fetchCurrencies(self::Bitmex, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bitmex; params=Dict())
     response = Base.fetch(self.publicGetWalletAssets(params));
     return self.parseCurrencies(response)
 
@@ -761,17 +771,17 @@ function parseCurrency(self::Bitmex, currency)
     withdrawEnabled = false;
     networks = Dict{Symbol, Any}();
     scale = safeString(currency, "scale");
-    precisionString = self.parsePrecision(scale);
+    precisionString = self.parsePrecision(precision = scale);
     precision = self.parseNumber(precisionString);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "asset");
-        network = self.networkIdToCode(networkId, code);
+        network = self.networkIdToCode(networkId = networkId, currencyCode = code);
         withdrawalFeeRaw = safeString(chain, "withdrawalFee");
         withdrawalFee = self.parseNumber(stringMul(withdrawalFeeRaw, precisionString));
-        isDepositEnabled = self.safeBool(chain, "depositEnabled", false);
-        isWithdrawEnabled = self.safeBool(chain, "withdrawalEnabled", false);
+        isDepositEnabled = self.safeBool(chain, "depositEnabled", defaultValue = false);
+        isWithdrawEnabled = self.safeBool(chain, "withdrawalEnabled", defaultValue = false);
         active = (@functions.ccxt_and(isDepositEnabled, isWithdrawEnabled));
         if functions.ccxtruthy(isDepositEnabled)
             depositEnabled = true;
@@ -870,7 +880,7 @@ function amountToPrecision(self::Bitmex, symbol, amount)
     return amountToPrecision(self.parent, symbol, amount)
 
 end
-function convertFromRawQuantity(self::Bitmex, symbol, rawQuantity, currencySide="base")
+function convertFromRawQuantity(self::Bitmex, symbol, rawQuantity; currencySide="base")
     if functions.ccxtruthy(safeValue(self.options, "oldPrecision"))
             return self.parseNumber(rawQuantity)
     end
@@ -887,10 +897,20 @@ function convertFromRawQuantity(self::Bitmex, symbol, rawQuantity, currencySide=
 
 end
 function convertFromRawCost(self::Bitmex, symbol, rawQuantity)
-    return self.convertFromRawQuantity(symbol, rawQuantity, "quote")
+    return self.convertFromRawQuantity(symbol, rawQuantity, currencySide = "quote")
 
 end
-function fetchMarkets(self::Bitmex, params=Dict())
+"""
+retrieves data on all markets for bitmex
+see: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActive
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitmex; params=Dict())
     response = Base.fetch(self.publicGetInstrumentActive(params));
     return self.parseMarkets(response)
 
@@ -974,7 +994,7 @@ function parseMarket(self::Bitmex, market)
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " parseMarket() requires a symbol")));
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -1050,7 +1070,17 @@ function parseBalance(self::Bitmex, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bitmex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.bitmex.com/api/explorer/#!/User/User_getMargin
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bitmex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1061,7 +1091,19 @@ function fetchBalance(self::Bitmex, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Bitmex, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitmex, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1098,13 +1140,25 @@ function fetchOrderBook(self::Bitmex, symbol, limit=nothing, params=Dict())
     return result
 
 end
-function fetchOrder(self::Bitmex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bitmex, id; symbol=nothing, params=Dict())
     filter_var = Dict{Symbol, Any}(
         Symbol("filter") => Dict{Symbol, Any}(
             Symbol("orderID") => id
         )
     );
-    response = Base.fetch(self.fetchOrders(symbol, nothing, nothing, deepExtend(filter_var, params)));
+    response = Base.fetch(self.fetchOrders(symbol = symbol, since = nothing, limit = nothing, params = deepExtend(filter_var, params)));
     numResults = length(response);
     if functions.ccxtruthy(numResults == 1)
             return get(response, 1, nothing)
@@ -1112,14 +1166,29 @@ function fetchOrder(self::Bitmex, id, symbol=nothing, params=Dict())
     throw(OrderNotFound(string(self.id, ": The order ", id, " not found.")));
 
 end
-function fetchOrders(self::Bitmex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the earliest time in ms to fetch orders for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Bitmex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, 100))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 100))
     end
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -1143,31 +1212,71 @@ function fetchOrders(self::Bitmex, symbol=nothing, since=nothing, limit=nothing,
         request[Symbol("filter")] = json(get(request, Symbol("filter"), nothing));
     end
     response = Base.fetch(self.privateGetOrder(request));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Bitmex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bitmex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("filter") => Dict{Symbol, Any}(
             Symbol("open") => true
         )
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, deepExtend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = deepExtend(request, params)))
 
 end
-function fetchClosedOrders(self::Bitmex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    orders = Base.fetch(self.fetchOrders(symbol, since, limit, params));
-    return self.filterByArray(orders, "status", ["closed", "canceled"], false)
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Bitmex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = params));
+    return self.filterByArray(orders, "status", values = ["closed", "canceled"], indexed = false)
 
 end
-function fetchMyTrades(self::Bitmex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bitmex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 100))
     end
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -1191,7 +1300,7 @@ function fetchMyTrades(self::Bitmex, symbol=nothing, since=nothing, limit=nothin
         request[Symbol("filter")] = json(get(request, Symbol("filter"), nothing));
     end
     response = Base.fetch(self.privateGetExecutionTradeHistory(request));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
 function parseLedgerEntryType(self::Bitmex, type_var)
@@ -1207,15 +1316,15 @@ function parseLedgerEntryType(self::Bitmex, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Bitmex, item, currency=nothing)
+function parseLedgerEntry(self::Bitmex, item; currency=nothing)
     id = safeString(item, "transactID");
     account = safeString(item, "account");
     referenceId = safeString(item, "tx");
     referenceAccount = nothing;
     type_var = self.parseLedgerEntryType(safeString(item, "transactType"));
     currencyId = safeString(item, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     amountString = safeString(item, "amount");
     amount = self.convertToRealAmount(code, amountString);
     timestamp = self.parse8601(safeString(item, "transactTime"));
@@ -1260,10 +1369,23 @@ function parseLedgerEntry(self::Bitmex, item, currency=nothing)
     Symbol("after") => self.parseNumber(after),
     Symbol("status") => status,
     Symbol("fee") => fee
-), currency)
+), currency = currency)
 
 end
-function fetchLedger(self::Bitmex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Bitmex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1277,10 +1399,23 @@ function fetchLedger(self::Bitmex, code=nothing, since=nothing, limit=nothing, p
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetUserWalletHistory(extend(request, params)));
-    return self.parseLedger(response, currency, since, limit)
+    return self.parseLedger(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchDepositsWithdrawals(self::Bitmex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Bitmex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1296,8 +1431,8 @@ function fetchDepositsWithdrawals(self::Bitmex, code=nothing, since=nothing, lim
         request[Symbol("count")] = limit;
     end
     response = Base.fetch(self.privateGetUserWalletHistory(extend(request, params)));
-    transactions = self.filterByArray(response, "transactType", ["Withdrawal", "Deposit"], false);
-    return self.parseTransactions(transactions, currency, since, limit)
+    transactions = self.filterByArray(response, "transactType", values = ["Withdrawal", "Deposit"], indexed = false);
+    return self.parseTransactions(transactions, currency = currency, since = since, limit = limit)
 
 end
 function parseTransactionStatus(self::Bitmex, status)
@@ -1310,9 +1445,9 @@ function parseTransactionStatus(self::Bitmex, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Bitmex, transaction, currency=nothing)
+function parseTransaction(self::Bitmex, transaction; currency=nothing)
     currencyId = safeString(transaction, "currency");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     transactTime = self.parse8601(safeString(transaction, "transactTime"));
     timestamp = self.parse8601(safeString(transaction, "timestamp"));
     type_var = safeStringLower(transaction, "transactType");
@@ -1343,7 +1478,7 @@ function parseTransaction(self::Bitmex, transaction, currency=nothing)
     Symbol("txid") => safeString(transaction, "tx"),
     Symbol("type") => type_var,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(safeString(transaction, "network"), code),
+    Symbol("network") => self.networkIdToCode(networkId = safeString(transaction, "network"), currencyCode = code),
     Symbol("amount") => self.parseNumber(amount),
     Symbol("status") => status,
     Symbol("timestamp") => transactTime,
@@ -1365,7 +1500,18 @@ function parseTransaction(self::Bitmex, transaction, currency=nothing)
 )
 
 end
-function fetchTicker(self::Bitmex, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bitmex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1378,14 +1524,25 @@ function fetchTicker(self::Bitmex, symbol, params=Dict())
     if functions.ccxtruthy(ticker == nothing)
         throw(BadSymbol(string(self.id, " fetchTicker() symbol ", symbol, " not found")));
     end
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
-function fetchTickers(self::Bitmex, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bitmex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetInstrumentActiveAndIndices(params));
     result = Dict{Symbol, Any}();
     rawTickers = toArray(response);
@@ -1398,12 +1555,12 @@ function fetchTickers(self::Bitmex, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function parseTicker(self::Bitmex, ticker, market=nothing)
+function parseTicker(self::Bitmex, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     timestamp = self.parse8601(safeString(ticker, "timestamp"));
     open = safeString(ticker, "prevPrice24h");
     last_var = safeString(ticker, "lastPrice");
@@ -1429,24 +1586,39 @@ function parseTicker(self::Bitmex, ticker, market=nothing)
     Symbol("quoteVolume") => safeString(ticker, "foreignNotional24h"),
     Symbol("markPrice") => safeString(ticker, "markPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function parseOHLCV(self::Bitmex, ohlcv, market=nothing)
+function parseOHLCV(self::Bitmex, ohlcv; market=nothing)
     marketId = safeString(ohlcv, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     volume = self.convertFromRawQuantity(get(market, Symbol("symbol"), nothing), safeString(ohlcv, "volume"));
     return [self.parse8601(safeString(ohlcv, "timestamp")), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), volume]
 
 end
-function fetchOHLCV(self::Bitmex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bitmex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1464,7 +1636,7 @@ function fetchOHLCV(self::Bitmex, symbol, timeframe="1m", since=nothing, limit=n
     end
     duration = self.parseTimeframe(timeframe) * 1000;
     useOpenTimestamp = nothing;
-    (useOpenTimestamp, params) = self.handleOptionAndParams(params, "fetchOHLCV", "useOpenTimestamp", true);
+    (useOpenTimestamp, params) = self.handleOptionAndParams(params, "fetchOHLCV", "useOpenTimestamp", defaultValue = true);
     if functions.ccxtruthy(since != nothing)
         timestamp = since;
         if functions.ccxtruthy(useOpenTimestamp)
@@ -1476,7 +1648,7 @@ function fetchOHLCV(self::Bitmex, symbol, timeframe="1m", since=nothing, limit=n
         request[Symbol("reverse")] = true;
     end
     response = Base.fetch(self.publicGetTradeBucketed(extend(request, params)));
-    result = self.parseOHLCVs(toArray(response), market, timeframe, since, limit);
+    result = self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit);
     if functions.ccxtruthy(useOpenTimestamp)
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
@@ -1488,9 +1660,9 @@ function fetchOHLCV(self::Bitmex, symbol, timeframe="1m", since=nothing, limit=n
     return result
 
 end
-function parseTrade(self::Bitmex, trade, market=nothing)
+function parseTrade(self::Bitmex, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     timestamp = self.parse8601(safeString(trade, "timestamp"));
     priceString = safeString2(trade, "avgPx", "price");
     amountString = self.convertFromRawQuantity(symbol, safeString2(trade, "size", "lastQty"));
@@ -1528,7 +1700,7 @@ function parseTrade(self::Bitmex, trade, market=nothing)
     Symbol("cost") => stringAbs(execCost),
     Symbol("amount") => amountString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Bitmex, status)
@@ -1559,9 +1731,9 @@ function parseTimeInForce(self::Bitmex, timeInForce)
     return safeString(timeInForces, timeInForce, timeInForce)
 
 end
-function parseOrder(self::Bitmex, order, market=nothing)
+function parseOrder(self::Bitmex, order; market=nothing)
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     qty = safeString(order, "orderQty");
     cost = nothing;
@@ -1571,7 +1743,7 @@ function parseOrder(self::Bitmex, order, market=nothing)
         defaultSubType = safeString(self.options, "defaultSubType", "linear");
         isInverse = (defaultSubType == "inverse");
     else
-        isInverse = self.safeBool(market, "inverse", false);
+        isInverse = self.safeBool(market, "inverse", defaultValue = false);
     end
     if functions.ccxtruthy(isInverse)
         cost = self.convertFromRawQuantity(symbol, qty);
@@ -1619,17 +1791,31 @@ function parseOrder(self::Bitmex, order, market=nothing)
     Symbol("status") => self.parseOrderStatus(safeString(order, "ordStatus")),
     Symbol("fee") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bitmex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bitmex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1649,10 +1835,28 @@ function fetchTrades(self::Bitmex, symbol, since=nothing, limit=nothing, params=
         request[Symbol("endTime")] = self.iso8601(until);
     end
     response = Base.fetch(self.publicGetTrade(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function createOrder(self::Bitmex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_new
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::object, optional: the price at which a trigger order is triggered at
+- `params.triggerDirection`::object, optional: the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
+- `params.trailingAmount`::float, optional: the quote amount to trail away from the current market price
+
+# Returns
+- an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function createOrder(self::Bitmex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1695,7 +1899,7 @@ function createOrder(self::Bitmex, symbol, type_var, side, amount, price=nothing
         triggerDirection = safeString(params, "triggerDirection");
         triggerAbove = (@functions.ccxt_or((triggerDirection == "ascending"), (triggerDirection == "above")));
         if functions.ccxtruthy(@functions.ccxt_or((type_var == "limit"), (type_var == "market")))
-            self.checkRequiredArgument("createOrder", triggerDirection, "triggerDirection", ["above", "below"]);
+            self.checkRequiredArgument("createOrder", triggerDirection, "triggerDirection", options = ["above", "below"]);
         end
         if functions.ccxtruthy(type_var == "limit")
             if functions.ccxtruthy(side == "buy")
@@ -1736,10 +1940,10 @@ function createOrder(self::Bitmex, symbol, type_var, side, amount, price=nothing
         params = omit(params, ["clOrdID", "clientOrderId"]);
     end
     response = Base.fetch(self.privatePostOrder(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function editOrder(self::Bitmex, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+function editOrder(self::Bitmex, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1750,7 +1954,7 @@ function editOrder(self::Bitmex, id, symbol, type_var, side, amount=nothing, pri
         triggerDirection = safeString(params, "triggerDirection");
         triggerAbove = (@functions.ccxt_or((triggerDirection == "ascending"), (triggerDirection == "above")));
         if functions.ccxtruthy(@functions.ccxt_or((type_var == "limit"), (type_var == "market")))
-            self.checkRequiredArgument("editOrder", triggerDirection, "triggerDirection", ["above", "below"]);
+            self.checkRequiredArgument("editOrder", triggerDirection, "triggerDirection", options = ["above", "below"]);
         end
         orderType = nothing;
         if functions.ccxtruthy(type_var == "limit")
@@ -1798,7 +2002,19 @@ function editOrder(self::Bitmex, id, symbol, type_var, side, amount=nothing, pri
     return self.parseOrder(response)
 
 end
-function cancelOrder(self::Bitmex, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bitmex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1821,7 +2037,19 @@ function cancelOrder(self::Bitmex, id, symbol=nothing, params=Dict())
     return self.parseOrder(order)
 
 end
-function cancelOrders(self::Bitmex, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: not used by cancelOrders ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Bitmex, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1837,7 +2065,18 @@ function cancelOrders(self::Bitmex, ids, symbol=nothing, params=Dict())
     return self.parseOrders(response)
 
 end
-function cancelAllOrders(self::Bitmex, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bitmex; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1848,10 +2087,21 @@ function cancelAllOrders(self::Bitmex, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateDeleteOrderAll(extend(request, params)));
-    return self.parseOrders(response, market)
+    return self.parseOrders(response, market = market)
 
 end
-function cancelAllOrdersAfter(self::Bitmex, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Bitmex, timeout; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1865,36 +2115,58 @@ function cancelAllOrdersAfter(self::Bitmex, timeout, params=Dict())
     return response
 
 end
-function fetchLeverages(self::Bitmex, symbols=nothing, params=Dict())
+"""
+fetch the set leverage for all contract markets
+see: https://www.bitmex.com/api/explorer/#!/Position/Position_get
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverages(self::Bitmex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    leverages = Base.fetch(self.fetchPositions(symbols, params));
-    return self.parseLeverages(leverages, symbols, "symbol")
+    leverages = Base.fetch(self.fetchPositions(symbols = symbols, params = params));
+    return self.parseLeverages(leverages, symbols = symbols, symbolKey = "symbol")
 
 end
-function parseLeverage(self::Bitmex, leverage, market=nothing)
+function parseLeverage(self::Bitmex, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => safeStringLower(leverage, "marginMode"),
     Symbol("longLeverage") => safeInteger(leverage, "leverage"),
     Symbol("shortLeverage") => safeInteger(leverage, "leverage")
 )
 
 end
-function fetchPositions(self::Bitmex, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://www.bitmex.com/api/explorer/#!/Position/Position_get
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Bitmex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetPosition(params));
-    results = self.parsePositions(response, symbols);
-    return self.filterByArrayPositions(results, "symbol", symbols, false)
+    results = self.parsePositions(response, symbols = symbols);
+    return self.filterByArrayPositions(results, "symbol", values = symbols, indexed = false)
 
 end
-function parsePosition(self::Bitmex, position, market=nothing)
-    market = self.safeMarket(safeString(position, "symbol"), market);
+function parsePosition(self::Bitmex, position; market=nothing)
+    market = self.safeMarket(marketId = safeString(position, "symbol"), market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     datetime = safeString(position, "timestamp");
     crossMargin = safeValue(position, "crossMargin");
@@ -1945,9 +2217,23 @@ function parsePosition(self::Bitmex, position, market=nothing)
 ))
 
 end
-function withdraw(self::Bitmex, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bitmex, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1959,16 +2245,27 @@ function withdraw(self::Bitmex, code, amount, address, tag=nothing, params=Dict(
         Symbol("currency") => get(currency, Symbol("id"), nothing),
         Symbol("amount") => qty,
         Symbol("address") => address,
-        Symbol("network") => self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing))
+        Symbol("network") => self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing))
     );
     if functions.ccxtruthy(self.twofa != nothing)
         request[Symbol("otpToken")] = totp(self.twofa);
     end
     response = Base.fetch(self.privatePostUserRequestWithdrawal(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function fetchFundingRates(self::Bitmex, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Bitmex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1979,25 +2276,25 @@ function fetchFundingRates(self::Bitmex, symbols=nothing, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rawItems)))
         item = get(rawItems, i + 1, nothing);
         marketId = safeString(item, "symbol");
-        market = self.safeMarket(marketId);
-        swap = self.safeBool(market, "swap", false);
+        market = self.safeMarket(marketId = marketId);
+        swap = self.safeBool(market, "swap", defaultValue = false);
         if functions.ccxtruthy(swap)
                         push!(filteredResponse, item);
         end
         i += 1
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     result = self.parseFundingRates(filteredResponse);
-    return self.filterByArray(result, "symbol", symbols)
+    return self.filterByArray(result, "symbol", values = symbols)
 
 end
-function parseFundingRate(self::Bitmex, contract, market=nothing)
+function parseFundingRate(self::Bitmex, contract; market=nothing)
     datetime = safeString(contract, "timestamp");
     marketId = safeString(contract, "symbol");
     fundingDatetime = safeString(contract, "fundingTimestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("markPrice") => self.safeNumber(contract, "markPrice"),
     Symbol("indexPrice") => nothing,
     Symbol("interestRate") => nothing,
@@ -2017,7 +2314,25 @@ function parseFundingRate(self::Bitmex, contract, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Bitmex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Fetches the history of funding rates
+see: https://www.bitmex.com/api/explorer/#!/Funding/Funding_get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for ending date filter
+- `params.reverse`::bool, optional: if true, will sort results newest first
+- `params.start`::int, optional: starting point for results
+- `params.columns`::string, optional: array of column names to fetch in info, if omitted, will return all columns
+- `params.filter`::string, optional: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Bitmex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2057,22 +2372,34 @@ function fetchFundingRateHistory(self::Bitmex, symbol=nothing, since=nothing, li
         request[Symbol("reverse")] = true;
     end
     response = Base.fetch(self.publicGetFunding(extend(request, params)));
-    return self.parseFundingRateHistories(response, market, since, limit)
+    return self.parseFundingRateHistories(response, market = market, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Bitmex, info, market=nothing)
+function parseFundingRateHistory(self::Bitmex, info; market=nothing)
     marketId = safeString(info, "symbol");
     datetime = safeString(info, "timestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("fundingRate") => self.safeNumber(info, "fundingRate"),
     Symbol("timestamp") => self.parse8601(datetime),
     Symbol("datetime") => datetime
 )
 
 end
-function setLeverage(self::Bitmex, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.bitmex.com/api/explorer/#!/Position/Position_updateLeverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Bitmex, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -2093,7 +2420,19 @@ function setLeverage(self::Bitmex, leverage, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePostPositionLeverage(extend(request, params)))
 
 end
-function setMarginMode(self::Bitmex, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.bitmex.com/api/explorer/#!/Position/Position_isolateMargin
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Bitmex, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -2116,7 +2455,19 @@ function setMarginMode(self::Bitmex, marginMode, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePostPositionIsolate(extend(request, params)))
 
 end
-function fetchDepositAddress(self::Bitmex, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bitmex, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2127,7 +2478,7 @@ function fetchDepositAddress(self::Bitmex, code, params=Dict())
     end
     currency = self.currency(code);
     params = omit(params, "network");
-    parsedNetwork = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+    parsedNetwork = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     request = Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("id"), nothing),
         Symbol("network") => parsedNetwork
@@ -2142,7 +2493,7 @@ function fetchDepositAddress(self::Bitmex, code, params=Dict())
 )
 
 end
-function parseDepositWithdrawFee(self::Bitmex, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Bitmex, fee; currency=nothing)
     networks = safeValue(fee, "networks", []);
     networksLength = length(networks);
     result = Dict{Symbol, Any}(
@@ -2159,13 +2510,13 @@ function parseDepositWithdrawFee(self::Bitmex, fee, currency=nothing)
     );
     if functions.ccxtruthy(networksLength != 0)
         scale = safeString(fee, "scale");
-        precision = self.parsePrecision(scale);
+        precision = self.parsePrecision(precision = scale);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, networksLength))
             network = get(networks, i + 1, nothing);
             networkId = safeString(network, "asset");
             currencyCode = safeString(currency, "code");
-            networkCode = self.networkIdToCode(networkId, currencyCode);
+            networkCode = self.networkIdToCode(networkId = networkId, currencyCode = currencyCode);
             withdrawalFeeId = safeString(network, "withdrawalFee");
             withdrawalFee = self.parseNumber(stringMul(withdrawalFeeId, precision));
             if functions.ccxtruthy(networkCode != nothing)
@@ -2191,26 +2542,48 @@ function parseDepositWithdrawFee(self::Bitmex, fee, currency=nothing)
     return result
 
 end
-function fetchDepositWithdrawFees(self::Bitmex, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Bitmex; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     assets = Base.fetch(self.publicGetWalletAssets(params));
-    return self.parseDepositWithdrawFees(assets, codes, "asset")
+    return self.parseDepositWithdrawFees(assets, codes = codes, currencyIdKey = "asset")
 
 end
-function fetchOpenInterests(self::Bitmex, symbols=nothing, params=Dict())
+"""
+Retrieves the open interest for a list of symbols
+see: https://docs.bitmex.com/api-explorer/get-stats
+
+# Arguments
+- `symbols`::array, optional: a list of unified CCXT market symbols
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterests(self::Bitmex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     response = nothing;
     response = Base.fetch(self.publicGetStats(extend(request, params)));
-    symbols = self.marketSymbols(symbols);
-    return self.parseOpenInterests(response, symbols)
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.parseOpenInterests(response, symbols = symbols)
 
 end
-function parseOpenInterest(self::Bitmex, interest, market=nothing)
+function parseOpenInterest(self::Bitmex, interest; market=nothing)
     quoteId = safeString(interest, "currency");
     baseId = safeString(interest, "rootSymbol");
     quoteSymbol = self.safeCurrencyCode(quoteId);
@@ -2230,11 +2603,11 @@ function parseOpenInterest(self::Bitmex, interest, market=nothing)
     Symbol("openInterestValue") => openValue,
     Symbol("timestamp") => nothing,
     Symbol("datetime") => nothing
-), market)
+), market = market)
 
 end
-function calculateRateLimiterCost(self::Bitmex, api, method, path, params, config=Dict())
-    isAuthenticated = self.checkRequiredCredentials(false);
+function calculateRateLimiterCost(self::Bitmex, api, method, path, params; config=Dict())
+    isAuthenticated = self.checkRequiredCredentials(error = false);
     cost = safeValue(config, "cost", 1);
     if functions.ccxtruthy(cost != 1)
         if functions.ccxtruthy(isAuthenticated)
@@ -2246,14 +2619,29 @@ function calculateRateLimiterCost(self::Bitmex, api, method, path, params, confi
     return cost
 
 end
-function fetchLiquidations(self::Bitmex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the public liquidations of a trading pair
+see: https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the bitmex api endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchLiquidations(self::Bitmex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLiquidations", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLiquidations", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLiquidations", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -2267,14 +2655,14 @@ function fetchLiquidations(self::Bitmex, symbol, since=nothing, limit=nothing, p
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.publicGetLiquidation(extend(request, params)));
-    return self.parseLiquidations(toArray(response), market, since, limit)
+    return self.parseLiquidations(toArray(response), market = market, since = since, limit = limit)
 
 end
-function parseLiquidation(self::Bitmex, liquidation, market=nothing)
+function parseLiquidation(self::Bitmex, liquidation; market=nothing)
     marketId = safeString(liquidation, "symbol");
     return self.safeLiquidation(Dict{Symbol, Any}(
     Symbol("info") => liquidation,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("contracts") => nothing,
     Symbol("contractSize") => self.safeNumber(market, "contractSize"),
     Symbol("price") => self.safeNumber(liquidation, "price"),
@@ -2286,21 +2674,32 @@ function parseLiquidation(self::Bitmex, liquidation, market=nothing)
 ))
 
 end
-function fetchPositionsADLRank(self::Bitmex, symbols=nothing, params=Dict())
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://www.bitmex.com/api/explorer/#!/Position/Position_get
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+function fetchPositionsADLRank(self::Bitmex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     response = Base.fetch(self.privateGetPosition(params));
-    return self.parseADLRanks(response, symbols)
+    return self.parseADLRanks(response, symbols = symbols)
 
 end
-function parseADLRank(self::Bitmex, info, market=nothing)
+function parseADLRank(self::Bitmex, info; market=nothing)
     marketId = safeString(info, "symbol");
     datetime = safeString(info, "timestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("rank") => safeInteger(info, "deleveragePercentile"),
     Symbol("rating") => nothing,
     Symbol("percentage") => nothing,
@@ -2309,7 +2708,25 @@ function parseADLRank(self::Bitmex, info, market=nothing)
 )
 
 end
-function fetchSettlementHistory(self::Bitmex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records
+see: https://docs.bitmex.com/api-explorer/get-settlements
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+- `params.until`::int, optional: timestamp in ms EXCHANGE SPECIFIC PARAMETERS
+- `params.filter`::string, optional: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = {}
+- `params.columns`::string, optional: array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect
+- `params.start`::int, optional: possible values are >= 0 starting point for results, default value = 0
+- `params.reverse`::bool, optional: if true, will sort results newest first, default value = false
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+function fetchSettlementHistory(self::Bitmex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2331,34 +2748,47 @@ function fetchSettlementHistory(self::Bitmex, symbol=nothing, since=nothing, lim
         params = omit(params, "until");
     end
     response = Base.fetch(self.publicGetSettlement(extend(request, params)));
-    return self.parseSettlements(response, market, since, limit)
+    return self.parseSettlements(response, market = market, since = since, limit = limit)
 
 end
-function parseSettlements(self::Bitmex, settlements, market=nothing, since=nothing, limit=nothing)
+function parseSettlements(self::Bitmex, settlements; market=nothing, since=nothing, limit=nothing)
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(settlements)))
-        push!(result, self.parseSettlement(get(settlements, i + 1, nothing), market));
+        push!(result, self.parseSettlement(get(settlements, i + 1, nothing), market = market));
         i += 1
     end
     sorted = sortBy(result, "timestamp");
     symbol = safeString(market, "symbol");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function parseSettlement(self::Bitmex, settlement, market=nothing)
+function parseSettlement(self::Bitmex, settlement; market=nothing)
     datetime = safeString(settlement, "timestamp");
     marketId = safeString(settlement, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => settlement,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("price") => self.safeNumber(settlement, "settledPrice"),
     Symbol("timestamp") => self.parse8601(datetime),
     Symbol("datetime") => datetime
 )
 
 end
-function closePosition(self::Bitmex, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a market
+see: https://docs.bitmex.com/api-explorer/order-new
+see: https://docs.bitmex.com/api-explorer/order-close-position
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string: the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function closePosition(self::Bitmex, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2369,7 +2799,7 @@ function closePosition(self::Bitmex, symbol, side=nothing, params=Dict())
         Symbol("execInst") => "Close"
     );
     response = Base.fetch(self.privatePostOrder(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
 function handleErrors(self::Bitmex, code, reason, url, method, headers, body, response, requestHeaders, requestBody)
@@ -2397,7 +2827,7 @@ function nonce(self::Bitmex, )
     return milliseconds()
 
 end
-function sign(self::Bitmex, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitmex, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     query = string("/api/", self.version, "/", path);
     if functions.ccxtruthy(method == "GET")
         if functions.ccxtruthy(length(objectKeys(params)))
@@ -2413,7 +2843,7 @@ function sign(self::Bitmex, path, api="public", method="GET", params=Dict(), hea
         end
     end
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), query);
-    isAuthenticated = self.checkRequiredCredentials(false);
+    isAuthenticated = self.checkRequiredCredentials(error = false);
     if functions.ccxtruthy(@functions.ccxt_or(api == "private", (@functions.ccxt_and(api == "public", isAuthenticated))))
         self.checkRequiredCredentials();
         auth = string(method, query);
@@ -2453,375 +2883,375 @@ Base.getproperty(self::Bitmex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetAnnouncement(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "announcement", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "announcement"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAnnouncementUrgent(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "announcement/urgent", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "announcement/urgent"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetChat(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "chat", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "chat"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetChatChannels(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "chat/channels", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "chat/channels"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetChatConnected(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "chat/connected", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "chat/connected"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetChatPinned(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "chat/pinned", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "chat/pinned"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFunding(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "funding", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGuild(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "guild"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInstrument(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "instrument"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInstrumentActive(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/active", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "instrument/active"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInstrumentActiveAndIndices(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/activeAndIndices", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "instrument/activeAndIndices"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInstrumentActiveIntervals(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/activeIntervals", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "instrument/activeIntervals"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInstrumentCompositeIndex(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/compositeIndex", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "instrument/compositeIndex"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInstrumentIndices(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/indices", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "instrument/indices"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInstrumentUsdVolume(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/usdVolume", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "instrument/usdVolume"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInsurance(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "insurance", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "insurance"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetLeaderboard(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "leaderboard", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "leaderboard"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetLiquidation(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "liquidation", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "liquidation"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderBookL2(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "orderBook/L2", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderBook/L2"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPorlNonce(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "porl/nonce", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "porl/nonce"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuote(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "quote", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuoteBucketed(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "quote/bucketed", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/bucketed"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSchema(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "schema", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "schema"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSchemaWebsocketHelp(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "schema/websocketHelp", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "schema/websocketHelp"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSettlement(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "settlement", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "settlement"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetStats(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "stats", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "stats"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetStatsHistory(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "stats/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "stats/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetStatsHistoryUSD(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "stats/historyUSD", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "stats/historyUSD"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrade(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "trade", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeBucketed(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "trade/bucketed", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/bucketed"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetWalletAssets(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "wallet/assets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/assets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetWalletNetworks(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "wallet/networks", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/networks"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAddress(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiKey(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "apiKey", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiKey"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExecution(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "execution", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "execution"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExecutionTradeHistory(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "execution/tradeHistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "execution/tradeHistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGlobalNotification(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "globalNotification", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "globalNotification"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLeaderboardName(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "leaderboard/name", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "leaderboard/name"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrder(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPorlSnapshots(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "porl/snapshots", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "porl/snapshots"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPosition(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "position", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "position"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUser(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserAffiliateStatus(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/affiliateStatus", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/affiliateStatus"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserCheckReferralCode(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/checkReferralCode", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/checkReferralCode"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserCommission(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/commission", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/commission"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserCsa(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/csa", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/csa"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserDepositAddress(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/depositAddress", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/depositAddress"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserExecutionHistory(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/executionHistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/executionHistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserGetWalletTransferAccounts(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/getWalletTransferAccounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/getWalletTransferAccounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserMargin(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/margin", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/margin"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserQuoteFillRatio(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/quoteFillRatio", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/quoteFillRatio"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserQuoteValueRatio(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/quoteValueRatio", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/quoteValueRatio"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserStaking(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/staking", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/staking"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserStakingInstruments(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/staking/instruments", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/staking/instruments"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserStakingTiers(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/staking/tiers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/staking/tiers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserTradingVolume(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/tradingVolume", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/tradingVolume"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserUnstakingRequests(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/unstakingRequests", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/unstakingRequests"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserWallet(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/wallet", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/wallet"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserWalletHistory(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/walletHistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/walletHistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserWalletSummary(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/walletSummary", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/walletSummary"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserAffiliates(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "userAffiliates", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "userAffiliates"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserEvent(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "userEvent", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "userEvent"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAddress(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "address", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "address"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostChat(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "chat", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "chat"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGuild(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "guild"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGuildArchive(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild/archive", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "guild/archive"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGuildJoin(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild/join", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "guild/join"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGuildKick(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild/kick", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "guild/kick"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGuildLeave(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild/leave", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "guild/leave"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGuildSharesTrades(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild/sharesTrades", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "guild/sharesTrades"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrder(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderCancelAllAfter(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order/cancelAllAfter", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancelAllAfter"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderClosePosition(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order/closePosition", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/closePosition"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionIsolate(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "position/isolate", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/isolate"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionLeverage(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "position/leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionRiskLimit(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "position/riskLimit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/riskLimit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionTransferMargin(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "position/transferMargin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/transferMargin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserAddSubaccount(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/addSubaccount", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/addSubaccount"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserCancelWithdrawal(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/cancelWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/cancelWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserCommunicationToken(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/communicationToken", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/communicationToken"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserConfirmEmail(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/confirmEmail", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/confirmEmail"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserConfirmWithdrawal(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/confirmWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/confirmWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserLogout(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/logout", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/logout"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserPreferences(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/preferences", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/preferences"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserRequestWithdrawal(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/requestWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/requestWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserUnstakingRequests(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/unstakingRequests", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/unstakingRequests"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserUpdateSubaccount(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/updateSubaccount", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/updateSubaccount"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserWalletTransfer(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/walletTransfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/walletTransfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutGuild(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "guild"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOrder(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrder(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrderAll(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order/all", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order/all"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteUserUnstakingRequests(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/unstakingRequests", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "user/unstakingRequests"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitmex(; kwargs...)
@@ -2885,3 +3315,537 @@ function Bitmex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitmex_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bitmex_fetchCurrencies
+
+function __ccxt_doc_Bitmex_fetchMarkets() end
+"""
+retrieves data on all markets for bitmex
+see: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActive
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitmex_fetchMarkets
+
+function __ccxt_doc_Bitmex_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.bitmex.com/api/explorer/#!/User/User_getMargin
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bitmex_fetchBalance
+
+function __ccxt_doc_Bitmex_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitmex_fetchOrderBook
+
+function __ccxt_doc_Bitmex_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitmex_fetchOrder
+
+function __ccxt_doc_Bitmex_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the earliest time in ms to fetch orders for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitmex_fetchOrders
+
+function __ccxt_doc_Bitmex_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitmex_fetchOpenOrders
+
+function __ccxt_doc_Bitmex_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitmex_fetchClosedOrders
+
+function __ccxt_doc_Bitmex_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitmex_fetchMyTrades
+
+function __ccxt_doc_Bitmex_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Bitmex_fetchLedger
+
+function __ccxt_doc_Bitmex_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitmex_fetchDepositsWithdrawals
+
+function __ccxt_doc_Bitmex_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitmex_fetchTicker
+
+function __ccxt_doc_Bitmex_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitmex_fetchTickers
+
+function __ccxt_doc_Bitmex_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bitmex_fetchOHLCV
+
+function __ccxt_doc_Bitmex_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bitmex_fetchTrades
+
+function __ccxt_doc_Bitmex_createOrder() end
+"""
+create a trade order
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_new
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::object, optional: the price at which a trigger order is triggered at
+- `params.triggerDirection`::object, optional: the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
+- `params.trailingAmount`::float, optional: the quote amount to trail away from the current market price
+
+# Returns
+- an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Bitmex_createOrder
+
+function __ccxt_doc_Bitmex_cancelOrder() end
+"""
+cancels an open order
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitmex_cancelOrder
+
+function __ccxt_doc_Bitmex_cancelOrders() end
+"""
+cancel multiple orders
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: not used by cancelOrders ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitmex_cancelOrders
+
+function __ccxt_doc_Bitmex_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitmex_cancelAllOrders
+
+function __ccxt_doc_Bitmex_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Bitmex_cancelAllOrdersAfter
+
+function __ccxt_doc_Bitmex_fetchLeverages() end
+"""
+fetch the set leverage for all contract markets
+see: https://www.bitmex.com/api/explorer/#!/Position/Position_get
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Bitmex_fetchLeverages
+
+function __ccxt_doc_Bitmex_fetchPositions() end
+"""
+fetch all open positions
+see: https://www.bitmex.com/api/explorer/#!/Position/Position_get
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bitmex_fetchPositions
+
+function __ccxt_doc_Bitmex_withdraw() end
+"""
+make a withdrawal
+see: https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitmex_withdraw
+
+function __ccxt_doc_Bitmex_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Bitmex_fetchFundingRates
+
+function __ccxt_doc_Bitmex_fetchFundingRateHistory() end
+"""
+Fetches the history of funding rates
+see: https://www.bitmex.com/api/explorer/#!/Funding/Funding_get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for ending date filter
+- `params.reverse`::bool, optional: if true, will sort results newest first
+- `params.start`::int, optional: starting point for results
+- `params.columns`::string, optional: array of column names to fetch in info, if omitted, will return all columns
+- `params.filter`::string, optional: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Bitmex_fetchFundingRateHistory
+
+function __ccxt_doc_Bitmex_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.bitmex.com/api/explorer/#!/Position/Position_updateLeverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bitmex_setLeverage
+
+function __ccxt_doc_Bitmex_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.bitmex.com/api/explorer/#!/Position/Position_isolateMargin
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bitmex_setMarginMode
+
+function __ccxt_doc_Bitmex_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bitmex_fetchDepositAddress
+
+function __ccxt_doc_Bitmex_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitmex_fetchDepositWithdrawFees
+
+function __ccxt_doc_Bitmex_fetchOpenInterests() end
+"""
+Retrieves the open interest for a list of symbols
+see: https://docs.bitmex.com/api-explorer/get-stats
+
+# Arguments
+- `symbols`::array, optional: a list of unified CCXT market symbols
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Bitmex_fetchOpenInterests
+
+function __ccxt_doc_Bitmex_fetchLiquidations() end
+"""
+retrieves the public liquidations of a trading pair
+see: https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the bitmex api endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Bitmex_fetchLiquidations
+
+function __ccxt_doc_Bitmex_fetchPositionsADLRank() end
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://www.bitmex.com/api/explorer/#!/Position/Position_get
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+__ccxt_doc_Bitmex_fetchPositionsADLRank
+
+function __ccxt_doc_Bitmex_fetchSettlementHistory() end
+"""
+fetches historical settlement records
+see: https://docs.bitmex.com/api-explorer/get-settlements
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+- `params.until`::int, optional: timestamp in ms EXCHANGE SPECIFIC PARAMETERS
+- `params.filter`::string, optional: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = {}
+- `params.columns`::string, optional: array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect
+- `params.start`::int, optional: possible values are >= 0 starting point for results, default value = 0
+- `params.reverse`::bool, optional: if true, will sort results newest first, default value = false
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+__ccxt_doc_Bitmex_fetchSettlementHistory
+
+function __ccxt_doc_Bitmex_closePosition() end
+"""
+closes open positions for a market
+see: https://docs.bitmex.com/api-explorer/order-new
+see: https://docs.bitmex.com/api-explorer/order-close-position
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string: the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitmex_closePosition

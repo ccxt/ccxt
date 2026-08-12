@@ -704,7 +704,17 @@ function describe(self::Backpack, )
 ))
 
 end
-function fetchCurrencies(self::Backpack, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.backpack.exchange/#tag/Assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Backpack; params=Dict())
     response = Base.fetch(self.publicGetApiV1Assets(params));
     return self.parseCurrencies(response)
 
@@ -712,14 +722,14 @@ end
 function parseCurrency(self::Backpack, rawCurrency)
     currencyId = safeString(rawCurrency, "symbol");
     code = self.safeCurrencyCode(currencyId);
-    networks = self.safeList(rawCurrency, "tokens", []);
+    networks = self.safeList(rawCurrency, "tokens", defaultValue = []);
     parsedNetworks = Dict{Symbol, Any}();
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networks)))
         network = get(networks, j + 1, nothing);
         networkId = safeString(network, "blockchain");
         networkIdLowerCase = safeStringLower(network, "blockchain");
-        networkCode = self.networkIdToCode(networkIdLowerCase, code);
+        networkCode = self.networkIdToCode(networkId = networkIdLowerCase, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             parsedNetworks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -777,7 +787,17 @@ function parseCurrency(self::Backpack, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Backpack, params=Dict())
+"""
+retrieves data on all markets for bitbank
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Backpack; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
@@ -792,12 +812,12 @@ function parseMarket(self::Backpack, market)
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
     symbol = string(base, "/", quote_var);
-    filters = self.safeDict(market, "filters", Dict{Symbol, Any}());
-    priceFilter = self.safeDict(filters, "price", Dict{Symbol, Any}());
+    filters = self.safeDict(market, "filters", defaultValue = Dict{Symbol, Any}());
+    priceFilter = self.safeDict(filters, "price", defaultValue = Dict{Symbol, Any}());
     maxPrice = self.safeNumber(priceFilter, "maxPrice");
     minPrice = self.safeNumber(priceFilter, "minPrice");
     pricePrecision = self.safeNumber(priceFilter, "tickSize");
-    quantityFilter = self.safeDict(filters, "quantity", Dict{Symbol, Any}());
+    quantityFilter = self.safeDict(filters, "quantity", defaultValue = Dict{Symbol, Any}());
     maxQuantity = self.safeNumber(quantityFilter, "maxQuantity");
     minQuantity = self.safeNumber(quantityFilter, "minQuantity");
     amountPrecision = self.safeNumber(quantityFilter, "stepSize");
@@ -820,7 +840,7 @@ function parseMarket(self::Backpack, market)
         contractSize = 1;
     end
     orderBookState = safeString(market, "orderBookState");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -881,17 +901,39 @@ function parseMarketType(self::Backpack, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function fetchTickers(self::Backpack, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Backpack; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.publicGetApiV1Tickers(extend(request, params)));
     tickers = self.parseTickers(response);
-    return self.filterByArrayTickers(tickers, "symbol", symbols)
+    return self.filterByArrayTickers(tickers, "symbol", values = symbols)
 
 end
-function fetchTicker(self::Backpack, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Backpack, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -900,13 +942,13 @@ function fetchTicker(self::Backpack, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetApiV1Ticker(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function parseTicker(self::Backpack, ticker, market=nothing)
+function parseTicker(self::Backpack, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market);
-    symbol = self.safeSymbol(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
+    symbol = self.safeSymbol(marketId, market = market);
     open = safeString(ticker, "firstPrice");
     last_var = safeString(ticker, "lastPrice");
     high = safeString(ticker, "high");
@@ -942,11 +984,23 @@ function parseTicker(self::Backpack, ticker, market=nothing)
         Symbol("markPrice") => nothing,
         Symbol("indexPrice") => nothing,
         Symbol("info") => ticker
-    ), market);
+    ), market = market);
     return parsedTicker
 
 end
-function fetchOrderBook(self::Backpack, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (default 100, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Backpack, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -960,12 +1014,26 @@ function fetchOrderBook(self::Backpack, symbol, limit=nothing, params=Dict())
         throw(ExchangeError(string(self.id, " fetchOrderBook() missing microseconds")));
     end
     timestamp = self.parseToInt(microseconds / 1000);
-    orderbook = self.parseOrderBook(response, symbol, timestamp);
+    orderbook = self.parseOrderBook(response, symbol, timestamp = timestamp);
     orderbook[Symbol("nonce")] = safeInteger(response, "lastUpdateId");
     return orderbook
 
 end
-function fetchOHLCV(self::Backpack, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in seconds of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (default 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Backpack, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -999,14 +1067,25 @@ function fetchOHLCV(self::Backpack, symbol, timeframe="1m", since=nothing, limit
     end
     response = Base.fetch(self.publicGetApiV1Klines(extend(request, params)));
     ohlcvs = toArray(response);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Backpack, ohlcv, market=nothing)
+function parseOHLCV(self::Backpack, ohlcv; market=nothing)
     return [self.parse8601(safeString(ohlcv, "start")), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchFundingRate(self::Backpack, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_mark_prices
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Backpack, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1018,14 +1097,14 @@ function fetchFundingRate(self::Backpack, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetApiV1MarkPrices(extend(request, params)));
-    data = self.safeDict(response, 0, Dict{Symbol, Any}());
-    return self.parseFundingRate(data, market)
+    data = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(data, market = market)
 
 end
-function parseFundingRate(self::Backpack, contract, market=nothing)
+function parseFundingRate(self::Backpack, contract; market=nothing)
     marketId = safeString(contract, "symbol");
-    market = self.safeMarket(marketId, market);
-    symbol = self.safeSymbol(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
+    symbol = self.safeSymbol(marketId, market = market);
     nextFundingTimestamp = safeInteger(contract, "nextFundingTimestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
@@ -1049,7 +1128,18 @@ function parseFundingRate(self::Backpack, contract, market=nothing)
 )
 
 end
-function fetchOpenInterest(self::Backpack, symbol, params=Dict())
+"""
+Retrieves the open interest of a derivative trading pair
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_open_interest
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
+"""
+function fetchOpenInterest(self::Backpack, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1061,11 +1151,11 @@ function fetchOpenInterest(self::Backpack, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetApiV1OpenInterest(extend(request, params)));
-    interest = self.safeDict(response, 0, Dict{Symbol, Any}());
-    return self.parseOpenInterest(interest, market)
+    interest = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOpenInterest(interest, market = market)
 
 end
-function parseOpenInterest(self::Backpack, interest, market=nothing)
+function parseOpenInterest(self::Backpack, interest; market=nothing)
     timestamp = safeInteger(interest, "timestamp");
     openInterest = self.safeNumber(interest, "openInterest");
     return self.safeOpenInterest(Dict{Symbol, Any}(
@@ -1075,10 +1165,23 @@ function parseOpenInterest(self::Backpack, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchFundingRateHistory(self::Backpack, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_funding_interval_rates
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of funding rate structures
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Backpack; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -1110,10 +1213,25 @@ function fetchFundingRateHistory(self::Backpack, symbol=nothing, since=nothing, 
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function fetchTrades(self::Backpack, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
+see: https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.offset`::int, optional: the number of trades to skip, default is 0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Backpack, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1132,10 +1250,25 @@ function fetchTrades(self::Backpack, symbol, since=nothing, limit=nothing, param
         response = Base.fetch(self.publicGetApiV1Trades(extend(request, params)));
     end
     responseList = toArray(response);
-    return self.parseTrades(responseList, market, since, limit)
+    return self.parseTrades(responseList, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Backpack, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.backpack.exchange/#tag/History/operation/get_fills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve (default 100, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.fillType`::string, optional: 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Backpack; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1162,13 +1295,13 @@ function fetchMyTrades(self::Backpack, symbol=nothing, since=nothing, limit=noth
     end
     response = Base.fetch(self.privateGetWapiV1HistoryFills(extend(request, params)));
     responseList = toArray(response);
-    return self.parseTrades(responseList, market, since, limit)
+    return self.parseTrades(responseList, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Backpack, trade, market=nothing)
+function parseTrade(self::Backpack, trade; market=nothing)
     id = safeString2(trade, "id", "tradeId");
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     price = safeString(trade, "price");
     amount = safeString(trade, "quantity");
     isBuyerMaker = self.safeBool(trade, "isBuyerMaker");
@@ -1211,10 +1344,20 @@ function parseTrade(self::Backpack, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchStatus(self::Backpack, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.backpack.exchange/#tag/System/operation/get_status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Backpack; params=Dict())
     response = Base.fetch(self.publicGetApiV1Status(params));
     status = safeString(response, "status");
     if functions.ccxtruthy(status == nothing)
@@ -1229,12 +1372,32 @@ function fetchStatus(self::Backpack, params=Dict())
 )
 
 end
-function fetchTime(self::Backpack, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://developer-pro.bitmart.com/en/spot/#get-system-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Backpack; params=Dict())
     response = Base.fetch(self.publicGetApiV1Time(params));
     return safeInteger(response, 0, milliseconds())
 
 end
-function fetchBalance(self::Backpack, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.backpack.exchange/#tag/Capital/operation/get_balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Backpack; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1264,7 +1427,21 @@ function parseBalance(self::Backpack, response)
     return self.safeBalance(result)
 
 end
-function fetchDeposits(self::Backpack, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.backpack.exchange/#tag/Capital/operation/get_deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Backpack; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1285,10 +1462,24 @@ function fetchDeposits(self::Backpack, code=nothing, since=nothing, limit=nothin
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.privateGetWapiV1CapitalDeposits(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Backpack, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for (default 24 hours ago)
+- `limit`::int, optional: the maximum number of transfer structures to retrieve (default 50, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for (default time now)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Backpack; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1309,10 +1500,25 @@ function fetchWithdrawals(self::Backpack, code=nothing, since=nothing, limit=not
         request[Symbol("to")] = until;
     end
     response = Base.fetch(self.privateGetWapiV1CapitalWithdrawals(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function withdraw(self::Backpack, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://docs.backpack.exchange/#tag/Capital/operation/request_withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string: the network to withdraw on (mandatory)
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Backpack, code, amount, address; tag=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1326,30 +1532,30 @@ function withdraw(self::Backpack, code, amount, address, tag=nothing, params=Dic
         request[Symbol("clientId")] = tag;
     end
     (networkCode, query) = self.handleNetworkCodeAndParams(params);
-    networkId = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+    networkId = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     if functions.ccxtruthy(networkId == nothing)
         throw(BadRequest(string(self.id, " withdraw() requires a network parameter")));
     end
     request[Symbol("blockchain")] = networkId;
     response = Base.fetch(self.privatePostWapiV1CapitalWithdrawals(extend(request, query)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseTransaction(self::Backpack, transaction, currency=nothing)
+function parseTransaction(self::Backpack, transaction; currency=nothing)
     status = self.parseTransactionStatus(safeString(transaction, "status"));
     id = safeString(transaction, "id");
     txid = safeString(transaction, "transactionHash");
     coin = safeString(transaction, "symbol");
-    code = self.safeCurrencyCode(coin, currency);
+    code = self.safeCurrencyCode(coin, currency = currency);
     timestamp = self.parse8601(safeString(transaction, "createdAt"));
     amount = self.safeNumber(transaction, "quantity");
     networkId = safeStringLower2(transaction, "source", "blockchain");
-    network = self.networkIdToCode(networkId, code);
+    network = self.networkIdToCode(networkId = networkId, currencyCode = code);
     addressTo = safeString(transaction, "toAddress");
     addressFrom = safeString(transaction, "fromAddress");
     tag = safeString(transaction, "platformMemo");
     feeCost = self.safeNumber(transaction, "fee");
-    internal = self.safeBool(transaction, "isInternal", false);
+    internal = self.safeBool(transaction, "isInternal", defaultValue = false);
     fee = nothing;
     if functions.ccxtruthy(feeCost != nothing)
         fee = Dict{Symbol, Any}(
@@ -1395,7 +1601,19 @@ function parseTransactionStatus(self::Backpack, status)
     return safeString(statuses, status, status)
 
 end
-function fetchDepositAddress(self::Backpack, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.backpack.exchange/#tag/Capital/operation/get_deposit_address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.networkCode`::string, optional: the network to fetch the deposit address (mandatory)
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Backpack, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1406,16 +1624,16 @@ function fetchDepositAddress(self::Backpack, code, params=Dict())
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
-        Symbol("blockchain") => self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing))
+        Symbol("blockchain") => self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing))
     );
     response = Base.fetch(self.privateGetWapiV1CapitalDepositAddress(extend(request, params)));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function parseDepositAddress(self::Backpack, depositAddress, currency=nothing)
+function parseDepositAddress(self::Backpack, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
     currencyId = safeString(depositAddress, "currency");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => get(currency, Symbol("code"), nothing),
@@ -1425,17 +1643,60 @@ function parseDepositAddress(self::Backpack, depositAddress, currency=nothing)
 )
 
 end
-function createOrder(self::Backpack, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.backpack.exchange/#tag/Order/operation/execute_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *market orders only* the cost of the order in units of the quote currency (could be used instead of amount)
+- `params.clientOrderId`::int, optional: a unique id for the order
+- `params.postOnly`::bool, optional: true to place a post only order
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK' or 'PO'
+- `params.reduceOnly`::bool, optional: *contract only* Indicates if this order is to reduce the size of a position
+- `params.selfTradePrevention`::string, optional: one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+- `params.autoLend`::bool, optional: *spot margin only* if true then the order can lend
+- `params.autoLendRedeem`::bool, optional: *spot margin only* if true then the order can redeem a lend if required
+- `params.autoBorrow`::bool, optional: *spot margin only* if true then the order can borrow
+- `params.autoBorrowRepay`::bool, optional: *spot margin only* if true then the order can repay a borrow
+- `params.triggerPrice`::float, optional: the price that a trigger order is triggered at
+- `params.takeProfit`::object, optional: *swap markets only - takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.takeProfit.price`::float, optional: take profit order price (if not provided the order will be a market order)
+- `params.stopLoss`::object, optional: *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.stopLoss.price`::float, optional: stop loss order price (if not provided the order will be a market order)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Backpack, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = Base.fetch(self.privatePostApiV1Order(orderRequest));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createOrders(self::Backpack, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Backpack, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1448,9 +1709,9 @@ function createOrders(self::Backpack, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = self.safeNumber(rawOrder, "amount");
         price = self.safeNumber(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         extendedParams = extend(orderParams, params);
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, extendedParams);
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = extendedParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
@@ -1458,7 +1719,7 @@ function createOrders(self::Backpack, orders, params=Dict())
     return self.parseOrders(response)
 
 end
-function createOrderRequest(self::Backpack, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Backpack, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1496,7 +1757,7 @@ function createOrderRequest(self::Backpack, symbol, type_var, side, amount, pric
         params = omit(params, "clientOrderId");
     end
     postOnly = false;
-    (postOnly, params) = self.handlePostOnly(type_var == "market", false, params);
+    (postOnly, params) = self.handlePostOnly(type_var == "market", false, params = params);
     if functions.ccxtruthy(postOnly)
         params[Symbol("postOnly")] = true;
     end
@@ -1549,7 +1810,20 @@ function encodeOrderSide(self::Backpack, side)
     return safeString(sides, side, side)
 
 end
-function fetchOpenOrders(self::Backpack, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Backpack; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1560,10 +1834,22 @@ function fetchOpenOrders(self::Backpack, symbol=nothing, since=nothing, limit=no
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetApiV1Orders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrder(self::Backpack, id, symbol=nothing, params=Dict())
+"""
+fetch an open order by it's id
+see: https://docs.backpack.exchange/#tag/Order/operation/get_order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by fetchOpenOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrder(self::Backpack, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1579,7 +1865,19 @@ function fetchOpenOrder(self::Backpack, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelOrder(self::Backpack, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.backpack.exchange/#tag/Order/operation/cancel_order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Backpack, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1595,7 +1893,18 @@ function cancelOrder(self::Backpack, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelAllOrders(self::Backpack, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Backpack; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1607,10 +1916,23 @@ function cancelAllOrders(self::Backpack, symbol=nothing, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateDeleteApiV1Orders(extend(request, params)));
-    return self.parseOrders(response, market)
+    return self.parseOrders(response, market = market)
 
 end
-function fetchOrders(self::Backpack, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.backpack.exchange/#tag/History/operation/get_order_history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve (default 100, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function fetchOrders(self::Backpack; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1624,10 +1946,10 @@ function fetchOrders(self::Backpack, symbol=nothing, since=nothing, limit=nothin
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetWapiV1HistoryOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function parseOrder(self::Backpack, order, market=nothing)
+function parseOrder(self::Backpack, order; market=nothing)
     timestamp = safeInteger(order, "createdAt");
     timestamp2 = self.parse8601(safeString(order, "createdAt"));
     if functions.ccxtruthy(timestamp2 != nothing)
@@ -1635,7 +1957,7 @@ function parseOrder(self::Backpack, order, market=nothing)
     end
     id = safeString(order, "id");
     clientOrderId = safeString(order, "clientId");
-    symbol = self.safeSymbol(safeString(order, "symbol"), market);
+    symbol = self.safeSymbol(safeString(order, "symbol"), market = market);
     type_var = safeStringLower(order, "orderType");
     timeInForce = safeString(order, "timeInForce");
     side = self.parseOrderSide(safeString(order, "side"));
@@ -1674,7 +1996,7 @@ function parseOrder(self::Backpack, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Backpack, status)
@@ -1698,7 +2020,18 @@ function parseOrderSide(self::Backpack, side)
     return safeString(sides, side, side)
 
 end
-function fetchPositions(self::Backpack, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.backpack.exchange/#tag/Futures/operation/get_positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Backpack; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1707,14 +2040,14 @@ function fetchPositions(self::Backpack, symbols=nothing, params=Dict())
     if functions.ccxtruthy(isEmpty(symbols))
             return positions
     end
-    symbols = self.marketSymbols(symbols);
-    return self.filterByArrayPositions(positions, "symbol", symbols, false)
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.filterByArrayPositions(positions, "symbol", values = symbols, indexed = false)
 
 end
-function parsePosition(self::Backpack, position, market=nothing)
+function parsePosition(self::Backpack, position; market=nothing)
     id = safeString(position, "positionId");
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     entryPrice = safeString(position, "entryPrice");
     markPrice = safeString(position, "markPrice");
@@ -1763,7 +2096,21 @@ function parsePosition(self::Backpack, position, market=nothing)
 ))
 
 end
-function fetchFundingHistory(self::Backpack, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches the history of funding payments
+see: https://docs.backpack.exchange/#tag/History/operation/get_funding_payments
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+- `limit`::int, optional: the maximum amount of trades to fetch (default 200, max 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch (default now)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchFundingHistory(self::Backpack; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1777,12 +2124,12 @@ function fetchFundingHistory(self::Backpack, symbol=nothing, since=nothing, limi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetWapiV1HistoryFunding(extend(request, params)));
-    return self.parseIncomes(response, market, since, limit)
+    return self.parseIncomes(response, market = market, since = since, limit = limit)
 
 end
-function parseIncome(self::Backpack, income, market=nothing)
+function parseIncome(self::Backpack, income; market=nothing)
     marketId = safeString(income, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     amount = self.safeNumber(income, "quantity");
     id = safeString(income, "userId");
     timestamp = self.parse8601(safeString(income, "intervalEndTimestamp"));
@@ -1803,7 +2150,7 @@ function nonce(self::Backpack, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function sign(self::Backpack, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Backpack, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     endpoint = string("/", path);
     url = get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing);
     sortedParams = functions.ccxtruthy(functions.ccxt_isArray(params)) ? params : keysort(params);
@@ -1811,8 +2158,8 @@ function sign(self::Backpack, path, api="public", method="GET", params=Dict(), h
         self.checkRequiredCredentials();
         ts = string(self.nonce());
         recvWindow = safeString2(self.options, "recvWindow", "X-Window", "5000");
-        optionInstructions = self.safeDict(self.options, "instructions", Dict{Symbol, Any}());
-        optionPathInstructions = self.safeDict(optionInstructions, path, Dict{Symbol, Any}());
+        optionInstructions = self.safeDict(self.options, "instructions", defaultValue = Dict{Symbol, Any}());
+        optionPathInstructions = self.safeDict(optionInstructions, path, defaultValue = Dict{Symbol, Any}());
         instruction = safeString(optionPathInstructions, method, "");
         payload = "";
         if functions.ccxtruthy(@functions.ccxt_and((path == "api/v1/orders"), (method == "POST")))
@@ -1825,7 +2172,7 @@ function sign(self::Backpack, path, api="public", method="GET", params=Dict(), h
             payload = string("instruction=", instruction, "&", queryString, "timestamp=", ts, "&window=", recvWindow);
         end
         secretBytes = self.base64ToBinary(self.secret);
-        seed = self.arraySlice(secretBytes, 0, 32);
+        seed = self.arraySlice(secretBytes, 0, second = 32);
         signature = eddsa(self.encode(payload), seed, ed25519);
         headers = Dict{Symbol, Any}(
             Symbol("X-Timestamp") => ts,
@@ -1858,7 +2205,7 @@ function generateBatchPayload(self::Backpack, params, ts, recvWindow, instructio
     payload = "";
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(params)))
-        order = self.safeDict(params, i, Dict{Symbol, Any}());
+        order = self.safeDict(params, i, defaultValue = Dict{Symbol, Any}());
         sortedOrder = keysort(order);
         orderQuery = self.urlencode(sortedOrder);
         payload += string("instruction=", instruction, "&", orderQuery, "&");
@@ -1893,227 +2240,227 @@ Base.getproperty(self::Backpack, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetApiV1Assets(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/assets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/assets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Collateral(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/collateral", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/collateral"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1BorrowLendMarkets(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/borrowLend/markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/borrowLend/markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1BorrowLendMarketsHistory(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/borrowLend/markets/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/borrowLend/markets/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Markets(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Market(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/market", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/market"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Ticker(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Tickers(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Depth(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Klines(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/klines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/klines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1MarkPrices(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/markPrices", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/markPrices"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1OpenInterest(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/openInterest", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/openInterest"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1FundingRates(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/fundingRates", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/fundingRates"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Status(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/status", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/status"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Ping(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/ping", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/ping"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Time(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Wallets(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/wallets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/wallets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1Trades(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV1TradesHistory(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/trades/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/trades/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1Account(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountLimitsBorrow(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/limits/borrow", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/limits/borrow"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountLimitsOrder(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/limits/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/limits/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1AccountLimitsWithdrawal(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/limits/withdrawal", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/limits/withdrawal"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1BorrowLendPositions(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/borrowLend/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/borrowLend/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1Capital(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/capital", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/capital"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1CapitalCollateral(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/capital/collateral", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/capital/collateral"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1CapitalDeposits(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/capital/deposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/capital/deposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1CapitalDepositAddress(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/capital/deposit/address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/capital/deposit/address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1CapitalWithdrawals(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/capital/withdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/capital/withdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1Position(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/position", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/position"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistoryBorrowLend(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/borrowLend", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/borrowLend"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistoryInterest(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/interest", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/interest"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistoryBorrowLendPositions(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/borrowLend/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/borrowLend/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistoryDust(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/dust", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/dust"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistoryFills(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistoryFunding(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/funding", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/funding"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistoryOrders(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistoryRfq(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/rfq", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/rfq"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistoryQuote(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/quote", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/quote"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistorySettlement(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/settlement", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/settlement"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWapiV1HistoryStrategies(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/strategies", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/history/strategies"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1Order(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV1Orders(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1AccountConvertDust(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/convertDust", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account/convertDust"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1BorrowLend(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/borrowLend", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/borrowLend"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWapiV1CapitalWithdrawals(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/capital/withdrawals", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wapi/v1/capital/withdrawals"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1Order(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1Orders(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1Rfq(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/rfq", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/rfq"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1RfqAccept(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/rfq/accept", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/rfq/accept"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1RfqRefresh(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/rfq/refresh", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/rfq/refresh"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1RfqCancel(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/rfq/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/rfq/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV1RfqQuote(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/rfq/quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/rfq/quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1Order(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV1Orders(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v1/orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePatchApiV1Account(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account", "private", "PATCH", params, nothing, nothing, Dict())
+    return request(self, "api/v1/account"; api="private", method="PATCH", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Backpack(; kwargs...)
@@ -2177,3 +2524,433 @@ function Backpack(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Backpack_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.backpack.exchange/#tag/Assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Backpack_fetchCurrencies
+
+function __ccxt_doc_Backpack_fetchMarkets() end
+"""
+retrieves data on all markets for bitbank
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Backpack_fetchMarkets
+
+function __ccxt_doc_Backpack_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Backpack_fetchTickers
+
+function __ccxt_doc_Backpack_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Backpack_fetchTicker
+
+function __ccxt_doc_Backpack_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (default 100, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Backpack_fetchOrderBook
+
+function __ccxt_doc_Backpack_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in seconds of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (default 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Backpack_fetchOHLCV
+
+function __ccxt_doc_Backpack_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_mark_prices
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Backpack_fetchFundingRate
+
+function __ccxt_doc_Backpack_fetchOpenInterest() end
+"""
+Retrieves the open interest of a derivative trading pair
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_open_interest
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
+"""
+__ccxt_doc_Backpack_fetchOpenInterest
+
+function __ccxt_doc_Backpack_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://docs.backpack.exchange/#tag/Markets/operation/get_funding_interval_rates
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of funding rate structures
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Backpack_fetchFundingRateHistory
+
+function __ccxt_doc_Backpack_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
+see: https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.offset`::int, optional: the number of trades to skip, default is 0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Backpack_fetchTrades
+
+function __ccxt_doc_Backpack_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.backpack.exchange/#tag/History/operation/get_fills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve (default 100, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.fillType`::string, optional: 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Backpack_fetchMyTrades
+
+function __ccxt_doc_Backpack_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.backpack.exchange/#tag/System/operation/get_status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Backpack_fetchStatus
+
+function __ccxt_doc_Backpack_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://developer-pro.bitmart.com/en/spot/#get-system-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Backpack_fetchTime
+
+function __ccxt_doc_Backpack_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.backpack.exchange/#tag/Capital/operation/get_balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Backpack_fetchBalance
+
+function __ccxt_doc_Backpack_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.backpack.exchange/#tag/Capital/operation/get_deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Backpack_fetchDeposits
+
+function __ccxt_doc_Backpack_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for (default 24 hours ago)
+- `limit`::int, optional: the maximum number of transfer structures to retrieve (default 50, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for (default time now)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Backpack_fetchWithdrawals
+
+function __ccxt_doc_Backpack_withdraw() end
+"""
+make a withdrawal
+see: https://docs.backpack.exchange/#tag/Capital/operation/request_withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string: the network to withdraw on (mandatory)
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Backpack_withdraw
+
+function __ccxt_doc_Backpack_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.backpack.exchange/#tag/Capital/operation/get_deposit_address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.networkCode`::string, optional: the network to fetch the deposit address (mandatory)
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Backpack_fetchDepositAddress
+
+function __ccxt_doc_Backpack_createOrder() end
+"""
+create a trade order
+see: https://docs.backpack.exchange/#tag/Order/operation/execute_order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *market orders only* the cost of the order in units of the quote currency (could be used instead of amount)
+- `params.clientOrderId`::int, optional: a unique id for the order
+- `params.postOnly`::bool, optional: true to place a post only order
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK' or 'PO'
+- `params.reduceOnly`::bool, optional: *contract only* Indicates if this order is to reduce the size of a position
+- `params.selfTradePrevention`::string, optional: one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+- `params.autoLend`::bool, optional: *spot margin only* if true then the order can lend
+- `params.autoLendRedeem`::bool, optional: *spot margin only* if true then the order can redeem a lend if required
+- `params.autoBorrow`::bool, optional: *spot margin only* if true then the order can borrow
+- `params.autoBorrowRepay`::bool, optional: *spot margin only* if true then the order can repay a borrow
+- `params.triggerPrice`::float, optional: the price that a trigger order is triggered at
+- `params.takeProfit`::object, optional: *swap markets only - takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.takeProfit.price`::float, optional: take profit order price (if not provided the order will be a market order)
+- `params.stopLoss`::object, optional: *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.stopLoss.price`::float, optional: stop loss order price (if not provided the order will be a market order)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Backpack_createOrder
+
+function __ccxt_doc_Backpack_createOrders() end
+"""
+create a list of trade orders
+see: https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Backpack_createOrders
+
+function __ccxt_doc_Backpack_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Backpack_fetchOpenOrders
+
+function __ccxt_doc_Backpack_fetchOpenOrder() end
+"""
+fetch an open order by it's id
+see: https://docs.backpack.exchange/#tag/Order/operation/get_order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by fetchOpenOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Backpack_fetchOpenOrder
+
+function __ccxt_doc_Backpack_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.backpack.exchange/#tag/Order/operation/cancel_order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Backpack_cancelOrder
+
+function __ccxt_doc_Backpack_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Backpack_cancelAllOrders
+
+function __ccxt_doc_Backpack_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.backpack.exchange/#tag/History/operation/get_order_history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve (default 100, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Backpack_fetchOrders
+
+function __ccxt_doc_Backpack_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.backpack.exchange/#tag/Futures/operation/get_positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Backpack_fetchPositions
+
+function __ccxt_doc_Backpack_fetchFundingHistory() end
+"""
+fetches the history of funding payments
+see: https://docs.backpack.exchange/#tag/History/operation/get_funding_payments
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+- `limit`::int, optional: the maximum amount of trades to fetch (default 200, max 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch (default now)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Backpack_fetchFundingHistory

@@ -498,7 +498,17 @@ function describe(self::Krakenfutures, )
 ))
 
 end
-function fetchMarkets(self::Krakenfutures, params=Dict())
+"""
+Fetches the available trading markets from the exchange, Multi-collateral markets are returned as linear markets, but can be settled in multiple currencies
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
+
+# Arguments
+- `params`::object, optional: exchange specific params
+
+# Returns
+- An array of market structures
+"""
+function fetchMarkets(self::Krakenfutures; params=Dict())
     response = Base.fetch(self.publicGetInstruments(params));
     instruments = safeValue(response, "instruments", []);
     result = [];
@@ -624,7 +634,19 @@ function fetchMarkets(self::Krakenfutures, params=Dict())
     return result
 
 end
-function fetchOrderBook(self::Krakenfutures, symbol, limit=nothing, params=Dict())
+"""
+Fetches a list of open orders in a market
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `limit`::int, optional: Not used by krakenfutures
+- `params`::object, optional: exchange specific params
+
+# Returns
+- An [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Krakenfutures, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -634,22 +656,33 @@ function fetchOrderBook(self::Krakenfutures, symbol, limit=nothing, params=Dict(
     );
     response = Base.fetch(self.publicGetOrderbook(extend(request, params)));
     timestamp = self.parse8601(safeString(response, "serverTime"));
-    orderBook = self.safeDict(response, "orderBook", Dict{Symbol, Any}());
-    return self.parseOrderBook(orderBook, symbol, timestamp)
+    orderBook = self.safeDict(response, "orderBook", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrderBook(orderBook, symbol, timestamp = timestamp)
 
 end
-function fetchTickers(self::Krakenfutures, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
+
+# Arguments
+- `symbols`::array: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Krakenfutures; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetTickers(params));
     tickers = self.safeList(response, "tickers");
-    return self.parseTickers(tickers, symbols)
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function parseTicker(self::Krakenfutures, ticker, market=nothing)
+function parseTicker(self::Krakenfutures, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = self.parse8601(safeString(ticker, "lastTime"));
     open = safeString(ticker, "open24h");
@@ -660,7 +693,7 @@ function parseTicker(self::Krakenfutures, ticker, market=nothing)
     volume = safeString(ticker, "vol24h");
     baseVolume = nothing;
     quoteVolume = nothing;
-    isIndex = self.safeBool(market, "index", false);
+    isIndex = self.safeBool(market, "index", defaultValue = false);
     if functions.ccxtruthy(!functions.ccxtruthy(isIndex))
         if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
             baseVolume = volume;
@@ -694,7 +727,22 @@ function parseTicker(self::Krakenfutures, ticker, market=nothing)
 ))
 
 end
-function fetchOHLCV(self::Krakenfutures, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.kraken.com/api/docs/futures-api/charts/candles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Krakenfutures, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -702,7 +750,7 @@ function fetchOHLCV(self::Krakenfutures, symbol, timeframe="1m", since=nothing, 
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 2000))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 2000))
     end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -728,28 +776,45 @@ function fetchOHLCV(self::Krakenfutures, symbol, timeframe="1m", since=nothing, 
     end
     response = Base.fetch(self.chartsGetPriceTypeSymbolInterval(extend(request, params)));
     candles = self.safeList(response, "candles");
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Krakenfutures, ohlcv, market=nothing)
+function parseOHLCV(self::Krakenfutures, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "time"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchTrades(self::Krakenfutures, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+Fetch a history of filled trades that this account has made
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-history
+see: https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `since`::int, optional: Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
+- `limit`::int, optional: Total number of trades, cannot exceed 100
+- `params`::object, optional: Exchange specific params
+- `params.until`::int, optional: Timestamp in ms of latest trade
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.method`::string, optional: The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions'
+
+# Returns
+- An array of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchTrades(self::Krakenfutures, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     method = nothing;
-    (method, params) = self.handleOptionAndParams(params, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
+    (method, params) = self.handleOptionAndParams(params, "fetchTrades", "method", defaultValue = "historyGetMarketSymbolExecutions");
     rawTrades = [];
     isFullHistoryEndpoint = (method == "historyGetMarketSymbolExecutions");
     if functions.ccxtruthy(isFullHistoryEndpoint)
@@ -762,16 +827,16 @@ function fetchTrades(self::Krakenfutures, symbol, since=nothing, limit=nothing, 
             request[Symbol("count")] = limit;
         end
         response = Base.fetch(self.historyGetMarketSymbolExecutions(extend(request, params)));
-        elements = self.safeList(response, "elements", []);
+        elements = self.safeList(response, "elements", defaultValue = []);
         rawTrades = [];
         len = length(elements);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, len))
             index = len - 1 - i;
             element = get(elements, index + 1, nothing);
-            event = self.safeDict(element, "event", Dict{Symbol, Any}());
-            executionContainer = self.safeDict(event, "Execution", Dict{Symbol, Any}());
-            rawTrade = self.safeDict(executionContainer, "execution", Dict{Symbol, Any}());
+            event = self.safeDict(element, "event", defaultValue = Dict{Symbol, Any}());
+            executionContainer = self.safeDict(event, "Execution", defaultValue = Dict{Symbol, Any}());
+            rawTrade = self.safeDict(executionContainer, "execution", defaultValue = Dict{Symbol, Any}());
             push!(rawTrades, rawTrade);
             i += 1
         end
@@ -779,12 +844,12 @@ function fetchTrades(self::Krakenfutures, symbol, since=nothing, limit=nothing, 
     else
         (request, params) = self.handleUntilOption("lastTime", request, params);
         response = Base.fetch(self.publicGetHistory(extend(request, params)));
-        rawTrades = self.safeList(response, "history", []);
+        rawTrades = self.safeList(response, "history", defaultValue = []);
     end
-    return self.parseTrades(rawTrades, market, since, limit)
+    return self.parseTrades(rawTrades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Krakenfutures, trade, market=nothing)
+function parseTrade(self::Krakenfutures, trade; market=nothing)
     timestamp = self.parse8601(safeString2(trade, "time", "fillTime"));
     price = safeString(trade, "price");
     amount = safeStringN(trade, ["size", "amount", "quantity"], "0.0");
@@ -812,7 +877,7 @@ function parseTrade(self::Krakenfutures, trade, market=nothing)
     if functions.ccxtruthy(type_var != nothing)
         type_var = self.parseOrderType(type_var);
     end
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     cost = nothing;
     linear = self.safeBool(market, "linear");
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((amount != nothing), (price != nothing)), (market != nothing)))
@@ -836,7 +901,7 @@ function parseTrade(self::Krakenfutures, trade, market=nothing)
     isHistoricalExecution = (ccxt_in("takerOrder", trade));
     if functions.ccxtruthy(isHistoricalExecution)
         timestamp = safeInteger(trade, "timestamp");
-        taker = self.safeDict(trade, "takerOrder", Dict{Symbol, Any}());
+        taker = self.safeDict(trade, "takerOrder", defaultValue = Dict{Symbol, Any}());
         if functions.ccxtruthy(taker != nothing)
             side = safeStringLower(taker, "direction");
             takerOrMaker = "taker";
@@ -868,7 +933,7 @@ function parseTrade(self::Krakenfutures, trade, market=nothing)
 ))
 
 end
-function createOrderRequest(self::Krakenfutures, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Krakenfutures, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -880,7 +945,7 @@ function createOrderRequest(self::Krakenfutures, symbol, type_var, side, amount,
     type_var = safeString(params, "orderType", type_var);
     timeInForce = safeString(params, "timeInForce");
     postOnly = false;
-    (postOnly, params) = self.handlePostOnly(type_var == "market", type_var == "post", params);
+    (postOnly, params) = self.handlePostOnly(type_var == "market", type_var == "post", params = params);
     if functions.ccxtruthy(postOnly)
         type_var = "post";
     elseif functions.ccxtruthy(timeInForce == "ioc")
@@ -938,20 +1003,53 @@ function createOrderRequest(self::Krakenfutures, symbol, type_var, side, amount,
     return extend(request, params)
 
 end
-function createOrder(self::Krakenfutures, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+Create an order on the exchange
+see: https://docs.kraken.com/api/docs/futures-api/trading/send-order
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: number of contracts
+- `price`::float, optional: limit order price
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.reduceOnly`::bool, optional: set as true if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is false
+- `params.postOnly`::bool, optional: set as true if you wish to make a postOnly order, default is false
+- `params.clientOrderId`::string, optional: UUID The order identity that is specified from the user, It must be globally unique
+- `params.triggerPrice`::float, optional: the price that a stop order is triggered at
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at
+- `params.triggerSignal`::string, optional: for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger price type, 'last', 'mark' or 'index', default is 'last'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Krakenfutures, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = Base.fetch(self.privatePostSendorder(orderRequest));
     sendStatus = safeValue(response, "sendStatus");
     status = safeString(sendStatus, "status");
-    self.verifyOrderActionSuccess(status, "createOrder", ["filled"]);
-    return self.parseOrder(sendStatus, market)
+    self.verifyOrderActionSuccess(status, "createOrder", omit = ["filled"]);
+    return self.parseOrder(sendStatus, market = market)
 
 end
-function createOrders(self::Krakenfutures, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Krakenfutures, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -970,7 +1068,7 @@ function createOrders(self::Krakenfutures, orders, params=Dict())
             extendedParams[Symbol("order_tag")] =             string(self.sum(i, 1));
         end
         extendedParams[Symbol("order")] = "send";
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, extendedParams);
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = extendedParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
@@ -978,11 +1076,27 @@ function createOrders(self::Krakenfutures, orders, params=Dict())
         Symbol("batchOrder") => ordersRequests
     );
     response = Base.fetch(self.privatePostBatchorder(extend(request, params)));
-    data = self.safeList(response, "batchStatus", []);
+    data = self.safeList(response, "batchStatus", defaultValue = []);
     return self.parseOrders(data)
 
 end
-function editOrder(self::Krakenfutures, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+Edit an open order on the exchange
+see: https://docs.kraken.com/api/docs/futures-api/trading/edit-order-spring
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: Not used by Krakenfutures
+- `type`::string: Not used by Krakenfutures
+- `side`::string: Not used by Krakenfutures
+- `amount`::float: Order size
+- `price`::float, optional: Price to fill order at
+- `params`::object, optional: Exchange specific params
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Krakenfutures, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -996,15 +1110,27 @@ function editOrder(self::Krakenfutures, id, symbol, type_var, side, amount=nothi
         request[Symbol("limitPrice")] = price;
     end
     response = Base.fetch(self.privatePostEditorder(extend(request, params)));
-    editStatus = self.safeDict(response, "editStatus", Dict{Symbol, Any}());
+    editStatus = self.safeDict(response, "editStatus", defaultValue = Dict{Symbol, Any}());
     status = safeString(editStatus, "status");
-    self.verifyOrderActionSuccess(status, "editOrder", ["filled"]);
+    self.verifyOrderActionSuccess(status, "editOrder", omit = ["filled"]);
     order = self.parseOrder(editStatus);
     order[Symbol("info")] = response;
     return order
 
 end
-function cancelOrder(self::Krakenfutures, id, symbol=nothing, params=Dict())
+"""
+Cancel an open order on the exchange
+see: https://docs.kraken.com/api/docs/futures-api/trading/cancel-order
+
+# Arguments
+- `id`::string: Order id
+- `symbol`::string: Not used by Krakenfutures
+- `params`::object, optional: Exchange specific params
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Krakenfutures, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1022,7 +1148,20 @@ function cancelOrder(self::Krakenfutures, id, symbol=nothing, params=Dict())
 ), order)
 
 end
-function cancelOrders(self::Krakenfutures, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.clientOrderIds`::array, optional: max length 10 e.g. ["my_id_1","my_id_2"]
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Krakenfutures, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1053,30 +1192,52 @@ function cancelOrders(self::Krakenfutures, ids, symbol=nothing, params=Dict())
         Symbol("batchOrder") => orders
     );
     response = Base.fetch(self.privatePostBatchorder(extend(request, params)));
-    batchStatus = self.safeList(response, "batchStatus", []);
+    batchStatus = self.safeList(response, "batchStatus", defaultValue = []);
     return self.parseOrders(batchStatus)
 
 end
-function cancelAllOrders(self::Krakenfutures, symbol=nothing, params=Dict())
+"""
+Cancels all orders on the exchange, including trigger orders
+see: https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: Unified market symbol
+- `params`::object, optional: Exchange specific params
+
+# Returns
+- Response from exchange api
+"""
+function cancelAllOrders(self::Krakenfutures; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbol != nothing)
         request[Symbol("symbol")] = self.marketId(symbol);
     end
     response = Base.fetch(self.privatePostCancelallorders(extend(request, params)));
     cancelStatus = self.safeDict(response, "cancelStatus");
-    orderEvents = self.safeList(cancelStatus, "orderEvents", []);
+    orderEvents = self.safeList(cancelStatus, "orderEvents", defaultValue = []);
     orders = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(orderEvents)))
         orderEvent = self.safeDict(orderEvents, 0);
-        order = self.safeDict(orderEvent, "order", Dict{Symbol, Any}());
+        order = self.safeDict(orderEvent, "order", defaultValue = Dict{Symbol, Any}());
         push!(orders, order);
         i += 1
     end
     return self.parseOrders(orders)
 
 end
-function cancelAllOrdersAfter(self::Krakenfutures, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Krakenfutures, timeout; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1087,7 +1248,20 @@ function cancelAllOrdersAfter(self::Krakenfutures, timeout, params=Dict())
     return response
 
 end
-function fetchOpenOrders(self::Krakenfutures, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Gets all open orders, including trigger orders, for an account from the exchange api
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-open-orders
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `since`::int, optional: Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+- `limit`::int, optional: How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+- `params`::object, optional: Exchange specific parameters
+
+# Returns
+- An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Krakenfutures; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1096,11 +1270,24 @@ function fetchOpenOrders(self::Krakenfutures, symbol=nothing, since=nothing, lim
         market = self.market(symbol);
     end
     response = Base.fetch(self.privateGetOpenorders(params));
-    orders = self.safeList(response, "openOrders", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(response, "openOrders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOrders(self::Krakenfutures, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Gets all orders for an account from the exchange api
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `since`::int, optional: Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+- `limit`::int, optional: How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+- `params`::object, optional: Exchange specific parameters
+
+# Returns
+- An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Krakenfutures; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1109,18 +1296,30 @@ function fetchOrders(self::Krakenfutures, symbol=nothing, since=nothing, limit=n
         market = self.market(symbol);
     end
     response = Base.fetch(self.privateGetOrdersStatus(params));
-    orders = self.safeList(response, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(response, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOrder(self::Krakenfutures, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified market symbol that the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Krakenfutures, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderIds") => [id]
     );
-    orders = Base.fetch(self.fetchOrders(nothing, nothing, nothing, extend(request, params)));
+    orders = Base.fetch(self.fetchOrders(symbol = nothing, since = nothing, limit = nothing, params = extend(request, params)));
     order = self.safeDict(orders, 0);
     if functions.ccxtruthy(order == nothing)
         throw(OrderNotFound(string(self.id, " fetchOrder could not find order id ", id)));
@@ -1128,7 +1327,22 @@ function fetchOrder(self::Krakenfutures, id, symbol=nothing, params=Dict())
     return order
 
 end
-function fetchClosedOrders(self::Krakenfutures, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Gets all closed orders, including trigger orders, for an account from the exchange api
+see: https://docs.kraken.com/api-reference/account-history/get-order-events
+see: https://docs.kraken.com/api-reference/account-history/get-trigger-events
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `since`::int, optional: Timestamp (ms) of earliest order.
+- `limit`::int, optional: How many orders to return.
+- `params`::object, optional: Exchange specific parameters
+- `params.trigger`::bool, optional: set to true if you wish to fetch only trigger orders
+
+# Returns
+- An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Krakenfutures; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1143,23 +1357,23 @@ function fetchClosedOrders(self::Krakenfutures, symbol=nothing, since=nothing, l
     if functions.ccxtruthy(since != nothing)
         request[Symbol("since")] = since;
     end
-    isTrigger = self.safeBool2(params, "trigger", "stop", false);
+    isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     if functions.ccxtruthy(isTrigger)
         params = omit(params, ["trigger", "stop"]);
         response = Base.fetch(self.historyGetTriggers(extend(request, params)));
     else
         response = Base.fetch(self.historyGetOrders(extend(request, params)));
     end
-    allOrders = self.safeList(response, "elements", []);
+    allOrders = self.safeList(response, "elements", defaultValue = []);
     closedOrders = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(allOrders)))
         order = get(allOrders, i + 1, nothing);
-        event = self.safeDict(order, "event", Dict{Symbol, Any}());
+        event = self.safeDict(order, "event", defaultValue = Dict{Symbol, Any}());
         orderPlaced = self.safeDict2(event, "OrderPlaced", "OrderTriggerActivated");
         orderUpdated = self.safeDict(event, "OrderUpdated");
         if functions.ccxtruthy(orderPlaced != nothing)
-            innerOrder = self.safeDict(orderPlaced, "order", Dict{Symbol, Any}());
+            innerOrder = self.safeDict(orderPlaced, "order", defaultValue = Dict{Symbol, Any}());
             filled = safeString(innerOrder, "filled");
             if functions.ccxtruthy(filled != "0")
                 innerOrder[Symbol("status")] = "closed";
@@ -1168,17 +1382,31 @@ function fetchClosedOrders(self::Krakenfutures, symbol=nothing, since=nothing, l
         elseif functions.ccxtruthy(orderUpdated != nothing)
             reason = safeString(orderUpdated, "reason");
             if functions.ccxtruthy(reason == "full_fill")
-                newOrder = self.safeDict(orderUpdated, "newOrder", Dict{Symbol, Any}());
+                newOrder = self.safeDict(orderUpdated, "newOrder", defaultValue = Dict{Symbol, Any}());
                 newOrder[Symbol("status")] = "closed";
                                 push!(closedOrders, newOrder);
             end
         end
         i += 1
     end
-    return self.parseOrders(closedOrders, market, since, limit)
+    return self.parseOrders(closedOrders, market = market, since = since, limit = limit)
 
 end
-function fetchCanceledOrders(self::Krakenfutures, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Gets all canceled orders, including trigger orders, for an account from the exchange api
+see: https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `since`::int, optional: Timestamp (ms) of earliest order.
+- `limit`::int, optional: How many orders to return.
+- `params`::object, optional: Exchange specific parameters
+- `params.trigger`::bool, optional: set to true if you wish to fetch only trigger orders
+
+# Returns
+- An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Krakenfutures; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1193,23 +1421,23 @@ function fetchCanceledOrders(self::Krakenfutures, symbol=nothing, since=nothing,
     if functions.ccxtruthy(since != nothing)
         request[Symbol("from")] = since;
     end
-    isTrigger = self.safeBool2(params, "trigger", "stop", false);
+    isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     if functions.ccxtruthy(isTrigger)
         params = omit(params, ["trigger", "stop"]);
         response = Base.fetch(self.historyGetTriggers(extend(request, params)));
     else
         response = Base.fetch(self.historyGetOrders(extend(request, params)));
     end
-    allOrders = self.safeList(response, "elements", []);
+    allOrders = self.safeList(response, "elements", defaultValue = []);
     canceledAndRejected = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(allOrders)))
         order = get(allOrders, i + 1, nothing);
-        event = self.safeDict(order, "event", Dict{Symbol, Any}());
+        event = self.safeDict(order, "event", defaultValue = Dict{Symbol, Any}());
         isCancelledTriggerOrder = (ccxt_in("OrderTriggerCancelled", event));
         orderPlaced = self.safeDict2(event, "OrderPlaced", "OrderTriggerCancelled");
         if functions.ccxtruthy(orderPlaced != nothing)
-            innerOrder = self.safeDict(orderPlaced, "order", Dict{Symbol, Any}());
+            innerOrder = self.safeDict(orderPlaced, "order", defaultValue = Dict{Symbol, Any}());
             filled = safeString(innerOrder, "filled");
             if functions.ccxtruthy(@functions.ccxt_or(filled == "0", isCancelledTriggerOrder))
                 innerOrder[Symbol("status")] = "canceled";
@@ -1218,19 +1446,19 @@ function fetchCanceledOrders(self::Krakenfutures, symbol=nothing, since=nothing,
         end
         orderCanceled = self.safeDict(event, "OrderCancelled");
         if functions.ccxtruthy(orderCanceled != nothing)
-            innerOrder = self.safeDict(orderCanceled, "order", Dict{Symbol, Any}());
+            innerOrder = self.safeDict(orderCanceled, "order", defaultValue = Dict{Symbol, Any}());
             innerOrder[Symbol("status")] = "canceled";
                         push!(canceledAndRejected, innerOrder);
         end
         orderRejected = self.safeDict(event, "OrderRejected");
         if functions.ccxtruthy(orderRejected != nothing)
-            innerOrder = self.safeDict(orderRejected, "order", Dict{Symbol, Any}());
+            innerOrder = self.safeDict(orderRejected, "order", defaultValue = Dict{Symbol, Any}());
             innerOrder[Symbol("status")] = "rejected";
                         push!(canceledAndRejected, innerOrder);
         end
         i += 1
     end
-    return self.parseOrders(canceledAndRejected, market, since, limit)
+    return self.parseOrders(canceledAndRejected, market = market, since = since, limit = limit)
 
 end
 function parseOrderType(self::Krakenfutures, orderType)
@@ -1243,7 +1471,7 @@ function parseOrderType(self::Krakenfutures, orderType)
     return safeString(typesMap, orderType, orderType)
 
 end
-function verifyOrderActionSuccess(self::Krakenfutures, status, method, omit=[])
+function verifyOrderActionSuccess(self::Krakenfutures, status, method; omit=[])
     errors = Dict{Symbol, Any}(
         Symbol("invalidOrderType") => InvalidOrder,
         Symbol("invalidSide") => InvalidOrder,
@@ -1308,14 +1536,14 @@ function parseOrderStatus(self::Krakenfutures, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Krakenfutures, order, market=nothing)
+function parseOrder(self::Krakenfutures, order; market=nothing)
     orderDictFromFetchOrder = self.safeDict(order, "order");
     if functions.ccxtruthy(orderDictFromFetchOrder != nothing)
         datetime = safeString(orderDictFromFetchOrder, "timestamp");
         innerStatus = safeString(order, "status");
-        fetchOrderPriceTriggerOptions = self.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", Dict{Symbol, Any}());
+        fetchOrderPriceTriggerOptions = self.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", defaultValue = Dict{Symbol, Any}());
         fetchOrderTriggerPrice = safeString(fetchOrderPriceTriggerOptions, "triggerPrice");
-        unifiedSymbol = self.safeSymbol(safeString(orderDictFromFetchOrder, "symbol"), market);
+        unifiedSymbol = self.safeSymbol(safeString(orderDictFromFetchOrder, "symbol"), market = market);
             return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => order,
     Symbol("id") => safeString(orderDictFromFetchOrder, "orderId"),
@@ -1402,7 +1630,7 @@ function parseOrder(self::Krakenfutures, order, market=nothing)
     status = self.parseOrderStatus(statusId);
     isClosed = inArray(status, ["canceled", "rejected", "closed"]);
     marketId = safeString2(details, "symbol", "tradeable");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = safeString(market, "symbol");
     timestamp = self.parse8601(safeString2(details, "timestamp", "receivedTime"));
     lastUpdateTimestamp = self.parse8601(safeString(details, "lastUpdateTime"));
@@ -1468,7 +1696,7 @@ function parseOrder(self::Krakenfutures, order, market=nothing)
         timeInForce = "ioc";
     end
     ts = safeInteger(details, "timestamp", timestamp);
-    priceTriggerOptions = self.safeDict(details, "priceTriggerOptions", Dict{Symbol, Any}());
+    priceTriggerOptions = self.safeDict(details, "priceTriggerOptions", defaultValue = Dict{Symbol, Any}());
     triggerPrice = safeString2(details, "triggerPrice", "stopPrice");
     if functions.ccxtruthy(triggerPrice == nothing)
         triggerPrice = safeString(priceTriggerOptions, "triggerPrice");
@@ -1502,7 +1730,21 @@ function parseOrder(self::Krakenfutures, order, market=nothing)
 ))
 
 end
-function fetchMyTrades(self::Krakenfutures, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-fills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: *not used by the  api* the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Krakenfutures; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1511,11 +1753,23 @@ function fetchMyTrades(self::Krakenfutures, symbol=nothing, since=nothing, limit
         market = self.market(symbol);
     end
     response = Base.fetch(self.privateGetFills(params));
-    fills = self.safeList(response, "fills", []);
-    return self.parseTrades(fills, market, since, limit)
+    fills = self.safeList(response, "fills", defaultValue = []);
+    return self.parseTrades(fills, market = market, since = since, limit = limit)
 
 end
-function fetchBalance(self::Krakenfutures, params=Dict())
+"""
+Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+
+# Arguments
+- `params`::object, optional: Exchange specific parameters
+- `params.type`::string, optional: The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
+- `params.symbol`::string, optional: A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
+
+# Returns
+- A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Krakenfutures; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1588,13 +1842,24 @@ function parseBalance(self::Krakenfutures, response)
     return self.safeBalance(result)
 
 end
-function fetchFundingRates(self::Krakenfutures, symbols=nothing, params=Dict())
+"""
+fetch the current funding rates for multiple markets
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRates(self::Krakenfutures; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    marketIds = self.marketIds(symbols);
+    marketIds = self.marketIds(symbols = symbols);
     response = Base.fetch(self.publicGetTickers(params));
-    tickers = self.safeList(response, "tickers", []);
+    tickers = self.safeList(response, "tickers", defaultValue = []);
     fundingRates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
@@ -1605,15 +1870,15 @@ function fetchFundingRates(self::Krakenfutures, symbols=nothing, params=Dict())
                 i += 1; continue
             end
         end
-        market = self.safeMarket(entry_symbol);
-        parsed = self.parseFundingRate(entry, market);
+        market = self.safeMarket(marketId = entry_symbol);
+        parsed = self.parseFundingRate(entry, market = market);
         push!(fundingRates, parsed);
         i += 1
     end
     return indexBy(fundingRates, "symbol")
 
 end
-function parseFundingRate(self::Krakenfutures, ticker, market=nothing)
+function parseFundingRate(self::Krakenfutures, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
     symbol = self.symbol(marketId);
     timestamp = self.parse8601(safeString(ticker, "lastTime"));
@@ -1654,7 +1919,20 @@ function parseFundingRate(self::Krakenfutures, ticker, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Krakenfutures, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://docs.kraken.com/api/docs/futures-api/trading/historical-funding-rates
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the api endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Krakenfutures; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -1685,22 +1963,33 @@ function fetchFundingRateHistory(self::Krakenfutures, symbol=nothing, since=noth
         i += 1
     end
     sorted = sortBy(result, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchPositions(self::Krakenfutures, symbols=nothing, params=Dict())
+"""
+Fetches current contract trading positions
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-open-positions
+
+# Arguments
+- `symbols`::array: List of unified symbols
+- `params`::object, optional: Not used by krakenfutures
+
+# Returns
+- Parsed exchange response for positions
+"""
+function fetchPositions(self::Krakenfutures; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.privateGetOpenpositions(request));
     result = self.parsePositions(response);
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function parsePositions(self::Krakenfutures, response, symbols=nothing, params=Dict())
+function parsePositions(self::Krakenfutures, response; symbols=nothing, params=Dict())
     result = [];
-    positions = self.safeList(response, "openPositions", []);
+    positions = self.safeList(response, "openPositions", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         position = self.parsePosition(get(positions, i + 1, nothing));
@@ -1710,7 +1999,7 @@ function parsePositions(self::Krakenfutures, response, symbols=nothing, params=D
     return result
 
 end
-function parsePosition(self::Krakenfutures, position, market=nothing)
+function parsePosition(self::Krakenfutures, position; market=nothing)
     leverage = self.safeNumber(position, "maxFixedLeverage");
     marginType = "cross";
     if functions.ccxtruthy(leverage != nothing)
@@ -1718,7 +2007,7 @@ function parsePosition(self::Krakenfutures, position, market=nothing)
     end
     datetime = safeString(position, "fillTime");
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => position,
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -1744,19 +2033,30 @@ function parsePosition(self::Krakenfutures, position, market=nothing)
 )
 
 end
-function fetchLeverageTiers(self::Krakenfutures, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Krakenfutures; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetInstruments(params));
     data = self.safeList(response, "instruments");
-    return self.parseLeverageTiers(data, symbols, "symbol")
+    return self.parseLeverageTiers(data, symbols = symbols, marketIdKey = "symbol")
 
 end
-function parseMarketLeverageTiers(self::Krakenfutures, info, market=nothing)
+function parseMarketLeverageTiers(self::Krakenfutures, info; market=nothing)
     marginLevels = safeValue(info, "marginLevels");
     marketId = safeString(info, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     tiers = [];
     if functions.ccxtruthy(marginLevels == nothing)
             return tiers
@@ -1773,7 +2073,7 @@ function parseMarketLeverageTiers(self::Krakenfutures, info, market=nothing)
         end
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => self.sum(i, 1),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("currency") => get(market, Symbol("quote"), nothing),
     Symbol("minNotional") => minNotional,
     Symbol("maxNotional") => nothing,
@@ -1786,7 +2086,7 @@ function parseMarketLeverageTiers(self::Krakenfutures, info, market=nothing)
     return tiers
 
 end
-function parseTransfer(self::Krakenfutures, transfer, currency=nothing)
+function parseTransfer(self::Krakenfutures, transfer; currency=nothing)
     datetime = safeString(transfer, "serverTime");
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
@@ -1828,11 +2128,37 @@ function parseAccount(self::Krakenfutures, account)
     end
 
 end
-function transferOut(self::Krakenfutures, code, amount, params=Dict())
-    return Base.fetch(self.transfer(code, amount, "future", "spot", params))
+"""
+transfer from futures wallet to spot wallet
+
+# Arguments
+- `code`::str: Unified currency code
+- `amount`::float: Size of the transfer
+- `params`::object, optional: Exchange specific parameters
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transferOut(self::Krakenfutures, code, amount; params=Dict())
+    return Base.fetch(self.transfer(code, amount, "future", "spot", params = params))
 
 end
-function transfer(self::Krakenfutures, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfers currencies between sub-accounts
+see: https://docs.kraken.com/api/docs/futures-api/trading/transfer
+see: https://docs.kraken.com/api/docs/futures-api/trading/sub-account-transfer
+
+# Arguments
+- `code`::string: Unified currency code
+- `amount`::float: Size of the transfer
+- `fromAccount`::string: 'main'/'funding'/'future', 'flex', or a unified market symbol
+- `toAccount`::string: 'main'/'funding', 'flex', 'spot' or a unified market symbol
+- `params`::object, optional: Exchange specific parameters
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Krakenfutures, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1855,7 +2181,7 @@ function transfer(self::Krakenfutures, code, amount, fromAccount, toAccount, par
         request[Symbol("unit")] = get(currency, Symbol("id"), nothing);
         response = Base.fetch(self.privatePostTransfer(extend(request, params)));
     end
-    transfer = self.parseTransfer(response, currency);
+    transfer = self.parseTransfer(response, currency = currency);
     return extend(transfer, Dict{Symbol, Any}(
     Symbol("amount") => amount,
     Symbol("fromAccount") => fromAccount,
@@ -1863,7 +2189,19 @@ function transfer(self::Krakenfutures, code, amount, fromAccount, toAccount, par
 ))
 
 end
-function setLeverage(self::Krakenfutures, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://docs.kraken.com/api/docs/futures-api/trading/set-leverage-setting
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Krakenfutures, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -1881,16 +2219,38 @@ function setLeverage(self::Krakenfutures, leverage, symbol=nothing, params=Dict(
     return Base.fetch(self.privatePutLeveragepreferences(extend(request, params)))
 
 end
-function fetchLeverages(self::Krakenfutures, symbols=nothing, params=Dict())
+"""
+fetch the set leverage for all contract and margin markets
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverages(self::Krakenfutures; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetLeveragepreferences(params));
-    leveragePreferences = self.safeList(response, "leveragePreferences", []);
-    return self.parseLeverages(leveragePreferences, symbols, "symbol")
+    leveragePreferences = self.safeList(response, "leveragePreferences", defaultValue = []);
+    return self.parseLeverages(leveragePreferences, symbols = symbols, symbolKey = "symbol")
 
 end
-function fetchLeverage(self::Krakenfutures, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Krakenfutures, symbol; params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchLeverage() requires a symbol argument")));
     end
@@ -1906,17 +2266,17 @@ function fetchLeverage(self::Krakenfutures, symbol, params=Dict())
         Symbol("symbol") => uppercase(marketIdUpper)
     );
     response = Base.fetch(self.privateGetLeveragepreferences(extend(request, params)));
-    leveragePreferences = self.safeList(response, "leveragePreferences", []);
-    data = self.safeDict(leveragePreferences, 0, Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    leveragePreferences = self.safeList(response, "leveragePreferences", defaultValue = []);
+    data = self.safeDict(leveragePreferences, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Krakenfutures, leverage, market=nothing)
+function parseLeverage(self::Krakenfutures, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
     leverageValue = safeInteger(leverage, "maxLeverage");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => nothing,
     Symbol("longLeverage") => leverageValue,
     Symbol("shortLeverage") => leverageValue
@@ -1946,7 +2306,7 @@ function handleErrors(self::Krakenfutures, code, reason, url, method, headers, b
     throw(ExchangeError(feedback));
 
 end
-function sign(self::Krakenfutures, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Krakenfutures, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     apiVersions = safeValue(get(self.options, Symbol("versions"), nothing), api, Dict{Symbol, Any}());
     methodVersions = safeValue(apiVersions, method, Dict{Symbol, Any}());
     defaultVersion = safeString(methodVersions, path, self.version);
@@ -2003,159 +2363,159 @@ Base.getproperty(self::Krakenfutures, name::Symbol) = ccxt_getproperty(self, nam
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetFeeschedules(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "feeschedules", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "feeschedules"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInstruments(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "instruments", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "instruments"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbook(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickers(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetHistory(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetHistoricalfundingrates(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "historicalfundingrates", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalfundingrates"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFeeschedulesVolumes(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "feeschedules/volumes", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "feeschedules/volumes"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenpositions(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "openpositions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openpositions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetNotifications(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "notifications", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "notifications"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccounts(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenorders(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "openorders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openorders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRecentorders(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "recentorders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "recentorders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFills(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransfers(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "transfers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLeveragepreferences(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "leveragepreferences", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "leveragepreferences"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPnlpreferences(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "pnlpreferences", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "pnlpreferences"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssignmentprogramCurrent(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "assignmentprogram/current", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "assignmentprogram/current"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssignmentprogramHistory(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "assignmentprogram/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "assignmentprogram/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersStatus(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "orders/status", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/status"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSendorder(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "sendorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sendorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEditorder(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "editorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "editorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelorder(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "cancelorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransfer(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBatchorder(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "batchorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "batchorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelallorders(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "cancelallorders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelallorders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelallordersafter(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "cancelallordersafter", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelallordersafter"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawal(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssignmentprogramAdd(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "assignmentprogram/add", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "assignmentprogram/add"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssignmentprogramDelete(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "assignmentprogram/delete", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "assignmentprogram/delete"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutLeveragepreferences(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "leveragepreferences", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "leveragepreferences"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutPnlpreferences(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "pnlpreferences", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "pnlpreferences"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function chartsGetPriceTypeSymbolInterval(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "{price_type}/{symbol}/{interval}", "charts", "GET", params, nothing, nothing, Dict())
+    return request(self, "{price_type}/{symbol}/{interval}"; api="charts", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function historyGetOrders(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "orders", "history", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="history", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function historyGetExecutions(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "executions", "history", "GET", params, nothing, nothing, Dict())
+    return request(self, "executions"; api="history", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function historyGetTriggers(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "triggers", "history", "GET", params, nothing, nothing, Dict())
+    return request(self, "triggers"; api="history", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function historyGetAccountlogcsv(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "accountlogcsv", "history", "GET", params, nothing, nothing, Dict())
+    return request(self, "accountlogcsv"; api="history", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function historyGetAccountLog(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "account-log", "history", "GET", params, nothing, nothing, Dict())
+    return request(self, "account-log"; api="history", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function historyGetMarketSymbolOrders(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "market/{symbol}/orders", "history", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/{symbol}/orders"; api="history", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function historyGetMarketSymbolExecutions(self::Krakenfutures, params=Dict(), context=Dict())
-    return request(self, "market/{symbol}/executions", "history", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/{symbol}/executions"; api="history", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Krakenfutures(; kwargs...)
@@ -2219,3 +2579,449 @@ function Krakenfutures(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Krakenfutures_fetchMarkets() end
+"""
+Fetches the available trading markets from the exchange, Multi-collateral markets are returned as linear markets, but can be settled in multiple currencies
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
+
+# Arguments
+- `params`::object, optional: exchange specific params
+
+# Returns
+- An array of market structures
+"""
+__ccxt_doc_Krakenfutures_fetchMarkets
+
+function __ccxt_doc_Krakenfutures_fetchOrderBook() end
+"""
+Fetches a list of open orders in a market
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `limit`::int, optional: Not used by krakenfutures
+- `params`::object, optional: exchange specific params
+
+# Returns
+- An [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchOrderBook
+
+function __ccxt_doc_Krakenfutures_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
+
+# Arguments
+- `symbols`::array: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchTickers
+
+function __ccxt_doc_Krakenfutures_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.kraken.com/api/docs/futures-api/charts/candles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Krakenfutures_fetchOHLCV
+
+function __ccxt_doc_Krakenfutures_fetchTrades() end
+"""
+Fetch a history of filled trades that this account has made
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-history
+see: https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `since`::int, optional: Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
+- `limit`::int, optional: Total number of trades, cannot exceed 100
+- `params`::object, optional: Exchange specific params
+- `params.until`::int, optional: Timestamp in ms of latest trade
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.method`::string, optional: The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions'
+
+# Returns
+- An array of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchTrades
+
+function __ccxt_doc_Krakenfutures_createOrder() end
+"""
+Create an order on the exchange
+see: https://docs.kraken.com/api/docs/futures-api/trading/send-order
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: number of contracts
+- `price`::float, optional: limit order price
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.reduceOnly`::bool, optional: set as true if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is false
+- `params.postOnly`::bool, optional: set as true if you wish to make a postOnly order, default is false
+- `params.clientOrderId`::string, optional: UUID The order identity that is specified from the user, It must be globally unique
+- `params.triggerPrice`::float, optional: the price that a stop order is triggered at
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at
+- `params.triggerSignal`::string, optional: for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger price type, 'last', 'mark' or 'index', default is 'last'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Krakenfutures_createOrder
+
+function __ccxt_doc_Krakenfutures_createOrders() end
+"""
+create a list of trade orders
+see: https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Krakenfutures_createOrders
+
+function __ccxt_doc_Krakenfutures_editOrder() end
+"""
+Edit an open order on the exchange
+see: https://docs.kraken.com/api/docs/futures-api/trading/edit-order-spring
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: Not used by Krakenfutures
+- `type`::string: Not used by Krakenfutures
+- `side`::string: Not used by Krakenfutures
+- `amount`::float: Order size
+- `price`::float, optional: Price to fill order at
+- `params`::object, optional: Exchange specific params
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Krakenfutures_editOrder
+
+function __ccxt_doc_Krakenfutures_cancelOrder() end
+"""
+Cancel an open order on the exchange
+see: https://docs.kraken.com/api/docs/futures-api/trading/cancel-order
+
+# Arguments
+- `id`::string: Order id
+- `symbol`::string: Not used by Krakenfutures
+- `params`::object, optional: Exchange specific params
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Krakenfutures_cancelOrder
+
+function __ccxt_doc_Krakenfutures_cancelOrders() end
+"""
+cancel multiple orders
+see: https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.clientOrderIds`::array, optional: max length 10 e.g. ["my_id_1","my_id_2"]
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Krakenfutures_cancelOrders
+
+function __ccxt_doc_Krakenfutures_cancelAllOrders() end
+"""
+Cancels all orders on the exchange, including trigger orders
+see: https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: Unified market symbol
+- `params`::object, optional: Exchange specific params
+
+# Returns
+- Response from exchange api
+"""
+__ccxt_doc_Krakenfutures_cancelAllOrders
+
+function __ccxt_doc_Krakenfutures_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Krakenfutures_cancelAllOrdersAfter
+
+function __ccxt_doc_Krakenfutures_fetchOpenOrders() end
+"""
+Gets all open orders, including trigger orders, for an account from the exchange api
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-open-orders
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `since`::int, optional: Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+- `limit`::int, optional: How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+- `params`::object, optional: Exchange specific parameters
+
+# Returns
+- An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchOpenOrders
+
+function __ccxt_doc_Krakenfutures_fetchOrders() end
+"""
+Gets all orders for an account from the exchange api
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `since`::int, optional: Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+- `limit`::int, optional: How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+- `params`::object, optional: Exchange specific parameters
+
+# Returns
+- An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchOrders
+
+function __ccxt_doc_Krakenfutures_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified market symbol that the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchOrder
+
+function __ccxt_doc_Krakenfutures_fetchClosedOrders() end
+"""
+Gets all closed orders, including trigger orders, for an account from the exchange api
+see: https://docs.kraken.com/api-reference/account-history/get-order-events
+see: https://docs.kraken.com/api-reference/account-history/get-trigger-events
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `since`::int, optional: Timestamp (ms) of earliest order.
+- `limit`::int, optional: How many orders to return.
+- `params`::object, optional: Exchange specific parameters
+- `params.trigger`::bool, optional: set to true if you wish to fetch only trigger orders
+
+# Returns
+- An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchClosedOrders
+
+function __ccxt_doc_Krakenfutures_fetchCanceledOrders() end
+"""
+Gets all canceled orders, including trigger orders, for an account from the exchange api
+see: https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `since`::int, optional: Timestamp (ms) of earliest order.
+- `limit`::int, optional: How many orders to return.
+- `params`::object, optional: Exchange specific parameters
+- `params.trigger`::bool, optional: set to true if you wish to fetch only trigger orders
+
+# Returns
+- An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchCanceledOrders
+
+function __ccxt_doc_Krakenfutures_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-fills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: *not used by the  api* the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchMyTrades
+
+function __ccxt_doc_Krakenfutures_fetchBalance() end
+"""
+Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+
+# Arguments
+- `params`::object, optional: Exchange specific parameters
+- `params.type`::string, optional: The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
+- `params.symbol`::string, optional: A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
+
+# Returns
+- A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchBalance
+
+function __ccxt_doc_Krakenfutures_fetchFundingRates() end
+"""
+fetch the current funding rates for multiple markets
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchFundingRates
+
+function __ccxt_doc_Krakenfutures_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://docs.kraken.com/api/docs/futures-api/trading/historical-funding-rates
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the api endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchFundingRateHistory
+
+function __ccxt_doc_Krakenfutures_fetchPositions() end
+"""
+Fetches current contract trading positions
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-open-positions
+
+# Arguments
+- `symbols`::array: List of unified symbols
+- `params`::object, optional: Not used by krakenfutures
+
+# Returns
+- Parsed exchange response for positions
+"""
+__ccxt_doc_Krakenfutures_fetchPositions
+
+function __ccxt_doc_Krakenfutures_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Krakenfutures_fetchLeverageTiers
+
+function __ccxt_doc_Krakenfutures_transferOut() end
+"""
+transfer from futures wallet to spot wallet
+
+# Arguments
+- `code`::str: Unified currency code
+- `amount`::float: Size of the transfer
+- `params`::object, optional: Exchange specific parameters
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Krakenfutures_transferOut
+
+function __ccxt_doc_Krakenfutures_transfer() end
+"""
+transfers currencies between sub-accounts
+see: https://docs.kraken.com/api/docs/futures-api/trading/transfer
+see: https://docs.kraken.com/api/docs/futures-api/trading/sub-account-transfer
+
+# Arguments
+- `code`::string: Unified currency code
+- `amount`::float: Size of the transfer
+- `fromAccount`::string: 'main'/'funding'/'future', 'flex', or a unified market symbol
+- `toAccount`::string: 'main'/'funding', 'flex', 'spot' or a unified market symbol
+- `params`::object, optional: Exchange specific parameters
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Krakenfutures_transfer
+
+function __ccxt_doc_Krakenfutures_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://docs.kraken.com/api/docs/futures-api/trading/set-leverage-setting
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Krakenfutures_setLeverage
+
+function __ccxt_doc_Krakenfutures_fetchLeverages() end
+"""
+fetch the set leverage for all contract and margin markets
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchLeverages
+
+function __ccxt_doc_Krakenfutures_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Krakenfutures_fetchLeverage

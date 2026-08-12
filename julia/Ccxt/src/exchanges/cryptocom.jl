@@ -955,12 +955,22 @@ function describe(self::Cryptocom, )
 ))
 
 end
-function fetchCurrencies(self::Cryptocom, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(false)))
+"""
+fetches all available currencies on an exchange
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Cryptocom; params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(error = false)))
             return Dict{Symbol, Any}()
     end
     skipFetchCurrencies = false;
-    (skipFetchCurrencies, params) = self.handleOptionAndParams(params, "fetchCurrencies", "skipFetchCurrencies", false);
+    (skipFetchCurrencies, params) = self.handleOptionAndParams(params, "fetchCurrencies", "skipFetchCurrencies", defaultValue = false);
     if functions.ccxtruthy(skipFetchCurrencies)
             return Dict{Symbol, Any}()
     end
@@ -975,8 +985,8 @@ function fetchCurrencies(self::Cryptocom, params=Dict())
         throw(e);
 
     end
-    resultData = self.safeDict(response, "result", Dict{Symbol, Any}());
-    currencyMap = self.safeDict(resultData, "currency_map", Dict{Symbol, Any}());
+    resultData = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    currencyMap = self.safeDict(resultData, "currency_map", defaultValue = Dict{Symbol, Any}());
     enhancedArray = self.addKeyInArrayItems(currencyMap, "_coin_id");
     return self.parseCurrencies(enhancedArray)
 
@@ -985,20 +995,20 @@ function parseCurrency(self::Cryptocom, currency)
     id = safeString(currency, "_coin_id");
     code = self.safeCurrencyCode(id);
     networks = Dict{Symbol, Any}();
-    chains = self.safeList(currency, "network_list", []);
+    chains = self.safeList(currency, "network_list", defaultValue = []);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "network_id");
-        network = self.networkIdToCode(networkId, code);
+        network = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(network != nothing)
             networks[Symbol(network)] = Dict{Symbol, Any}(
                 Symbol("info") => chain,
                 Symbol("id") => networkId,
                 Symbol("network") => network,
                 Symbol("active") => nothing,
-                Symbol("deposit") => self.safeBool(chain, "deposit_enabled", false),
-                Symbol("withdraw") => self.safeBool(chain, "withdraw_enabled", false),
+                Symbol("deposit") => self.safeBool(chain, "deposit_enabled", defaultValue = false),
+                Symbol("withdraw") => self.safeBool(chain, "withdraw_enabled", defaultValue = false),
                 Symbol("fee") => self.safeNumber(chain, "withdrawal_fee"),
                 Symbol("precision") => nothing,
                 Symbol("limits") => Dict{Symbol, Any}(
@@ -1032,10 +1042,20 @@ function parseCurrency(self::Cryptocom, currency)
 ))
 
 end
-function fetchMarkets(self::Cryptocom, params=Dict())
+"""
+retrieves data on all markets for cryptocom
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Cryptocom; params=Dict())
     response = Base.fetch(self.v1PublicGetPublicGetInstruments(params));
-    resultResponse = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(resultResponse, "data", []);
+    resultResponse = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(resultResponse, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -1136,7 +1156,19 @@ function fetchMarkets(self::Cryptocom, params=Dict())
     return result
 
 end
-function fetchTickers(self::Cryptocom, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+see: https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Cryptocom; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1157,28 +1189,54 @@ function fetchTickers(self::Cryptocom, symbols=nothing, params=Dict())
         request[Symbol("instrument_name")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.v1PublicGetPublicGetTickers(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "data", []);
-    return self.parseTickers(data, symbols)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "data", defaultValue = []);
+    return self.parseTickers(data, symbols = symbols)
 
 end
-function fetchTicker(self::Cryptocom, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Cryptocom, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     symbol = self.symbol(symbol);
-    tickers = Base.fetch(self.fetchTickers([symbol], params));
+    tickers = Base.fetch(self.fetchTickers(symbols = [symbol], params = params));
     return safeValue(tickers, symbol)
 
 end
-function fetchOrders(self::Cryptocom, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for, max date range is one day
+- `limit`::int, optional: the maximum number of order structures to retrieve, default 100 max 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Cryptocom; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -1198,19 +1256,34 @@ function fetchOrders(self::Cryptocom, symbol=nothing, since=nothing, limit=nothi
         request[Symbol("end_time")] = until;
     end
     response = Base.fetch(self.v1PrivatePostPrivateGetOrderHistory(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    orders = self.safeList(data, "data", []);
-    return self.parseOrders(orders, market, since, limit)
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "data", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchTrades(self::Cryptocom, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get a list of the most recent trades for a particular symbol
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch, maximum date range is one day
+- `limit`::int, optional: the maximum number of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Cryptocom, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1228,19 +1301,35 @@ function fetchTrades(self::Cryptocom, symbol, since=nothing, limit=nothing, para
         request[Symbol("end_ts")] = until;
     end
     response = Base.fetch(self.v1PublicGetPublicGetTrades(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    trades = self.safeList(result, "data", []);
-    return self.parseTrades(trades, market, since, limit)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    trades = self.safeList(result, "data", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchOHLCV(self::Cryptocom, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Cryptocom, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 300))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1268,12 +1357,24 @@ function fetchOHLCV(self::Cryptocom, symbol, timeframe="1m", since=nothing, limi
         request[Symbol("end_ts")] = until;
     end
     response = Base.fetch(self.v1PublicGetPublicGetCandlestick(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchOrderBook(self::Cryptocom, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the number of order book entries to return, max 50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Cryptocom, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1285,16 +1386,16 @@ function fetchOrderBook(self::Cryptocom, symbol, limit=nothing, params=Dict())
         request[Symbol("depth")] = min(limit, 50);
     end
     response = Base.fetch(self.v1PublicGetPublicGetBook(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "data", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "data", defaultValue = []);
     orderBook = safeValue(data, 0);
     timestamp = safeInteger(orderBook, "t");
-    return self.parseOrderBook(orderBook, symbol, timestamp)
+    return self.parseOrderBook(orderBook, symbol, timestamp = timestamp)
 
 end
 function parseBalance(self::Cryptocom, response)
-    responseResult = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(responseResult, "data", []);
+    responseResult = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(responseResult, "data", defaultValue = []);
     positionBalances = safeValue(get(data, 1, nothing), "position_balances", []);
     result = Dict{Symbol, Any}(
         Symbol("info") => response
@@ -1315,7 +1416,17 @@ function parseBalance(self::Cryptocom, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Cryptocom, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Cryptocom; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1323,7 +1434,19 @@ function fetchBalance(self::Cryptocom, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrder(self::Cryptocom, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Cryptocom, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1335,11 +1458,11 @@ function fetchOrder(self::Cryptocom, id, symbol=nothing, params=Dict())
         Symbol("order_id") => id
     );
     response = Base.fetch(self.v1PrivatePostPrivateGetOrderDetail(extend(request, params)));
-    order = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(order, market)
+    order = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(order, market = market)
 
 end
-function createOrderRequest(self::Cryptocom, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Cryptocom, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1360,8 +1483,8 @@ function createOrderRequest(self::Cryptocom, symbol, type_var, side, amount, pri
     request[Symbol("broker_id")] = broker;
     marketType = nothing;
     marginMode = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("createOrder", market, params);
-    (marginMode, params) = self.customHandleMarginModeAndParams("createOrder", params);
+    (marketType, params) = self.handleMarketTypeAndParams("createOrder", market = market, params = params);
+    (marginMode, params) = self.customHandleMarginModeAndParams("createOrder", params = params);
     if functions.ccxtruthy(@functions.ccxt_or((marketType == "margin"), (marginMode != nothing)))
         request[Symbol("spot_margin")] = "MARGIN";
     elseif functions.ccxtruthy(marketType == "spot")
@@ -1382,7 +1505,7 @@ function createOrderRequest(self::Cryptocom, symbol, type_var, side, amount, pri
 
         end
     end
-    postOnly = self.safeBool(params, "postOnly", false);
+    postOnly = self.safeBool(params, "postOnly", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_or((postOnly), (timeInForce == "PO")))
         request[Symbol("exec_inst")] = ["POST_ONLY"];
         request[Symbol("time_in_force")] = "GOOD_TILL_CANCEL";
@@ -1449,18 +1572,50 @@ function createOrderRequest(self::Cryptocom, symbol, type_var, side, amount, pri
     return extend(request, params)
 
 end
-function createOrder(self::Cryptocom, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK' or 'PO'
+- `params.ref_price_type`::string, optional: 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
+- `params.triggerPrice`::float, optional: price to trigger a trigger order
+- `params.stopLossPrice`::float, optional: price to trigger a stop-loss trigger order
+- `params.takeProfitPrice`::float, optional: price to trigger a take-profit trigger order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Cryptocom, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = Base.fetch(self.v1PrivatePostPrivateCreateOrder(request));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(result, market = market)
 
 end
-function createOrders(self::Cryptocom, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Cryptocom, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1473,8 +1628,8 @@ function createOrders(self::Cryptocom, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createAdvancedOrderRequest(marketId, type_var, side, amount, price, orderParams);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.createAdvancedOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
@@ -1495,7 +1650,7 @@ function createOrders(self::Cryptocom, orders, params=Dict())
     return self.parseOrders(result)
 
 end
-function createAdvancedOrderRequest(self::Cryptocom, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createAdvancedOrderRequest(self::Cryptocom, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1528,7 +1683,7 @@ function createAdvancedOrderRequest(self::Cryptocom, symbol, type_var, side, amo
 
         end
     end
-    postOnly = self.safeBool(params, "postOnly", false);
+    postOnly = self.safeBool(params, "postOnly", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_or((postOnly), (timeInForce == "PO")))
         request[Symbol("exec_inst")] = ["POST_ONLY"];
         request[Symbol("time_in_force")] = "GOOD_TILL_CANCEL";
@@ -1591,7 +1746,7 @@ function createAdvancedOrderRequest(self::Cryptocom, symbol, type_var, side, amo
     if functions.ccxtruthy(@functions.ccxt_and((side == "buy"), (@functions.ccxt_or(@functions.ccxt_or((uppercaseType == "MARKET"), (uppercaseType == "STOP_LOSS")), (uppercaseType == "TAKE_PROFIT")))))
         quoteAmount = nothing;
         createMarketBuyOrderRequiresPrice = true;
-        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
         cost = self.safeNumber2(params, "cost", "notional");
         params = omit(params, "cost");
         if functions.ccxtruthy(cost != nothing)
@@ -1616,17 +1771,34 @@ function createAdvancedOrderRequest(self::Cryptocom, symbol, type_var, side, amo
     return extend(request, params)
 
 end
-function editOrder(self::Cryptocom, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol of the order to edit
+- `type`::string, optional: not used by cryptocom editOrder
+- `side`::string, optional: not used by cryptocom editOrder
+- `amount`::float: (mandatory) how much of the currency you want to trade in units of the base currency
+- `price`::float: (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: the original client order id of the order to edit, required if id is not provided
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Cryptocom, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    request = self.editOrderRequest(id, symbol, amount, price, params);
+    request = self.editOrderRequest(id, symbol, amount, price = price, params = params);
     response = Base.fetch(self.v1PrivatePostPrivateAmendOrder(request));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(result)
 
 end
-function editOrderRequest(self::Cryptocom, id, symbol, amount, price=nothing, params=Dict())
+function editOrderRequest(self::Cryptocom, id, symbol, amount; price=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(id != nothing)
         request[Symbol("order_id")] = id;
@@ -1647,7 +1819,18 @@ function editOrderRequest(self::Cryptocom, id, symbol, amount, price=nothing, pa
     return extend(request, params)
 
 end
-function cancelAllOrders(self::Cryptocom, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders to cancel
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Cryptocom; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1663,7 +1846,19 @@ function cancelAllOrders(self::Cryptocom, symbol=nothing, params=Dict())
 ))]
 
 end
-function cancelOrder(self::Cryptocom, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+
+# Arguments
+- `id`::string: the order id of the order to cancel
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Cryptocom, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1675,11 +1870,23 @@ function cancelOrder(self::Cryptocom, id, symbol=nothing, params=Dict())
         Symbol("order_id") => id
     );
     response = Base.fetch(self.v1PrivatePostPrivateCancelOrder(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(result, market = market)
 
 end
-function cancelOrders(self::Cryptocom, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Cryptocom, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -1703,11 +1910,22 @@ function cancelOrders(self::Cryptocom, ids, symbol=nothing, params=Dict())
         Symbol("order_list") => orderRequests
     );
     response = Base.fetch(self.v1PrivatePostPrivateCancelOrderList(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseOrders(result, market, nothing, nothing, params)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOrders(result, market = market, since = nothing, limit = nothing, params = params)
 
 end
-function cancelOrdersForSymbols(self::Cryptocom, orders, params=Dict())
+"""
+cancel multiple orders for multiple symbols
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+
+# Arguments
+- `orders`::array: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrdersForSymbols(self::Cryptocom, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1730,11 +1948,24 @@ function cancelOrdersForSymbols(self::Cryptocom, orders, params=Dict())
         Symbol("order_list") => orderRequests
     );
     response = Base.fetch(self.v1PrivatePostPrivateCancelOrderList(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseOrders(result, nothing, nothing, nothing, params)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOrders(result, market = nothing, since = nothing, limit = nothing, params = params)
 
 end
-function fetchOpenOrders(self::Cryptocom, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Cryptocom; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1745,19 +1976,34 @@ function fetchOpenOrders(self::Cryptocom, symbol=nothing, since=nothing, limit=n
         request[Symbol("instrument_name")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.v1PrivatePostPrivateGetOpenOrders(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    orders = self.safeList(data, "data", []);
-    return self.parseOrders(orders, market, since, limit)
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "data", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Cryptocom, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for, maximum date range is one day
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Cryptocom; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 100))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1777,9 +2023,9 @@ function fetchMyTrades(self::Cryptocom, symbol=nothing, since=nothing, limit=not
         request[Symbol("end_time")] = until;
     end
     response = Base.fetch(self.v1PrivatePostPrivateGetTrades(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    trades = self.safeList(result, "data", []);
-    return self.parseTrades(trades, market, since, limit)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    trades = self.safeList(result, "data", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
 function parseAddress(self::Cryptocom, addressString)
@@ -1796,7 +2042,21 @@ function parseAddress(self::Cryptocom, addressString)
     return [address, tag]
 
 end
-function withdraw(self::Cryptocom, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Cryptocom, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1812,16 +2072,27 @@ function withdraw(self::Cryptocom, code, amount, address, tag=nothing, params=Di
     end
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
-    networkId = self.networkCodeToId(networkCode, code);
+    networkId = self.networkCodeToId(networkCode, currencyCode = code);
     if functions.ccxtruthy(networkId != nothing)
         request[Symbol("network_id")] = networkId;
     end
     response = Base.fetch(self.v1PrivatePostPrivateCreateWithdrawal(extend(request, params)));
     result = self.safeDict(response, "result");
-    return self.parseTransaction(result, currency)
+    return self.parseTransaction(result, currency = currency)
 
 end
-function fetchDepositAddressesByNetwork(self::Cryptocom, code, params=Dict())
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+function fetchDepositAddressesByNetwork(self::Cryptocom, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1830,8 +2101,8 @@ function fetchDepositAddressesByNetwork(self::Cryptocom, code, params=Dict())
         Symbol("currency") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PrivatePostPrivateGetDepositAddress(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    addresses = self.safeList(data, "deposit_address_list", []);
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    addresses = self.safeList(data, "deposit_address_list", defaultValue = []);
     addressesLength = length(addresses);
     if functions.ccxtruthy(addressesLength == 0)
         throw(ExchangeError(string(self.id, " fetchDepositAddressesByNetwork() generating address...")));
@@ -1844,9 +2115,9 @@ function fetchDepositAddressesByNetwork(self::Cryptocom, code, params=Dict())
         currencyId = safeString(value, "currency");
         responseCode = self.safeCurrencyCode(currencyId);
         (address, tag) = self.parseAddress(addressString);
-        self.checkAddress(address);
+        self.checkAddress(address = address);
         networkId = safeString(value, "network");
-        network = self.networkIdToCode(networkId, responseCode);
+        network = self.networkIdToCode(networkId = networkId, currencyCode = responseCode);
         if functions.ccxtruthy(network != nothing)
             result[Symbol(network)] = Dict{Symbol, Any}(
                 Symbol("info") => value,
@@ -1861,10 +2132,21 @@ function fetchDepositAddressesByNetwork(self::Cryptocom, code, params=Dict())
     return result
 
 end
-function fetchDepositAddress(self::Cryptocom, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Cryptocom, code; params=Dict())
     network = safeStringUpper(params, "network");
     params = omit(params, ["network"]);
-    depositAddressesRaw = Base.fetch(self.fetchDepositAddressesByNetwork(code, params));
+    depositAddressesRaw = Base.fetch(self.fetchDepositAddressesByNetwork(code, params = params));
     depositAddresses = depositAddressesRaw;
     if functions.ccxtruthy(ccxt_in(network, depositAddresses))
             return get(depositAddresses, Symbol(network), nothing)
@@ -1873,7 +2155,21 @@ function fetchDepositAddress(self::Cryptocom, code, params=Dict())
     return get(depositAddresses, Symbol(get(keys_var, 1, nothing)), nothing)
 
 end
-function fetchDeposits(self::Cryptocom, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Cryptocom; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1895,12 +2191,26 @@ function fetchDeposits(self::Cryptocom, code=nothing, since=nothing, limit=nothi
         request[Symbol("end_ts")] = until;
     end
     response = Base.fetch(self.v1PrivatePostPrivateGetDepositHistory(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    depositList = self.safeList(data, "deposit_list", []);
-    return self.parseTransactions(depositList, currency, since, limit)
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    depositList = self.safeList(data, "deposit_list", defaultValue = []);
+    return self.parseTransactions(depositList, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Cryptocom, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Cryptocom; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1922,15 +2232,15 @@ function fetchWithdrawals(self::Cryptocom, code=nothing, since=nothing, limit=no
         request[Symbol("end_ts")] = until;
     end
     response = Base.fetch(self.v1PrivatePostPrivateGetWithdrawalHistory(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    withdrawalList = self.safeList(data, "withdrawal_list", []);
-    return self.parseTransactions(withdrawalList, currency, since, limit)
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    withdrawalList = self.safeList(data, "withdrawal_list", defaultValue = []);
+    return self.parseTransactions(withdrawalList, currency = currency, since = since, limit = limit)
 
 end
-function parseTicker(self::Cryptocom, ticker, market=nothing)
+function parseTicker(self::Cryptocom, ticker; market=nothing)
     timestamp = safeInteger(ticker, "t");
     marketId = safeString(ticker, "i");
-    market = self.safeMarket(marketId, market, "_");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
     last_var = safeString(ticker, "a");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -1953,13 +2263,13 @@ function parseTicker(self::Cryptocom, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "v"),
     Symbol("quoteVolume") => functions.ccxtruthy((get(market, Symbol("quote"), nothing) == "USD")) ? safeString(ticker, "vv") : nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function parseTrade(self::Cryptocom, trade, market=nothing)
+function parseTrade(self::Cryptocom, trade; market=nothing)
     timestamp = safeInteger2(trade, "t", "create_time");
     marketId = safeString2(trade, "i", "instrument_name");
-    market = self.safeMarket(marketId, market, "_");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
     feeCurrency = safeString(trade, "fee_instrument_name");
     feeCostString = safeString(trade, "fees");
     return self.safeTrade(Dict{Symbol, Any}(
@@ -1979,10 +2289,10 @@ function parseTrade(self::Cryptocom, trade, market=nothing)
         Symbol("currency") => self.safeCurrencyCode(feeCurrency),
         Symbol("cost") => self.parseNumber(stringNeg(feeCostString))
     )
-), market)
+), market = market)
 
 end
-function parseOHLCV(self::Cryptocom, ohlcv, market=nothing)
+function parseOHLCV(self::Cryptocom, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "t"), self.safeNumber(ohlcv, "o"), self.safeNumber(ohlcv, "h"), self.safeNumber(ohlcv, "l"), self.safeNumber(ohlcv, "c"), self.safeNumber(ohlcv, "v")]
 
 end
@@ -2006,7 +2316,7 @@ function parseTimeInForce(self::Cryptocom, timeInForce)
     return safeString(timeInForces, timeInForce, timeInForce)
 
 end
-function parseOrder(self::Cryptocom, order, market=nothing)
+function parseOrder(self::Cryptocom, order; market=nothing)
     code = safeInteger(order, "code");
     if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (code != 0)))
             return self.safeOrder(Dict{Symbol, Any}(
@@ -2018,7 +2328,7 @@ function parseOrder(self::Cryptocom, order, market=nothing)
     end
     created = safeInteger(order, "create_time");
     marketId = safeString(order, "instrument_name");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     execInst = safeValue(order, "exec_inst");
     postOnly = nothing;
     if functions.ccxtruthy(execInst != nothing)
@@ -2059,7 +2369,7 @@ function parseOrder(self::Cryptocom, order, market=nothing)
         Symbol("cost") => self.safeNumber(order, "cumulative_fee")
     ),
     Symbol("trades") => []
-), market)
+), market = market)
 
 end
 function parseDepositStatus(self::Cryptocom, status)
@@ -2085,7 +2395,7 @@ function parseWithdrawalStatus(self::Cryptocom, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Cryptocom, transaction, currency=nothing)
+function parseTransaction(self::Cryptocom, transaction; currency=nothing)
     type_var = nothing;
     rawStatus = safeString(transaction, "status");
     status = nothing;
@@ -2099,7 +2409,7 @@ function parseTransaction(self::Cryptocom, transaction, currency=nothing)
     addressString = safeString(transaction, "address");
     (address, tag) = self.parseAddress(addressString);
     currencyId = safeString(transaction, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeInteger(transaction, "create_time");
     feeCost = self.safeNumber(transaction, "fee");
     fee = nothing;
@@ -2133,12 +2443,12 @@ function parseTransaction(self::Cryptocom, transaction, currency=nothing)
 )
 
 end
-function customHandleMarginModeAndParams(self::Cryptocom, methodName, params=Dict())
+function customHandleMarginModeAndParams(self::Cryptocom, methodName; params=Dict())
     defaultType = safeString(self.options, "defaultType");
-    isMargin = self.safeBool(params, "margin", false);
+    isMargin = self.safeBool(params, "margin", defaultValue = false);
     params = omit(params, "margin");
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams(methodName, params);
+    (marginMode, params) = self.handleMarginModeAndParams(methodName, params = params);
     if functions.ccxtruthy(marginMode != nothing)
         if functions.ccxtruthy(marginMode != "cross")
             throw(NotSupported(string(self.id, " only cross margin is supported")));
@@ -2151,8 +2461,8 @@ function customHandleMarginModeAndParams(self::Cryptocom, methodName, params=Dic
     return [marginMode, params]
 
 end
-function parseDepositWithdrawFee(self::Cryptocom, fee, currency=nothing)
-    networkList = self.safeList(fee, "network_list", []);
+function parseDepositWithdrawFee(self::Cryptocom, fee; currency=nothing)
+    networkList = self.safeList(fee, "network_list", defaultValue = []);
     networkListLength = length(networkList);
     result = Dict{Symbol, Any}(
         Symbol("info") => fee,
@@ -2172,7 +2482,7 @@ function parseDepositWithdrawFee(self::Cryptocom, fee, currency=nothing)
             networkInfo = get(networkList, i + 1, nothing);
             networkId = safeString(networkInfo, "network_id");
             currencyCode = safeString(currency, "code");
-            networkCode = self.networkIdToCode(networkId, currencyCode);
+            networkCode = self.networkIdToCode(networkId = networkId, currencyCode = currencyCode);
             if functions.ccxtruthy(networkCode != nothing)
                 result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                     Symbol("deposit") => Dict{Symbol, Any}(
@@ -2196,17 +2506,42 @@ function parseDepositWithdrawFee(self::Cryptocom, fee, currency=nothing)
     return result
 
 end
-function fetchDepositWithdrawFees(self::Cryptocom, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Cryptocom; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v1PrivatePostPrivateGetCurrencyNetworks(params));
     data = safeValue(response, "result");
     currencyMap = self.safeList(data, "currency_map");
-    return self.parseDepositWithdrawFees(currencyMap, codes, "full_name")
+    return self.parseDepositWithdrawFees(currencyMap, codes = codes, currencyIdKey = "full_name")
 
 end
-function fetchLedger(self::Cryptocom, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Cryptocom; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2227,16 +2562,16 @@ function fetchLedger(self::Cryptocom, code=nothing, since=nothing, limit=nothing
         request[Symbol("end_time")] = until;
     end
     response = Base.fetch(self.v1PrivatePostPrivateGetTransactions(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    ledger = self.safeList(result, "data", []);
-    return self.parseLedger(ledger, currency, since, limit)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    ledger = self.safeList(result, "data", defaultValue = []);
+    return self.parseLedger(ledger, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Cryptocom, item, currency=nothing)
+function parseLedgerEntry(self::Cryptocom, item; currency=nothing)
     timestamp = safeInteger(item, "event_timestamp_ms");
     currencyId = safeString(item, "instrument_name");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     amount = safeString(item, "transaction_qty");
     direction = nothing;
     if functions.ccxtruthy(stringLt(amount, "0"))
@@ -2264,7 +2599,7 @@ function parseLedgerEntry(self::Cryptocom, item, currency=nothing)
         Symbol("currency") => nothing,
         Symbol("cost") => nothing
     )
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Cryptocom, type_var)
@@ -2294,16 +2629,26 @@ function parseLedgerEntryType(self::Cryptocom, type_var)
     return safeString(ledgerType, type_var, type_var)
 
 end
-function fetchAccounts(self::Cryptocom, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Cryptocom; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v1PrivatePostPrivateGetAccounts(params));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    masterAccount = self.safeDict(result, "master_account", Dict{Symbol, Any}());
-    accounts = self.safeList(result, "sub_account_list", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    masterAccount = self.safeDict(result, "master_account", defaultValue = Dict{Symbol, Any}());
+    accounts = self.safeList(result, "sub_account_list", defaultValue = []);
     push!(accounts, masterAccount);
-    return self.parseAccounts(accounts, params)
+    return self.parseAccounts(accounts, params = params)
 
 end
 function parseAccount(self::Cryptocom, account)
@@ -2315,7 +2660,21 @@ function parseAccount(self::Cryptocom, account)
 )
 
 end
-function fetchSettlementHistory(self::Cryptocom, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+- `params.type`::int, optional: 'future', 'option'
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+function fetchSettlementHistory(self::Cryptocom; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2324,8 +2683,8 @@ function fetchSettlementHistory(self::Cryptocom, symbol=nothing, since=nothing, 
         market = self.market(symbol);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchSettlementHistory", market, params);
-    self.checkRequiredArgument("fetchSettlementHistory", type_var, "type", ["future", "option", "WARRANT", "FUTURE"]);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchSettlementHistory", market = market, params = params);
+    self.checkRequiredArgument("fetchSettlementHistory", type_var, "type", options = ["future", "option", "WARRANT", "FUTURE"]);
     if functions.ccxtruthy(type_var == "option")
         type_var = "WARRANT";
     end
@@ -2333,11 +2692,11 @@ function fetchSettlementHistory(self::Cryptocom, symbol=nothing, since=nothing, 
         Symbol("instrument_type") => uppercase(type_var)
     );
     response = Base.fetch(self.v1PublicGetPublicGetExpiredSettlementPrice(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "data", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "data", defaultValue = []);
     settlements = self.parseSettlements(data, market);
     sorted = sortBy(settlements, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
 function parseSettlement(self::Cryptocom, settlement, market)
@@ -2345,7 +2704,7 @@ function parseSettlement(self::Cryptocom, settlement, market)
     marketId = safeString(settlement, "i");
     return Dict{Symbol, Any}(
     Symbol("info") => settlement,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("price") => self.safeNumber(settlement, "v"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
@@ -2362,7 +2721,18 @@ function parseSettlements(self::Cryptocom, settlements, market)
     return result
 
 end
-function fetchFundingRate(self::Cryptocom, symbol, params=Dict())
+"""
+fetches historical funding rates
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRate(self::Cryptocom, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2376,13 +2746,13 @@ function fetchFundingRate(self::Cryptocom, symbol, params=Dict())
         Symbol("count") => 1
     );
     response = Base.fetch(self.v1PublicGetPublicGetValuations(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "data", []);
-    entry = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseFundingRate(entry, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "data", defaultValue = []);
+    entry = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(entry, market = market)
 
 end
-function parseFundingRate(self::Cryptocom, contract, market=nothing)
+function parseFundingRate(self::Cryptocom, contract; market=nothing)
     timestamp = safeInteger(contract, "t");
     fundingTimestamp = nothing;
     if functions.ccxtruthy(timestamp != nothing)
@@ -2390,7 +2760,7 @@ function parseFundingRate(self::Cryptocom, contract, market=nothing)
     end
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("markPrice") => nothing,
     Symbol("indexPrice") => nothing,
     Symbol("interestRate") => nothing,
@@ -2410,7 +2780,22 @@ function parseFundingRate(self::Cryptocom, contract, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Cryptocom, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rates
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures] to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Cryptocom; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -2420,7 +2805,7 @@ function fetchFundingRateHistory(self::Cryptocom, symbol=nothing, since=nothing,
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params))
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
@@ -2442,8 +2827,8 @@ function fetchFundingRateHistory(self::Cryptocom, symbol=nothing, since=nothing,
         request[Symbol("end_ts")] = until;
     end
     response = Base.fetch(self.v1PublicGetPublicGetValuations(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "data", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "data", defaultValue = []);
     marketId = safeString(result, "instrument_name");
     rates = [];
     i = 0
@@ -2452,7 +2837,7 @@ function fetchFundingRateHistory(self::Cryptocom, symbol=nothing, since=nothing,
         timestamp = safeInteger(entry, "t");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("fundingRate") => self.safeNumber(entry, "v"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
@@ -2460,10 +2845,21 @@ function fetchFundingRateHistory(self::Cryptocom, symbol=nothing, since=nothing,
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function fetchPosition(self::Cryptocom, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Cryptocom, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2472,16 +2868,27 @@ function fetchPosition(self::Cryptocom, symbol, params=Dict())
         Symbol("instrument_name") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PrivatePostPrivateGetPositions(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "data", []);
-    return self.parsePosition(self.safeDict(data, 0), market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "data", defaultValue = []);
+    return self.parsePosition(self.safeDict(data, 0), market = market)
 
 end
-function fetchPositions(self::Cryptocom, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Cryptocom; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
@@ -2499,24 +2906,24 @@ function fetchPositions(self::Cryptocom, symbols=nothing, params=Dict())
         request[Symbol("instrument_name")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.v1PrivatePostPrivateGetPositions(extend(request, params)));
-    responseResult = self.safeDict(response, "result", Dict{Symbol, Any}());
-    positions = self.safeList(responseResult, "data", []);
+    responseResult = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    positions = self.safeList(responseResult, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         entry = get(positions, i + 1, nothing);
         marketId = safeString(entry, "instrument_name");
-        marketInner = self.safeMarket(marketId, nothing, nothing, "contract");
-        push!(result, self.parsePosition(entry, marketInner));
+        marketInner = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = "contract");
+        push!(result, self.parsePosition(entry, market = marketInner));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", nothing, false)
+    return self.filterByArrayPositions(result, "symbol", values = nothing, indexed = false)
 
 end
-function parsePosition(self::Cryptocom, position, market=nothing)
+function parsePosition(self::Cryptocom, position; market=nothing)
     marketId = safeString(position, "instrument_name");
-    market = self.safeMarket(marketId, market, nothing, "contract");
-    symbol = self.safeSymbol(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract");
     timestamp = safeInteger(position, "update_timestamp_ms");
     amount = safeString(position, "quantity");
     return self.safePosition(Dict{Symbol, Any}(
@@ -2589,7 +2996,21 @@ function paramsToString(self::Cryptocom, object, level)
     return returnString
 
 end
-function closePosition(self::Cryptocom, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a market
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: not used by cryptocom.closePositions
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.type`::string, optional: LIMIT or MARKET
+- `params.price`::float, optional: for limit orders only
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closePosition(self::Cryptocom, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2608,10 +3029,21 @@ function closePosition(self::Cryptocom, symbol, side=nothing, params=Dict())
     end
     response = Base.fetch(self.v1PrivatePostPrivateClosePosition(extend(request, params)));
     result = self.safeDict(response, "result");
-    return self.parseOrder(result, market)
+    return self.parseOrder(result, market = market)
 
 end
-function fetchTradingFee(self::Cryptocom, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Cryptocom, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2620,16 +3052,26 @@ function fetchTradingFee(self::Cryptocom, symbol, params=Dict())
         Symbol("instrument_name") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PrivatePostPrivateGetInstrumentFeeRate(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTradingFee(data, market)
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTradingFee(data, market = market)
 
 end
-function fetchTradingFees(self::Cryptocom, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Cryptocom; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v1PrivatePostPrivateGetFeeRate(params));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parseTradingFees(result)
 
 end
@@ -2657,9 +3099,9 @@ function parseTradingFees(self::Cryptocom, response)
     return result
 
 end
-function parseTradingFee(self::Cryptocom, fee, market=nothing)
+function parseTradingFee(self::Cryptocom, fee; market=nothing)
     marketId = safeString(fee, "instrument_name");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => symbol,
@@ -2670,7 +3112,7 @@ function parseTradingFee(self::Cryptocom, fee, market=nothing)
 )
 
 end
-function sign(self::Cryptocom, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Cryptocom, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     type_var = safeString(api, 0);
     access = safeString(api, 1);
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(type_var), nothing), "/", path);
@@ -2730,519 +3172,519 @@ Base.getproperty(self::Cryptocom, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function basePublicGetV1PublicGetAnnouncements(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "v1/public/get-announcements", ["base", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/public/get-announcements"; api=["base", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicAuth(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/auth", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/auth"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicGetInstruments(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-instruments", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-instruments"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicGetBook(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-book", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-book"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicGetCandlestick(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-candlestick", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-candlestick"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-trades", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-trades"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicGetTickers(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-tickers", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-tickers"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicGetValuations(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-valuations", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-valuations"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicGetExpiredSettlementPrice(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-expired-settlement-price", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-expired-settlement-price"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicGetInsurance(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-insurance", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-insurance"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicGetAnnouncements(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-announcements", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-announcements"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicGetRiskParameters(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-risk-parameters", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-risk-parameters"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicPostPublicStakingGetConversionRate(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/staking/get-conversion-rate", ["v1", "public"], "POST", params, nothing, nothing, Dict())
+    return request(self, "public/staking/get-conversion-rate"; api=["v1", "public"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateSetCancelOnDisconnect(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/set-cancel-on-disconnect", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/set-cancel-on-disconnect"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetCancelOnDisconnect(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-cancel-on-disconnect", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-cancel-on-disconnect"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateUserBalance(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/user-balance", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/user-balance"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateUserBalanceHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/user-balance-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/user-balance-history"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetPositions(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-positions", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-positions"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateCreateOrder(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-order"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateAmendOrder(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/amend-order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/amend-order"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateCreateOrderList(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-order-list", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-order-list"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateCancelOrder(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/cancel-order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/cancel-order"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateCancelOrderList(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/cancel-order-list", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/cancel-order-list"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateCancelAllOrders(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/cancel-all-orders", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/cancel-all-orders"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateClosePosition(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/close-position", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/close-position"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetOrderHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-order-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-order-history"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetOpenOrders(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-open-orders", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-open-orders"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetOrderDetail(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-order-detail", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-order-detail"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-trades", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-trades"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateChangeAccountLeverage(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/change-account-leverage", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/change-account-leverage"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetTransactions(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-transactions", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-transactions"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateCreateSubaccountTransfer(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-subaccount-transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-subaccount-transfer"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetSubaccountBalances(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-subaccount-balances", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-subaccount-balances"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetOrderList(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-order-list", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-order-list"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateCreateWithdrawal(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-withdrawal", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-withdrawal"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetCurrencyNetworks(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-currency-networks", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-currency-networks"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetDepositAddress(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-deposit-address", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-deposit-address"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetAccounts(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-accounts", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-accounts"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetWithdrawalHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-withdrawal-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-withdrawal-history"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetDepositHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-deposit-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-deposit-history"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetFeeRate(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-fee-rate", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-fee-rate"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateGetInstrumentFeeRate(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-instrument-fee-rate", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-instrument-fee-rate"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateFiatFiatDepositInfo(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/fiat/fiat-deposit-info", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/fiat/fiat-deposit-info"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateFiatFiatDepositHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/fiat/fiat-deposit-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/fiat/fiat-deposit-history"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateFiatFiatWithdrawHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/fiat/fiat-withdraw-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/fiat/fiat-withdraw-history"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateFiatFiatCreateWithdraw(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/fiat/fiat-create-withdraw", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/fiat/fiat-create-withdraw"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateFiatFiatTransactionQuota(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/fiat/fiat-transaction-quota", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/fiat/fiat-transaction-quota"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateFiatFiatTransactionLimit(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/fiat/fiat-transaction-limit", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/fiat/fiat-transaction-limit"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateFiatFiatGetBankAccounts(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/fiat/fiat-get-bank-accounts", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/fiat/fiat-get-bank-accounts"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateStakingStake(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/stake", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/staking/stake"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateStakingUnstake(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/unstake", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/staking/unstake"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateStakingGetStakingPosition(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-staking-position", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/staking/get-staking-position"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateStakingGetStakingInstruments(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-staking-instruments", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/staking/get-staking-instruments"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateStakingGetOpenStake(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-open-stake", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/staking/get-open-stake"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateStakingGetStakeHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-stake-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/staking/get-stake-history"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateStakingGetRewardHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-reward-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/staking/get-reward-history"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateStakingConvert(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/convert", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/staking/convert"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateStakingGetOpenConvert(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-open-convert", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/staking/get-open-convert"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateStakingGetConvertHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-convert-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/staking/get-convert-history"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateCreateIsolatedMarginTransfer(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-isolated-margin-transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-isolated-margin-transfer"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostPrivateChangeIsolatedMarginLeverage(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/change-isolated-margin-leverage", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/change-isolated-margin-leverage"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetPublicAuth(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/auth", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/auth"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetPublicGetInstruments(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-instruments", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-instruments"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetPublicGetBook(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-book", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-book"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetPublicGetCandlestick(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-candlestick", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-candlestick"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetPublicGetTicker(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-ticker", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-ticker"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetPublicGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-trades", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-trades"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetPublicMarginGetTransferCurrencies(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/margin/get-transfer-currencies", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/margin/get-transfer-currencies"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetPublicMarginGetLoadCurrenices(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/margin/get-load-currenices", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/margin/get-load-currenices"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetPublicRespondHeartbeat(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/respond-heartbeat", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/respond-heartbeat"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateSetCancelOnDisconnect(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/set-cancel-on-disconnect", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/set-cancel-on-disconnect"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetCancelOnDisconnect(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-cancel-on-disconnect", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-cancel-on-disconnect"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateCreateWithdrawal(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-withdrawal", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-withdrawal"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetWithdrawalHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-withdrawal-history", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-withdrawal-history"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetCurrencyNetworks(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-currency-networks", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-currency-networks"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetDepositHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-deposit-history", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-deposit-history"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetDepositAddress(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-deposit-address", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-deposit-address"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateExportCreateExportRequest(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/export/create-export-request", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/export/create-export-request"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateExportGetExportRequests(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/export/get-export-requests", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/export/get-export-requests"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateExportDownloadExportOutput(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/export/download-export-output", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/export/download-export-output"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetAccountSummary(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-account-summary", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-account-summary"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateCreateOrder(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateCancelOrder(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/cancel-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/cancel-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateCancelAllOrders(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/cancel-all-orders", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/cancel-all-orders"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateCreateOrderList(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-order-list", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-order-list"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetOrderHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-order-history", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-order-history"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetOpenOrders(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-open-orders", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-open-orders"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetOrderDetail(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-order-detail", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-order-detail"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-trades", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-trades"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetAccounts(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-accounts", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-accounts"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateGetSubaccountBalances(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-subaccount-balances", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-subaccount-balances"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateCreateSubaccountTransfer(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-subaccount-transfer", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-subaccount-transfer"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateOtcGetOtcUser(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/otc/get-otc-user", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/otc/get-otc-user"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateOtcGetInstruments(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/otc/get-instruments", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/otc/get-instruments"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateOtcRequestQuote(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/otc/request-quote", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/otc/request-quote"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateOtcAcceptQuote(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/otc/accept-quote", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/otc/accept-quote"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateOtcGetQuoteHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/otc/get-quote-history", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/otc/get-quote-history"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateOtcGetTradeHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/otc/get-trade-history", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/otc/get-trade-history"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPrivateOtcCreateOrder(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/otc/create-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/otc/create-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPublicGetPublicAuth(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/auth", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/auth"; api=["derivatives", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPublicGetPublicGetInstruments(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-instruments", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-instruments"; api=["derivatives", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPublicGetPublicGetBook(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-book", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-book"; api=["derivatives", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPublicGetPublicGetCandlestick(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-candlestick", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-candlestick"; api=["derivatives", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPublicGetPublicGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-trades", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-trades"; api=["derivatives", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPublicGetPublicGetTickers(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-tickers", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-tickers"; api=["derivatives", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPublicGetPublicGetValuations(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-valuations", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-valuations"; api=["derivatives", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPublicGetPublicGetExpiredSettlementPrice(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-expired-settlement-price", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-expired-settlement-price"; api=["derivatives", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPublicGetPublicGetInsurance(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-insurance", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/get-insurance"; api=["derivatives", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateSetCancelOnDisconnect(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/set-cancel-on-disconnect", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/set-cancel-on-disconnect"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateGetCancelOnDisconnect(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-cancel-on-disconnect", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-cancel-on-disconnect"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateUserBalance(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/user-balance", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/user-balance"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateUserBalanceHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/user-balance-history", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/user-balance-history"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateGetPositions(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-positions", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-positions"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateCreateOrder(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-order", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-order"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateCreateOrderList(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-order-list", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-order-list"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateCancelOrder(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/cancel-order", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/cancel-order"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateCancelOrderList(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/cancel-order-list", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/cancel-order-list"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateCancelAllOrders(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/cancel-all-orders", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/cancel-all-orders"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateClosePosition(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/close-position", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/close-position"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateConvertCollateral(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/convert-collateral", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/convert-collateral"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateGetOrderHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-order-history", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-order-history"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateGetOpenOrders(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-open-orders", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-open-orders"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateGetOrderDetail(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-order-detail", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-order-detail"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-trades", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-trades"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateChangeAccountLeverage(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/change-account-leverage", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/change-account-leverage"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateGetTransactions(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-transactions", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-transactions"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateCreateSubaccountTransfer(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/create-subaccount-transfer", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/create-subaccount-transfer"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateGetSubaccountBalances(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-subaccount-balances", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-subaccount-balances"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function derivativesPrivatePostPrivateGetOrderList(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-order-list", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "private/get-order-list"; api=["derivatives", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Cryptocom(; kwargs...)
@@ -3306,3 +3748,552 @@ function Cryptocom(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Cryptocom_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Cryptocom_fetchCurrencies
+
+function __ccxt_doc_Cryptocom_fetchMarkets() end
+"""
+retrieves data on all markets for cryptocom
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Cryptocom_fetchMarkets
+
+function __ccxt_doc_Cryptocom_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+see: https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Cryptocom_fetchTickers
+
+function __ccxt_doc_Cryptocom_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Cryptocom_fetchTicker
+
+function __ccxt_doc_Cryptocom_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for, max date range is one day
+- `limit`::int, optional: the maximum number of order structures to retrieve, default 100 max 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptocom_fetchOrders
+
+function __ccxt_doc_Cryptocom_fetchTrades() end
+"""
+get a list of the most recent trades for a particular symbol
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch, maximum date range is one day
+- `limit`::int, optional: the maximum number of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Cryptocom_fetchTrades
+
+function __ccxt_doc_Cryptocom_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Cryptocom_fetchOHLCV
+
+function __ccxt_doc_Cryptocom_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the number of order book entries to return, max 50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Cryptocom_fetchOrderBook
+
+function __ccxt_doc_Cryptocom_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Cryptocom_fetchBalance
+
+function __ccxt_doc_Cryptocom_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptocom_fetchOrder
+
+function __ccxt_doc_Cryptocom_createOrder() end
+"""
+create a trade order
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK' or 'PO'
+- `params.ref_price_type`::string, optional: 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
+- `params.triggerPrice`::float, optional: price to trigger a trigger order
+- `params.stopLossPrice`::float, optional: price to trigger a stop-loss trigger order
+- `params.takeProfitPrice`::float, optional: price to trigger a take-profit trigger order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptocom_createOrder
+
+function __ccxt_doc_Cryptocom_createOrders() end
+"""
+create a list of trade orders
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptocom_createOrders
+
+function __ccxt_doc_Cryptocom_editOrder() end
+"""
+edit a trade order
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol of the order to edit
+- `type`::string, optional: not used by cryptocom editOrder
+- `side`::string, optional: not used by cryptocom editOrder
+- `amount`::float: (mandatory) how much of the currency you want to trade in units of the base currency
+- `price`::float: (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: the original client order id of the order to edit, required if id is not provided
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptocom_editOrder
+
+function __ccxt_doc_Cryptocom_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders to cancel
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptocom_cancelAllOrders
+
+function __ccxt_doc_Cryptocom_cancelOrder() end
+"""
+cancels an open order
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+
+# Arguments
+- `id`::string: the order id of the order to cancel
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptocom_cancelOrder
+
+function __ccxt_doc_Cryptocom_cancelOrders() end
+"""
+cancel multiple orders
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptocom_cancelOrders
+
+function __ccxt_doc_Cryptocom_cancelOrdersForSymbols() end
+"""
+cancel multiple orders for multiple symbols
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+
+# Arguments
+- `orders`::array: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptocom_cancelOrdersForSymbols
+
+function __ccxt_doc_Cryptocom_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptocom_fetchOpenOrders
+
+function __ccxt_doc_Cryptocom_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for, maximum date range is one day
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Cryptocom_fetchMyTrades
+
+function __ccxt_doc_Cryptocom_withdraw() end
+"""
+make a withdrawal
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Cryptocom_withdraw
+
+function __ccxt_doc_Cryptocom_fetchDepositAddressesByNetwork() end
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+__ccxt_doc_Cryptocom_fetchDepositAddressesByNetwork
+
+function __ccxt_doc_Cryptocom_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Cryptocom_fetchDepositAddress
+
+function __ccxt_doc_Cryptocom_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Cryptocom_fetchDeposits
+
+function __ccxt_doc_Cryptocom_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Cryptocom_fetchWithdrawals
+
+function __ccxt_doc_Cryptocom_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Cryptocom_fetchDepositWithdrawFees
+
+function __ccxt_doc_Cryptocom_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Cryptocom_fetchLedger
+
+function __ccxt_doc_Cryptocom_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Cryptocom_fetchAccounts
+
+function __ccxt_doc_Cryptocom_fetchSettlementHistory() end
+"""
+fetches historical settlement records
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+- `params.type`::int, optional: 'future', 'option'
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+__ccxt_doc_Cryptocom_fetchSettlementHistory
+
+function __ccxt_doc_Cryptocom_fetchFundingRate() end
+"""
+fetches historical funding rates
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Cryptocom_fetchFundingRate
+
+function __ccxt_doc_Cryptocom_fetchFundingRateHistory() end
+"""
+fetches historical funding rates
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures] to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Cryptocom_fetchFundingRateHistory
+
+function __ccxt_doc_Cryptocom_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Cryptocom_fetchPosition
+
+function __ccxt_doc_Cryptocom_fetchPositions() end
+"""
+fetch all open positions
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Cryptocom_fetchPositions
+
+function __ccxt_doc_Cryptocom_closePosition() end
+"""
+closes open positions for a market
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: not used by cryptocom.closePositions
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.type`::string, optional: LIMIT or MARKET
+- `params.price`::float, optional: for limit orders only
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Cryptocom_closePosition
+
+function __ccxt_doc_Cryptocom_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Cryptocom_fetchTradingFee
+
+function __ccxt_doc_Cryptocom_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Cryptocom_fetchTradingFees

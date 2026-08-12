@@ -2488,9 +2488,20 @@ function nonce(self::Kucoin, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function fetchTime(self::Kucoin, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-server-time
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Kucoin; params=Dict())
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTime", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTime", market = nothing, params = params);
     response = nothing;
     if functions.ccxtruthy(@functions.ccxt_and((type_var != "spot"), (type_var != "margin")))
         response = Base.fetch(self.futuresPublicGetTimestamp(params));
@@ -2500,11 +2511,26 @@ function fetchTime(self::Kucoin, params=Dict())
     return safeInteger(response, "data")
 
 end
-function fetchStatus(self::Kucoin, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-service-status
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-service-status
+see: https://www.kucoin.com/docs-new/rest/ua/get-service-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: spot or swap
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.tradeType`::string, optional: *uta only* set to SPOT or FUTURES
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Kucoin; params=Dict())
     uta = false;
-    (uta, params) = self.handleOptionAndParams(params, "fetchStatus", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchStatus", "uta", defaultValue = uta);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchStatus", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchStatus", market = nothing, params = params);
     response = nothing;
     if functions.ccxtruthy(uta)
         defaultType = safeString(self.options, "defaultType", "spot");
@@ -2519,7 +2545,7 @@ function fetchStatus(self::Kucoin, params=Dict())
     else
         response = Base.fetch(self.publicGetStatus(params));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     status = safeString2(data, "status", "serverStatus");
     return Dict{Symbol, Any}(
     Symbol("status") => functions.ccxtruthy((status == "open")) ? "ok" : "maintenance",
@@ -2530,19 +2556,32 @@ function fetchStatus(self::Kucoin, params=Dict())
 )
 
 end
-function fetchMarkets(self::Kucoin, params=Dict())
+"""
+retrieves data on all markets for kucoin
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-symbols
+see: https://www.kucoin.com/docs-new/rest/ua/get-symbol
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-symbols
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Kucoin; params=Dict())
     fetchTickersFees = nothing;
-    (fetchTickersFees, params) = self.handleOptionAndParams(params, "fetchMarkets", "fetchTickersFees", true);
+    (fetchTickersFees, params) = self.handleOptionAndParams(params, "fetchMarkets", "fetchTickersFees", defaultValue = true);
     uta = false;
-    (uta, params) = self.handleOptionAndParams(params, "fetchMarkets", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchMarkets", "uta", defaultValue = uta);
     if functions.ccxtruthy(uta)
-            return Base.fetch(self.fetchUTAMarkets(params))
+            return Base.fetch(self.fetchUTAMarkets(params = params))
     end
     defaultTypes = ["spot", "swap", "future", "contract"];
     fetchMarketsOptions = self.safeDict(self.options, "fetchMarkets");
-    types = self.safeList(fetchMarketsOptions, "types", defaultTypes);
-    credentialsSet = self.checkRequiredCredentials(false);
-    requestMarginables = @functions.ccxt_and(credentialsSet, self.safeBool(params, "marginables", true));
+    types = self.safeList(fetchMarketsOptions, "types", defaultValue = defaultTypes);
+    credentialsSet = self.checkRequiredCredentials(error = false);
+    requestMarginables = @functions.ccxt_and(credentialsSet, self.safeBool(params, "marginables", defaultValue = true));
     params = omit(params, "marginables");
     fetchContractMarkets = false;
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(inArray("swap", types), inArray("future", types)), inArray("contract", types)))
@@ -2562,13 +2601,13 @@ function fetchMarkets(self::Kucoin, params=Dict())
                 push!(promises, self.publicGetMarketAllTickers(params));
     end
     if functions.ccxtruthy(fetchContractMarkets)
-                push!(promises, self.fetchContractMarkets(params));
+                push!(promises, self.fetchContractMarkets(params = params));
     end
     if functions.ccxtruthy(credentialsSet)
                 push!(promises, self.loadMigrationStatus());
     end
     responses = Base.fetch(asyncmap(Base.fetch, promises));
-    symbolsData = functions.ccxtruthy(fetchSpotMarkets) ? self.safeList(get(responses, 1, nothing), "data", []) : [];
+    symbolsData = functions.ccxtruthy(fetchSpotMarkets) ? self.safeList(get(responses, 1, nothing), "data", defaultValue = []) : [];
     crossIndex = 0;
     isolatedIndex = 0;
     tickersIndex = 0;
@@ -2589,14 +2628,14 @@ function fetchMarkets(self::Kucoin, params=Dict())
     if functions.ccxtruthy(fetchContractMarkets)
         contractIndex = nextIndex;
     end
-    crossData = functions.ccxtruthy(requestMarginables) ? self.safeDict(get(responses, crossIndex + 1, nothing), "data", Dict{Symbol, Any}()) : Dict{Symbol, Any}();
-    crossItems = self.safeList(crossData, "items", []);
+    crossData = functions.ccxtruthy(requestMarginables) ? self.safeDict(get(responses, crossIndex + 1, nothing), "data", defaultValue = Dict{Symbol, Any}()) : Dict{Symbol, Any}();
+    crossItems = self.safeList(crossData, "items", defaultValue = []);
     crossById = indexBy(crossItems, "symbol");
     isolatedData = functions.ccxtruthy(requestMarginables) ? get(responses, isolatedIndex + 1, nothing) : Dict{Symbol, Any}();
-    isolatedItems = self.safeList(isolatedData, "data", []);
+    isolatedItems = self.safeList(isolatedData, "data", defaultValue = []);
     isolatedById = indexBy(isolatedItems, "symbol");
-    tickersResponse = functions.ccxtruthy(fetchTickersFees) ? self.safeDict(responses, tickersIndex, Dict{Symbol, Any}()) : Dict{Symbol, Any}();
-    tickerItems = self.safeList(self.safeDict(tickersResponse, "data", Dict{Symbol, Any}()), "ticker", []);
+    tickersResponse = functions.ccxtruthy(fetchTickersFees) ? self.safeDict(responses, tickersIndex, defaultValue = Dict{Symbol, Any}()) : Dict{Symbol, Any}();
+    tickerItems = self.safeList(self.safeDict(tickersResponse, "data", defaultValue = Dict{Symbol, Any}()), "ticker", defaultValue = []);
     tickersById = indexBy(tickerItems, "symbol");
     result = [];
     i = 0
@@ -2609,14 +2648,14 @@ function fetchMarkets(self::Kucoin, params=Dict())
         (baseId, quoteId) = split(id, "-");
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
-        ticker = self.safeDict(tickersById, id, Dict{Symbol, Any}());
+        ticker = self.safeDict(tickersById, id, defaultValue = Dict{Symbol, Any}());
         makerFeeRate = safeString(ticker, "makerFeeRate");
         takerFeeRate = safeString(ticker, "takerFeeRate");
         makerCoefficient = safeString(ticker, "makerCoefficient");
         takerCoefficient = safeString(ticker, "takerCoefficient");
         hasCrossMargin = (ccxt_in(id, crossById));
         hasIsolatedMargin = (ccxt_in(id, isolatedById));
-        isMarginable = @functions.ccxt_or(@functions.ccxt_or(self.safeBool(market, "isMarginEnabled", false), hasCrossMargin), hasIsolatedMargin);
+        isMarginable = @functions.ccxt_or(@functions.ccxt_or(self.safeBool(market, "isMarginEnabled", defaultValue = false), hasCrossMargin), hasIsolatedMargin);
         push!(result, Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
@@ -2675,7 +2714,7 @@ function fetchMarkets(self::Kucoin, params=Dict())
         i += 1
     end
     if functions.ccxtruthy(fetchContractMarkets)
-        contractMarkets = self.safeList(responses, contractIndex, []);
+        contractMarkets = self.safeList(responses, contractIndex, defaultValue = []);
         result = arrayConcat(result, contractMarkets);
     end
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
@@ -2684,10 +2723,10 @@ function fetchMarkets(self::Kucoin, params=Dict())
     return result
 
 end
-function fetchContractMarkets(self::Kucoin, params=Dict())
+function fetchContractMarkets(self::Kucoin; params=Dict())
     response = Base.fetch(self.futuresPublicGetContractsActive(params));
     result = [];
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         market = get(data, i + 1, nothing);
@@ -2782,7 +2821,7 @@ function fetchContractMarkets(self::Kucoin, params=Dict())
     return result
 
 end
-function fetchUTAMarkets(self::Kucoin, params=Dict())
+function fetchUTAMarkets(self::Kucoin; params=Dict())
     promises = [];
     push!(promises, self.utaGetMarketInstrument(extend(params, Dict{Symbol, Any}(
     Symbol("tradeType") => "SPOT"
@@ -2791,10 +2830,10 @@ function fetchUTAMarkets(self::Kucoin, params=Dict())
     Symbol("tradeType") => "FUTURES"
 ))));
     responses = Base.fetch(asyncmap(Base.fetch, promises));
-    data = self.safeDict(get(responses, 1, nothing), "data", Dict{Symbol, Any}());
-    contractData = self.safeDict(get(responses, 2, nothing), "data", Dict{Symbol, Any}());
-    spotData = self.safeList(data, "list", []);
-    contractSymbolsData = self.safeList(contractData, "list", []);
+    data = self.safeDict(get(responses, 1, nothing), "data", defaultValue = Dict{Symbol, Any}());
+    contractData = self.safeDict(get(responses, 2, nothing), "data", defaultValue = Dict{Symbol, Any}());
+    spotData = self.safeList(data, "list", defaultValue = []);
+    contractSymbolsData = self.safeList(contractData, "list", defaultValue = []);
     symbolsData = arrayConcat(spotData, contractSymbolsData);
     result = [];
     i = 0
@@ -2900,7 +2939,17 @@ function fetchUTAMarkets(self::Kucoin, params=Dict())
     return result
 
 end
-function loadMigrationStatus(self::Kucoin, force=false)
+"""
+loads the migration status for the account (hf or not)
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
+
+# Arguments
+- `force`::bool: load account state for non hf
+
+# Returns
+- ignore
+"""
+function loadMigrationStatus(self::Kucoin; force=false)
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(!functions.ccxtruthy((ccxt_in("hf", self.options))), (get(self.options, Symbol("hf"), nothing) == nothing)), force))
         result = Base.fetch(self.privateGetHfAccountsOpened());
         self.options[Symbol("hf")] = self.safeBool(result, "data");
@@ -2908,8 +2957,8 @@ function loadMigrationStatus(self::Kucoin, force=false)
     return true
 
 end
-function handleHfAndParams(self::Kucoin, params=Dict())
-    migrated = self.safeBool(self.options, "hf", false);
+function handleHfAndParams(self::Kucoin; params=Dict())
+    migrated = self.safeBool(self.options, "hf", defaultValue = false);
     loadedHf = nothing;
     if functions.ccxtruthy(migrated != nothing)
         if functions.ccxtruthy(migrated)
@@ -2918,26 +2967,38 @@ function handleHfAndParams(self::Kucoin, params=Dict())
             loadedHf = false;
         end
     end
-    hf = self.safeBool(params, "hf", loadedHf);
+    hf = self.safeBool(params, "hf", defaultValue = loadedHf);
     params = omit(params, "hf");
     return [hf, params]
 
 end
-function fetchCurrencies(self::Kucoin, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
+see: https://www.kucoin.com/docs-new/rest/ua/get-currencies
+
+# Arguments
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Kucoin; params=Dict())
     uta = false;
-    if functions.ccxtruthy(self.checkRequiredCredentials(false))
+    if functions.ccxtruthy(self.checkRequiredCredentials(error = false))
         uta = Base.fetch(self.isUTAEnabled());
     end
-    (uta, params) = self.handleOptionAndParams(params, "fetchCurrencies", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchCurrencies", "uta", defaultValue = uta);
     response = nothing;
     if functions.ccxtruthy(uta)
         response = Base.fetch(self.utaGetAssetCurrencies(params));
     else
         response = Base.fetch(self.publicGetCurrencies(params));
     end
-    currenciesData = self.safeList(response, "data", []);
-    brokenCurrencies = self.handleOption("fetchCurrencies", "brokenCurrencies", []);
-    filteredCurrencies = self.filterOutByArray(currenciesData, "currency", brokenCurrencies);
+    currenciesData = self.safeList(response, "data", defaultValue = []);
+    brokenCurrencies = self.handleOption("fetchCurrencies", "brokenCurrencies", defaultValue = []);
+    filteredCurrencies = self.filterOutByArray(currenciesData, "currency", values = brokenCurrencies);
     return self.parseCurrencies(filteredCurrencies)
 
 end
@@ -2946,13 +3007,13 @@ function parseCurrency(self::Kucoin, currency)
     id = safeString(entry, "currency");
     code = self.safeCurrencyCode(id);
     networks = Dict{Symbol, Any}();
-    chains = self.safeList2(entry, "chains", "items", []);
+    chains = self.safeList2(entry, "chains", "items", defaultValue = []);
     chainsLength = length(chains);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, chainsLength))
         chain = get(chains, j + 1, nothing);
         chainId = safeString(chain, "chainId");
-        networkCode = self.networkIdToCode(chainId, code);
+        networkCode = self.networkIdToCode(networkId = chainId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("info") => chain,
@@ -2963,7 +3024,7 @@ function parseCurrency(self::Kucoin, currency)
                 Symbol("fee") => self.safeNumber2(chain, "withdrawalMinFee", "minWithdrawFee"),
                 Symbol("deposit") => self.safeBool(chain, "isDepositEnabled"),
                 Symbol("withdraw") => self.safeBool(chain, "isWithdrawEnabled"),
-                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chain, "withdrawPrecision"))),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(chain, "withdrawPrecision"))),
                 Symbol("limits") => Dict{Symbol, Any}(
                     Symbol("withdraw") => Dict{Symbol, Any}(
                         Symbol("min") => self.safeNumber2(chain, "withdrawalMinSize", "minWithdrawSize"),
@@ -2979,7 +3040,7 @@ function parseCurrency(self::Kucoin, currency)
         j += 1
     end
     rawPrecision = safeString(entry, "precision");
-    precision = self.parseNumber(self.parsePrecision(rawPrecision));
+    precision = self.parseNumber(self.parsePrecision(precision = rawPrecision));
     isFiat = chainsLength == 0;
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -2997,20 +3058,31 @@ function parseCurrency(self::Kucoin, currency)
 ))
 
 end
-function fetchAccounts(self::Kucoin, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Kucoin; params=Dict())
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchAccounts", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchAccounts", "uta", defaultValue = uta);
     response = nothing;
     data = [];
     if functions.ccxtruthy(uta)
         response = Base.fetch(self.utaPrivateGetAccountModeAccountOverview(extend(params, Dict{Symbol, Any}(
     Symbol("accountMode") => "unified"
 ))));
-        dataDict = self.safeDict(response, "data", Dict{Symbol, Any}());
+        dataDict = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         data = [dataDict];
     else
         response = Base.fetch(self.privateGetAccounts(params));
-        data = self.safeList(response, "data", []);
+        data = self.safeList(response, "data", defaultValue = []);
     end
     result = [];
     i = 0
@@ -3032,7 +3104,18 @@ function fetchAccounts(self::Kucoin, params=Dict())
     return result
 
 end
-function fetchTransactionFee(self::Kucoin, code, params=Dict())
+"""
+*DEPRECATED* please use fetchDepositWithdrawFee instead
+see: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTransactionFee(self::Kucoin, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3043,13 +3126,13 @@ function fetchTransactionFee(self::Kucoin, code, params=Dict())
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        _netIdTmp = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        _netIdTmp = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
         if functions.ccxtruthy(_netIdTmp != nothing)
             request[Symbol("chain")] =             lowercase(_netIdTmp);
         end
     end
     response = Base.fetch(self.privateGetWithdrawalsQuotas(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     withdrawFees = Dict{Symbol, Any}();
     withdrawFees[Symbol(code)] = self.safeNumber(data, "withdrawMinFee");
     return Dict{Symbol, Any}(
@@ -3059,7 +3142,19 @@ function fetchTransactionFee(self::Kucoin, code, params=Dict())
 )
 
 end
-function fetchDepositWithdrawFee(self::Kucoin, code, params=Dict())
+"""
+fetch the fee for deposits and withdrawals
+see: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFee(self::Kucoin, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3070,17 +3165,17 @@ function fetchDepositWithdrawFee(self::Kucoin, code, params=Dict())
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        _netIdTmp = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        _netIdTmp = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
         if functions.ccxtruthy(_netIdTmp != nothing)
             request[Symbol("chain")] =             lowercase(_netIdTmp);
         end
     end
     response = Base.fetch(self.privateGetWithdrawalsQuotas(extend(request, params)));
     data = self.safeDict(response, "data");
-    return self.parseDepositWithdrawFee(data, currency)
+    return self.parseDepositWithdrawFee(data, currency = currency)
 
 end
-function parseDepositWithdrawFee(self::Kucoin, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Kucoin, fee; currency=nothing)
     if functions.ccxtruthy(ccxt_in("chains", fee))
         resultNew = Dict{Symbol, Any}(
             Symbol("info") => fee,
@@ -3094,12 +3189,12 @@ function parseDepositWithdrawFee(self::Kucoin, fee, currency=nothing)
             ),
             Symbol("networks") => Dict{Symbol, Any}()
         );
-        chains = self.safeList(fee, "chains", []);
+        chains = self.safeList(fee, "chains", defaultValue = []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(chains)))
             chain = get(chains, i + 1, nothing);
             chainId = safeString(chain, "chainId");
-            networkCodeNew = self.networkIdToCode(chainId, safeString(currency, "code"));
+            networkCodeNew = self.networkIdToCode(networkId = chainId, currencyCode = safeString(currency, "code"));
             if functions.ccxtruthy(networkCodeNew != nothing)
                 resultNew[Symbol("networks")][Symbol(networkCodeNew)] = Dict{Symbol, Any}(
                     Symbol("withdraw") => Dict{Symbol, Any}(
@@ -3132,8 +3227,8 @@ function parseDepositWithdrawFee(self::Kucoin, fee, currency=nothing)
     );
     networkId = safeString(fee, "chain");
     currencyId = safeString(fee, "currency");
-    currency = self.safeCurrency(currencyId, currency);
-    networkCode = self.networkIdToCode(networkId, get(currency, Symbol("code"), nothing));
+    currency = self.safeCurrency(currencyId, currency = currency);
+    networkCode = self.networkIdToCode(networkId = networkId, currencyCode = get(currency, Symbol("code"), nothing));
     if functions.ccxtruthy(networkCode != nothing)
         result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
             Symbol("withdraw") => minWithdrawFee,
@@ -3149,7 +3244,7 @@ end
 function isFuturesMethod(self::Kucoin, methodName, params)
     defaultType = safeString2(self.options, methodName, "defaultType", "trade");
     requestedType = safeString(params, "type", defaultType);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     type_var = safeString(accountsByType, requestedType);
     if functions.ccxtruthy(type_var == nothing)
         keys_var = objectKeys(accountsByType);
@@ -3159,7 +3254,7 @@ function isFuturesMethod(self::Kucoin, methodName, params)
     return @functions.ccxt_or(@functions.ccxt_or((type_var == "contract"), (type_var == "future")), (type_var == "futures"))
 
 end
-function parseSpotOrUtaTicker(self::Kucoin, ticker, market=nothing)
+function parseSpotOrUtaTicker(self::Kucoin, ticker; market=nothing)
     percentage = safeString(ticker, "changeRate");
     if functions.ccxtruthy(percentage != nothing)
         percentage = stringMul(percentage, "100");
@@ -3169,7 +3264,7 @@ function parseSpotOrUtaTicker(self::Kucoin, ticker, market=nothing)
     last_var = safeStringN(ticker, ["last", "lastTradedPrice", "lastPrice"]);
     last_var = safeString(ticker, "price", last_var);
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     symbol = get(market, Symbol("symbol"), nothing);
     baseVolume = safeString2(ticker, "vol", "baseVolume");
     quoteVolume = safeString2(ticker, "volValue", "quoteVolume");
@@ -3197,16 +3292,16 @@ function parseSpotOrUtaTicker(self::Kucoin, ticker, market=nothing)
     Symbol("markPrice") => safeString2(ticker, "markPrice", "value"),
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function parseTicker(self::Kucoin, ticker, market=nothing)
-    return self.parseContractTicker(ticker, market)
+function parseTicker(self::Kucoin, ticker; market=nothing)
+    return self.parseContractTicker(ticker, market = market)
 
 end
-function parseContractTicker(self::Kucoin, ticker, market=nothing)
+function parseContractTicker(self::Kucoin, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     last_var = safeString2(ticker, "price", "lastTradePrice");
     timestamp = safeIntegerProduct(ticker, "ts", 0.000001);
     return self.safeTicker(Dict{Symbol, Any}(
@@ -3232,7 +3327,7 @@ function parseContractTicker(self::Kucoin, ticker, market=nothing)
     Symbol("markPrice") => safeString2(ticker, "markPrice", "value"),
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
 function typeToTradeType(self::Kucoin, type_var)
@@ -3247,14 +3342,30 @@ function typeToTradeType(self::Kucoin, type_var)
     return safeString(tradeTypes, type_var, type_var)
 
 end
-function fetchTickers(self::Kucoin, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-tickers
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-tickers
+see: https://www.kucoin.com/docs-new/rest/ua/get-ticker
+
+# Arguments
+- `symbols`::any, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.type`::string, optional: spot or swap (default is spot)
+- `params.method`::string, optional: *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Kucoin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
-    symbols = self.marketSymbols(symbols, nothing, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true);
     uta = false;
-    (uta, params) = self.handleOptionAndParams(params, "fetchTickers", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchTickers", "uta", defaultValue = uta);
     tradeType = safeString(params, "tradeType");
     firstMarket = nothing;
     if functions.ccxtruthy(symbols != nothing)
@@ -3264,7 +3375,7 @@ function fetchTickers(self::Kucoin, symbols=nothing, params=Dict())
         end
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", firstMarket, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = firstMarket, params = params);
     response = nothing;
     if functions.ccxtruthy(@functions.ccxt_or((tradeType != nothing), uta))
         if functions.ccxtruthy(tradeType == nothing)
@@ -3272,12 +3383,12 @@ function fetchTickers(self::Kucoin, symbols=nothing, params=Dict())
         end
         response = Base.fetch(self.utaGetMarketTicker(extend(request, params)));
     elseif functions.ccxtruthy(@functions.ccxt_and((type_var != "spot"), (type_var != "margin")))
-        return Base.fetch(self.fetchContractTickers(symbols, params))
+        return Base.fetch(self.fetchContractTickers(symbols = symbols, params = params))
     else
         response = Base.fetch(self.publicGetMarketAllTickers(params));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    tickers = self.safeList2(data, "ticker", "list", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    tickers = self.safeList2(data, "ticker", "list", defaultValue = []);
     time = safeInteger2(data, "time", "ts");
     result = Dict{Symbol, Any}();
     i = 0
@@ -3290,12 +3401,12 @@ function fetchTickers(self::Kucoin, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchContractTickers(self::Kucoin, symbols=nothing, params=Dict())
+function fetchContractTickers(self::Kucoin; symbols=nothing, params=Dict())
     method = nothing;
-    (method, params) = self.handleOptionAndParams(params, "fetchTickers", "method", "futuresPublicGetContractsActive");
+    (method, params) = self.handleOptionAndParams(params, "fetchTickers", "method", defaultValue = "futuresPublicGetContractsActive");
     response = nothing;
     if functions.ccxtruthy(method == "futuresPublicGetAllTickers")
         response = Base.fetch(self.futuresPublicGetAllTickers(params));
@@ -3303,21 +3414,46 @@ function fetchContractTickers(self::Kucoin, symbols=nothing, params=Dict())
         response = Base.fetch(self.futuresPublicGetContractsActive(params));
     end
     data = self.safeList(response, "data");
-    tickers = self.parseTickers(data, symbols);
-    return self.filterByArrayTickers(tickers, "symbol", symbols)
+    tickers = self.parseTickers(data, symbols = symbols);
+    return self.filterByArrayTickers(tickers, "symbol", values = symbols)
 
 end
-function fetchMarkPrices(self::Kucoin, symbols=nothing, params=Dict())
+"""
+fetches the mark price for multiple markets
+see: https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-list
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrices(self::Kucoin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetMarkPriceAllSymbols(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseTickers(data)
 
 end
-function fetchTicker(self::Kucoin, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-24hr-stats
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-ticker
+see: https://www.kucoin.com/docs-new/rest/ua/get-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Kucoin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3326,29 +3462,41 @@ function fetchTicker(self::Kucoin, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     uta = false;
-    (uta, params) = self.handleOptionAndParams(params, "fetchTicker", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchTicker", "uta", defaultValue = uta);
     response = nothing;
     result = nothing;
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTicker", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTicker", market = market, params = params);
     if functions.ccxtruthy(uta)
         request[Symbol("tradeType")] = self.typeToTradeType(type_var);
         response = Base.fetch(self.utaGetMarketTicker(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        resultList = self.safeList(data, "list", []);
-        result = self.safeDict(resultList, 0, Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        resultList = self.safeList(data, "list", defaultValue = []);
+        result = self.safeDict(resultList, 0, defaultValue = Dict{Symbol, Any}());
     elseif functions.ccxtruthy(get(market, Symbol("contract"), nothing))
         response = Base.fetch(self.futuresPublicGetTicker(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        return self.parseTicker(data, market)
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        return self.parseTicker(data, market = market)
     else
         response = Base.fetch(self.publicGetMarketStats(extend(request, params)));
-        result = self.safeDict(response, "data", Dict{Symbol, Any}());
+        result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     end
-    return self.parseSpotOrUtaTicker(result, market)
+    return self.parseSpotOrUtaTicker(result, market = market)
 
 end
-function fetchMarkPrice(self::Kucoin, symbol, params=Dict())
+"""
+fetches the mark price for a specific market
+see: https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-detail
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-mark-price
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrice(self::Kucoin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3359,16 +3507,16 @@ function fetchMarkPrice(self::Kucoin, symbol, params=Dict())
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
         response = Base.fetch(self.futuresPublicGetMarkPriceSymbolCurrent(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-            return self.parseTicker(data, market)
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+            return self.parseTicker(data, market = market)
     else
         response = Base.fetch(self.publicGetMarkPriceSymbolCurrent(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        return self.parseSpotOrUtaTicker(data, market)
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        return self.parseSpotOrUtaTicker(data, market = market)
     end
 
 end
-function parseOHLCV(self::Kucoin, ohlcv, market=nothing)
+function parseOHLCV(self::Kucoin, ohlcv; market=nothing)
     timestampString = safeString(ohlcv, 0);
     if functions.ccxtruthy(@functions.ccxt_and(timestampString != nothing, functions.ccxt_le(length(timestampString), 10)))
             return [safeTimestamp(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 5)]
@@ -3377,27 +3525,59 @@ function parseOHLCV(self::Kucoin, ohlcv, market=nothing)
     end
 
 end
-function fetchOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
+see: https://www.kucoin.com/docs-new/rest/ua/get-klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Kucoin, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     uta = false;
-    (uta, params) = self.handleOptionAndParams(params, "fetchOHLCV", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchOHLCV", "uta", defaultValue = uta);
     priceType = safeString(params, "price");
     if functions.ccxtruthy(@functions.ccxt_and((priceType != nothing), (!functions.ccxtruthy(uta))))
         uta = true;
     end
     if functions.ccxtruthy(uta)
-            return Base.fetch(self.fetchUTAOHLCV(symbol, timeframe, since, limit, params))
+            return Base.fetch(self.fetchUTAOHLCV(symbol, timeframe = timeframe, since = since, limit = limit, params = params))
     elseif functions.ccxtruthy(get(market, Symbol("contract"), nothing))
-        return Base.fetch(self.fetchContractOHLCV(symbol, timeframe, since, limit, params))
+        return Base.fetch(self.fetchContractOHLCV(symbol, timeframe = timeframe, since = since, limit = limit, params = params))
     else
-        return Base.fetch(self.fetchSpotOHLCV(symbol, timeframe, since, limit, params))
+        return Base.fetch(self.fetchSpotOHLCV(symbol, timeframe = timeframe, since = since, limit = limit, params = params))
     end
 
 end
-function fetchUTAOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+helper method for fetchOHLCV
+see: https://www.kucoin.com/docs-new/rest/ua/get-klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchUTAOHLCV(self::Kucoin, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3405,7 +3585,7 @@ function fetchUTAOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing, limi
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchUTAOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchUTAOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxLimit))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -3427,14 +3607,14 @@ function fetchUTAOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing, limi
     end
     request[Symbol("endAt")] = self.parseToInt(floor(endAt / denominator));
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOHLCV", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOHLCV", market = market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or((type_var == "spot"), (type_var == "margin")))
         request[Symbol("tradeType")] = "SPOT";
     else
         request[Symbol("tradeType")] = "FUTURES";
     end
     priceType = nothing;
-    (priceType, params) = self.handleOptionAndParams(params, "fetchOHLCV", "price", priceType);
+    (priceType, params) = self.handleOptionAndParams(params, "fetchOHLCV", "price", defaultValue = priceType);
     if functions.ccxtruthy(priceType != nothing)
         priceTypes = Dict{Symbol, Any}(
             Symbol("mark") => "mark-price",
@@ -3448,12 +3628,26 @@ function fetchUTAOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing, limi
         request[Symbol("symbol")] = string(get(market, Symbol("id"), nothing), "-", suffix);
     end
     response = Base.fetch(self.utaGetMarketKline(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    result = self.safeList(data, "list", []);
-    return self.parseOHLCVs(result, market, timeframe, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    result = self.safeList(data, "list", defaultValue = []);
+    return self.parseOHLCVs(result, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchSpotOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+helper method for fetchOHLCV
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchSpotOHLCV(self::Kucoin, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3461,7 +3655,7 @@ function fetchSpotOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing, lim
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchSpotOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchSpotOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxLimit))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -3483,11 +3677,25 @@ function fetchSpotOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing, lim
     end
     request[Symbol("endAt")] = self.parseToInt(floor(endAt / denominator));
     response = Base.fetch(self.publicGetMarketCandles(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchContractOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+helper method for fetchOHLCV
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchContractOHLCV(self::Kucoin, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3495,14 +3703,14 @@ function fetchContractOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing,
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchContractOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchContractOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxLimit))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    timeframeOptions = self.safeDict(self.options, "timeframes", Dict{Symbol, Any}());
-    swapTimeframes = self.safeDict(timeframeOptions, "swap", Dict{Symbol, Any}());
+    timeframeOptions = self.safeDict(self.options, "timeframes", defaultValue = Dict{Symbol, Any}());
+    swapTimeframes = self.safeDict(timeframeOptions, "swap", defaultValue = Dict{Symbol, Any}());
     parsedTimeframe = safeInteger(swapTimeframes, timeframe);
     if functions.ccxtruthy(parsedTimeframe != nothing)
         request[Symbol("granularity")] = parsedTimeframe;
@@ -3523,11 +3731,23 @@ function fetchContractOHLCV(self::Kucoin, symbol, timeframe="1m", since=nothing,
     end
     request[Symbol("to")] = endAt;
     response = Base.fetch(self.futuresPublicGetKlineQuery(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function createDepositAddress(self::Kucoin, code, params=Dict())
+"""
+create a currency deposit address
+see: https://www.kucoin.com/docs-new/rest/account-info/deposit/add-deposit-address-v3
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network name
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Kucoin, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3538,27 +3758,42 @@ function createDepositAddress(self::Kucoin, code, params=Dict())
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("chain")] = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        request[Symbol("chain")] = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     end
     response = Base.fetch(self.privatePostDepositAddressCreate(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseDepositAddress(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseDepositAddress(data, currency = currency)
 
 end
-function fetchDepositAddress(self::Kucoin, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+see: https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network name
+- `params.accountType`::string, optional: 'main', 'contract' or 'uta' (default is 'main')
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Kucoin, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     accountType = "main";
-    (accountType, params) = self.handleOptionAndParams(params, "fetchDepositAddress", "accountType", accountType);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    (accountType, params) = self.handleOptionAndParams(params, "fetchDepositAddress", "accountType", defaultValue = accountType);
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     accountType = safeString(accountsByType, accountType, accountType);
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchDepositAddress", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchDepositAddress", "uta", defaultValue = uta);
     if functions.ccxtruthy(accountType == "contract")
-            return Base.fetch(self.fetchContractDepositAddress(code, params))
+            return Base.fetch(self.fetchContractDepositAddress(code, params = params))
     elseif functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(uta, (accountType == "uta")), (accountType == "unified")))
-        return Base.fetch(fetchDepositAddress(self.parent, code, extend(params, Dict{Symbol, Any}(
+        return Base.fetch(fetchDepositAddress(self.parent, code, params = extend(params, Dict{Symbol, Any}(
     Symbol("uta") => true
 ))))
     end
@@ -3569,7 +3804,7 @@ function fetchDepositAddress(self::Kucoin, code, params=Dict())
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        _netIdTmp = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        _netIdTmp = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
         if functions.ccxtruthy(_netIdTmp != nothing)
             request[Symbol("chain")] =             lowercase(_netIdTmp);
         end
@@ -3582,10 +3817,21 @@ function fetchDepositAddress(self::Kucoin, code, params=Dict())
     if functions.ccxtruthy(data == nothing)
         throw(ExchangeError(string(self.id, " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again")));
     end
-    return self.parseDepositAddress(data, currency)
+    return self.parseDepositAddress(data, currency = currency)
 
 end
-function fetchContractDepositAddress(self::Kucoin, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchContractDepositAddress(self::Kucoin, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3595,10 +3841,10 @@ function fetchContractDepositAddress(self::Kucoin, code, params=Dict())
         Symbol("currency") => currencyId
     );
     response = Base.fetch(self.futuresPrivateGetDepositAddress(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     address = safeString(data, "address");
     if functions.ccxtruthy(currencyId != "NIM")
-        self.checkAddress(address);
+        self.checkAddress(address = address);
     end
     return Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -3609,7 +3855,7 @@ function fetchContractDepositAddress(self::Kucoin, code, params=Dict())
 )
 
 end
-function parseDepositAddress(self::Kucoin, depositAddress, currency=nothing)
+function parseDepositAddress(self::Kucoin, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
     if functions.ccxtruthy(address != nothing)
         address = replace(address, "bitcoincash:" => "");
@@ -3618,20 +3864,33 @@ function parseDepositAddress(self::Kucoin, depositAddress, currency=nothing)
     if functions.ccxtruthy(currency != nothing)
         code = self.safeCurrencyCode(get(currency, Symbol("id"), nothing));
         if functions.ccxtruthy(code != "NIM")
-            self.checkAddress(address);
+            self.checkAddress(address = address);
         end
     end
     chainId = safeString(depositAddress, "chainId");
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(chainId, code),
+    Symbol("network") => self.networkIdToCode(networkId = chainId, currencyCode = code),
     Symbol("address") => address,
     Symbol("tag") => safeString(depositAddress, "memo")
 )
 
 end
-function fetchDepositAddressesByNetwork(self::Kucoin, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+see: https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false
+
+# Returns
+- an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddressesByNetwork(self::Kucoin, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3640,13 +3899,13 @@ function fetchDepositAddressesByNetwork(self::Kucoin, code, params=Dict())
         Symbol("currency") => get(currency, Symbol("id"), nothing)
     );
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchDepositAddressesByNetwork", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchDepositAddressesByNetwork", "uta", defaultValue = uta);
     response = nothing;
     if functions.ccxtruthy(uta)
         networkCode = nothing;
         (networkCode, params) = self.handleNetworkCodeAndParams(params);
         if functions.ccxtruthy(networkCode != nothing)
-            _netIdTmp = self.networkCodeToId(networkCode, code);
+            _netIdTmp = self.networkCodeToId(networkCode, currencyCode = code);
             if functions.ccxtruthy(_netIdTmp != nothing)
                 request[Symbol("chain")] =                 lowercase(_netIdTmp);
             end
@@ -3658,14 +3917,30 @@ function fetchDepositAddressesByNetwork(self::Kucoin, code, params=Dict())
         response = Base.fetch(self.privateGetDepositAddresses(extend(request, params)));
         self.options[Symbol("versions")][Symbol("private")][Symbol("GET")][Symbol("deposit-addresses")] = version;
     end
-    chains = self.safeList(response, "data", []);
-    parsed = self.parseDepositAddresses(chains, [get(currency, Symbol("code"), nothing)], false, Dict{Symbol, Any}(
+    chains = self.safeList(response, "data", defaultValue = []);
+    parsed = self.parseDepositAddresses(chains, codes = [get(currency, Symbol("code"), nothing)], indexed = false, params = Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("code"), nothing)
     ));
     return indexBy(parsed, "network")
 
 end
-function fetchOrderBook(self::Kucoin, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
+see: https://www.kucoin.com/docs-new/rest/ua/get-orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Kucoin, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3674,12 +3949,12 @@ function fetchOrderBook(self::Kucoin, symbol, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    isAuthenticated = self.checkRequiredCredentials(false);
+    isAuthenticated = self.checkRequiredCredentials(error = false);
     uta = false;
-    (uta, params) = self.handleOptionAndParams(params, "fetchOrderBook", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchOrderBook", "uta", defaultValue = uta);
     response = nothing;
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOrderBook", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOrderBook", market = market, params = params);
     if functions.ccxtruthy(uta)
         limitString = "20";
         if functions.ccxtruthy(@functions.ccxt_or((limit == nothing), (functions.ccxt_ge(limit, 100))))
@@ -3730,7 +4005,7 @@ function fetchOrderBook(self::Kucoin, symbol, limit=nothing, params=Dict())
         end
 
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(data, "time");
     if functions.ccxtruthy(timestamp == nothing)
         nanoseconds = safeInteger(data, "ts");
@@ -3738,7 +4013,7 @@ function fetchOrderBook(self::Kucoin, symbol, limit=nothing, params=Dict())
             timestamp = self.parseToInt(nanoseconds / 1000000);
         end
     end
-    orderbook = self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", level - 2, level - 1);
+    orderbook = self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = level - 2, amountKey = level - 1);
     orderbook[Symbol("nonce")] = safeInteger(data, "sequence");
     return orderbook
 
@@ -3755,20 +4030,46 @@ function handleTriggerPrices(self::Kucoin, params)
     return [triggerPrice, stopLossPrice, takeProfitPrice]
 
 end
-function createOrder(self::Kucoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+Create an order on the exchange
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+see: https://www.kucoin.com/docs-new/rest/ua/place-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false Check createSpotOrder(), createContractOrder() and createUtaOrder () for more details on the extra parameters that can be used in params
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Kucoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "createOrder", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "createOrder", "uta", defaultValue = uta);
     if functions.ccxtruthy(uta)
-            return Base.fetch(self.createUtaOrder(symbol, type_var, side, amount, price, params))
+            return Base.fetch(self.createUtaOrder(symbol, type_var, side, amount, price = price, params = params))
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-        return Base.fetch(self.createSpotOrder(symbol, type_var, side, amount, price, params))
+        return Base.fetch(self.createSpotOrder(symbol, type_var, side, amount, price = price, params = params))
     else
         if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
-                return Base.fetch(self.createContractOrder(symbol, type_var, side, amount, price, params))
+                return Base.fetch(self.createContractOrder(symbol, type_var, side, amount, price = price, params = params))
         else
             throw(NotSupported(string(self.id, " createOrder() does not support market ", get(market, Symbol("type"), nothing))));
         end
@@ -3776,24 +4077,64 @@ function createOrder(self::Kucoin, symbol, type_var, side, amount, price=nothing
     end
 
 end
-function createSpotOrder(self::Kucoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+helper method for creating spot orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.marginMode`::string, optional: 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+- `params.timeInForce`::string, optional: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+- `params.postOnly`::bool, optional: Post only flag, invalid when timeInForce is IOC or FOK EXCHANGE SPECIFIC PARAMETERS
+- `params.clientOid`::string, optional: client order id, defaults to uuid if not passed
+- `params.remark`::string, optional: remark for the order, length cannot exceed 100 utf8 characters
+- `params.tradeType`::string, optional: 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders limit orders ---------------------------------------------------
+- `params.cancelAfter`::float, optional: long, // cancel after n seconds, requires timeInForce to be GTT
+- `params.hidden`::bool, optional: false, // Order will not be displayed in the order book
+- `params.iceberg`::bool, optional: false, // Only a portion of the order is displayed in the order book
+- `params.visibleSize`::string, optional: this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order market orders --------------------------------------------------
+- `params.funds`::string, optional: // Amount of quote currency to use stop orders ----------------------------------------------------
+- `params.stop`::string, optional: Either loss or entry, the default is loss. Requires triggerPrice to be defined margin orders --------------------------------------------------
+- `params.leverage`::float, optional: Leverage size of the order
+- `params.stp`::string, optional: '', // self trade prevention, CN, CO, CB or DC
+- `params.autoBorrow`::bool, optional: false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.test`::bool, optional: set to true to test an order, no order will be created but the request will be validated
+- `params.sync`::bool, optional: set to true to use the hf sync call
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createSpotOrder(self::Kucoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    testOrder = self.safeBool(params, "test", false);
+    testOrder = self.safeBool(params, "test", defaultValue = false);
     params = omit(params, "test");
     hf = nothing;
-    (hf, params) = self.handleHfAndParams(params);
+    (hf, params) = self.handleHfAndParams(params = params);
     useSync = false;
-    (useSync, params) = self.handleOptionAndParams(params, "createOrder", "sync", false);
+    (useSync, params) = self.handleOptionAndParams(params, "createOrder", "sync", defaultValue = false);
     (triggerPrice, stopLossPrice, takeProfitPrice) = self.handleTriggerPrices(params);
     tradeType = safeString(params, "tradeType");
     isTriggerOrder = (@functions.ccxt_or(@functions.ccxt_or(triggerPrice, stopLossPrice), takeProfitPrice));
-    marginResult = self.handleMarginModeAndParams("createOrder", params);
+    marginResult = self.handleMarginModeAndParams("createOrder", params = params);
     marginMode = safeString(marginResult, 0);
     isMarginOrder = @functions.ccxt_or(tradeType == "MARGIN_TRADE", marginMode != nothing);
-    orderRequest = self.createSpotOrderRequest(symbol, type_var, side, amount, price, params);
+    orderRequest = self.createSpotOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = nothing;
     if functions.ccxtruthy(testOrder)
         if functions.ccxtruthy(isMarginOrder)
@@ -3832,11 +4173,11 @@ function createSpotOrder(self::Kucoin, symbol, type_var, side, amount, price=not
         end
 
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function createSpotOrderRequest(self::Kucoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createSpotOrderRequest(self::Kucoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -3856,7 +4197,7 @@ function createSpotOrderRequest(self::Kucoin, symbol, type_var, side, amount, pr
     amountString = nothing;
     costString = nothing;
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
     if functions.ccxtruthy(type_var == "market")
         if functions.ccxtruthy(quoteAmount != nothing)
             params = omit(params, ["cost", "funds"]);
@@ -3899,7 +4240,7 @@ function createSpotOrderRequest(self::Kucoin, symbol, type_var, side, amount, pr
         end
     end
     postOnly = nothing;
-    (postOnly, params) = self.handlePostOnly(type_var == "market", false, params);
+    (postOnly, params) = self.handlePostOnly(type_var == "market", false, params = params);
     if functions.ccxtruthy(postOnly)
         request[Symbol("postOnly")] = true;
     end
@@ -3915,15 +4256,53 @@ function marketOrderAmountToPrecision(self::Kucoin, symbol, amount)
     return result
 
 end
-function createContractOrder(self::Kucoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+helper method for creating contract orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: price to trigger stop-loss orders
+- `params.takeProfitPrice`::float, optional: price to trigger take-profit orders
+- `params.reduceOnly`::bool, optional: A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+- `params.timeInForce`::string, optional: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+- `params.postOnly`::bool, optional: Post only flag, invalid when timeInForce is IOC or FOK
+- `params.cost`::float, optional: the cost of the order in units of USDT
+- `params.marginMode`::string, optional: 'cross' or 'isolated', default is 'isolated'
+- `params.hedged`::bool, optional: *swap and future only* true for hedged mode, false for one way mode, default is false ----------------- Exchange Specific Parameters -----------------
+- `params.leverage`::float, optional: Leverage size of the order (mandatory param in request, default is 1)
+- `params.clientOid`::string, optional: client order id, defaults to uuid if not passed
+- `params.remark`::string, optional: remark for the order, length cannot exceed 100 utf8 characters
+- `params.stop`::string, optional: 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
+- `params.triggerPriceType`::string, optional: "last", "mark", "index" - defaults to "mark"
+- `params.stopPriceType`::string, optional: exchange-specific alternative for triggerPriceType: TP, IP or MP
+- `params.closeOrder`::bool, optional: set to true to close position
+- `params.test`::bool, optional: set to true to use the test order endpoint (does not submit order, use to validate params)
+- `params.forceHold`::bool, optional: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+- `params.positionSide`::string, optional: *swap and future only* hedged two-way position side, LONG or SHORT
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createContractOrder(self::Kucoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    testOrder = self.safeBool(params, "test", false);
+    testOrder = self.safeBool(params, "test", defaultValue = false);
     params = omit(params, "test");
     hasTpOrSlOrder = @functions.ccxt_or((safeValue(params, "stopLoss") != nothing), (safeValue(params, "takeProfit") != nothing));
-    orderRequest = self.createContractOrderRequest(symbol, type_var, side, amount, price, params);
+    orderRequest = self.createContractOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = nothing;
     if functions.ccxtruthy(testOrder)
         response = Base.fetch(self.futuresPrivatePostOrdersTest(orderRequest));
@@ -3934,11 +4313,11 @@ function createContractOrder(self::Kucoin, symbol, type_var, side, amount, price
             response = Base.fetch(self.futuresPrivatePostOrders(orderRequest));
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function createContractOrderRequest(self::Kucoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createContractOrderRequest(self::Kucoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -4035,7 +4414,7 @@ function createContractOrderRequest(self::Kucoin, symbol, type_var, side, amount
         end
     end
     postOnly = nothing;
-    (postOnly, params) = self.handlePostOnly(type_var == "market", false, params);
+    (postOnly, params) = self.handlePostOnly(type_var == "market", false, params = params);
     if functions.ccxtruthy(postOnly)
         request[Symbol("postOnly")] = true;
     end
@@ -4050,9 +4429,9 @@ function createContractOrderRequest(self::Kucoin, symbol, type_var, side, amount
             throw(ArgumentsRequired(string(self.id, " createOrder() requires a visibleSize parameter for iceberg orders")));
         end
     end
-    reduceOnly = self.safeBool(params, "reduceOnly", false);
+    reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
     hedged = nothing;
-    (hedged, params) = self.handleParamBool(params, "hedged", false);
+    (hedged, params) = self.handleParamBool(params, "hedged", defaultValue = false);
     if functions.ccxtruthy(reduceOnly)
         request[Symbol("reduceOnly")] = reduceOnly;
         if functions.ccxtruthy(hedged)
@@ -4069,18 +4448,52 @@ function createContractOrderRequest(self::Kucoin, symbol, type_var, side, amount
     return extend(request, params)
 
 end
-function createUtaOrder(self::Kucoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+helper method for creating uta orders
+see: https://www.kucoin.com/docs-new/rest/ua/place-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, defaults to uuid if not passed
+- `params.cost`::float, optional: the cost of the order in units of quote currency
+- `params.timeInForce`::string, optional: GTC, GTD, IOC, FOK or PO
+- `params.postOnly`::bool, optional: Post only flag, invalid when timeInForce is IOC or FOK (default is false)
+- `params.reduceOnly`::bool, optional: *contract markets only* A mark to reduce the position size only. Set to false by default
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.triggerDirection`::string, optional: 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice
+- `params.triggerPriceType`::string, optional: *contract markets only* "last", "mark", "index" - defaults to "mark"
+- `params.stopLossPrice`::float, optional: price to trigger stop-loss orders
+- `params.takeProfitPrice`::float, optional: price to trigger take-profit orders
+- `params.marginMode`::string, optional: 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders) Exchange-specific parameters -------------------------------------------------
+- `params.accountMode`::string, optional: 'unified' or 'classic', default is 'unified'
+- `params.stp`::string, optional: '', // self trade prevention, CN, CO, CB or DC
+- `params.cancelAfter`::int, optional: - Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
+- `params.sizeUnit`::string, optional: *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT' Classic account parameters
+- `params.autoBorrow`::bool, optional: *classic margin orders only*
+- `params.autoRepay`::bool, optional: *classic margin orders only*
+- `params.hedged`::string, optional: *classic contract orders only* true for hedged mode, false for one way mode, default is false
+- `params.leverage`::int, optional: *classic contract orders with isolated marginMode only* Leverage size of the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createUtaOrder(self::Kucoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createUtaOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createUtaOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = Base.fetch(self.utaPrivatePostAccountModeOrderPlace(request));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function createUtaOrderRequest(self::Kucoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createUtaOrderRequest(self::Kucoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -4091,11 +4504,11 @@ function createUtaOrderRequest(self::Kucoin, symbol, type_var, side, amount, pri
     isSpot = get(market, Symbol("spot"), nothing);
     isContract = get(market, Symbol("contract"), nothing);
     accountMode = "unified";
-    (accountMode, params) = self.handleOptionAndParams(params, "createOrder", "accountMode", accountMode);
+    (accountMode, params) = self.handleOptionAndParams(params, "createOrder", "accountMode", defaultValue = accountMode);
     isUnified = (accountMode == "unified");
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
-    tradeType = self.handleTradeType(isContract, marginMode, isUnified, params);
+    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
+    tradeType = self.handleTradeType(isContractMarket = isContract, marginMode = marginMode, isUnified = isUnified, params = params);
     clientOrderId = safeString2(params, "clientOid", "clientOrderId", uuid());
     params = omit(params, ["clientOid", "clientOrderId"]);
     request = Dict{Symbol, Any}(
@@ -4123,7 +4536,7 @@ function createUtaOrderRequest(self::Kucoin, symbol, type_var, side, amount, pri
     else
         sizeUnit = "BASECCY";
         if functions.ccxtruthy(isContract)
-            (sizeUnit, params) = self.handleOptionAndParams(params, "createOrder", "sizeUnit", "UNIT");
+            (sizeUnit, params) = self.handleOptionAndParams(params, "createOrder", "sizeUnit", defaultValue = "UNIT");
         end
         request[Symbol("sizeUnit")] = sizeUnit;
         request[Symbol("size")] = self.amountToPrecision(symbol, amount);
@@ -4132,8 +4545,8 @@ function createUtaOrderRequest(self::Kucoin, symbol, type_var, side, amount, pri
         request[Symbol("price")] = self.priceToPrecision(symbol, price);
     end
     postOnly = nothing;
-    (postOnly, params) = self.handlePostOnly(isMarketOrder, false, params);
-    timeInForce = self.handleTimeInForce(params);
+    (postOnly, params) = self.handlePostOnly(isMarketOrder, false, params = params);
+    timeInForce = self.handleTimeInForce(params = params);
     if functions.ccxtruthy((timeInForce != nothing))
         params = omit(params, "timeInForce");
         request[Symbol("timeInForce")] = timeInForce;
@@ -4152,9 +4565,9 @@ function createUtaOrderRequest(self::Kucoin, symbol, type_var, side, amount, pri
                     end
                 end
             end
-            reduceOnly = self.safeBool(params, "reduceOnly", false);
+            reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
             hedged = false;
-            (hedged, params) = self.handleParamBool(params, "hedged", hedged);
+            (hedged, params) = self.handleParamBool(params, "hedged", defaultValue = hedged);
             if functions.ccxtruthy(hedged)
                 positionSide = functions.ccxtruthy((side == "buy")) ? "LONG" : "SHORT";
                 if functions.ccxtruthy(reduceOnly)
@@ -4221,31 +4634,83 @@ function createUtaOrderRequest(self::Kucoin, symbol, type_var, side, amount, pri
     return extend(request, params)
 
 end
-function createMarketOrderWithCost(self::Kucoin, symbol, side, cost, params=Dict())
+"""
+create a market order by providing the symbol, side and cost
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketOrderWithCost(self::Kucoin, symbol, side, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return Base.fetch(self.createOrder(symbol, "market", side, cost, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", side, cost, price = nothing, params = extend(req, params)))
 
 end
-function createMarketBuyOrderWithCost(self::Kucoin, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Kucoin, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    return Base.fetch(self.createMarketOrderWithCost(symbol, "buy", cost, params))
+    return Base.fetch(self.createMarketOrderWithCost(symbol, "buy", cost, params = params))
 
 end
-function createMarketSellOrderWithCost(self::Kucoin, symbol, cost, params=Dict())
+"""
+create a market sell order by providing the symbol and cost
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketSellOrderWithCost(self::Kucoin, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    return Base.fetch(self.createMarketOrderWithCost(symbol, "sell", cost, params))
+    return Base.fetch(self.createMarketOrderWithCost(symbol, "sell", cost, params = params))
 
 end
-function createOrders(self::Kucoin, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Kucoin, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4269,10 +4734,10 @@ function createOrders(self::Kucoin, orders, params=Dict())
     if functions.ccxtruthy(@functions.ccxt_and(isSpot, isContract))
         throw(BadRequest(string(self.id, " createOrders() requires all orders to be either spot or contract")));
     elseif functions.ccxtruthy(isSpot)
-        return Base.fetch(self.createSpotOrders(orders, params))
+        return Base.fetch(self.createSpotOrders(orders, params = params))
     else
         if functions.ccxtruthy(isContract)
-                return Base.fetch(self.createContractOrders(orders, params))
+                return Base.fetch(self.createContractOrders(orders, params = params))
         else
             throw(NotSupported(string(self.id, " createOrders() does not support the markets of the orders provided")));
         end
@@ -4280,7 +4745,22 @@ function createOrders(self::Kucoin, orders, params=Dict())
     end
 
 end
-function createSpotOrders(self::Kucoin, orders, params=Dict())
+"""
+helper method for creating spot orders in batch
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.hf`::bool, optional: false, // true for hf orders
+- `params.sync`::bool, optional: false, // true to use the hf sync call
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createSpotOrders(self::Kucoin, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4308,7 +4788,7 @@ function createSpotOrders(self::Kucoin, orders, params=Dict())
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
         orderParams = safeValue(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createSpotOrderRequest(marketId, type_var, side, amount, price, orderParams);
+        orderRequest = self.createSpotOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
@@ -4321,9 +4801,9 @@ function createSpotOrders(self::Kucoin, orders, params=Dict())
         Symbol("orderList") => ordersRequests
     );
     hf = nothing;
-    (hf, params) = self.handleHfAndParams(params);
+    (hf, params) = self.handleHfAndParams(params = params);
     useSync = false;
-    (useSync, params) = self.handleOptionAndParams(params, "createOrders", "sync", false);
+    (useSync, params) = self.handleOptionAndParams(params, "createOrders", "sync", defaultValue = false);
     response = nothing;
     if functions.ccxtruthy(useSync)
         response = Base.fetch(self.privatePostHfOrdersMultiSync(extend(request, params)));
@@ -4332,12 +4812,23 @@ function createSpotOrders(self::Kucoin, orders, params=Dict())
     else
         response = Base.fetch(self.privatePostOrdersMulti(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    data = self.safeList(data, "data", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(data, "data", defaultValue = []);
     return self.parseOrders(data)
 
 end
-function createContractOrders(self::Kucoin, orders, params=Dict())
+"""
+helper method for creating contract orders in batch
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createContractOrders(self::Kucoin, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4354,16 +4845,33 @@ function createContractOrders(self::Kucoin, orders, params=Dict())
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
         orderParams = safeValue(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createContractOrderRequest(symbol, type_var, side, amount, price, orderParams);
+        orderRequest = self.createContractOrderRequest(symbol, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
     response = Base.fetch(self.futuresPrivatePostOrdersMulti(ordersRequests));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseOrders(data)
 
 end
-function editOrder(self::Kucoin, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit an order, kucoin currently only supports the modification of HF orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/modify-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: not used
+- `side`::string: not used
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, defaults to id if not passed
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Kucoin, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4384,45 +4892,97 @@ function editOrder(self::Kucoin, id, symbol, type_var, side, amount=nothing, pri
         request[Symbol("newPrice")] = self.priceToPrecision(symbol, price);
     end
     response = Base.fetch(self.privatePostHfOrdersAlter(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function cancelOrder(self::Kucoin, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/ua/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.marginMode`::string, optional: *spot only* 'cross' or 'isolated'
+- `params.uta`::bool, optional: true for cancelling order with unified account endpoint (default is false) Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
+
+# Returns
+- Response from the exchange
+"""
+function cancelOrder(self::Kucoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "cancelOrder", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "cancelOrder", "uta", defaultValue = uta);
     if functions.ccxtruthy(uta)
-            return Base.fetch(self.cancelUtaOrder(id, symbol, params))
+            return Base.fetch(self.cancelUtaOrder(id, symbol = symbol, params = params))
     end
     marketType = nothing;
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    (marketType, params) = self.handleMarketTypeAndParams("cancelOrder", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelOrder", market = market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or((marketType == "spot"), (marketType == "margin")))
-            return Base.fetch(self.cancelSpotOrder(id, symbol, params))
+            return Base.fetch(self.cancelSpotOrder(id, symbol = symbol, params = params))
     else
-        return Base.fetch(self.cancelContractOrder(id, symbol, params))
+        return Base.fetch(self.cancelContractOrder(id, symbol = symbol, params = params))
     end
 
 end
-function cancelSpotOrder(self::Kucoin, id, symbol=nothing, params=Dict())
+"""
+helper method for cancelling spot orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if cancelling a stop order
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.sync`::bool, optional: false, // true to use the hf sync call
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- Response from the exchange
+"""
+function cancelSpotOrder(self::Kucoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     clientOrderId = safeString2(params, "clientOid", "clientOrderId");
-    trigger = self.safeBool2(params, "stop", "trigger", false);
+    trigger = self.safeBool2(params, "stop", "trigger", defaultValue = false);
     hf = nothing;
-    (hf, params) = self.handleHfAndParams(params);
+    (hf, params) = self.handleHfAndParams(params = params);
     useSync = false;
-    (useSync, params) = self.handleOptionAndParams(params, "cancelOrder", "sync", false);
+    (useSync, params) = self.handleOptionAndParams(params, "cancelOrder", "sync", defaultValue = false);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params = params);
     tradeType = safeString(params, "tradeType");
     isMarginOrder = @functions.ccxt_or(tradeType == "MARGIN_TRADE", marginMode != nothing);
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(hf, useSync), isMarginOrder))
@@ -4442,7 +5002,7 @@ function cancelSpotOrder(self::Kucoin, id, symbol=nothing, params=Dict())
             if functions.ccxtruthy(isMarginOrder)
                 response = Base.fetch(self.privateDeleteHfMarginStopOrderCancelByClientOid(extend(request, params)));
                 data = self.safeDict(response, "data");
-                orderIds = self.safeList(data, "cancelledOrderIds", []);
+                orderIds = self.safeList(data, "cancelledOrderIds", defaultValue = []);
                 orderId = safeString(orderIds, 0);
                     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => data,
@@ -4480,7 +5040,7 @@ function cancelSpotOrder(self::Kucoin, id, symbol=nothing, params=Dict())
                 response = Base.fetch(self.privateDeleteHfOrdersSyncOrderId(extend(request, params)));
             elseif functions.ccxtruthy(hf)
                 response = Base.fetch(self.privateDeleteHfOrdersOrderId(extend(request, params)));
-                response = self.safeDict(response, "data", Dict{Symbol, Any}());
+                response = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
                 return self.parseOrder(response)
             else
                 response = Base.fetch(self.privateDeleteOrdersOrderId(extend(request, params)));
@@ -4489,7 +5049,7 @@ function cancelSpotOrder(self::Kucoin, id, symbol=nothing, params=Dict())
         end
         data = self.safeDict(response, "data");
         orderId = safeString(data, "orderId");
-        orderIds = self.safeList(data, "cancelledOrderIds", []);
+        orderIds = self.safeList(data, "cancelledOrderIds", defaultValue = []);
         orderId = safeString(orderIds, 0, orderId);
         return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => data,
@@ -4498,7 +5058,21 @@ function cancelSpotOrder(self::Kucoin, id, symbol=nothing, params=Dict())
     end
 
 end
-function cancelContractOrder(self::Kucoin, id, symbol=nothing, params=Dict())
+"""
+helper method for cancelling contract orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: cancel order by client order id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelContractOrder(self::Kucoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4523,7 +5097,22 @@ function cancelContractOrder(self::Kucoin, id, symbol=nothing, params=Dict())
 ))
 
 end
-function cancelUtaOrder(self::Kucoin, id, symbol=nothing, params=Dict())
+"""
+helper method for cancelling uta orders
+see: https://www.kucoin.com/docs-new/rest/ua/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountMode`::string, optional: 'unified' or 'classic' (default is 'unified')
+- `params.clientOrderId`::string, optional: client order id, required if id is not provided
+- `params.marginMode`::string, optional: 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
+
+# Returns
+- Response from the exchange
+"""
+function cancelUtaOrder(self::Kucoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument for uta endpoint")));
     end
@@ -4547,50 +5136,90 @@ function cancelUtaOrder(self::Kucoin, id, symbol=nothing, params=Dict())
     market = self.market(symbol);
     request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     accountMode = "unified";
-    (accountMode, params) = self.handleOptionAndParams(params, "cancelOrder", "accountMode", accountMode);
+    (accountMode, params) = self.handleOptionAndParams(params, "cancelOrder", "accountMode", defaultValue = accountMode);
     request[Symbol("accountMode")] = accountMode;
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params = params);
     isUnified = (accountMode == "unified");
-    tradeType = self.handleTradeType(get(market, Symbol("contract"), nothing), marginMode, isUnified, params);
+    tradeType = self.handleTradeType(isContractMarket = get(market, Symbol("contract"), nothing), marginMode = marginMode, isUnified = isUnified, params = params);
     request[Symbol("tradeType")] = tradeType;
     response = Base.fetch(self.utaPrivatePostAccountModeOrderCancel(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function cancelAllOrders(self::Kucoin, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+see: https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.marginMode`::string, optional: *spot only* 'cross' or 'isolated'
+- `params.uta`::bool, optional: true for cancelling orders with unified account endpoint (default is false) Check cancelAllSpotOrders(), cancelAllContractOrders() and cancelAllUtaOrders() for more details on the extra parameters that can be used in params
+
+# Returns
+- Response from the exchange
+"""
+function cancelAllOrders(self::Kucoin; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "cancelAllOrders", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "cancelAllOrders", "uta", defaultValue = uta);
     if functions.ccxtruthy(uta)
-            return Base.fetch(self.cancelAllUtaOrders(symbol, params))
+            return Base.fetch(self.cancelAllUtaOrders(symbol = symbol, params = params))
     end
     marketType = nothing;
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market = market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or((marketType == "spot"), (marketType == "margin")))
-            return Base.fetch(self.cancelAllSpotOrders(symbol, params))
+            return Base.fetch(self.cancelAllSpotOrders(symbol = symbol, params = params))
     else
-        return Base.fetch(self.cancelAllContractOrders(symbol, params))
+        return Base.fetch(self.cancelAllContractOrders(symbol = symbol, params = params))
     end
 
 end
-function cancelAllSpotOrders(self::Kucoin, symbol=nothing, params=Dict())
+"""
+helper method for cancelling all spot orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *invalid for isolated margin* true if cancelling all stop orders
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+- `params.orderIds`::string, optional: *stop orders only* Comma separated order IDs
+- `params.hf`::bool, optional: false, // true for hf order
+
+# Returns
+- Response from the exchange
+"""
+function cancelAllSpotOrders(self::Kucoin; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
-    trigger = self.safeBool2(params, "trigger", "stop", false);
+    trigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     hf = nothing;
-    (hf, params) = self.handleHfAndParams(params);
+    (hf, params) = self.handleHfAndParams(params = params);
     params = omit(params, ["stop", "trigger"]);
-    (marginMode, query) = self.handleMarginModeAndParams("cancelAllOrders", params);
+    (marginMode, query) = self.handleMarginModeAndParams("cancelAllOrders", params = params);
     isMarginOrders = marginMode != nothing;
     if functions.ccxtruthy(symbol != nothing)
         request[Symbol("symbol")] = self.marketId(symbol);
@@ -4629,7 +5258,20 @@ function cancelAllSpotOrders(self::Kucoin, symbol=nothing, params=Dict())
 ))]
 
 end
-function cancelAllContractOrders(self::Kucoin, symbol=nothing, params=Dict())
+"""
+helper method for cancelling all contract orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::object, optional: When true, all the trigger orders will be cancelled
+
+# Returns
+- Response from the exchange
+"""
+function cancelAllContractOrders(self::Kucoin; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4651,7 +5293,20 @@ function cancelAllContractOrders(self::Kucoin, symbol=nothing, params=Dict())
 ))]
 
 end
-function cancelAllUtaOrders(self::Kucoin, symbol=nothing, params=Dict())
+"""
+helper method for cancelling all uta orders
+see: https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if cancelling all stop orders
+- `params.marginMode`::string, optional: 'CROSS' or 'ISOLATED'
+
+# Returns
+- Response from the exchange
+"""
+function cancelAllUtaOrders(self::Kucoin; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument for uta endpoint")));
     end
@@ -4662,7 +5317,7 @@ function cancelAllUtaOrders(self::Kucoin, symbol=nothing, params=Dict())
     isContract = get(market, Symbol("contract"), nothing);
     tradeType = functions.ccxtruthy(isContract) ? "FUTURES" : "SPOT";
     trigger = false;
-    (trigger, params) = self.handleParamBool(params, "trigger", trigger);
+    (trigger, params) = self.handleParamBool(params, "trigger", defaultValue = trigger);
     orderFilter = functions.ccxtruthy(trigger) ? "ADVANCED" : "NORMAL";
     request = Dict{Symbol, Any}(
         Symbol("accountMode") => "unified",
@@ -4671,19 +5326,43 @@ function cancelAllUtaOrders(self::Kucoin, symbol=nothing, params=Dict())
         Symbol("orderFilter") => orderFilter
     );
     response = Base.fetch(self.utaPrivatePostAccountModeOrderCancelAll(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "items", []);
-    return self.parseOrders(orders, market, nothing, nothing, Dict{Symbol, Any}(
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "items", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = nothing, limit = nothing, params = Dict{Symbol, Any}(
     Symbol("status") => "canceled"
 ))
 
 end
-function fetchOrdersByStatus(self::Kucoin, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches a list of orders placed on the exchange
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+see: https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+see: https://www.kucoin.com/docs-new/rest/ua/get-order-history
+
+# Arguments
+- `status`::string: 'active' or 'closed', only 'active' is valid for stop orders
+- `symbol`::string: unified symbol for the market to retrieve orders from
+- `since`::int, optional: timestamp in ms of the earliest order to retrieve
+- `limit`::int, optional: The maximum number of orders to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.uta`::bool, optional: true for fetch orders with uta endpoint (default is false) Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
+
+# Returns
+- An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrdersByStatus(self::Kucoin, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchOrdersByStatus", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchOrdersByStatus", "uta", defaultValue = uta);
     marketType = nothing;
     if functions.ccxtruthy(symbol == nothing)
         type_var = safeString(params, "type");
@@ -4691,7 +5370,7 @@ function fetchOrdersByStatus(self::Kucoin, status, symbol=nothing, since=nothing
             marketType = type_var;
             params = omit(params, "type");
         else
-            methodOptions = self.safeDict(self.options, "fetchOrdersByStatus", Dict{Symbol, Any}());
+            methodOptions = self.safeDict(self.options, "fetchOrdersByStatus", defaultValue = Dict{Symbol, Any}());
             methodDefaultType = safeString2(methodOptions, "defaultType", "type");
             if functions.ccxtruthy(methodDefaultType == nothing)
                 marketType = safeString2(self.options, "defaultType", "type", "spot");
@@ -4708,28 +5387,56 @@ function fetchOrdersByStatus(self::Kucoin, status, symbol=nothing, since=nothing
         params = extend(params, Dict{Symbol, Any}(
     Symbol("marketType") => marketType
 ));
-            return Base.fetch(self.fetchUtaOrdersByStatus(status, symbol, since, limit, params))
+            return Base.fetch(self.fetchUtaOrdersByStatus(status, symbol = symbol, since = since, limit = limit, params = params))
     elseif functions.ccxtruthy(@functions.ccxt_or((marketType == "spot"), (marketType == "margin")))
-        return Base.fetch(self.fetchSpotOrdersByStatus(status, symbol, since, limit, params))
+        return Base.fetch(self.fetchSpotOrdersByStatus(status, symbol = symbol, since = since, limit = limit, params = params))
     else
-        return Base.fetch(self.fetchContractOrdersByStatus(status, symbol, since, limit, params))
+        return Base.fetch(self.fetchContractOrdersByStatus(status, symbol = symbol, since = since, limit = limit, params = params))
     end
 
 end
-function fetchSpotOrdersByStatus(self::Kucoin, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a list of spot orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+
+# Arguments
+- `status`::string: *not used for stop orders* 'open' or 'closed'
+- `symbol`::string: unified market symbol
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: max number of orders to return
+- `params`::object, optional: exchange specific params
+- `params.until`::int, optional: end time in ms
+- `params.side`::string, optional: buy or sell
+- `params.type`::string, optional: limit, market, limit_stop or market_stop
+- `params.tradeType`::string, optional: TRADE for spot trading, MARGIN_TRADE or MARGIN_ISOLATED_TRADE for Margin Trading
+- `params.currentPage`::int, optional: *trigger orders only* current page
+- `params.orderIds`::string, optional: *trigger orders only* comma separated order ID list
+- `params.trigger`::bool, optional: True if fetching a trigger order
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', only for margin orders
+
+# Returns
+- An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchSpotOrdersByStatus(self::Kucoin, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     lowercaseStatus = lowercase(status);
     until = safeInteger(params, "until");
-    trigger = self.safeBool2(params, "stop", "trigger", false);
+    trigger = self.safeBool2(params, "stop", "trigger", defaultValue = false);
     hf = nothing;
-    (hf, params) = self.handleHfAndParams(params);
+    (hf, params) = self.handleHfAndParams(params = params);
     if functions.ccxtruthy(@functions.ccxt_and(hf, (symbol == nothing)))
         throw(ArgumentsRequired(string(self.id, " fetchOrdersByStatus() requires a symbol parameter for hf orders")));
     end
     params = omit(params, ["stop", "trigger", "till", "until"]);
-    (marginMode, query) = self.handleMarginModeAndParams("fetchOrdersByStatus", params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchOrdersByStatus", params = params);
     isMarginOrder = marginMode != nothing;
     if functions.ccxtruthy(lowercaseStatus == "open")
         lowercaseStatus = "active";
@@ -4782,21 +5489,41 @@ function fetchSpotOrdersByStatus(self::Kucoin, status, symbol=nothing, since=not
     end
     listData = self.safeList(response, "data");
     if functions.ccxtruthy(listData != nothing)
-            return self.parseOrders(listData, market, since, limit)
+            return self.parseOrders(listData, market = market, since = since, limit = limit)
     end
-    responseData = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(responseData, "items", []);
-    return self.parseOrders(orders, market, since, limit)
+    responseData = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(responseData, "items", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchContractOrdersByStatus(self::Kucoin, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches a list of contract orders placed on the exchange
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+
+# Arguments
+- `status`::string: 'active' or 'closed', only 'active' is valid for stop orders
+- `symbol`::string: unified symbol for the market to retrieve orders from
+- `since`::int, optional: timestamp in ms of the earliest order to retrieve
+- `limit`::int, optional: The maximum number of orders to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.trigger`::bool, optional: set to true to retrieve untriggered stop orders
+- `params.until`::int, optional: End time in ms
+- `params.side`::string, optional: buy or sell
+- `params.type`::string, optional: limit or market
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchContractOrdersByStatus(self::Kucoin, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrdersByStatus", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol = symbol, since = since, limit = limit, params = params))
     end
     trigger = self.safeBool2(params, "stop", "trigger");
     until = safeInteger(params, "until");
@@ -4829,12 +5556,32 @@ function fetchContractOrdersByStatus(self::Kucoin, status, symbol=nothing, since
     else
         response = Base.fetch(self.futuresPrivateGetOrders(extend(request, params)));
     end
-    responseData = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(responseData, "items", []);
-    return self.parseOrders(orders, market, since, limit)
+    responseData = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(responseData, "items", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchUtaOrdersByStatus(self::Kucoin, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+helper method for fetching orders by status with uta endpoint
+see: https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+see: https://www.kucoin.com/docs-new/rest/ua/get-order-history
+
+# Arguments
+- `status`::string: 'active' or 'closed', only 'active' is valid for stop orders
+- `symbol`::string: unified symbol for the market to retrieve orders from
+- `since`::int, optional: timestamp in ms of the earliest order to retrieve
+- `limit`::int, optional: The maximum number of orders to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.until`::int, optional: End time in ms
+- `params.side`::string, optional: *closed orders only* 'BUY' or 'SELL'
+- `params.accountMode`::string, optional: 'unified' or 'classic' (default is unified)
+- `params.marginMode`::string, optional: 'cross' or 'isolated', only for margin orders (unified accountMode supports only cross margin)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchUtaOrdersByStatus(self::Kucoin, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4842,10 +5589,10 @@ function fetchUtaOrdersByStatus(self::Kucoin, status, symbol=nothing, since=noth
     maxLimit = 200;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrdersByStatus", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     accountMode = "unified";
-    (accountMode, params) = self.handleOptionAndParams(params, "fetchUtaOrdersByStatus", "accountMode", accountMode);
+    (accountMode, params) = self.handleOptionAndParams(params, "fetchUtaOrdersByStatus", "accountMode", defaultValue = accountMode);
     request = Dict{Symbol, Any}(
         Symbol("accountMode") => accountMode
     );
@@ -4864,9 +5611,9 @@ function fetchUtaOrdersByStatus(self::Kucoin, status, symbol=nothing, since=noth
         throw(ArgumentsRequired(string(self.id, " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")));
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchOrdersByStatus", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchOrdersByStatus", params = params);
     isUnified = (accountMode == "unified");
-    tradeType = self.handleTradeType(isContract, marginMode, isUnified, params);
+    tradeType = self.handleTradeType(isContractMarket = isContract, marginMode = marginMode, isUnified = isUnified, params = params);
     params[Symbol("tradeType")] = tradeType;
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startAt")] = since;
@@ -4887,36 +5634,115 @@ function fetchUtaOrdersByStatus(self::Kucoin, status, symbol=nothing, since=noth
     else
         response = Base.fetch(self.utaPrivateGetAccountModeOrderHistory(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "items", []);
-    return self.parseOrders(orders, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "items", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Kucoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/ua/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.side`::string, optional: buy or sell
+- `params.type`::string, optional: limit, market, limit_stop or market_stop
+- `params.tradeType`::string, optional: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+- `params.trigger`::bool, optional: True if fetching a trigger order
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Kucoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol = symbol, since = since, limit = limit, params = params))
     end
-    return Base.fetch(self.fetchOrdersByStatus("done", symbol, since, limit, params))
+    return Base.fetch(self.fetchOrdersByStatus("done", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOpenOrders(self::Kucoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+see: https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.trigger`::bool, optional: true if fetching trigger orders
+- `params.side`::string, optional: buy or sell
+- `params.type`::string, optional: limit, market, limit_stop or market_stop
+- `params.tradeType`::string, optional: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+- `params.currentPage`::int, optional: *trigger orders only* current page
+- `params.orderIds`::string, optional: *trigger orders only* comma separated order ID list
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Kucoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOpenOrders", symbol = symbol, since = since, limit = limit, params = params))
     end
-    return Base.fetch(self.fetchOrdersByStatus("active", symbol, since, limit, params))
+    return Base.fetch(self.fetchOrdersByStatus("active", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOrder(self::Kucoin, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/ua/get-order-details
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.uta`::bool, optional: true if fetching an order with uta endpoint (default is false) Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Kucoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4924,36 +5750,59 @@ function fetchOrder(self::Kucoin, id, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires an id argument")));
     end
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchOrder", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchOrder", "uta", defaultValue = uta);
     if functions.ccxtruthy(uta)
         params = omit(params, "uta");
-            return Base.fetch(self.fetchUtaOrder(id, symbol, params))
+            return Base.fetch(self.fetchUtaOrder(id, symbol = symbol, params = params))
     end
     marketType = nothing;
     if functions.ccxtruthy(symbol == nothing)
-        (marketType, params) = self.handleMarketTypeAndParams("fetchOrder", nothing, params);
+        (marketType, params) = self.handleMarketTypeAndParams("fetchOrder", market = nothing, params = params);
     else
         market = self.market(symbol);
         marketType = get(market, Symbol("type"), nothing);
     end
     if functions.ccxtruthy(@functions.ccxt_or((marketType == "spot"), (marketType == "margin")))
-            return Base.fetch(self.fetchSpotOrder(id, symbol, params))
+            return Base.fetch(self.fetchSpotOrder(id, symbol = symbol, params = params))
     else
-        return Base.fetch(self.fetchContractOrder(id, symbol, params))
+        return Base.fetch(self.fetchContractOrder(id, symbol = symbol, params = params))
     end
 
 end
-function fetchSpotOrder(self::Kucoin, id, symbol=nothing, params=Dict())
+"""
+fetch a spot order
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
+
+# Arguments
+- `id`::string: Order id
+- `symbol`::string: not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
+- `params`::object, optional: exchange specific parameters
+- `params.trigger`::bool, optional: true if fetching a trigger order
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.clientOid`::bool, optional: unique order id created by users to identify their orders
+- `params.marginMode`::object, optional: 'cross' or 'isolated'
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchSpotOrder(self::Kucoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     clientOrderId = safeString2(params, "clientOid", "clientOrderId");
-    trigger = self.safeBool2(params, "stop", "trigger", false);
+    trigger = self.safeBool2(params, "stop", "trigger", defaultValue = false);
     hf = nothing;
-    (hf, params) = self.handleHfAndParams(params);
+    (hf, params) = self.handleHfAndParams(params = params);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchOrder", params = params);
     isMarginOrder = marginMode != nothing;
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -5012,14 +5861,27 @@ function fetchSpotOrder(self::Kucoin, id, symbol=nothing, params=Dict())
 
         end
     end
-    responseData = self.safeDict(response, "data", Dict{Symbol, Any}());
+    responseData = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     if functions.ccxtruthy(functions.ccxt_isArray(responseData))
         responseData = safeValue(responseData, 0);
     end
-    return self.parseOrder(responseData, market)
+    return self.parseOrder(responseData, market = market)
 
 end
-function fetchContractOrder(self::Kucoin, id, symbol=nothing, params=Dict())
+"""
+fetc contract order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchContractOrder(self::Kucoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5038,11 +5900,26 @@ function fetchContractOrder(self::Kucoin, id, symbol=nothing, params=Dict())
         response = Base.fetch(self.futuresPrivateGetOrdersOrderId(extend(request, params)));
     end
     market = functions.ccxtruthy((symbol != nothing)) ? self.market(symbol) : nothing;
-    responseData = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(responseData, market)
+    responseData = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(responseData, market = market)
 
 end
-function fetchUtaOrder(self::Kucoin, id, symbol=nothing, params=Dict())
+"""
+fetch uta order
+see: https://www.kucoin.com/docs-new/rest/ua/get-order-details
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountMode`::string, optional: 'unified' or 'classic' (default is 'unified')
+- `params.clientOrderId`::string, optional: client order id, required if id is not provided
+- `params.marginMode`::string, optional: 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchUtaOrder(self::Kucoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument for uta orders")));
     end
@@ -5063,19 +5940,19 @@ function fetchUtaOrder(self::Kucoin, id, symbol=nothing, params=Dict())
     market = self.market(symbol);
     request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     accountMode = "unified";
-    (accountMode, params) = self.handleOptionAndParams(params, "fetchOrder", "accountMode", accountMode);
+    (accountMode, params) = self.handleOptionAndParams(params, "fetchOrder", "accountMode", defaultValue = accountMode);
     request[Symbol("accountMode")] = accountMode;
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchOrder", params = params);
     isUnified = (accountMode == "unified");
-    tradeType = self.handleTradeType(get(market, Symbol("contract"), nothing), marginMode, isUnified, params);
+    tradeType = self.handleTradeType(isContractMarket = get(market, Symbol("contract"), nothing), marginMode = marginMode, isUnified = isUnified, params = params);
     request[Symbol("tradeType")] = tradeType;
     response = Base.fetch(self.utaPrivateGetAccountModeOrderDetail(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function handleTradeType(self::Kucoin, isContractMarket=false, marginMode=nothing, isUnified=false, params=Dict())
+function handleTradeType(self::Kucoin; isContractMarket=false, marginMode=nothing, isUnified=false, params=Dict())
     tradeType = safeString(params, "tradeType");
     if functions.ccxtruthy(tradeType == nothing)
         if functions.ccxtruthy(isContractMarket)
@@ -5096,7 +5973,7 @@ function handleTradeType(self::Kucoin, isContractMarket=false, marginMode=nothin
     return tradeType
 
 end
-function parseOrder(self::Kucoin, order, market=nothing)
+function parseOrder(self::Kucoin, order; market=nothing)
     tradeType = safeString(order, "tradeType");
     utaTradeTypes = ["SPOT", "CROSS", "ISOLATED", "FUTURES"];
     isUtaOrder = inArray(tradeType, utaTradeTypes);
@@ -5104,20 +5981,20 @@ function parseOrder(self::Kucoin, order, market=nothing)
         isUtaOrder = true;
     end
     if functions.ccxtruthy(isUtaOrder)
-            return self.parseUtaOrder(order, market)
+            return self.parseUtaOrder(order, market = market)
     end
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     if functions.ccxtruthy(@functions.ccxt_and((market != nothing), (get(market, Symbol("contract"), nothing))))
-            return self.parseContractOrder(order, market)
+            return self.parseContractOrder(order, market = market)
     else
-        return self.parseSpotOrder(order, market)
+        return self.parseSpotOrder(order, market = market)
     end
 
 end
-function parseContractOrder(self::Kucoin, order, market=nothing)
+function parseContractOrder(self::Kucoin, order; market=nothing)
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     orderId = safeString2(order, "id", "orderId");
     type_var = safeString(order, "type");
@@ -5141,7 +6018,7 @@ function parseContractOrder(self::Kucoin, order, market=nothing)
         end
     end
     isActive = safeValue(order, "isActive");
-    cancelExist = self.safeBool(order, "cancelExist", false);
+    cancelExist = self.safeBool(order, "cancelExist", defaultValue = false);
     status = nothing;
     if functions.ccxtruthy(isActive != nothing)
         status = functions.ccxtruthy(isActive) ? "open" : "closed";
@@ -5183,17 +6060,17 @@ function parseContractOrder(self::Kucoin, order, market=nothing)
     Symbol("lastUpdateTimestamp") => lastUpdateTimestamp,
     Symbol("average") => average,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function parseSpotOrder(self::Kucoin, order, market=nothing)
+function parseSpotOrder(self::Kucoin, order; market=nothing)
     marketId = safeString(order, "symbol");
     timestamp = safeInteger(order, "createdAt");
     feeCurrencyId = safeString(order, "feeCurrency");
-    cancelExist = self.safeBool(order, "cancelExist", false);
+    cancelExist = self.safeBool(order, "cancelExist", defaultValue = false);
     responseStop = safeString(order, "stop");
     trigger = responseStop != nothing;
-    stopTriggered = self.safeBool(order, "stopTriggered", false);
+    stopTriggered = self.safeBool(order, "stopTriggered", defaultValue = false);
     isActive = self.safeBool2(order, "isActive", "active");
     responseStatus = safeString(order, "status");
     status = nothing;
@@ -5221,7 +6098,7 @@ function parseSpotOrder(self::Kucoin, order, market=nothing)
     Symbol("info") => order,
     Symbol("id") => safeStringN(order, ["id", "orderId", "newOrderId", "cancelledOrderId"]),
     Symbol("clientOrderId") => safeString(order, "clientOid"),
-    Symbol("symbol") => self.safeSymbol(marketId, market, "-"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = "-"),
     Symbol("type") => safeString(order, "type"),
     Symbol("timeInForce") => safeString(order, "timeInForce"),
     Symbol("postOnly") => self.safeBool(order, "postOnly"),
@@ -5242,12 +6119,12 @@ function parseSpotOrder(self::Kucoin, order, market=nothing)
     Symbol("lastTradeTimestamp") => nothing,
     Symbol("average") => safeString(order, "avgDealPrice"),
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function parseUtaOrder(self::Kucoin, order, market=nothing)
+function parseUtaOrder(self::Kucoin, order; market=nothing)
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
     lastUpdateTimestamp = safeIntegerProduct(order, "updatedTime", 0.000001);
@@ -5296,7 +6173,7 @@ function parseUtaOrder(self::Kucoin, order, market=nothing)
     Symbol("stopLossPrice") => safeString(order, "slTriggerPrice"),
     Symbol("takeProfitPrice") => safeString(order, "tpTriggerPrice"),
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseOrderTimeInForce(self::Kucoin, timeInForce)
@@ -5328,14 +6205,50 @@ function parseOrderStatus(self::Kucoin, status)
     return safeString(statuses, status, status)
 
 end
-function fetchOrderTrades(self::Kucoin, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.uta`::bool, optional: set to true if fetching trades from uta endpoint, default is false.
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Kucoin, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    return Base.fetch(self.fetchMyTrades(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchMyTrades(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchMyTrades(self::Kucoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot') Check fetchMySpotTrades() and fetchMyContractTrades() for more details on the extra parameters that can be used in params
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Kucoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5344,36 +6257,54 @@ function fetchMyTrades(self::Kucoin, symbol=nothing, since=nothing, limit=nothin
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchMyTrades", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchMyTrades", "uta", defaultValue = uta);
     if functions.ccxtruthy(uta)
         params = extend(params, Dict{Symbol, Any}(
     Symbol("marketType") => marketType
 ));
-            return Base.fetch(self.fetchMyUtaTrades(symbol, since, limit, params))
+            return Base.fetch(self.fetchMyUtaTrades(symbol = symbol, since = since, limit = limit, params = params))
     end
     if functions.ccxtruthy(@functions.ccxt_or((marketType == "spot"), (marketType == "margin")))
-            return Base.fetch(self.fetchMySpotTrades(symbol, since, limit, params))
+            return Base.fetch(self.fetchMySpotTrades(symbol = symbol, since = since, limit = limit, params = params))
     else
-        return Base.fetch(self.fetchMyContractTrades(symbol, since, limit, params))
+        return Base.fetch(self.fetchMyContractTrades(symbol = symbol, since = since, limit = limit, params = params))
     end
 
 end
-function fetchMySpotTrades(self::Kucoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all spot trades made by the user
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', only for margin trades
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMySpotTrades(self::Kucoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     hf = nothing;
-    (hf, params) = self.handleHfAndParams(params);
+    (hf, params) = self.handleHfAndParams(params = params);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params = params);
     isMargin = marginMode != nothing;
     if functions.ccxtruthy(isMargin)
         hf = true;
@@ -5417,28 +6348,43 @@ function fetchMySpotTrades(self::Kucoin, symbol=nothing, since=nothing, limit=no
         end
 
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     trades = nothing;
     if functions.ccxtruthy(parseResponseData)
         trades = data;
     else
-        trades = self.safeList(data, "items", []);
+        trades = self.safeList(data, "items", defaultValue = []);
     end
     tradesList = [];
     if functions.ccxtruthy(trades != nothing)
         tradesList = toArray(trades);
     end
-    return self.parseTrades(tradesList, market, since, limit)
+    return self.parseTrades(tradesList, market = market, since = since, limit = limit)
 
 end
-function fetchMyContractTrades(self::Kucoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all contract trades made by the user
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: End time in ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyContractTrades(self::Kucoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -5454,23 +6400,41 @@ function fetchMyContractTrades(self::Kucoin, symbol=nothing, since=nothing, limi
     end
     (request, params) = self.handleUntilOption("endAt", request, params);
     response = Base.fetch(self.futuresPrivateGetFills(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    trades = self.safeList(data, "items", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    trades = self.safeList(data, "items", defaultValue = []);
     tradesList = [];
     if functions.ccxtruthy(trades != nothing)
         tradesList = trades;
     end
-    return self.parseTrades(tradesList, market, since, limit)
+    return self.parseTrades(tradesList, market = market, since = since, limit = limit)
 
 end
-function fetchMyUtaTrades(self::Kucoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve (default is 50, max is 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.accountMode`::string, optional: 'unified' or 'classic', defaults to 'unified'
+- `params.marginMode`::string, optional: 'cross' or 'isolated', only for margin trades (unified accountMode support only cross margin)
+- `params.side`::string, optional: 'BUY' or 'SELL' (both if not provided)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyUtaTrades(self::Kucoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     marketType = safeString(params, "marketType");
     if functions.ccxtruthy(marketType != nothing)
@@ -5489,12 +6453,12 @@ function fetchMyUtaTrades(self::Kucoin, symbol=nothing, since=nothing, limit=not
         isContract = true;
     end
     accountMode = "unified";
-    (accountMode, params) = self.handleOptionAndParams(params, "fetchMyTrades", "accountMode", accountMode);
+    (accountMode, params) = self.handleOptionAndParams(params, "fetchMyTrades", "accountMode", defaultValue = accountMode);
     request[Symbol("accountMode")] = accountMode;
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params = params);
     isUnified = (accountMode == "unified");
-    tradeType = self.handleTradeType(isContract, marginMode, isUnified, params);
+    tradeType = self.handleTradeType(isContractMarket = isContract, marginMode = marginMode, isUnified = isUnified, params = params);
     request[Symbol("tradeType")] = tradeType;
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startAt")] = since;
@@ -5504,16 +6468,32 @@ function fetchMyUtaTrades(self::Kucoin, symbol=nothing, since=nothing, limit=not
     end
     (request, params) = self.handleUntilOption("endAt", request, params);
     response = Base.fetch(self.utaPrivateGetAccountModeOrderExecution(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    trades = self.safeList(data, "items", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    trades = self.safeList(data, "items", defaultValue = []);
     tradesList = [];
     if functions.ccxtruthy(trades != nothing)
         tradesList = trades;
     end
-    return self.parseTrades(tradesList, market, since, limit)
+    return self.parseTrades(tradesList, market = market, since = since, limit = limit)
 
 end
-function fetchTrades(self::Kucoin, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/ua/get-trades
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-trade-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Kucoin, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5522,11 +6502,11 @@ function fetchTrades(self::Kucoin, symbol, since=nothing, limit=nothing, params=
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     uta = false;
-    (uta, params) = self.handleOptionAndParams(params, "fetchTrades", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchTrades", "uta", defaultValue = uta);
     response = nothing;
     trades = nothing;
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTrades", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTrades", market = market, params = params);
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(@functions.ccxt_or((type_var == "spot"), (type_var == "margin")))
             request[Symbol("tradeType")] = "SPOT";
@@ -5534,38 +6514,38 @@ function fetchTrades(self::Kucoin, symbol, since=nothing, limit=nothing, params=
             request[Symbol("tradeType")] = "FUTURES";
         end
         response = Base.fetch(self.utaGetMarketTrade(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        trades = self.safeList(data, "list", []);
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        trades = self.safeList(data, "list", defaultValue = []);
     elseif functions.ccxtruthy(@functions.ccxt_or((type_var == "spot"), (type_var == "margin")))
         response = Base.fetch(self.publicGetMarketHistories(extend(request, params)));
-        trades = self.safeList(response, "data", []);
+        trades = self.safeList(response, "data", defaultValue = []);
     else
         response = Base.fetch(self.futuresPublicGetTradeHistory(extend(request, params)));
-        trades = self.safeList(response, "data", []);
+        trades = self.safeList(response, "data", defaultValue = []);
     end
     tradesList = [];
     if functions.ccxtruthy(trades != nothing)
         tradesList = trades;
     end
-    return self.parseTrades(tradesList, market, since, limit)
+    return self.parseTrades(tradesList, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Kucoin, trade, market=nothing)
+function parseTrade(self::Kucoin, trade; market=nothing)
     if functions.ccxtruthy(ccxt_in("liquidityRole", trade))
-            return self.parseMyUtaTrade(trade, market)
+            return self.parseMyUtaTrade(trade, market = market)
     end
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     if functions.ccxtruthy(@functions.ccxt_or((market == nothing), (get(market, Symbol("spot"), nothing))))
-            return self.parseSpotOrUtaTrade(trade, market)
+            return self.parseSpotOrUtaTrade(trade, market = market)
     else
-        return self.parseContractTrade(trade, market)
+        return self.parseContractTrade(trade, market = market)
     end
 
 end
-function parseSpotOrUtaTrade(self::Kucoin, trade, market=nothing)
+function parseSpotOrUtaTrade(self::Kucoin, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     id = safeString2(trade, "tradeId", "id");
     orderId = safeString(trade, "orderId");
     takerOrMaker = safeString(trade, "liquidity");
@@ -5614,12 +6594,12 @@ function parseSpotOrUtaTrade(self::Kucoin, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function parseContractTrade(self::Kucoin, trade, market=nothing)
+function parseContractTrade(self::Kucoin, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     id = safeString2(trade, "tradeId", "id");
     orderId = safeString(trade, "orderId");
     takerOrMaker = safeString(trade, "liquidity");
@@ -5673,12 +6653,12 @@ function parseContractTrade(self::Kucoin, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function parseMyUtaTrade(self::Kucoin, trade, market=nothing)
+function parseMyUtaTrade(self::Kucoin, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeIntegerProduct(trade, "executionTime", 0.000001);
     fee = Dict{Symbol, Any}(
         Symbol("cost") => safeString(trade, "fee"),
@@ -5698,16 +6678,30 @@ function parseMyUtaTrade(self::Kucoin, trade, market=nothing)
     Symbol("amount") => safeString(trade, "size"),
     Symbol("cost") => safeString(trade, "value"),
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTradingFee(self::Kucoin, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
+see: https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
+see: https://www.kucoin.com/docs-new/rest/ua/get-actual-fee
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Kucoin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchTradingFee", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchTradingFee", "uta", defaultValue = uta);
     request = Dict{Symbol, Any}();
     response = nothing;
     entry = nothing;
@@ -5719,13 +6713,13 @@ function fetchTradingFee(self::Kucoin, symbol, params=Dict())
         end
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.utaPrivateGetUserFeeRate(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        dataList = self.safeList(data, "list", []);
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        dataList = self.safeList(data, "list", defaultValue = []);
         entry = self.safeDict(dataList, 0);
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         request[Symbol("symbols")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.privateGetTradeFees(extend(request, params)));
-        data = self.safeList(response, "data", []);
+        data = self.safeList(response, "data", defaultValue = []);
         entry = self.safeDict(data, 0);
     else
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
@@ -5735,7 +6729,7 @@ function fetchTradingFee(self::Kucoin, symbol, params=Dict())
     marketId = safeString(entry, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => response,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("maker") => self.safeNumber(entry, "makerFeeRate"),
     Symbol("taker") => self.safeNumber(entry, "takerFeeRate"),
     Symbol("percentage") => true,
@@ -5743,12 +6737,26 @@ function fetchTradingFee(self::Kucoin, symbol, params=Dict())
 )
 
 end
-function withdraw(self::Kucoin, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/withdraw-v3
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Kucoin, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("id"), nothing),
@@ -5761,23 +6769,23 @@ function withdraw(self::Kucoin, code, amount, address, tag=nothing, params=Dict(
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        _netIdTmp = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        _netIdTmp = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
         if functions.ccxtruthy(_netIdTmp != nothing)
             request[Symbol("chain")] =             lowercase(_netIdTmp);
         end
     end
-    amountString = self.currencyToPrecision(code, amount, networkCode);
+    amountString = self.currencyToPrecision(code, amount, networkCode = networkCode);
     if functions.ccxtruthy(amountString != nothing)
         request[Symbol("amount")] = ccxt_toNumber(amountString);
     end
     includeFee = nothing;
-    (includeFee, params) = self.handleOptionAndParams(params, "withdraw", "includeFee", false);
+    (includeFee, params) = self.handleOptionAndParams(params, "withdraw", "includeFee", defaultValue = false);
     if functions.ccxtruthy(includeFee)
         request[Symbol("feeDeductType")] = "INTERNAL";
     end
     response = Base.fetch(self.privatePostWithdrawals(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransaction(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(data, currency = currency)
 
 end
 function parseTransactionStatus(self::Kucoin, status)
@@ -5793,9 +6801,9 @@ function parseTransactionStatus(self::Kucoin, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Kucoin, transaction, currency=nothing)
+function parseTransaction(self::Kucoin, transaction; currency=nothing)
     currencyId = safeString(transaction, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     address = safeString(transaction, "address");
     amount = safeString(transaction, "amount");
     txid = safeString(transaction, "walletTxId");
@@ -5846,7 +6854,7 @@ function parseTransaction(self::Kucoin, transaction, currency=nothing)
     Symbol("id") => safeString2(transaction, "id", "withdrawalId"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("network") => self.networkIdToCode(chainId, code),
+    Symbol("network") => self.networkIdToCode(networkId = chainId, currencyCode = code),
     Symbol("address") => address,
     Symbol("addressTo") => address,
     Symbol("addressFrom") => nothing,
@@ -5865,21 +6873,38 @@ function parseTransaction(self::Kucoin, transaction, currency=nothing)
 )
 
 end
-function fetchDeposits(self::Kucoin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history
+see: https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-deposit-history-old
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.accountType`::string, optional: 'main' or 'contract' (default is 'main')
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Kucoin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     accountType = "main";
-    (accountType, params) = self.handleOptionAndParams(params, "fetchDeposits", "accountType", accountType);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    (accountType, params) = self.handleOptionAndParams(params, "fetchDeposits", "accountType", defaultValue = accountType);
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     accountType = safeString(accountsByType, accountType, accountType);
     if functions.ccxtruthy(accountType == "contract")
-            return Base.fetch(self.fetchContractDeposits(code, since, limit, params))
+            return Base.fetch(self.fetchContractDeposits(code = code, since = since, limit = limit, params = params))
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", symbol = code, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -5901,14 +6926,26 @@ function fetchDeposits(self::Kucoin, code=nothing, since=nothing, limit=nothing,
         end
         response = Base.fetch(self.privateGetDeposits(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    items = self.safeList(data, "items", []);
-    return self.parseTransactions(items, currency, since, limit, Dict{Symbol, Any}(
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    items = self.safeList(data, "items", defaultValue = []);
+    return self.parseTransactions(items, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => "deposit"
 ))
 
 end
-function fetchContractDeposits(self::Kucoin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+helper method for fetching deposits for futures accounts
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchContractDeposits(self::Kucoin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5925,29 +6962,46 @@ function fetchContractDeposits(self::Kucoin, code=nothing, since=nothing, limit=
         request[Symbol("startAt")] = since;
     end
     response = Base.fetch(self.futuresPrivateGetDepositList(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    responseData = self.safeList(data, "items", []);
-    return self.parseTransactions(responseData, currency, since, limit, Dict{Symbol, Any}(
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    responseData = self.safeList(data, "items", defaultValue = []);
+    return self.parseTransactions(responseData, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => "deposit"
 ))
 
 end
-function fetchWithdrawals(self::Kucoin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
+see: https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-withdrawal-history-old
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.accountType`::string, optional: 'main' or 'contract' (default is 'main')
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Kucoin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     accountType = "main";
-    (accountType, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "accountType", accountType);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    (accountType, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "accountType", defaultValue = accountType);
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     accountType = safeString(accountsByType, accountType, accountType);
     if functions.ccxtruthy(accountType == "contract")
-            return Base.fetch(self.fetchContractWithdrawals(code, since, limit, params))
+            return Base.fetch(self.fetchContractWithdrawals(code = code, since = since, limit = limit, params = params))
     end
     maxLimit = 500;
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", symbol = code, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -5969,14 +7023,26 @@ function fetchWithdrawals(self::Kucoin, code=nothing, since=nothing, limit=nothi
         end
         response = Base.fetch(self.privateGetWithdrawals(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    items = self.safeList(data, "items", []);
-    return self.parseTransactions(items, currency, since, limit, Dict{Symbol, Any}(
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    items = self.safeList(data, "items", defaultValue = []);
+    return self.parseTransactions(items, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => "withdrawal"
 ))
 
 end
-function fetchContractWithdrawals(self::Kucoin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+helper method for fetching withdrawals for futures accounts
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchContractWithdrawals(self::Kucoin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5993,9 +7059,9 @@ function fetchContractWithdrawals(self::Kucoin, code=nothing, since=nothing, lim
         request[Symbol("startAt")] = since;
     end
     response = Base.fetch(self.futuresPrivateGetWithdrawalList(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    responseData = self.safeList(data, "items", []);
-    return self.parseTransactions(responseData, currency, since, limit, Dict{Symbol, Any}(
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    responseData = self.safeList(data, "items", defaultValue = []);
+    return self.parseTransactions(responseData, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("type") => "withdrawal"
 ))
 
@@ -6011,14 +7077,33 @@ function parseBalanceHelper(self::Kucoin, entry)
     return account
 
 end
-function fetchBalance(self::Kucoin, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-detail-spot
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::object, optional: 'cross' or 'isolated', margin type for fetching margin balance
+- `params.type`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.hf`::object, optional: *default if false* if true, the result includes the balance of the high frequency account
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Kucoin; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchBalance", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchBalance", "uta", defaultValue = uta);
     if functions.ccxtruthy(uta)
-            return Base.fetch(self.fetchUtaBalance(params))
+            return Base.fetch(self.fetchUtaBalance(params = params))
     end
     response = nothing;
     request = Dict{Symbol, Any}();
@@ -6028,20 +7113,20 @@ function fetchBalance(self::Kucoin, params=Dict())
         currency = self.currency(code);
     end
     requestedType = "spot";
-    (requestedType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    (requestedType, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     type_var = safeString(accountsByType, requestedType, requestedType);
     params = omit(params, "type");
     if functions.ccxtruthy(type_var == "contract")
-            return Base.fetch(self.fetchContractBalance(params))
+            return Base.fetch(self.fetchContractBalance(params = params))
     end
     hf = nothing;
-    (hf, params) = self.handleHfAndParams(params);
+    (hf, params) = self.handleHfAndParams(params = params);
     if functions.ccxtruthy(@functions.ccxt_and(hf, (type_var != "main")))
         type_var = "trade_hf";
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params = params);
     isolated = @functions.ccxt_or((marginMode == "isolated"), (type_var == "isolated"));
     cross = @functions.ccxt_or((marginMode == "cross"), (type_var == "margin"));
     if functions.ccxtruthy(isolated)
@@ -6064,15 +7149,15 @@ function fetchBalance(self::Kucoin, params=Dict())
         Symbol("datetime") => nothing
     );
     if functions.ccxtruthy(isolated)
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         assets = safeValue(data, "assets", data);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(assets)))
             entry = get(assets, i + 1, nothing);
             marketId = safeString(entry, "symbol");
-            symbol = self.safeSymbol(marketId, nothing, "_");
-            base = self.safeDict(entry, "baseAsset", Dict{Symbol, Any}());
-            quote_var = self.safeDict(entry, "quoteAsset", Dict{Symbol, Any}());
+            symbol = self.safeSymbol(marketId, market = nothing, delimiter = "_");
+            base = self.safeDict(entry, "baseAsset", defaultValue = Dict{Symbol, Any}());
+            quote_var = self.safeDict(entry, "quoteAsset", defaultValue = Dict{Symbol, Any}());
             baseCode = self.safeCurrencyCode(safeString(base, "currency"));
             quoteCode = self.safeCurrencyCode(safeString(quote_var, "currency"));
             subResult = Dict{Symbol, Any}();
@@ -6087,8 +7172,8 @@ function fetchBalance(self::Kucoin, params=Dict())
         end
 
     elseif functions.ccxtruthy(cross)
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        accounts = self.safeList(data, "accounts", []);
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        accounts = self.safeList(data, "accounts", defaultValue = []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(accounts)))
             balance = get(accounts, i + 1, nothing);
@@ -6100,7 +7185,7 @@ function fetchBalance(self::Kucoin, params=Dict())
             i += 1
         end
     else
-        data = self.safeList(response, "data", []);
+        data = self.safeList(response, "data", defaultValue = []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
             balance = get(data, i + 1, nothing);
@@ -6126,7 +7211,18 @@ function fetchBalance(self::Kucoin, params=Dict())
     return returnType
 
 end
-function fetchContractBalance(self::Kucoin, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::object, optional: the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchContractBalance(self::Kucoin; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6149,7 +7245,7 @@ function fetchContractBalance(self::Kucoin, params=Dict())
     );
     data = safeValue(response, "data");
     currencyId = safeString(data, "currency");
-    currencyCode = self.safeCurrencyCode(currencyId, currency);
+    currencyCode = self.safeCurrencyCode(currencyId, currency = currency);
     account = self.account();
     account[Symbol("free")] = safeString(data, "availableBalance");
     account[Symbol("total")] = safeString(data, "accountEquity");
@@ -6159,18 +7255,31 @@ function fetchContractBalance(self::Kucoin, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchUtaBalance(self::Kucoin, params=Dict())
+"""
+helper method for fetching balance with unified trading account (uta) endpoint
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'unified', 'spot', 'funding', 'cross', 'isolated' or 'swap' (default is 'unified')
+- `params.marginMode`::string, optional: 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchUtaBalance(self::Kucoin; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     requestedType = "unified";
-    (requestedType, params) = self.handleMarketTypeAndParams("fetchUtaBalance", nothing, params, requestedType);
+    (requestedType, params) = self.handleMarketTypeAndParams("fetchUtaBalance", market = nothing, params = params, defaultValue = requestedType);
     if functions.ccxtruthy(requestedType == "margin")
         marginMode = "cross";
-        (marginMode, params) = self.handleMarginModeAndParams("fetchUtaBalance", params, marginMode);
+        (marginMode, params) = self.handleMarginModeAndParams("fetchUtaBalance", params = params, defaultValue = marginMode);
         requestedType = marginMode;
     end
-    utaAccountsByType = self.safeDict(self.options, "utaAccountsByType", Dict{Symbol, Any}());
+    utaAccountsByType = self.safeDict(self.options, "utaAccountsByType", defaultValue = Dict{Symbol, Any}());
     type_var = nothing;
     type_var = safeString(utaAccountsByType, requestedType, requestedType);
     isIsolated = (type_var == "ISOLATED");
@@ -6183,25 +7292,25 @@ function fetchUtaBalance(self::Kucoin, params=Dict())
         request[Symbol("accountType")] = type_var;
         response = Base.fetch(self.utaPrivateGetAccountBalance(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(data, "ts");
     result = Dict{Symbol, Any}(
         Symbol("info") => response,
         Symbol("timestamp") => timestamp,
         Symbol("datetime") => self.iso8601(timestamp)
     );
-    accounts = self.safeList(data, "accounts", []);
+    accounts = self.safeList(data, "accounts", defaultValue = []);
     if functions.ccxtruthy(isIsolated)
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(accounts)))
             entry = get(accounts, i + 1, nothing);
             marketId = safeString(entry, "accountSubtype");
-            symbol = self.safeSymbol(marketId, nothing, "-");
+            symbol = self.safeSymbol(marketId, market = nothing, delimiter = "-");
             subResult = Dict{Symbol, Any}();
-            currencies = self.safeList(entry, "currencies", []);
+            currencies = self.safeList(entry, "currencies", defaultValue = []);
             j = 0
             while functions.ccxtruthy(functions.ccxt_lt(j, length(currencies)))
-                currencyEntry = self.safeDict(currencies, j, Dict{Symbol, Any}());
+                currencyEntry = self.safeDict(currencies, j, defaultValue = Dict{Symbol, Any}());
                 currencyId = safeString(currencyEntry, "currency");
                 currencyCode = self.safeCurrencyCode(currencyId);
                 if functions.ccxtruthy(currencyCode != nothing)
@@ -6214,11 +7323,11 @@ function fetchUtaBalance(self::Kucoin, params=Dict())
         end
 
     else
-        firstAccount = self.safeDict(accounts, 0, Dict{Symbol, Any}());
-        currencies = self.safeList(firstAccount, "currencies", []);
+        firstAccount = self.safeDict(accounts, 0, defaultValue = Dict{Symbol, Any}());
+        currencies = self.safeList(firstAccount, "currencies", defaultValue = []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(currencies)))
-            currencyEntry = self.safeDict(currencies, i, Dict{Symbol, Any}());
+            currencyEntry = self.safeDict(currencies, i, defaultValue = Dict{Symbol, Any}());
             currencyId = safeString(currencyEntry, "currency");
             currencyCode = self.safeCurrencyCode(currencyId);
             if functions.ccxtruthy(currencyCode != nothing)
@@ -6234,19 +7343,52 @@ function fetchUtaBalance(self::Kucoin, params=Dict())
     return returnType
 
 end
-function transfer(self::Kucoin, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+see: https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false Check transferClassic() and transferUta() for more details on params
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Kucoin, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "transfer", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "transfer", "uta", defaultValue = uta);
     if functions.ccxtruthy(uta)
-            return Base.fetch(self.transferUta(code, amount, fromAccount, toAccount, params))
+            return Base.fetch(self.transferUta(code, amount, fromAccount, toAccount, params = params))
     end
-    return Base.fetch(self.transferClassic(code, amount, fromAccount, toAccount, params))
+    return Base.fetch(self.transferClassic(code, amount, fromAccount, toAccount, params = params))
 
 end
-function transferUta(self::Kucoin, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account with uta endpoint
+see: https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transferType`::string, optional: INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL)
+- `params.fromUserId`::string, optional: required if transferType is SUB_TO_PARENT or SUB_TO_SUB
+- `params.toUserId`::string, optional: required if transferType is PARENT_TO_SUB or SUB_TO_SUB
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transferUta(self::Kucoin, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6257,11 +7399,11 @@ function transferUta(self::Kucoin, code, amount, fromAccount, toAccount, params=
         Symbol("amount") => requestedAmount
     );
     transferType = "INTERNAL";
-    (transferType, params) = self.handleParamString2(params, "transferType", "type", transferType);
+    (transferType, params) = self.handleParamString2(params, "transferType", "type", defaultValue = transferType);
     fromUserId = nothing;
-    (fromUserId, params) = self.handleParamString2(params, "fromUserId", "fromUid", fromUserId);
+    (fromUserId, params) = self.handleParamString2(params, "fromUserId", "fromUid", defaultValue = fromUserId);
     toUserId = nothing;
-    (toUserId, params) = self.handleParamString2(params, "toUserId", "toUid", toUserId);
+    (toUserId, params) = self.handleParamString2(params, "toUserId", "toUid", defaultValue = toUserId);
     if functions.ccxtruthy(@functions.ccxt_or(transferType == "PARENT_TO_SUB", transferType == "SUB_TO_SUB"))
         if functions.ccxtruthy(toUserId == nothing)
             throw(ExchangeError(string(self.id, " Ccxt.transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers")));
@@ -6276,7 +7418,7 @@ function transferUta(self::Kucoin, code, amount, fromAccount, toAccount, params=
         end
     end
     clientOid = uuid();
-    (clientOid, params) = self.handleParamString2(params, "clientOid", "clientOrderId", clientOid);
+    (clientOid, params) = self.handleParamString2(params, "clientOid", "clientOrderId", defaultValue = clientOid);
     request[Symbol("clientOid")] = clientOid;
     fromId = self.convertTypeToAccount(fromAccount);
     toId = self.convertTypeToAccount(toAccount);
@@ -6291,7 +7433,7 @@ function transferUta(self::Kucoin, code, amount, fromAccount, toAccount, params=
         request[Symbol("toAccountSymbol")] = toId;
         toId = "ISOLATED";
     end
-    utaAccountsByType = self.safeDict(self.options, "utaAccountsByType", Dict{Symbol, Any}());
+    utaAccountsByType = self.safeDict(self.options, "utaAccountsByType", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(utaAccountsByType, fromId, fromId);
     toId = safeString(utaAccountsByType, toId, toId);
     request[Symbol("fromAccountType")] =     uppercase(fromId);
@@ -6304,10 +7446,10 @@ function transferUta(self::Kucoin, code, amount, fromAccount, toAccount, params=
     );
     request[Symbol("type")] = safeString(types, transferType, transferType);
     response = Base.fetch(self.utaPrivatePostAccountTransfer(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    transfer = self.parseTransfer(data, currency);
-    transferOptions = self.safeDict(self.options, "transfer", Dict{Symbol, Any}());
-    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", true);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    transfer = self.parseTransfer(data, currency = currency);
+    transferOptions = self.safeDict(self.options, "transfer", defaultValue = Dict{Symbol, Any}());
+    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         transfer[Symbol("amount")] = amount;
         transfer[Symbol("fromAccount")] = fromAccount;
@@ -6317,7 +7459,24 @@ function transferUta(self::Kucoin, code, amount, fromAccount, toAccount, params=
     return transfer
 
 end
-function transferClassic(self::Kucoin, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account with classic endpoints
+see: https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transferType`::string, optional: INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
+- `params.fromUserId`::string, optional: required if transferType is SUB_TO_PARENT
+- `params.toUserId`::string, optional: required if transferType is PARENT_TO_SUB
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transferClassic(self::Kucoin, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6328,7 +7487,7 @@ function transferClassic(self::Kucoin, code, amount, fromAccount, toAccount, par
         Symbol("amount") => requestedAmount
     );
     transferType = "INTERNAL";
-    (transferType, params) = self.handleParamString2(params, "transferType", "type", transferType);
+    (transferType, params) = self.handleParamString2(params, "transferType", "type", defaultValue = transferType);
     if functions.ccxtruthy(transferType == "PARENT_TO_SUB")
         if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in("toUserId", params))))
             throw(ExchangeError(string(self.id, " Ccxt.transfer() requires a toUserId param for PARENT_TO_SUB transfers")));
@@ -6366,10 +7525,10 @@ function transferClassic(self::Kucoin, code, amount, fromAccount, toAccount, par
         request[Symbol("toAccountType")] =         uppercase(toId);
         response = Base.fetch(self.privatePostAccountsUniversalTransfer(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    transfer = self.parseTransfer(data, currency);
-    transferOptions = self.safeDict(self.options, "transfer", Dict{Symbol, Any}());
-    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", true);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    transfer = self.parseTransfer(data, currency = currency);
+    transferOptions = self.safeDict(self.options, "transfer", defaultValue = Dict{Symbol, Any}());
+    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         transfer[Symbol("amount")] = amount;
         transfer[Symbol("fromAccount")] = fromAccount;
@@ -6383,7 +7542,7 @@ function isHfOrMining(self::Kucoin, fromId, toId)
     return (@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(fromId == "trade_hf", toId == "trade_hf"), fromId == "pool"), toId == "pool"))
 
 end
-function parseTransfer(self::Kucoin, transfer, currency=nothing)
+function parseTransfer(self::Kucoin, transfer; currency=nothing)
     timestamp = safeInteger2(transfer, "createdAt", "time");
     currencyId = safeString(transfer, "currency");
     rawStatus = safeString(transfer, "status");
@@ -6408,7 +7567,7 @@ function parseTransfer(self::Kucoin, transfer, currency=nothing)
     accountTo = functions.ccxtruthy((accountToRaw == nothing)) ? nothing : safeString(accountsByType, accountToRaw, accountToRaw);
     return Dict{Symbol, Any}(
     Symbol("id") => safeStringN(transfer, ["id", "applyId", "orderId"]),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("amount") => self.safeNumber(transfer, "amount"),
@@ -6496,11 +7655,11 @@ function parseLedgerStatus(self::Kucoin, status)
     return safeString(statuses, status, status)
 
 end
-function parseLedgerEntry(self::Kucoin, item, currency=nothing)
+function parseLedgerEntry(self::Kucoin, item; currency=nothing)
     id = safeString(item, "id");
     currencyId = safeString(item, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     amount = safeString(item, "amount");
     balanceAfter = self.safeNumberOmitZero(item, "balance");
     bizType = safeStringN(item, ["bizType", "businessType", "type"]);
@@ -6562,25 +7721,47 @@ function parseLedgerEntry(self::Kucoin, item, currency=nothing)
     Symbol("after") => balanceAfter,
     Symbol("status") => self.parseLedgerStatus(status),
     Symbol("fee") => fee
-), currency)
+), currency = currency)
 
 end
-function fetchLedger(self::Kucoin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-ledger
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.hf`::bool, optional: default false, when true will fetch ledger entries for the high frequency trading account
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.uta`::bool, optional: default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Kucoin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.loadAccounts());
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchLedger", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchLedger", "uta", defaultValue = uta);
     hf = nothing;
-    (hf, params) = self.handleHfAndParams(params);
+    (hf, params) = self.handleHfAndParams(params = params);
     requestedType = nothing;
     if functions.ccxtruthy(uta)
         requestedType = "UNIFIED";
     end
-    (requestedType, params) = self.handleMarketTypeAndParams("fetchLedger", nothing, params, requestedType);
+    (requestedType, params) = self.handleMarketTypeAndParams("fetchLedger", market = nothing, params = params, defaultValue = requestedType);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchLedger", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchLedger", params = params);
     if functions.ccxtruthy(@functions.ccxt_and(uta, (requestedType == "margin")))
         marginMode = functions.ccxtruthy((marginMode == nothing)) ? "cross" : marginMode;
         requestedType = marginMode;
@@ -6609,7 +7790,7 @@ function fetchLedger(self::Kucoin, code=nothing, since=nothing, limit=nothing, p
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", symbol = code, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(since != nothing)
@@ -6650,17 +7831,17 @@ function fetchLedger(self::Kucoin, code=nothing, since=nothing, limit=nothing, p
     end
     dataList = self.safeList(response, "data");
     if functions.ccxtruthy(dataList != nothing)
-            return self.parseLedger(dataList, currency, since, limit)
+            return self.parseLedger(dataList, currency = currency, since = since, limit = limit)
     end
     data = self.safeDict(response, "data");
-    items = self.safeList2(data, "items", "dataList", []);
-    return self.parseLedger(items, currency, since, limit)
+    items = self.safeList2(data, "items", "dataList", defaultValue = []);
+    return self.parseLedger(items, currency = currency, since = since, limit = limit)
 
 end
-function calculateRateLimiterCost(self::Kucoin, api, method, path, params, config=Dict())
-    versions = self.safeDict(self.options, "versions", Dict{Symbol, Any}());
-    apiVersions = self.safeDict(versions, api, Dict{Symbol, Any}());
-    methodVersions = self.safeDict(apiVersions, method, Dict{Symbol, Any}());
+function calculateRateLimiterCost(self::Kucoin, api, method, path, params; config=Dict())
+    versions = self.safeDict(self.options, "versions", defaultValue = Dict{Symbol, Any}());
+    apiVersions = self.safeDict(versions, api, defaultValue = Dict{Symbol, Any}());
+    methodVersions = self.safeDict(apiVersions, method, defaultValue = Dict{Symbol, Any}());
     defaultVersion = safeString(methodVersions, path, get(self.options, Symbol("version"), nothing));
     version = safeString(params, "version", defaultVersion);
     if functions.ccxtruthy(@functions.ccxt_and(version == "v3", (ccxt_in("v3", config))))
@@ -6676,7 +7857,7 @@ function calculateRateLimiterCost(self::Kucoin, api, method, path, params, confi
     return safeValue(config, "cost", 1)
 
 end
-function parseBorrowRate(self::Kucoin, info, currency=nothing)
+function parseBorrowRate(self::Kucoin, info; currency=nothing)
     timestampId = safeString2(info, "createdAt", "timestamp");
     timestamp = milliseconds();
     if functions.ccxtruthy(timestampId != nothing)
@@ -6684,7 +7865,7 @@ function parseBorrowRate(self::Kucoin, info, currency=nothing)
     end
     currencyId = safeString(info, "currency");
     return Dict{Symbol, Any}(
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("rate") => self.safeNumberN(info, ["dailyIntRate", "dayRatio", "currentRateDaily"]),
     Symbol("period") => 86400000,
     Symbol("timestamp") => timestamp,
@@ -6693,12 +7874,28 @@ function parseBorrowRate(self::Kucoin, info, currency=nothing)
 )
 
 end
-function fetchBorrowInterest(self::Kucoin, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `symbol`::string, optional: unified market symbol, required for isolated margin
+- `since`::int, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' default is 'cross'
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+function fetchBorrowInterest(self::Kucoin; code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBorrowInterest", params, "cross");
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBorrowInterest", params = params, defaultValue = "cross");
     request = Dict{Symbol, Any}();
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -6719,19 +7916,19 @@ function fetchBorrowInterest(self::Kucoin, code=nothing, symbol=nothing, since=n
     else
         response = Base.fetch(self.privateGetMarginAccounts(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    assets = functions.ccxtruthy((marginMode == "isolated")) ? self.safeList(data, "assets", []) : self.safeList(data, "accounts", []);
-    interest = self.parseBorrowInterests(assets, market);
-    filteredByCurrency = self.filterByCurrencySinceLimit(interest, code, since, limit);
-    return self.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    assets = functions.ccxtruthy((marginMode == "isolated")) ? self.safeList(data, "assets", defaultValue = []) : self.safeList(data, "accounts", defaultValue = []);
+    interest = self.parseBorrowInterests(assets, market = market);
+    filteredByCurrency = self.filterByCurrencySinceLimit(interest, code = code, since = since, limit = limit);
+    return self.filterBySymbolSinceLimit(filteredByCurrency, symbol = symbol, since = since, limit = limit)
 
 end
-function parseBorrowInterest(self::Kucoin, info, market=nothing)
+function parseBorrowInterest(self::Kucoin, info; market=nothing)
     marketId = safeString(info, "symbol");
     marginMode = functions.ccxtruthy((marketId == nothing)) ? "cross" : "isolated";
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = safeString(market, "symbol");
-    isolatedBase = self.safeDict(info, "baseAsset", Dict{Symbol, Any}());
+    isolatedBase = self.safeDict(info, "baseAsset", defaultValue = Dict{Symbol, Any}());
     amountBorrowed = nothing;
     interest = nothing;
     currencyId = nothing;
@@ -6757,11 +7954,26 @@ function parseBorrowInterest(self::Kucoin, info, market=nothing)
 )
 
 end
-function fetchBorrowRateHistories(self::Kucoin, codes=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest borrowRate, default is undefined
+- `limit`::int, optional: max number of borrow rate prices to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' default is 'cross'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
+"""
+function fetchBorrowRateHistories(self::Kucoin; codes=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    marginResult = self.handleMarginModeAndParams("fetchBorrowRateHistories", params);
+    marginResult = self.handleMarginModeAndParams("fetchBorrowRateHistories", params = params);
     marginMode = safeString(marginResult, 0, "cross");
     isIsolated = (marginMode == "isolated");
     request = Dict{Symbol, Any}(
@@ -6776,15 +7988,30 @@ function fetchBorrowRateHistories(self::Kucoin, codes=nothing, since=nothing, li
     end
     response = Base.fetch(self.privateGetMarginInterest(extend(request, params)));
     data = self.safeDict(response, "data");
-    rows = self.safeList(data, "items", []);
+    rows = self.safeList(data, "items", defaultValue = []);
     return self.parseBorrowRateHistories(rows, codes, since, limit)
 
 end
-function fetchBorrowRateHistory(self::Kucoin, code, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves a history of a currencies borrow interest rate at specific time slots
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: timestamp for the earliest borrow rate
+- `limit`::int, optional: the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' default is 'cross'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchBorrowRateHistory(self::Kucoin, code; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    marginResult = self.handleMarginModeAndParams("fetchBorrowRateHistories", params);
+    marginResult = self.handleMarginModeAndParams("fetchBorrowRateHistories", params = params);
     marginMode = safeString(marginResult, 0, "cross");
     isIsolated = (marginMode == "isolated");
     currency = self.currency(code);
@@ -6801,7 +8028,7 @@ function fetchBorrowRateHistory(self::Kucoin, code, since=nothing, limit=nothing
     end
     response = Base.fetch(self.privateGetMarginInterest(extend(request, params)));
     data = self.safeDict(response, "data");
-    rows = self.safeList(data, "items", []);
+    rows = self.safeList(data, "items", defaultValue = []);
     return self.parseBorrowRateHistory(rows, code, since, limit)
 
 end
@@ -6825,13 +8052,24 @@ function parseBorrowRateHistories(self::Kucoin, response, codes, since, limit)
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(keys_var)))
         code = get(keys_var, i + 1, nothing);
-        borrowRateHistories[Symbol(code)] = self.filterByCurrencySinceLimit(get(borrowRateHistories, Symbol(code), nothing), code, since, limit);
+        borrowRateHistories[Symbol(code)] = self.filterByCurrencySinceLimit(get(borrowRateHistories, Symbol(code), nothing), code = code, since = since, limit = limit);
         i += 1
     end
     return borrowRateHistories
 
 end
-function fetchCrossBorrowRate(self::Kucoin, code, params=Dict())
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://www.kucoin.com/docs-new/rest/ua/get-borrowing-rates-and-limits
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchCrossBorrowRate(self::Kucoin, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6840,11 +8078,24 @@ function fetchCrossBorrowRate(self::Kucoin, code, params=Dict())
         Symbol("currency") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.utaPrivateGetAccountInterestLimits(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseBorrowRate(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseBorrowRate(data, currency = currency)
 
 end
-function borrowCrossMargin(self::Kucoin, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoints
+- `params.timeInForce`::string, optional: either IOC or FOK
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowCrossMargin(self::Kucoin, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6855,11 +8106,25 @@ function borrowCrossMargin(self::Kucoin, code, amount, params=Dict())
         Symbol("timeInForce") => "FOK"
     );
     response = Base.fetch(self.privatePostMarginBorrow(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginLoan(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginLoan(data, currency = currency)
 
 end
-function borrowIsolatedMargin(self::Kucoin, symbol, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
+
+# Arguments
+- `symbol`::string: unified market symbol, required for isolated margin
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoints
+- `params.timeInForce`::string, optional: either IOC or FOK
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowIsolatedMargin(self::Kucoin, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6873,11 +8138,23 @@ function borrowIsolatedMargin(self::Kucoin, symbol, code, amount, params=Dict())
         Symbol("isIsolated") => true
     );
     response = Base.fetch(self.privatePostMarginBorrow(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginLoan(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginLoan(data, currency = currency)
 
 end
-function repayCrossMargin(self::Kucoin, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoints
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayCrossMargin(self::Kucoin, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6887,11 +8164,24 @@ function repayCrossMargin(self::Kucoin, code, amount, params=Dict())
         Symbol("size") => self.currencyToPrecision(code, amount)
     );
     response = Base.fetch(self.privatePostMarginRepay(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginLoan(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginLoan(data, currency = currency)
 
 end
-function repayIsolatedMargin(self::Kucoin, symbol, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoints
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayIsolatedMargin(self::Kucoin, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6904,16 +8194,16 @@ function repayIsolatedMargin(self::Kucoin, symbol, code, amount, params=Dict())
         Symbol("isIsolated") => true
     );
     response = Base.fetch(self.privatePostMarginRepay(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginLoan(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginLoan(data, currency = currency)
 
 end
-function parseMarginLoan(self::Kucoin, info, currency=nothing)
+function parseMarginLoan(self::Kucoin, info; currency=nothing)
     timestamp = milliseconds();
     currencyId = safeString(info, "currency");
     return Dict{Symbol, Any}(
     Symbol("id") => safeString(info, "orderNo"),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(info, "actualSize"),
     Symbol("symbol") => nothing,
     Symbol("timestamp") => timestamp,
@@ -6922,18 +8212,40 @@ function parseMarginLoan(self::Kucoin, info, currency=nothing)
 )
 
 end
-function fetchDepositWithdrawFees(self::Kucoin, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Kucoin; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetCurrencies(params));
-    data = self.safeList(response, "data", []);
-    return self.parseDepositWithdrawFees(data, codes, "currency")
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseDepositWithdrawFees(data, codes = codes, currencyIdKey = "currency")
 
 end
-function fetchLeverage(self::Kucoin, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-cross-margin-leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Kucoin, symbol; params=Dict())
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams(symbol, params);
+    (marginMode, params) = self.handleMarginModeAndParams(symbol, params = params);
     if functions.ccxtruthy(marginMode != "cross")
         throw(NotSupported(string(self.id, " fetchLeverage() currently supports only params[\"marginMode\"] = \"cross\"")));
     end
@@ -6948,36 +8260,54 @@ function fetchLeverage(self::Kucoin, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.futuresPrivateGetGetCrossUserLeverage(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    parsed = self.parseLeverage(data, market);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    parsed = self.parseLeverage(data, market = market);
     return extend(parsed, Dict{Symbol, Any}(
     Symbol("marginMode") => marginMode
 ))
 
 end
-function setLeverage(self::Kucoin, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage // margin
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage // contract
+see: https://www.kucoin.com/docs-new/rest/ua/modify-cross-margin-leverage-uta // margin uta
+see: https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta // contract uta
+
+# Arguments
+- `leverage`::int, optional: New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta)
+- `params.marginMode`::string, optional: *spot non-uta only* 'cross' or 'isolated' default is 'cross'
+- `params.code`::string, optional: *uta margin only* the unified currency code for the margin to set the leverage for
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Kucoin, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = nothing;
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("setLeverage", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("setLeverage", market = nothing, params = params);
     if functions.ccxtruthy(@functions.ccxt_or((symbol != nothing), (@functions.ccxt_and((marketType != "spot"), (marketType != "margin")))))
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " setLeverage requires a symbol argument for contract markets")));
         end
         market = self.market(symbol);
         if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
-                return Base.fetch(self.setContractLeverage(leverage, symbol, params))
+                return Base.fetch(self.setContractLeverage(leverage, symbol = symbol, params = params))
         end
     end
     request = Dict{Symbol, Any}(
         Symbol("leverage") => numberToString(leverage)
     );
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params);
+    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params);
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "setLeverage", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "setLeverage", "uta", defaultValue = uta);
     response = Dict{Symbol, Any}();
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(marginMode == "isolated")
@@ -7007,12 +8337,26 @@ function setLeverage(self::Kucoin, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function setContractLeverage(self::Kucoin, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+see: https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta)
+
+# Returns
+- response from the exchange
+"""
+function setContractLeverage(self::Kucoin, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams(symbol, params);
+    (marginMode, params) = self.handleMarginModeAndParams(symbol, params = params);
     if functions.ccxtruthy(@functions.ccxt_and((marginMode != nothing), (marginMode != "cross")))
         throw(NotSupported(string(self.id, " setLeverage() currently supports only params[\"marginMode\"] = \"cross\" for contracts")));
     end
@@ -7025,7 +8369,7 @@ function setContractLeverage(self::Kucoin, leverage, symbol=nothing, params=Dict
         Symbol("leverage") => string(leverage)
     );
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "setLeverage", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "setLeverage", "uta", defaultValue = uta);
     response = nothing;
     if functions.ccxtruthy(uta)
         request[Symbol("accountMode")] = "unified";
@@ -7033,7 +8377,7 @@ function setContractLeverage(self::Kucoin, leverage, symbol=nothing, params=Dict
     else
         response = Base.fetch(self.futuresPrivatePostChangeCrossUserLeverage(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     leverageNum = self.safeNumber(data, "leverage");
     return Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -7044,11 +8388,36 @@ function setContractLeverage(self::Kucoin, leverage, symbol=nothing, params=Dict
 )
 
 end
-function fetchFundingInterval(self::Kucoin, symbol, params=Dict())
-    return Base.fetch(self.fetchFundingRate(symbol, params))
+"""
+fetch the current funding rate interval
+see: https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+see: https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingInterval(self::Kucoin, symbol; params=Dict())
+    return Base.fetch(self.fetchFundingRate(symbol, params = params))
 
 end
-function fetchFundingRate(self::Kucoin, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+see: https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta)
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Kucoin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7057,18 +8426,18 @@ function fetchFundingRate(self::Kucoin, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     uta = false;
-    (uta, params) = self.handleOptionAndParams(params, "fetchFundingRate", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchFundingRate", "uta", defaultValue = uta);
     response = nothing;
     if functions.ccxtruthy(uta)
         response = Base.fetch(self.utaGetMarketFundingRate(extend(request, params)));
     else
         response = Base.fetch(self.futuresPublicGetFundingRateSymbolCurrent(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseFundingRate(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(data, market = market)
 
 end
-function parseFundingRate(self::Kucoin, data, market=nothing)
+function parseFundingRate(self::Kucoin, data; market=nothing)
     fundingTimestamp = safeInteger(data, "fundingTime");
     previousFundingTimestamp = safeInteger(data, "timePoint");
     nextFundingTimestamp = safeInteger(data, "newGranularityStartTime");
@@ -7076,7 +8445,7 @@ function parseFundingRate(self::Kucoin, data, market=nothing)
     granularity = safeString2(data, "granularity", "currentGranularity");
     return Dict{Symbol, Any}(
     Symbol("info") => data,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("markPrice") => nothing,
     Symbol("indexPrice") => nothing,
     Symbol("interestRate") => self.safeNumber(data, "dailyInterestRate"),
@@ -7107,7 +8476,23 @@ function parseFundingInterval(self::Kucoin, interval)
     return safeString(intervals, interval, interval)
 
 end
-function fetchFundingRateHistory(self::Kucoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-public-funding-history
+see: https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: not used by kucuoinfutures
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to true
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Kucoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -7120,7 +8505,7 @@ function fetchFundingRateHistory(self::Kucoin, symbol=nothing, since=nothing, li
     );
     until = safeInteger(params, "until");
     uta = false;
-    (uta, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "uta", defaultValue = uta);
     params = omit(params, "until");
     start = since;
     end_var = until;
@@ -7136,35 +8521,49 @@ function fetchFundingRateHistory(self::Kucoin, symbol=nothing, since=nothing, li
         request[Symbol("startAt")] = start;
         request[Symbol("endAt")] = end_var;
         utaResponse = Base.fetch(self.utaGetMarketFundingRateHistory(extend(request, params)));
-        response = self.safeDict(utaResponse, "data", Dict{Symbol, Any}());
+        response = self.safeDict(utaResponse, "data", defaultValue = Dict{Symbol, Any}());
         resultKey = "list";
     else
         request[Symbol("from")] = start;
         request[Symbol("to")] = end_var;
         response = Base.fetch(self.futuresPublicGetContractFundingRates(extend(request, params)));
     end
-    result = self.safeList(response, resultKey, []);
-    return self.parseFundingRateHistories(result, market, since, limit)
+    result = self.safeList(response, resultKey, defaultValue = []);
+    return self.parseFundingRateHistories(result, market = market, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Kucoin, info, market=nothing)
+function parseFundingRateHistory(self::Kucoin, info; market=nothing)
     marketId = safeString(info, "symbol");
     timestamp = safeInteger2(info, "ts", "timepoint");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("fundingRate") => self.safeNumber(info, "fundingRate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 )
 
 end
-function fetchFundingHistory(self::Kucoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-private-funding-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Kucoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "uta", defaultValue = uta);
     request = Dict{Symbol, Any}();
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -7184,14 +8583,14 @@ function fetchFundingHistory(self::Kucoin, symbol=nothing, since=nothing, limit=
         (request, params) = self.handleUntilOption("endAt", request, params);
         response = Base.fetch(self.utaPrivateGetPositionFundingHistory(extend(request, params)));
         data = self.safeDict(response, "data");
-        dataList = self.safeList(data, "items", []);
+        dataList = self.safeList(data, "items", defaultValue = []);
     else
         if functions.ccxtruthy(limit != nothing)
             request[Symbol("maxCount")] = limit;
         end
         response = Base.fetch(self.futuresPrivateGetFundingHistory(extend(request, params)));
         data = safeValue(response, "data");
-        dataList = self.safeList(data, "dataList", []);
+        dataList = self.safeList(data, "dataList", defaultValue = []);
     end
     fees = [];
     i = 0
@@ -7201,7 +8600,7 @@ function fetchFundingHistory(self::Kucoin, symbol=nothing, since=nothing, limit=
         marketId = safeString(listItem, "symbol");
         push!(fees, Dict{Symbol, Any}(
     Symbol("info") => listItem,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("code") => self.safeCurrencyCode(safeString(listItem, "settleCurrency")),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -7217,7 +8616,22 @@ function fetchFundingHistory(self::Kucoin, symbol=nothing, since=nothing, limit=
     return fees
 
 end
-function fetchPosition(self::Kucoin, symbol, params=Dict())
+"""
+fetch data on an open position
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details
+see: https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.pageSize`::integer, optional: *uta only* page size for the uta endpoint (default 50, max 200)
+- `params.pageNumber`::integer, optional: *uta only* page number for the uta endpoint (default 1)
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Kucoin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7226,27 +8640,42 @@ function fetchPosition(self::Kucoin, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchPosition", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchPosition", "uta", defaultValue = uta);
     response = nothing;
     position = nothing;
     if functions.ccxtruthy(uta)
         request[Symbol("accountMode")] = "unified";
         response = Base.fetch(self.utaPrivateGetAccountModePositionOpenList(extend(request, params)));
-        data = self.safeList(response, "data", []);
-        position = self.safeDict(data, 0, Dict{Symbol, Any}());
+        data = self.safeList(response, "data", defaultValue = []);
+        position = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     else
         response = Base.fetch(self.futuresPrivateGetPosition(extend(request, params)));
-        position = self.safeDict(response, "data", Dict{Symbol, Any}());
+        position = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     end
-    return self.parsePosition(position, market)
+    return self.parsePosition(position, market = market)
 
 end
-function fetchPositions(self::Kucoin, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+see: https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.pageSize`::integer, optional: *uta only* page size for the uta endpoint (default 50, max 200)
+- `params.pageNumber`::integer, optional: *uta only* page number for the uta endpoint (default 1)
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Kucoin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchPositions", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchPositions", "uta", defaultValue = uta);
     response = nothing;
     if functions.ccxtruthy(uta)
         response = Base.fetch(self.utaPrivateGetAccountModePositionOpenList(extend(Dict{Symbol, Any}(
@@ -7256,19 +8685,36 @@ function fetchPositions(self::Kucoin, symbols=nothing, params=Dict())
     else
         response = Base.fetch(self.futuresPrivateGetPositions(params));
     end
-    data = self.safeList(response, "data", []);
-    return self.parsePositions(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parsePositions(data, symbols = symbols)
 
 end
-function fetchPositionsHistory(self::Kucoin, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history
+see: https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `since`::int, optional: the earliest time in ms to fetch position history for
+- `limit`::int, optional: the maximum number of entries to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: closing end time
+- `params.pageId`::int, optional: page id
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsHistory(self::Kucoin; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "fetchPositionsHistory", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchPositionsHistory", "uta", defaultValue = uta);
     response = nothing;
     request = Dict{Symbol, Any}();
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     if functions.ccxtruthy(symbols != nothing)
         len = length(symbols);
         if functions.ccxtruthy(len == 1)
@@ -7301,13 +8747,13 @@ function fetchPositionsHistory(self::Kucoin, symbols=nothing, since=nothing, lim
         response = Base.fetch(self.futuresPrivateGetHistoryPositions(extend(request, params)));
     end
     data = self.safeDict(response, "data");
-    items = self.safeList(data, "items", []);
-    return self.parsePositions(items, symbols)
+    items = self.safeList(data, "items", defaultValue = []);
+    return self.parsePositions(items, symbols = symbols)
 
 end
-function parsePosition(self::Kucoin, position, market=nothing)
+function parsePosition(self::Kucoin, position; market=nothing)
     symbol = safeString(position, "symbol");
-    market = self.safeMarket(symbol, market);
+    market = self.safeMarket(marketId = symbol, market = market);
     timestamp = safeInteger(position, "currentTimestamp");
     if functions.ccxtruthy(timestamp == nothing)
         timestamp = safeIntegerProduct(position, "creationTime", 0.000001);
@@ -7374,12 +8820,29 @@ function parsePosition(self::Kucoin, position, market=nothing)
 ))
 
 end
-function cancelOrders(self::Kucoin, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders for contract markets
+see: https://www.kucoin.com/docs-new/3470241e0
+see: https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+- `params.uta`::bool, optional: set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
+- `params.accountMode`::string, optional: *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
+- `params.marginMode`::string, optional: *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Kucoin, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = Base.fetch(self.isUTAEnabled());
-    (uta, params) = self.handleOptionAndParams(params, "cancelOrders", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "cancelOrders", "uta", defaultValue = uta);
     market = nothing;
     isContractMarket = true;
     if functions.ccxtruthy(symbol != nothing)
@@ -7392,7 +8855,7 @@ function cancelOrders(self::Kucoin, ids, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument for uta endpoint")));
     end
     ordersRequests = [];
-    clientOrderIds = self.safeList2(params, "clientOrderIds", "clientOids", []);
+    clientOrderIds = self.safeList2(params, "clientOrderIds", "clientOids", defaultValue = []);
     params = omit(params, ["clientOrderIds", "clientOids"]);
     useClientorderId = false;
     i = 0
@@ -7425,27 +8888,40 @@ function cancelOrders(self::Kucoin, ids, symbol=nothing, params=Dict())
     orders = [];
     if functions.ccxtruthy(uta)
         accountMode = "unified";
-        (accountMode, params) = self.handleOptionAndParams(params, "cancelOrders", "accountMode", accountMode);
+        (accountMode, params) = self.handleOptionAndParams(params, "cancelOrders", "accountMode", defaultValue = accountMode);
         request[Symbol("accountMode")] = accountMode;
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("cancelOrders", params);
+        (marginMode, params) = self.handleMarginModeAndParams("cancelOrders", params = params);
         isUnified = (accountMode == "unified");
-        tradeType = self.handleTradeType(isContractMarket, marginMode, isUnified, params);
+        tradeType = self.handleTradeType(isContractMarket = isContractMarket, marginMode = marginMode, isUnified = isUnified, params = params);
         request[Symbol("tradeType")] = tradeType;
         request[Symbol("cancelOrderList")] = ordersRequests;
         response = Base.fetch(self.utaPrivatePostAccountModeOrderCancelBatch(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        orders = self.safeList(data, "items", []);
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        orders = self.safeList(data, "items", defaultValue = []);
     else
         requestKey = functions.ccxtruthy(useClientorderId) ? "clientOidsList" : "orderIdsList";
         request[Symbol(requestKey)] = ordersRequests;
         response = Base.fetch(self.futuresPrivateDeleteOrdersMultiCancel(extend(request, params)));
-        orders = self.safeList(response, "data", []);
+        orders = self.safeList(response, "data", defaultValue = []);
     end
-    return self.parseOrders(orders, market)
+    return self.parseOrders(orders, market = market)
 
 end
-function addMargin(self::Kucoin, symbol, amount, params=Dict())
+"""
+add margin
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/add-isolated-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string, optional: *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Kucoin, symbol, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7458,13 +8934,26 @@ function addMargin(self::Kucoin, symbol, amount, params=Dict())
     );
     response = Base.fetch(self.futuresPrivatePostPositionMarginDepositMargin(extend(request, params)));
     data = safeValue(response, "data");
-    return extend(self.parseMarginModification(data, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(data, market = market), Dict{Symbol, Any}(
     Symbol("amount") => self.amountToPrecision(symbol, amount),
     Symbol("direction") => "in"
 ))
 
 end
-function reduceMargin(self::Kucoin, symbol, amount, params=Dict())
+"""
+remove margin from a position
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/remove-isolated-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string, optional: *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Kucoin, symbol, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7491,9 +8980,9 @@ function reduceMargin(self::Kucoin, symbol, amount, params=Dict())
 )
 
 end
-function parseMarginModification(self::Kucoin, info, market=nothing)
+function parseMarginModification(self::Kucoin, info; market=nothing)
     id = safeString(info, "id");
-    market = self.safeMarket(id, market);
+    market = self.safeMarket(marketId = id, market = market);
     currencyId = safeString(info, "settleCurrency");
     crossMode = safeValue(info, "crossMode");
     mode = functions.ccxtruthy(crossMode) ? "cross" : "isolated";
@@ -7501,7 +8990,7 @@ function parseMarginModification(self::Kucoin, info, market=nothing)
     timestamp = safeInteger(info, "currentTimestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("type") => nothing,
     Symbol("marginMode") => mode,
     Symbol("amount") => nothing,
@@ -7513,7 +9002,18 @@ function parseMarginModification(self::Kucoin, info, market=nothing)
 )
 
 end
-function fetchMarginMode(self::Kucoin, symbol, params=Dict())
+"""
+fetches the margin mode of a trading pair
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-margin-mode
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Kucoin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7522,11 +9022,11 @@ function fetchMarginMode(self::Kucoin, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.futuresPrivateGetPositionGetMarginMode(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginMode(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginMode(data, market = market)
 
 end
-function parseMarginMode(self::Kucoin, marginMode, market=nothing)
+function parseMarginMode(self::Kucoin, marginMode; market=nothing)
     marginType = safeString(marginMode, "marginMode");
     marginType = functions.ccxtruthy((marginType == "ISOLATED")) ? "isolated" : "cross";
     return Dict{Symbol, Any}(
@@ -7536,11 +9036,23 @@ function parseMarginMode(self::Kucoin, marginMode, market=nothing)
 )
 
 end
-function setMarginMode(self::Kucoin, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-margin-mode
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Kucoin, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
-    self.checkRequiredArgument("setMarginMode", marginMode, "marginMode", ["cross", "isolated"]);
+    self.checkRequiredArgument("setMarginMode", marginMode, "marginMode", options = ["cross", "isolated"]);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7553,11 +9065,23 @@ function setMarginMode(self::Kucoin, marginMode, symbol=nothing, params=Dict())
         Symbol("marginMode") => uppercase(marginMode)
     );
     response = Base.fetch(self.futuresPrivatePostPositionChangeMarginMode(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginMode(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginMode(data, market = market)
 
 end
-function setPositionMode(self::Kucoin, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
+
+# Arguments
+- `hedged`::bool: set to true to use two way position
+- `symbol`::string, optional: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a response from the exchange
+"""
+function setPositionMode(self::Kucoin, hedged; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7569,9 +9093,20 @@ function setPositionMode(self::Kucoin, hedged, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchPositionMode(self::Kucoin, symbol=nothing, params=Dict())
+"""
+fetchs the position mode, hedged or one way
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-mode
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+function fetchPositionMode(self::Kucoin; symbol=nothing, params=Dict())
     response = Base.fetch(self.futuresPrivateGetPositionGetPositionMode(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     positionMode = safeInteger(data, "positionMode");
     return Dict{Symbol, Any}(
     Symbol("info") => data,
@@ -7579,13 +9114,27 @@ function fetchPositionMode(self::Kucoin, symbol=nothing, params=Dict())
 )
 
 end
-function closePosition(self::Kucoin, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a market
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string: not used by kucoin closePositions
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id of the order
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closePosition(self::Kucoin, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     clientOrderId = safeString(params, "clientOrderId");
-    testOrder = self.safeBool(params, "test", false);
+    testOrder = self.safeBool(params, "test", defaultValue = false);
     params = omit(params, ["test", "clientOrderId"]);
     if functions.ccxtruthy(clientOrderId == nothing)
         clientOrderId = numberToString(self.nonce());
@@ -7602,10 +9151,22 @@ function closePosition(self::Kucoin, symbol, side=nothing, params=Dict())
     else
         response = Base.fetch(self.futuresPrivatePostOrders(extend(request, params)));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchMarketLeverageTiers(self::Kucoin, symbol, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-isolated-margin-risk-limit
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true to fetch leverage tiers for unified trading account instead of futures account (default is false)
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+function fetchMarketLeverageTiers(self::Kucoin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7614,26 +9175,26 @@ function fetchMarketLeverageTiers(self::Kucoin, symbol, params=Dict())
         throw(BadRequest(string(self.id, " fetchMarketLeverageTiers() supports contract markets only")));
     end
     uta = false;
-    (uta, params) = self.handleOptionAndParams(params, "fetchMarketLeverageTiers", "uta", uta);
+    (uta, params) = self.handleOptionAndParams(params, "fetchMarketLeverageTiers", "uta", defaultValue = uta);
     if functions.ccxtruthy(uta)
-        result = Base.fetch(self.fetchLeverageTiers([symbol], params));
-            return self.safeList(result, symbol, [])
+        result = Base.fetch(self.fetchLeverageTiers(symbols = [symbol], params = params));
+            return self.safeList(result, symbol, defaultValue = [])
     end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.futuresPublicGetContractsRiskLimitSymbol(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseMarketLeverageTiers(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseMarketLeverageTiers(data, market = market)
 
 end
-function parseMarketLeverageTiers(self::Kucoin, info, market=nothing)
+function parseMarketLeverageTiers(self::Kucoin, info; market=nothing)
     tiers = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(info)))
-        tier = self.safeDict(info, i, Dict{Symbol, Any}());
+        tier = self.safeDict(info, i, defaultValue = Dict{Symbol, Any}());
         marketId = safeString(tier, "symbol");
-        market = self.safeMarket(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = market);
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => self.safeNumber2(tier, "level", "tier"),
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -7649,21 +9210,32 @@ function parseMarketLeverageTiers(self::Kucoin, info, market=nothing)
     return tiers
 
 end
-function fetchLeverageTiers(self::Kucoin, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://www.kucoin.com/docs-new/rest/ua/get-position-tiers
+
+# Arguments
+- `symbols`::array: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Kucoin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     if functions.ccxtruthy(symbols == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchLeverageTiers() requires a symbols argument")));
     end
-    symbols = self.marketSymbols(symbols, "swap", false, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = "swap", allowEmpty = false, sameTypeOnly = true);
     marginMode = "cross";
-    (marginMode, params) = self.handleMarginModeAndParams("fetchLeverageTiers", params, marginMode);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchLeverageTiers", params = params, defaultValue = marginMode);
     marginMode = uppercase(marginMode);
     if functions.ccxtruthy(marginMode != "CROSS")
         throw(BadRequest(string(self.id, " fetchLeverageTiers() supports cross margin only")));
     end
-    marketIds = self.marketIds(symbols);
+    marketIds = self.marketIds(symbols = symbols);
     request = Dict{Symbol, Any}(
         Symbol("tradeType") => "FUTURES",
         Symbol("marginMode") => marginMode,
@@ -7672,7 +9244,7 @@ function fetchLeverageTiers(self::Kucoin, symbols=nothing, params=Dict())
         Symbol("symbol") => join(marketIds, ",")
     );
     response = Base.fetch(self.utaGetMarketPositionTiers(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = Dict{Symbol, Any}();
     tiers = self.parseMarketLeverageTiers(data);
     i = 0
@@ -7690,27 +9262,38 @@ function fetchLeverageTiers(self::Kucoin, symbols=nothing, params=Dict())
     return result
 
 end
-function fetchOpenInterests(self::Kucoin, symbols=nothing, params=Dict())
+"""
+Retrieves the open interest for a list of symbols
+see: https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+
+# Arguments
+- `symbols`::array, optional: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterests(self::Kucoin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
         len = length(symbols);
         if functions.ccxtruthy(functions.ccxt_lt(len, 11))
-            marketIds = self.marketIds(symbols);
+            marketIds = self.marketIds(symbols = symbols);
             request[Symbol("symbol")] =             join(marketIds, ",");
         end
     end
     response = Base.fetch(self.utaGetMarketOpenInterest(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOpenInterests(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOpenInterests(data, symbols = symbols)
 
 end
-function parseOpenInterest(self::Kucoin, interest, market=nothing)
+function parseOpenInterest(self::Kucoin, interest; market=nothing)
     marketId = safeString(interest, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(interest, "ts");
     return self.safeOpenInterest(Dict{Symbol, Any}(
     Symbol("symbol") => self.safeSymbol(marketId),
@@ -7719,10 +9302,26 @@ function parseOpenInterest(self::Kucoin, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchOpenInterestHistory(self::Kucoin, symbol, timeframe="5m", since=nothing, limit=nothing, params=Dict())
+"""
+Retrieves the open interest history of a currency
+see: https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `timeframe`::string: '5m', '15m', '30m', '1h', '4h' or '1d'
+- `since`::int, optional: the time(ms) of the earliest record to retrieve as a unix timestamp
+- `limit`::int, optional: default 30，max 200
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterestHistory(self::Kucoin, symbol; timeframe="5m", since=nothing, limit=nothing, params=Dict())
     timeframes = Dict{Symbol, Any}(
         Symbol("5m") => "5min",
         Symbol("15m") => "15min",
@@ -7747,9 +9346,9 @@ function fetchOpenInterestHistory(self::Kucoin, symbol, timeframe="5m", since=no
     market = self.market(symbol);
     maxLimit = 200;
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", paginate);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", defaultValue = paginate);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -7764,14 +9363,24 @@ function fetchOpenInterestHistory(self::Kucoin, symbol, timeframe="5m", since=no
     (request, params) = self.handleUntilOption("endAt", request, params);
     response = Base.fetch(self.utaGetMarketOpenInterest(extend(request, params)));
     data = self.safeList(response, "data");
-    return self.parseOpenInterestsHistory(data, market, since, limit)
+    return self.parseOpenInterestsHistory(data, market = market, since = since, limit = limit)
 
 end
-function isUTAEnabled(self::Kucoin, params=Dict())
+"""
+returns true or false so the user can check if unified account is enabled
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-mode
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- true if unified account is enabled, false otherwise
+"""
+function isUTAEnabled(self::Kucoin; params=Dict())
     uta = self.safeBool(self.options, "uta");
     if functions.ccxtruthy(uta == nothing)
         response = Base.fetch(self.utaPrivateGetAccountMode(params));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         accountMode = safeString(data, "selfAccountMode");
         uta = (accountMode == "UNIFIED");
         self.options[Symbol("uta")] = uta;
@@ -7779,10 +9388,10 @@ function isUTAEnabled(self::Kucoin, params=Dict())
     return uta
 
 end
-function sign(self::Kucoin, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
-    versions = self.safeDict(self.options, "versions", Dict{Symbol, Any}());
-    apiVersions = self.safeDict(versions, api, Dict{Symbol, Any}());
-    methodVersions = self.safeDict(apiVersions, method, Dict{Symbol, Any}());
+function sign(self::Kucoin, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+    versions = self.safeDict(self.options, "versions", defaultValue = Dict{Symbol, Any}());
+    apiVersions = self.safeDict(versions, api, defaultValue = Dict{Symbol, Any}());
+    methodVersions = self.safeDict(apiVersions, method, defaultValue = Dict{Symbol, Any}());
     defaultVersion = safeString(methodVersions, path, get(self.options, Symbol("version"), nothing));
     version = safeString(params, "version", defaultVersion);
     params = omit(params, "version");
@@ -7841,7 +9450,7 @@ function sign(self::Kucoin, path, api="public", method="GET", params=Dict(), hea
         payload = string(timestamp, method, endpoint, endpart);
         signature = self.hmac(self.encode(payload), self.encode(self.secret), sha256, "base64");
         headers[Symbol("KC-API-SIGN")] = signature;
-        partner = self.safeDict(self.options, "partner", Dict{Symbol, Any}());
+        partner = self.safeDict(self.options, "partner", defaultValue = Dict{Symbol, Any}());
         isUtaFuturePrivate = @functions.ccxt_and(isUtaPrivate, (tradeType == "FUTURES"));
         isFuturePartner = @functions.ccxt_or(isFuturePrivate, isUtaFuturePrivate);
         partner = functions.ccxtruthy(isFuturePartner) ? safeValue(partner, "future", partner) : safeValue(partner, "spot", partner);
@@ -7886,14 +9495,29 @@ function handleErrors(self::Kucoin, code, reason, url, method, headers, body, re
     return nothing
 
 end
-function fetchTransfers(self::Kucoin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Kucoin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", symbol = code, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}(
         Symbol("bizType") => "TRANSFER"
@@ -7918,28 +9542,39 @@ function fetchTransfers(self::Kucoin, code=nothing, since=nothing, limit=nothing
     end
     (request, params) = self.handleUntilOption("endAt", request, params);
     response = Base.fetch(self.privateGetAccountsLedgers(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    items = self.safeList(data, "items", []);
-    return self.parseTransfers(items, currency, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    items = self.safeList(data, "items", defaultValue = []);
+    return self.parseTransfers(items, currency = currency, since = since, limit = limit)
 
 end
-function fetchPositionsADLRank(self::Kucoin, symbols=nothing, params=Dict())
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+function fetchPositionsADLRank(self::Kucoin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     response = Base.fetch(self.futuresPrivateGetPositions(params));
-    data = self.safeList(response, "data", []);
-    return self.parseADLRanks(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseADLRanks(data, symbols = symbols)
 
 end
-function parseADLRank(self::Kucoin, info, market=nothing)
+function parseADLRank(self::Kucoin, info; market=nothing)
     marketId = safeString(info, "symbol");
     timestamp = safeInteger(info, "openingTimestamp");
     percentage = safeString(info, "delevPercentage");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("rank") => nothing,
     Symbol("rating") => nothing,
     Symbol("percentage") => self.parseNumber(stringMul(percentage, "100")),
@@ -7955,1407 +9590,1407 @@ Base.getproperty(self::Kucoin, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetCurrencies(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrenciesCurrency(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "currencies/{currency}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies/{currency}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSymbols(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "symbols", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "symbols"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketOrderbookLevel1(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/orderbook/level1", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/orderbook/level1"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketAllTickers(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/allTickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/allTickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketStats(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/stats", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/stats"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarkets(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketOrderbookLevelLevelLimit(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/orderbook/level{level}_{limit}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/orderbook/level{level}_{limit}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketOrderbookLevel220(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/orderbook/level2_20", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/orderbook/level2_20"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketOrderbookLevel2100(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/orderbook/level2_100", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/orderbook/level2_100"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketHistories(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/histories", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/histories"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketCandles(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPrices(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "prices", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "prices"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTimestamp(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "timestamp", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "timestamp"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetStatus(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "status", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "status"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarkPriceSymbolCurrent(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "mark-price/{symbol}/current", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "mark-price/{symbol}/current"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarkPriceAllSymbols(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "mark-price/all-symbols", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "mark-price/all-symbols"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarginConfig(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/config", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/config"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAnnouncements(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "announcements", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "announcements"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarginCollateralRatio(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/collateralRatio", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/collateralRatio"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetConvertSymbol(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/symbol", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/symbol"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetConvertCurrencies(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostBulletPublic(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "bullet-public", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "bullet-public"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserInfo(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "user-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserApiKey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "user/api-key", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/api-key"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccounts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsAccountId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "accounts/{accountId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/{accountId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsLedgers(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "accounts/ledgers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/ledgers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfAccountsLedgers(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/accounts/ledgers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/accounts/ledgers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginAccountLedgers(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/account/ledgers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/account/ledgers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransactionHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "transaction-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transaction-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubUser(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub/user", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub/user"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubAccountsSubUserId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub-accounts/{subUserId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-accounts/{subUserId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubAccounts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub-accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubApiKey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub/api-key", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub/api-key"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginAccount(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginAccounts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetIsolatedAccounts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "isolated/accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "isolated/accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDepositAddresses(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "deposit-addresses", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit-addresses"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeposits(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "deposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHistDeposits(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hist-deposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hist-deposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawals(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHistWithdrawals(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hist-withdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hist-withdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawalsQuotas(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "withdrawals/quotas", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/quotas"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsTransferable(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "accounts/transferable", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/transferable"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransferList(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "transfer-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfer-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBaseFee(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "base-fee", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "base-fee"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeFees(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "trade-fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade-fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarketOrderbookLevelLevel(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/orderbook/level{level}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/orderbook/level{level}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarketOrderbookLevel2(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/orderbook/level2", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/orderbook/level2"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarketOrderbookLevel3(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/orderbook/level3", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/orderbook/level3"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfAccountsOpened(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/accounts/opened", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/accounts/opened"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfOrdersActive(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/active", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/active"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfOrdersActiveSymbols(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/active/symbols", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/active/symbols"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginOrderActiveSymbols(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/order/active/symbols", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/order/active/symbols"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfOrdersDone(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/done", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/done"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfOrdersOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/{orderId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/{orderId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfOrdersClientOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/client-order/{clientOid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/client-order/{clientOid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfOrdersDeadCancelAllQuery(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/dead-cancel-all/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/dead-cancel-all/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfFills(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLimitOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "limit/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "limit/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/{orderId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{orderId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderClientOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "order/client-order/{clientOid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/client-order/{clientOid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFills(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLimitFills(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "limit/fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "limit/fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStopOrder(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "stop-order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "stop-order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStopOrderOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "stop-order/{orderId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "stop-order/{orderId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStopOrderQueryOrderByClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "stop-order/queryOrderByClientOid", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "stop-order/queryOrderByClientOid"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOcoOrderOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "oco/order/{orderId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "oco/order/{orderId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOcoOrderDetailsOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "oco/order/details/{orderId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "oco/order/details/{orderId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOcoClientOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "oco/client-order/{clientOid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "oco/client-order/{clientOid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOcoOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "oco/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "oco/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginOrdersActive(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/orders/active", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/orders/active"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginOrdersDone(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/orders/done", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/orders/done"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginOrdersOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/orders/{orderId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/orders/{orderId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginOrdersClientOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/orders/client-order/{clientOid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/orders/client-order/{clientOid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginFills(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginStopOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/stop-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/stop-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginStopOrderOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/stop-order/orderId", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/stop-order/orderId"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginStopOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/stop-order/clientOid", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/stop-order/clientOid"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginOcoOrderOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/oco-order/orderId", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/oco-order/orderId"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginOcoOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/oco-order/clientOid", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/oco-order/clientOid"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginOcoOrderDetailOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/oco-order/detail/orderId", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/oco-order/detail/orderId"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHfMarginOcoOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/oco-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/oco-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetEtfInfo(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "etf/info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etf/info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginCurrencies(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/currencies", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/currencies"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRiskLimitStrategy(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "risk/limit/strategy", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "risk/limit/strategy"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetIsolatedSymbols(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "isolated/symbols", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "isolated/symbols"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginSymbols(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/symbols", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/symbols"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetIsolatedAccountSymbol(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "isolated/account/{symbol}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "isolated/account/{symbol}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginBorrow(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/borrow", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/borrow"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginRepay(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/repay", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/repay"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginInterest(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/interest", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/interest"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetProjectList(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "project/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "project/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetProjectMarketInterestRate(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "project/marketInterestRate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "project/marketInterestRate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRedeemOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "redeem/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "redeem/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPurchaseOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "purchase/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "purchase/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerApiRebaseDownload(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/api/rebase/download", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/api/rebase/download"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerQueryMyCommission(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/queryMyCommission", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/queryMyCommission"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerQueryUser(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/queryUser", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/queryUser"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBrokerQueryDetailByUid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/queryDetailByUid", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/queryDetailByUid"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMigrateUserAccountStatus(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "migrate/user/account/status", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "migrate/user/account/status"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetConvertQuote(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/quote", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/quote"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetConvertOrderDetail(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/order/detail", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/order/detail"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetConvertOrderHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/order/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/order/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetConvertLimitQuote(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/limit/quote", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/limit/quote"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetConvertLimitOrderDetail(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/limit/order/detail", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/limit/order/detail"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetConvertLimitOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/limit/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/limit/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAffiliateInviterStatistics(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "affiliate/inviter/statistics", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "affiliate/inviter/statistics"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubUserCreated(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub/user/created", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub/user/created"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubApiKey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub/api-key", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub/api-key"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubApiKeyUpdate(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub/api-key/update", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub/api-key/update"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDepositAddresses(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "deposit-addresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deposit-addresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawals(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountsUniversalTransfer(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "accounts/universal-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "accounts/universal-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountsSubTransfer(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "accounts/sub-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "accounts/sub-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountsInnerTransfer(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "accounts/inner-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "accounts/inner-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransferOut(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "transfer-out", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer-out"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransferIn(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "transfer-in", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer-in"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfOrdersTest(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/test", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/test"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfOrdersSync(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/sync", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/sync"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfOrdersMulti(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/multi", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/multi"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfOrdersMultiSync(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/multi/sync", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/multi/sync"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfOrdersAlter(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/alter", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/alter"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfOrdersDeadCancelAll(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/dead-cancel-all", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/dead-cancel-all"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersTest(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/test", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/test"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersMulti(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/multi", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/multi"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostStopOrder(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "stop-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "stop-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOcoOrder(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "oco/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "oco/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfMarginOrder(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfMarginOrderTest(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/order/test", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/order/test"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfMarginStopOrder(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/stop-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/stop-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginOrder(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginOrderTest(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/order/test", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/order/test"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHfMarginOcoOrder(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/oco-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/oco-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginBorrow(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/borrow", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/borrow"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginRepay(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPurchase(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "purchase", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "purchase"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRedeem(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "redeem", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "redeem"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLendPurchaseUpdate(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "lend/purchase/update", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lend/purchase/update"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostConvertOrder(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "convert/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostConvertLimitOrder(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/limit/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "convert/limit/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBulletPrivate(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "bullet-private", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bullet-private"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionUpdateUserLeverage(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position/update-user-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/update-user-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDepositAddressCreate(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "deposit-address/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deposit-address/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteSubApiKey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub/api-key", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "sub/api-key"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteWithdrawalsWithdrawalId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "withdrawals/{withdrawalId}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/{withdrawalId}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfOrdersOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/{orderId}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfOrdersSyncOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/sync/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/sync/{orderId}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfOrdersClientOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/client-order/{clientOid}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/client-order/{clientOid}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfOrdersSyncClientOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/sync/client-order/{clientOid}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/sync/client-order/{clientOid}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfOrdersCancelOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/cancel/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/cancel/{orderId}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfOrdersCancelAll(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/orders/cancelAll", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/orders/cancelAll"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{orderId}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrderClientOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "order/client-order/{clientOid}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order/client-order/{clientOid}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteStopOrderOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "stop-order/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "stop-order/{orderId}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteStopOrderCancelOrderByClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "stop-order/cancelOrderByClientOid", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "stop-order/cancelOrderByClientOid"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteStopOrderCancel(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "stop-order/cancel", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "stop-order/cancel"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOcoOrderOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "oco/order/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "oco/order/{orderId}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOcoClientOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "oco/client-order/{clientOid}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "oco/client-order/{clientOid}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOcoOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "oco/orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "oco/orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfMarginOrdersOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/orders/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/orders/{orderId}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfMarginOrdersClientOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/orders/client-order/{clientOid}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/orders/client-order/{clientOid}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfMarginOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfMarginStopOrderCancelById(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/stop-order/cancel-by-id", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/stop-order/cancel-by-id"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfMarginStopOrderCancelByClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/stop-order/cancel-by-clientOid", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/stop-order/cancel-by-clientOid"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfMarginStopOrderCancel(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/stop-order/cancel", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/stop-order/cancel"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfMarginOcoOrderCancelById(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/oco-order/cancel-by-id", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/oco-order/cancel-by-id"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfMarginOcoOrderCancelByClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/oco-order/cancel-by-clientOid", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/oco-order/cancel-by-clientOid"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteHfMarginOcoOrderCancel(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "hf/margin/oco-order/cancel", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "hf/margin/oco-order/cancel"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteConvertLimitOrderCancel(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "convert/limit/order/cancel", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "convert/limit/order/cancel"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetContractsActive(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "contracts/active", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "contracts/active"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetContractsSymbol(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "contracts/{symbol}", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "contracts/{symbol}"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetTicker(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "ticker", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetAllTickers(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "allTickers", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "allTickers"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetLevel2Snapshot(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "level2/snapshot", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "level2/snapshot"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetLevel2Depth20(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "level2/depth20", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "level2/depth20"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetLevel2Depth100(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "level2/depth100", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "level2/depth100"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetTradeHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "trade/history", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/history"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetKlineQuery(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "kline/query", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "kline/query"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetInterestQuery(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "interest/query", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "interest/query"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetIndexQuery(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "index/query", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "index/query"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetMarkPriceSymbolCurrent(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "mark-price/{symbol}/current", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "mark-price/{symbol}/current"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetPremiumQuery(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "premium/query", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "premium/query"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetTradeStatistics(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "trade-statistics", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade-statistics"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetFundingRateSymbolCurrent(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "funding-rate/{symbol}/current", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding-rate/{symbol}/current"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetContractFundingRates(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "contract/funding-rates", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/funding-rates"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetTimestamp(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "timestamp", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "timestamp"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetStatus(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "status", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "status"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetLevel2MessageQuery(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "level2/message/query", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "level2/message/query"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetContractsRiskLimitSymbol(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "contracts/risk-limit/{symbol}", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "contracts/risk-limit/{symbol}"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetLevel3MessageQuery(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "level3/message/query", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "level3/message/query"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicGetLevel3Snapshot(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "level3/snapshot", "futuresPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "level3/snapshot"; api="futuresPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPublicPostBulletPublic(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "bullet-public", "futuresPublic", "POST", params, nothing, nothing, Dict())
+    return request(self, "bullet-public"; api="futuresPublic", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetTransactionHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "transaction-history", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "transaction-history"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetAccountOverview(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account-overview", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account-overview"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetAccountOverviewAll(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account-overview-all", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account-overview-all"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetTransferList(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "transfer-list", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfer-list"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetStopOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "stopOrders", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "stopOrders"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetRecentDoneOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "recentDoneOrders", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "recentDoneOrders"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetOrdersOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/{orderId}", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{orderId}"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetOrdersByClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/byClientOid", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/byClientOid"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetFills(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "fills", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetRecentFills(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "recentFills", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "recentFills"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetTradeFees(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "trade-fees", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade-fees"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetOpenOrderStatistics(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "openOrderStatistics", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrderStatistics"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetPosition(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "position"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetPositions(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "positions", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "positions"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetMarginMaxWithdrawMargin(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/maxWithdrawMargin", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/maxWithdrawMargin"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetContractsRiskLimitSymbol(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "contracts/risk-limit/{symbol}", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "contracts/risk-limit/{symbol}"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetFundingHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "funding-history", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding-history"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetCopyTradeFuturesGetMaxOpenSize(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/get-max-open-size", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/get-max-open-size"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/position/margin/max-withdraw-margin", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/position/margin/max-withdraw-margin"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetHistoryPositions(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "history-positions", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "history-positions"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetPositionGetMarginMode(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position/getMarginMode", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "position/getMarginMode"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetPositionGetPositionMode(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position/getPositionMode", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "position/getPositionMode"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetDepositAddress(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "deposit-address", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit-address"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetDepositList(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "deposit-list", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit-list"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetWithdrawalsQuotas(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "withdrawals/quotas", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/quotas"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetWithdrawalList(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "withdrawal-list", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawal-list"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetSubApiKey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub/api-key", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub/api-key"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetTradeStatistics(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "trade-statistics", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade-statistics"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetGetMaxOpenSize(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "getMaxOpenSize", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "getMaxOpenSize"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateGetGetCrossUserLeverage(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "getCrossUserLeverage", "futuresPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "getCrossUserLeverage"; api="futuresPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostTransferOut(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "transfer-out", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer-out"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostTransferIn(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "transfer-in", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer-in"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostStOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "st-orders", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "st-orders"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostOrdersTest(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/test", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/test"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostOrdersMulti(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/multi", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/multi"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostPositionMarginAutoDepositStatus(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position/margin/auto-deposit-status", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/margin/auto-deposit-status"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostMarginWithdrawMargin(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "margin/withdrawMargin", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/withdrawMargin"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostPositionMarginDepositMargin(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position/margin/deposit-margin", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/margin/deposit-margin"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostPositionRiskLimitLevelChange(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position/risk-limit-level/change", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/risk-limit-level/change"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradeFuturesOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/orders", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/orders"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradeFuturesOrdersTest(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/orders/test", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/orders/test"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradeFuturesStOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/st-orders", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/st-orders"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradeFuturesPositionMarginDepositMargin(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/position/margin/deposit-margin", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/position/margin/deposit-margin"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/position/margin/withdraw-margin", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/position/margin/withdraw-margin"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/position/risk-limit-level/change", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/position/risk-limit-level/change"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/position/margin/auto-deposit-status", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/position/margin/auto-deposit-status"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradeFuturesPositionChangeMarginMode(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/position/changeMarginMode", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/position/changeMarginMode"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/position/changeCrossUserLeverage", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/position/changeCrossUserLeverage"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradeGetCrossModeMarginRequirement(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/getCrossModeMarginRequirement", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/getCrossModeMarginRequirement"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostCopyTradePositionSwitchPositionMode(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/position/switchPositionMode", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/position/switchPositionMode"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostChangeCrossUserLeverage(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "changeCrossUserLeverage", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "changeCrossUserLeverage"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostWithdrawals(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostSubApiKey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub/api-key", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub/api-key"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostSubApiKeyUpdate(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub/api-key/update", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub/api-key/update"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostPositionChangeMarginMode(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position/changeMarginMode", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/changeMarginMode"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostPositionSwitchPositionMode(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position/switchPositionMode", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "position/switchPositionMode"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivatePostBulletPrivate(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "bullet-private", "futuresPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "bullet-private"; api="futuresPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateDeleteOrdersOrderId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/{orderId}", "futuresPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{orderId}"; api="futuresPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateDeleteOrdersClientOrderClientOid(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/client-order/{clientOid}", "futuresPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/client-order/{clientOid}"; api="futuresPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateDeleteOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders", "futuresPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="futuresPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateDeleteStopOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "stopOrders", "futuresPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "stopOrders"; api="futuresPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateDeleteCopyTradeFuturesOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/orders", "futuresPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/orders"; api="futuresPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "copy-trade/futures/orders/client-order", "futuresPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "copy-trade/futures/orders/client-order"; api="futuresPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateDeleteOrdersMultiCancel(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "orders/multi-cancel", "futuresPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/multi-cancel"; api="futuresPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateDeleteWithdrawalsWithdrawalId(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "withdrawals/{withdrawalId}", "futuresPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/{withdrawalId}"; api="futuresPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateDeleteCancelTransferOut(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "cancel/transfer-out", "futuresPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "cancel/transfer-out"; api="futuresPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function futuresPrivateDeleteSubApiKey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub/api-key", "futuresPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "sub/api-key"; api="futuresPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function webExchangeGetCurrencyCurrencyChainInfo(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "currency/currency/chain-info", "webExchange", "GET", params, nothing, nothing, Dict())
+    return request(self, "currency/currency/chain-info"; api="webExchange", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function webExchangeGetContractSymbolFundingRates(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "contract/{symbol}/funding-rates", "webExchange", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/{symbol}/funding-rates"; api="webExchange", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerGetBrokerNdInfo(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/info", "broker", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/info"; api="broker", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerGetBrokerNdAccount(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/account", "broker", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/account"; api="broker", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerGetBrokerNdAccountApikey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/account/apikey", "broker", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/account/apikey"; api="broker", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerGetBrokerNdRebaseDownload(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/rebase/download", "broker", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/rebase/download"; api="broker", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerGetAssetNdbrokerDepositList(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "asset/ndbroker/deposit/list", "broker", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/ndbroker/deposit/list"; api="broker", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerGetBrokerNdTransferDetail(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/transfer/detail", "broker", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/transfer/detail"; api="broker", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerGetBrokerNdDepositDetail(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/deposit/detail", "broker", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/deposit/detail"; api="broker", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerGetBrokerNdWithdrawDetail(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/withdraw/detail", "broker", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/withdraw/detail"; api="broker", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerPostBrokerNdTransfer(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/transfer", "broker", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/transfer"; api="broker", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerPostBrokerNdAccount(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/account", "broker", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/account"; api="broker", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerPostBrokerNdAccountApikey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/account/apikey", "broker", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/account/apikey"; api="broker", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerPostBrokerNdAccountUpdateApikey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/account/update-apikey", "broker", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/account/update-apikey"; api="broker", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function brokerDeleteBrokerNdAccountApikey(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "broker/nd/account/apikey", "broker", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "broker/nd/account/apikey"; api="broker", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetOtcLoanDiscountRateConfigs(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "otc-loan/discount-rate-configs", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "otc-loan/discount-rate-configs"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetOtcLoanLoan(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "otc-loan/loan", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "otc-loan/loan"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetOtcLoanAccounts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "otc-loan/accounts", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "otc-loan/accounts"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetEarnRedeemPreview(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "earn/redeem-preview", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "earn/redeem-preview"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetEarnSavingProducts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "earn/saving/products", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "earn/saving/products"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetEarnHoldAssets(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "earn/hold-assets", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "earn/hold-assets"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetEarnPromotionProducts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "earn/promotion/products", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "earn/promotion/products"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetEarnKcsStakingProducts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "earn/kcs-staking/products", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "earn/kcs-staking/products"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetEarnStakingProducts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "earn/staking/products", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "earn/staking/products"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetEarnEthStakingProducts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "earn/eth-staking/products", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "earn/eth-staking/products"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetStructEarnDualProducts(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "struct-earn/dual/products", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "struct-earn/dual/products"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnGetStructEarnOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "struct-earn/orders", "earn", "GET", params, nothing, nothing, Dict())
+    return request(self, "struct-earn/orders"; api="earn", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnPostEarnOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "earn/orders", "earn", "POST", params, nothing, nothing, Dict())
+    return request(self, "earn/orders"; api="earn", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnPostStructEarnOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "struct-earn/orders", "earn", "POST", params, nothing, nothing, Dict())
+    return request(self, "struct-earn/orders"; api="earn", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function earnDeleteEarnOrders(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "earn/orders", "earn", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "earn/orders"; api="earn", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketAnnouncement(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/announcement", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/announcement"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketCurrency(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/currency", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/currency"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetAssetCurrencies(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "asset/currencies", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/currencies"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketInstrument(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/instrument", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/instrument"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketTicker(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/ticker", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/ticker"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketTrade(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/trade", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/trade"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketKline(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/kline", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/kline"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketFundingRate(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/funding-rate", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/funding-rate"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketFundingRateHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/funding-rate-history", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/funding-rate-history"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketCrossConfig(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/cross-config", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/cross-config"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketCollateralDiscountRatio(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/collateral-discount-ratio", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/collateral-discount-ratio"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketIndexPrice(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/index-price", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/index-price"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketPositionTiers(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/position-tiers", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/position-tiers"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketOpenInterest(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/open-interest", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/open-interest"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetServerStatus(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "server/status", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "server/status"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketBorrowableCurrency(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/borrowable-currency", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/borrowable-currency"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetUserMyIp(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "user/my-ip", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/my-ip"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaGetMarketFiatPrice(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/fiat-price", "uta", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/fiat-price"; api="uta", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetMarketOrderbook(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "market/orderbook", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/orderbook"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountBalance(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account/balance", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/balance"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountTransferQuota(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account/transfer-quota", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/transfer-quota"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountMode(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account/mode", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/mode"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountLedger(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account/ledger", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/ledger"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountInterestHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account/interest-history", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/interest-history"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAssetDepositAddress(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "asset/deposit/address", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/deposit/address"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountDepositAddress(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account/deposit/address", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/deposit/address"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountModeAccountBalance(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/account/balance", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/account/balance"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountModeAccountOverview(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/account/overview", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/account/overview"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountModeOrderDetail(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/order/detail", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/order/detail"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountModeOrderOpenList(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/order/open-list", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/order/open-list"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountModeOrderHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/order/history", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/order/history"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountModeOrderExecution(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/order/execution", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/order/execution"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountModePositionOpenList(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/position/open-list", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/position/open-list"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountModePositionHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/position/history", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/position/history"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetPositionHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position/history", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "position/history"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountModePositionTiers(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/position/tiers", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/position/tiers"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetSubAccountBalance(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub-account/balance", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/balance"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetUserFeeRate(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "user/fee-rate", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/fee-rate"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetDcpQuery(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "dcp/query", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "dcp/query"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetUnifiedAccountLeverage(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "unified/account/leverage", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/account/leverage"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetPositionFundingHistory(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "position/funding-history", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "position/funding-history"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivateGetAccountInterestLimits(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account/interest-limits", "utaPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/interest-limits"; api="utaPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostAccountTransfer(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account/transfer", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/transfer"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostAccountMode(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "account/mode", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/mode"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostAccountModeAccountModifyLeverage(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/account/modify-leverage", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/account/modify-leverage"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostAccountModeOrderPlace(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/order/place", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/order/place"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostAccountModeOrderPlaceBatch(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/order/place-batch", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/order/place-batch"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostAccountModeOrderCancel(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/order/cancel", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/order/cancel"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostAccountModeOrderCancelBatch(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/order/cancel-batch", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/order/cancel-batch"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostAccountModeOrderCancelAll(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/order/cancel-all", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/order/cancel-all"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostSubAccountCanTransferOut(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "sub-account/canTransferOut", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/canTransferOut"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostDcpSet(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "dcp/set", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "dcp/set"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function utaPrivatePostAccountModeAccountModifyLeverageMarginCross(self::Kucoin, params=Dict(), context=Dict())
-    return request(self, "{accountMode}/account/modify-leverage-margin-cross", "utaPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "{accountMode}/account/modify-leverage-margin-cross"; api="utaPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Kucoin(; kwargs...)
@@ -9419,3 +11054,1949 @@ function Kucoin(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Kucoin_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-server-time
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Kucoin_fetchTime
+
+function __ccxt_doc_Kucoin_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-service-status
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-service-status
+see: https://www.kucoin.com/docs-new/rest/ua/get-service-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: spot or swap
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.tradeType`::string, optional: *uta only* set to SPOT or FUTURES
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Kucoin_fetchStatus
+
+function __ccxt_doc_Kucoin_fetchMarkets() end
+"""
+retrieves data on all markets for kucoin
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-symbols
+see: https://www.kucoin.com/docs-new/rest/ua/get-symbol
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-symbols
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Kucoin_fetchMarkets
+
+function __ccxt_doc_Kucoin_loadMigrationStatus() end
+"""
+loads the migration status for the account (hf or not)
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
+
+# Arguments
+- `force`::bool: load account state for non hf
+
+# Returns
+- ignore
+"""
+__ccxt_doc_Kucoin_loadMigrationStatus
+
+function __ccxt_doc_Kucoin_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
+see: https://www.kucoin.com/docs-new/rest/ua/get-currencies
+
+# Arguments
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Kucoin_fetchCurrencies
+
+function __ccxt_doc_Kucoin_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Kucoin_fetchAccounts
+
+function __ccxt_doc_Kucoin_fetchTransactionFee() end
+"""
+*DEPRECATED* please use fetchDepositWithdrawFee instead
+see: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Kucoin_fetchTransactionFee
+
+function __ccxt_doc_Kucoin_fetchDepositWithdrawFee() end
+"""
+fetch the fee for deposits and withdrawals
+see: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Kucoin_fetchDepositWithdrawFee
+
+function __ccxt_doc_Kucoin_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-tickers
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-tickers
+see: https://www.kucoin.com/docs-new/rest/ua/get-ticker
+
+# Arguments
+- `symbols`::any, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.type`::string, optional: spot or swap (default is spot)
+- `params.method`::string, optional: *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Kucoin_fetchTickers
+
+function __ccxt_doc_Kucoin_fetchMarkPrices() end
+"""
+fetches the mark price for multiple markets
+see: https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-list
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Kucoin_fetchMarkPrices
+
+function __ccxt_doc_Kucoin_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-24hr-stats
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-ticker
+see: https://www.kucoin.com/docs-new/rest/ua/get-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Kucoin_fetchTicker
+
+function __ccxt_doc_Kucoin_fetchMarkPrice() end
+"""
+fetches the mark price for a specific market
+see: https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-detail
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-mark-price
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Kucoin_fetchMarkPrice
+
+function __ccxt_doc_Kucoin_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
+see: https://www.kucoin.com/docs-new/rest/ua/get-klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Kucoin_fetchOHLCV
+
+function __ccxt_doc_Kucoin_fetchUTAOHLCV() end
+"""
+helper method for fetchOHLCV
+see: https://www.kucoin.com/docs-new/rest/ua/get-klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Kucoin_fetchUTAOHLCV
+
+function __ccxt_doc_Kucoin_fetchSpotOHLCV() end
+"""
+helper method for fetchOHLCV
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Kucoin_fetchSpotOHLCV
+
+function __ccxt_doc_Kucoin_fetchContractOHLCV() end
+"""
+helper method for fetchOHLCV
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Kucoin_fetchContractOHLCV
+
+function __ccxt_doc_Kucoin_createDepositAddress() end
+"""
+create a currency deposit address
+see: https://www.kucoin.com/docs-new/rest/account-info/deposit/add-deposit-address-v3
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network name
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Kucoin_createDepositAddress
+
+function __ccxt_doc_Kucoin_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+see: https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network name
+- `params.accountType`::string, optional: 'main', 'contract' or 'uta' (default is 'main')
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Kucoin_fetchDepositAddress
+
+function __ccxt_doc_Kucoin_fetchContractDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Kucoin_fetchContractDepositAddress
+
+function __ccxt_doc_Kucoin_fetchDepositAddressesByNetwork() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+see: https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false
+
+# Returns
+- an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Kucoin_fetchDepositAddressesByNetwork
+
+function __ccxt_doc_Kucoin_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
+see: https://www.kucoin.com/docs-new/rest/ua/get-orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Kucoin_fetchOrderBook
+
+function __ccxt_doc_Kucoin_createOrder() end
+"""
+Create an order on the exchange
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+see: https://www.kucoin.com/docs-new/rest/ua/place-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false Check createSpotOrder(), createContractOrder() and createUtaOrder () for more details on the extra parameters that can be used in params
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_createOrder
+
+function __ccxt_doc_Kucoin_createSpotOrder() end
+"""
+helper method for creating spot orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.marginMode`::string, optional: 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+- `params.timeInForce`::string, optional: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+- `params.postOnly`::bool, optional: Post only flag, invalid when timeInForce is IOC or FOK EXCHANGE SPECIFIC PARAMETERS
+- `params.clientOid`::string, optional: client order id, defaults to uuid if not passed
+- `params.remark`::string, optional: remark for the order, length cannot exceed 100 utf8 characters
+- `params.tradeType`::string, optional: 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders limit orders ---------------------------------------------------
+- `params.cancelAfter`::float, optional: long, // cancel after n seconds, requires timeInForce to be GTT
+- `params.hidden`::bool, optional: false, // Order will not be displayed in the order book
+- `params.iceberg`::bool, optional: false, // Only a portion of the order is displayed in the order book
+- `params.visibleSize`::string, optional: this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order market orders --------------------------------------------------
+- `params.funds`::string, optional: // Amount of quote currency to use stop orders ----------------------------------------------------
+- `params.stop`::string, optional: Either loss or entry, the default is loss. Requires triggerPrice to be defined margin orders --------------------------------------------------
+- `params.leverage`::float, optional: Leverage size of the order
+- `params.stp`::string, optional: '', // self trade prevention, CN, CO, CB or DC
+- `params.autoBorrow`::bool, optional: false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.test`::bool, optional: set to true to test an order, no order will be created but the request will be validated
+- `params.sync`::bool, optional: set to true to use the hf sync call
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_createSpotOrder
+
+function __ccxt_doc_Kucoin_createContractOrder() end
+"""
+helper method for creating contract orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: price to trigger stop-loss orders
+- `params.takeProfitPrice`::float, optional: price to trigger take-profit orders
+- `params.reduceOnly`::bool, optional: A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+- `params.timeInForce`::string, optional: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+- `params.postOnly`::bool, optional: Post only flag, invalid when timeInForce is IOC or FOK
+- `params.cost`::float, optional: the cost of the order in units of USDT
+- `params.marginMode`::string, optional: 'cross' or 'isolated', default is 'isolated'
+- `params.hedged`::bool, optional: *swap and future only* true for hedged mode, false for one way mode, default is false ----------------- Exchange Specific Parameters -----------------
+- `params.leverage`::float, optional: Leverage size of the order (mandatory param in request, default is 1)
+- `params.clientOid`::string, optional: client order id, defaults to uuid if not passed
+- `params.remark`::string, optional: remark for the order, length cannot exceed 100 utf8 characters
+- `params.stop`::string, optional: 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
+- `params.triggerPriceType`::string, optional: "last", "mark", "index" - defaults to "mark"
+- `params.stopPriceType`::string, optional: exchange-specific alternative for triggerPriceType: TP, IP or MP
+- `params.closeOrder`::bool, optional: set to true to close position
+- `params.test`::bool, optional: set to true to use the test order endpoint (does not submit order, use to validate params)
+- `params.forceHold`::bool, optional: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+- `params.positionSide`::string, optional: *swap and future only* hedged two-way position side, LONG or SHORT
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_createContractOrder
+
+function __ccxt_doc_Kucoin_createUtaOrder() end
+"""
+helper method for creating uta orders
+see: https://www.kucoin.com/docs-new/rest/ua/place-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, defaults to uuid if not passed
+- `params.cost`::float, optional: the cost of the order in units of quote currency
+- `params.timeInForce`::string, optional: GTC, GTD, IOC, FOK or PO
+- `params.postOnly`::bool, optional: Post only flag, invalid when timeInForce is IOC or FOK (default is false)
+- `params.reduceOnly`::bool, optional: *contract markets only* A mark to reduce the position size only. Set to false by default
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.triggerDirection`::string, optional: 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice
+- `params.triggerPriceType`::string, optional: *contract markets only* "last", "mark", "index" - defaults to "mark"
+- `params.stopLossPrice`::float, optional: price to trigger stop-loss orders
+- `params.takeProfitPrice`::float, optional: price to trigger take-profit orders
+- `params.marginMode`::string, optional: 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders) Exchange-specific parameters -------------------------------------------------
+- `params.accountMode`::string, optional: 'unified' or 'classic', default is 'unified'
+- `params.stp`::string, optional: '', // self trade prevention, CN, CO, CB or DC
+- `params.cancelAfter`::int, optional: - Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
+- `params.sizeUnit`::string, optional: *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT' Classic account parameters
+- `params.autoBorrow`::bool, optional: *classic margin orders only*
+- `params.autoRepay`::bool, optional: *classic margin orders only*
+- `params.hedged`::string, optional: *classic contract orders only* true for hedged mode, false for one way mode, default is false
+- `params.leverage`::int, optional: *classic contract orders with isolated marginMode only* Leverage size of the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_createUtaOrder
+
+function __ccxt_doc_Kucoin_createMarketOrderWithCost() end
+"""
+create a market order by providing the symbol, side and cost
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_createMarketOrderWithCost
+
+function __ccxt_doc_Kucoin_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Kucoin_createMarketSellOrderWithCost() end
+"""
+create a market sell order by providing the symbol and cost
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_createMarketSellOrderWithCost
+
+function __ccxt_doc_Kucoin_createOrders() end
+"""
+create a list of trade orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_createOrders
+
+function __ccxt_doc_Kucoin_createSpotOrders() end
+"""
+helper method for creating spot orders in batch
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.hf`::bool, optional: false, // true for hf orders
+- `params.sync`::bool, optional: false, // true to use the hf sync call
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_createSpotOrders
+
+function __ccxt_doc_Kucoin_createContractOrders() end
+"""
+helper method for creating contract orders in batch
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_createContractOrders
+
+function __ccxt_doc_Kucoin_editOrder() end
+"""
+edit an order, kucoin currently only supports the modification of HF orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/modify-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: not used
+- `side`::string: not used
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, defaults to id if not passed
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_editOrder
+
+function __ccxt_doc_Kucoin_cancelOrder() end
+"""
+cancels an open order
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/ua/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.marginMode`::string, optional: *spot only* 'cross' or 'isolated'
+- `params.uta`::bool, optional: true for cancelling order with unified account endpoint (default is false) Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
+
+# Returns
+- Response from the exchange
+"""
+__ccxt_doc_Kucoin_cancelOrder
+
+function __ccxt_doc_Kucoin_cancelSpotOrder() end
+"""
+helper method for cancelling spot orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: True if cancelling a stop order
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.sync`::bool, optional: false, // true to use the hf sync call
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- Response from the exchange
+"""
+__ccxt_doc_Kucoin_cancelSpotOrder
+
+function __ccxt_doc_Kucoin_cancelContractOrder() end
+"""
+helper method for cancelling contract orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: cancel order by client order id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_cancelContractOrder
+
+function __ccxt_doc_Kucoin_cancelUtaOrder() end
+"""
+helper method for cancelling uta orders
+see: https://www.kucoin.com/docs-new/rest/ua/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountMode`::string, optional: 'unified' or 'classic' (default is 'unified')
+- `params.clientOrderId`::string, optional: client order id, required if id is not provided
+- `params.marginMode`::string, optional: 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
+
+# Returns
+- Response from the exchange
+"""
+__ccxt_doc_Kucoin_cancelUtaOrder
+
+function __ccxt_doc_Kucoin_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+see: https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.marginMode`::string, optional: *spot only* 'cross' or 'isolated'
+- `params.uta`::bool, optional: true for cancelling orders with unified account endpoint (default is false) Check cancelAllSpotOrders(), cancelAllContractOrders() and cancelAllUtaOrders() for more details on the extra parameters that can be used in params
+
+# Returns
+- Response from the exchange
+"""
+__ccxt_doc_Kucoin_cancelAllOrders
+
+function __ccxt_doc_Kucoin_cancelAllSpotOrders() end
+"""
+helper method for cancelling all spot orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *invalid for isolated margin* true if cancelling all stop orders
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+- `params.orderIds`::string, optional: *stop orders only* Comma separated order IDs
+- `params.hf`::bool, optional: false, // true for hf order
+
+# Returns
+- Response from the exchange
+"""
+__ccxt_doc_Kucoin_cancelAllSpotOrders
+
+function __ccxt_doc_Kucoin_cancelAllContractOrders() end
+"""
+helper method for cancelling all contract orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::object, optional: When true, all the trigger orders will be cancelled
+
+# Returns
+- Response from the exchange
+"""
+__ccxt_doc_Kucoin_cancelAllContractOrders
+
+function __ccxt_doc_Kucoin_cancelAllUtaOrders() end
+"""
+helper method for cancelling all uta orders
+see: https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if cancelling all stop orders
+- `params.marginMode`::string, optional: 'CROSS' or 'ISOLATED'
+
+# Returns
+- Response from the exchange
+"""
+__ccxt_doc_Kucoin_cancelAllUtaOrders
+
+function __ccxt_doc_Kucoin_fetchOrdersByStatus() end
+"""
+fetches a list of orders placed on the exchange
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+see: https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+see: https://www.kucoin.com/docs-new/rest/ua/get-order-history
+
+# Arguments
+- `status`::string: 'active' or 'closed', only 'active' is valid for stop orders
+- `symbol`::string: unified symbol for the market to retrieve orders from
+- `since`::int, optional: timestamp in ms of the earliest order to retrieve
+- `limit`::int, optional: The maximum number of orders to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.uta`::bool, optional: true for fetch orders with uta endpoint (default is false) Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
+
+# Returns
+- An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_fetchOrdersByStatus
+
+function __ccxt_doc_Kucoin_fetchSpotOrdersByStatus() end
+"""
+fetch a list of spot orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+
+# Arguments
+- `status`::string: *not used for stop orders* 'open' or 'closed'
+- `symbol`::string: unified market symbol
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: max number of orders to return
+- `params`::object, optional: exchange specific params
+- `params.until`::int, optional: end time in ms
+- `params.side`::string, optional: buy or sell
+- `params.type`::string, optional: limit, market, limit_stop or market_stop
+- `params.tradeType`::string, optional: TRADE for spot trading, MARGIN_TRADE or MARGIN_ISOLATED_TRADE for Margin Trading
+- `params.currentPage`::int, optional: *trigger orders only* current page
+- `params.orderIds`::string, optional: *trigger orders only* comma separated order ID list
+- `params.trigger`::bool, optional: True if fetching a trigger order
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', only for margin orders
+
+# Returns
+- An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_fetchSpotOrdersByStatus
+
+function __ccxt_doc_Kucoin_fetchContractOrdersByStatus() end
+"""
+fetches a list of contract orders placed on the exchange
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+
+# Arguments
+- `status`::string: 'active' or 'closed', only 'active' is valid for stop orders
+- `symbol`::string: unified symbol for the market to retrieve orders from
+- `since`::int, optional: timestamp in ms of the earliest order to retrieve
+- `limit`::int, optional: The maximum number of orders to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.trigger`::bool, optional: set to true to retrieve untriggered stop orders
+- `params.until`::int, optional: End time in ms
+- `params.side`::string, optional: buy or sell
+- `params.type`::string, optional: limit or market
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_fetchContractOrdersByStatus
+
+function __ccxt_doc_Kucoin_fetchUtaOrdersByStatus() end
+"""
+helper method for fetching orders by status with uta endpoint
+see: https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+see: https://www.kucoin.com/docs-new/rest/ua/get-order-history
+
+# Arguments
+- `status`::string: 'active' or 'closed', only 'active' is valid for stop orders
+- `symbol`::string: unified symbol for the market to retrieve orders from
+- `since`::int, optional: timestamp in ms of the earliest order to retrieve
+- `limit`::int, optional: The maximum number of orders to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.until`::int, optional: End time in ms
+- `params.side`::string, optional: *closed orders only* 'BUY' or 'SELL'
+- `params.accountMode`::string, optional: 'unified' or 'classic' (default is unified)
+- `params.marginMode`::string, optional: 'cross' or 'isolated', only for margin orders (unified accountMode supports only cross margin)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_fetchUtaOrdersByStatus
+
+function __ccxt_doc_Kucoin_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/ua/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.side`::string, optional: buy or sell
+- `params.type`::string, optional: limit, market, limit_stop or market_stop
+- `params.tradeType`::string, optional: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+- `params.trigger`::bool, optional: True if fetching a trigger order
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_fetchClosedOrders
+
+function __ccxt_doc_Kucoin_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+see: https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.trigger`::bool, optional: true if fetching trigger orders
+- `params.side`::string, optional: buy or sell
+- `params.type`::string, optional: limit, market, limit_stop or market_stop
+- `params.tradeType`::string, optional: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+- `params.currentPage`::int, optional: *trigger orders only* current page
+- `params.orderIds`::string, optional: *trigger orders only* comma separated order ID list
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_fetchOpenOrders
+
+function __ccxt_doc_Kucoin_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/ua/get-order-details
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.uta`::bool, optional: true if fetching an order with uta endpoint (default is false) Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_fetchOrder
+
+function __ccxt_doc_Kucoin_fetchSpotOrder() end
+"""
+fetch a spot order
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
+
+# Arguments
+- `id`::string: Order id
+- `symbol`::string: not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
+- `params`::object, optional: exchange specific parameters
+- `params.trigger`::bool, optional: true if fetching a trigger order
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.clientOid`::bool, optional: unique order id created by users to identify their orders
+- `params.marginMode`::object, optional: 'cross' or 'isolated'
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_fetchSpotOrder
+
+function __ccxt_doc_Kucoin_fetchContractOrder() end
+"""
+fetc contract order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+see: https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_fetchContractOrder
+
+function __ccxt_doc_Kucoin_fetchUtaOrder() end
+"""
+fetch uta order
+see: https://www.kucoin.com/docs-new/rest/ua/get-order-details
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountMode`::string, optional: 'unified' or 'classic' (default is 'unified')
+- `params.clientOrderId`::string, optional: client order id, required if id is not provided
+- `params.marginMode`::string, optional: 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_fetchUtaOrder
+
+function __ccxt_doc_Kucoin_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.uta`::bool, optional: set to true if fetching trades from uta endpoint, default is false.
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Kucoin_fetchOrderTrades
+
+function __ccxt_doc_Kucoin_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot') Check fetchMySpotTrades() and fetchMyContractTrades() for more details on the extra parameters that can be used in params
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Kucoin_fetchMyTrades
+
+function __ccxt_doc_Kucoin_fetchMySpotTrades() end
+"""
+fetch all spot trades made by the user
+see: https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.hf`::bool, optional: false, // true for hf order
+- `params.marginMode`::string, optional: 'cross' or 'isolated', only for margin trades
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Kucoin_fetchMySpotTrades
+
+function __ccxt_doc_Kucoin_fetchMyContractTrades() end
+"""
+fetch all contract trades made by the user
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: End time in ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Kucoin_fetchMyContractTrades
+
+function __ccxt_doc_Kucoin_fetchMyUtaTrades() end
+"""
+fetch all trades made by the user
+see: https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve (default is 50, max is 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.accountMode`::string, optional: 'unified' or 'classic', defaults to 'unified'
+- `params.marginMode`::string, optional: 'cross' or 'isolated', only for margin trades (unified accountMode support only cross margin)
+- `params.side`::string, optional: 'BUY' or 'SELL' (both if not provided)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Kucoin_fetchMyUtaTrades
+
+function __ccxt_doc_Kucoin_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-trade-history
+see: https://www.kucoin.com/docs-new/rest/ua/get-trades
+see: https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-trade-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Kucoin_fetchTrades
+
+function __ccxt_doc_Kucoin_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
+see: https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
+see: https://www.kucoin.com/docs-new/rest/ua/get-actual-fee
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Kucoin_fetchTradingFee
+
+function __ccxt_doc_Kucoin_withdraw() end
+"""
+make a withdrawal
+see: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/withdraw-v3
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Kucoin_withdraw
+
+function __ccxt_doc_Kucoin_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history
+see: https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-deposit-history-old
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.accountType`::string, optional: 'main' or 'contract' (default is 'main')
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Kucoin_fetchDeposits
+
+function __ccxt_doc_Kucoin_fetchContractDeposits() end
+"""
+helper method for fetching deposits for futures accounts
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Kucoin_fetchContractDeposits
+
+function __ccxt_doc_Kucoin_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
+see: https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-withdrawal-history-old
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.accountType`::string, optional: 'main' or 'contract' (default is 'main')
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Kucoin_fetchWithdrawals
+
+function __ccxt_doc_Kucoin_fetchContractWithdrawals() end
+"""
+helper method for fetching withdrawals for futures accounts
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Kucoin_fetchContractWithdrawals
+
+function __ccxt_doc_Kucoin_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-detail-spot
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::object, optional: 'cross' or 'isolated', margin type for fetching margin balance
+- `params.type`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.hf`::object, optional: *default if false* if true, the result includes the balance of the high frequency account
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Kucoin_fetchBalance
+
+function __ccxt_doc_Kucoin_fetchContractBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::object, optional: the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Kucoin_fetchContractBalance
+
+function __ccxt_doc_Kucoin_fetchUtaBalance() end
+"""
+helper method for fetching balance with unified trading account (uta) endpoint
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'unified', 'spot', 'funding', 'cross', 'isolated' or 'swap' (default is 'unified')
+- `params.marginMode`::string, optional: 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Kucoin_fetchUtaBalance
+
+function __ccxt_doc_Kucoin_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+see: https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta) endpoint, defaults to false Check transferClassic() and transferUta() for more details on params
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Kucoin_transfer
+
+function __ccxt_doc_Kucoin_transferUta() end
+"""
+transfer currency internally between wallets on the same account with uta endpoint
+see: https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transferType`::string, optional: INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL)
+- `params.fromUserId`::string, optional: required if transferType is SUB_TO_PARENT or SUB_TO_SUB
+- `params.toUserId`::string, optional: required if transferType is PARENT_TO_SUB or SUB_TO_SUB
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Kucoin_transferUta
+
+function __ccxt_doc_Kucoin_transferClassic() end
+"""
+transfer currency internally between wallets on the same account with classic endpoints
+see: https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transferType`::string, optional: INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
+- `params.fromUserId`::string, optional: required if transferType is SUB_TO_PARENT
+- `params.toUserId`::string, optional: required if transferType is PARENT_TO_SUB
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Kucoin_transferClassic
+
+function __ccxt_doc_Kucoin_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-ledger
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.hf`::bool, optional: default false, when true will fetch ledger entries for the high frequency trading account
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.uta`::bool, optional: default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Kucoin_fetchLedger
+
+function __ccxt_doc_Kucoin_fetchBorrowInterest() end
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `symbol`::string, optional: unified market symbol, required for isolated margin
+- `since`::int, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' default is 'cross'
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+__ccxt_doc_Kucoin_fetchBorrowInterest
+
+function __ccxt_doc_Kucoin_fetchBorrowRateHistories() end
+"""
+retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest borrowRate, default is undefined
+- `limit`::int, optional: max number of borrow rate prices to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' default is 'cross'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
+"""
+__ccxt_doc_Kucoin_fetchBorrowRateHistories
+
+function __ccxt_doc_Kucoin_fetchBorrowRateHistory() end
+"""
+retrieves a history of a currencies borrow interest rate at specific time slots
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: timestamp for the earliest borrow rate
+- `limit`::int, optional: the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' default is 'cross'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Kucoin_fetchBorrowRateHistory
+
+function __ccxt_doc_Kucoin_fetchCrossBorrowRate() end
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://www.kucoin.com/docs-new/rest/ua/get-borrowing-rates-and-limits
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Kucoin_fetchCrossBorrowRate
+
+function __ccxt_doc_Kucoin_borrowCrossMargin() end
+"""
+create a loan to borrow margin
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoints
+- `params.timeInForce`::string, optional: either IOC or FOK
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Kucoin_borrowCrossMargin
+
+function __ccxt_doc_Kucoin_borrowIsolatedMargin() end
+"""
+create a loan to borrow margin
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
+
+# Arguments
+- `symbol`::string: unified market symbol, required for isolated margin
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoints
+- `params.timeInForce`::string, optional: either IOC or FOK
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Kucoin_borrowIsolatedMargin
+
+function __ccxt_doc_Kucoin_repayCrossMargin() end
+"""
+repay borrowed margin and interest
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoints
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Kucoin_repayCrossMargin
+
+function __ccxt_doc_Kucoin_repayIsolatedMargin() end
+"""
+repay borrowed margin and interest
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoints
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Kucoin_repayIsolatedMargin
+
+function __ccxt_doc_Kucoin_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
+see: https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Kucoin_fetchDepositWithdrawFees
+
+function __ccxt_doc_Kucoin_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-cross-margin-leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Kucoin_fetchLeverage
+
+function __ccxt_doc_Kucoin_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage // margin
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage // contract
+see: https://www.kucoin.com/docs-new/rest/ua/modify-cross-margin-leverage-uta // margin uta
+see: https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta // contract uta
+
+# Arguments
+- `leverage`::int, optional: New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta)
+- `params.marginMode`::string, optional: *spot non-uta only* 'cross' or 'isolated' default is 'cross'
+- `params.code`::string, optional: *uta margin only* the unified currency code for the margin to set the leverage for
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Kucoin_setLeverage
+
+function __ccxt_doc_Kucoin_setContractLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+see: https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta)
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Kucoin_setContractLeverage
+
+function __ccxt_doc_Kucoin_fetchFundingInterval() end
+"""
+fetch the current funding rate interval
+see: https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+see: https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Kucoin_fetchFundingInterval
+
+function __ccxt_doc_Kucoin_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+see: https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta)
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Kucoin_fetchFundingRate
+
+function __ccxt_doc_Kucoin_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-public-funding-history
+see: https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: not used by kucuoinfutures
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to true
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Kucoin_fetchFundingRateHistory
+
+function __ccxt_doc_Kucoin_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-private-funding-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Kucoin_fetchFundingHistory
+
+function __ccxt_doc_Kucoin_fetchPosition() end
+"""
+fetch data on an open position
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details
+see: https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.pageSize`::integer, optional: *uta only* page size for the uta endpoint (default 50, max 200)
+- `params.pageNumber`::integer, optional: *uta only* page number for the uta endpoint (default 1)
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Kucoin_fetchPosition
+
+function __ccxt_doc_Kucoin_fetchPositions() end
+"""
+fetch all open positions
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+see: https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.pageSize`::integer, optional: *uta only* page size for the uta endpoint (default 50, max 200)
+- `params.pageNumber`::integer, optional: *uta only* page number for the uta endpoint (default 1)
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Kucoin_fetchPositions
+
+function __ccxt_doc_Kucoin_fetchPositionsHistory() end
+"""
+fetches historical positions
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history
+see: https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `since`::int, optional: the earliest time in ms to fetch position history for
+- `limit`::int, optional: the maximum number of entries to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: closing end time
+- `params.pageId`::int, optional: page id
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Kucoin_fetchPositionsHistory
+
+function __ccxt_doc_Kucoin_cancelOrders() end
+"""
+cancel multiple orders for contract markets
+see: https://www.kucoin.com/docs-new/3470241e0
+see: https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+- `params.uta`::bool, optional: set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
+- `params.accountMode`::string, optional: *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
+- `params.marginMode`::string, optional: *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Kucoin_cancelOrders
+
+function __ccxt_doc_Kucoin_addMargin() end
+"""
+add margin
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/add-isolated-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string, optional: *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Kucoin_addMargin
+
+function __ccxt_doc_Kucoin_reduceMargin() end
+"""
+remove margin from a position
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/remove-isolated-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string, optional: *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Kucoin_reduceMargin
+
+function __ccxt_doc_Kucoin_fetchMarginMode() end
+"""
+fetches the margin mode of a trading pair
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-margin-mode
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Kucoin_fetchMarginMode
+
+function __ccxt_doc_Kucoin_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-margin-mode
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Kucoin_setMarginMode
+
+function __ccxt_doc_Kucoin_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
+
+# Arguments
+- `hedged`::bool: set to true to use two way position
+- `symbol`::string, optional: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a response from the exchange
+"""
+__ccxt_doc_Kucoin_setPositionMode
+
+function __ccxt_doc_Kucoin_fetchPositionMode() end
+"""
+fetchs the position mode, hedged or one way
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-mode
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+__ccxt_doc_Kucoin_fetchPositionMode
+
+function __ccxt_doc_Kucoin_closePosition() end
+"""
+closes open positions for a market
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+see: https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string: not used by kucoin closePositions
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id of the order
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Kucoin_closePosition
+
+function __ccxt_doc_Kucoin_fetchMarketLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-isolated-margin-risk-limit
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true to fetch leverage tiers for unified trading account instead of futures account (default is false)
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+__ccxt_doc_Kucoin_fetchMarketLeverageTiers
+
+function __ccxt_doc_Kucoin_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://www.kucoin.com/docs-new/rest/ua/get-position-tiers
+
+# Arguments
+- `symbols`::array: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Kucoin_fetchLeverageTiers
+
+function __ccxt_doc_Kucoin_fetchOpenInterests() end
+"""
+Retrieves the open interest for a list of symbols
+see: https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+
+# Arguments
+- `symbols`::array, optional: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Kucoin_fetchOpenInterests
+
+function __ccxt_doc_Kucoin_fetchOpenInterestHistory() end
+"""
+Retrieves the open interest history of a currency
+see: https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `timeframe`::string: '5m', '15m', '30m', '1h', '4h' or '1d'
+- `since`::int, optional: the time(ms) of the earliest record to retrieve as a unix timestamp
+- `limit`::int, optional: default 30，max 200
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Kucoin_fetchOpenInterestHistory
+
+function __ccxt_doc_Kucoin_isUTAEnabled() end
+"""
+returns true or false so the user can check if unified account is enabled
+see: https://www.kucoin.com/docs-new/rest/ua/get-account-mode
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- true if unified account is enabled, false otherwise
+"""
+__ccxt_doc_Kucoin_isUTAEnabled
+
+function __ccxt_doc_Kucoin_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Kucoin_fetchTransfers
+
+function __ccxt_doc_Kucoin_fetchPositionsADLRank() end
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+__ccxt_doc_Kucoin_fetchPositionsADLRank

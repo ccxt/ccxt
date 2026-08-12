@@ -790,8 +790,18 @@ function describe(self::Coinsph, )
 ))
 
 end
-function fetchCurrencies(self::Coinsph, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(false)))
+"""
+fetches all available currencies on an exchange
+see: https://docs.coins.ph/rest-api/#all-coins-information-user_data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Coinsph; params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(error = false)))
             return Dict{Symbol, Any}()
     end
     response = Base.fetch(self.privateGetOpenapiWalletV1ConfigGetall(params));
@@ -802,13 +812,13 @@ function parseCurrency(self::Coinsph, rawCurrency)
     id = safeString(rawCurrency, "coin");
     code = self.safeCurrencyCode(id);
     isFiat = self.safeBool(rawCurrency, "isLegalMoney");
-    networkList = self.safeList(rawCurrency, "networkList", []);
+    networkList = self.safeList(rawCurrency, "networkList", defaultValue = []);
     networks = Dict{Symbol, Any}();
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkList)))
         networkItem = get(networkList, j + 1, nothing);
         network = safeString(networkItem, "network");
-        networkCode = self.networkIdToCode(network, code);
+        networkCode = self.networkIdToCode(networkId = network, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("info") => networkItem,
@@ -838,7 +848,7 @@ function parseCurrency(self::Coinsph, rawCurrency)
     Symbol("name") => safeString(rawCurrency, "name"),
     Symbol("code") => code,
     Symbol("type") => functions.ccxtruthy(isFiat) ? "fiat" : "crypto",
-    Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(rawCurrency, "transferPrecision"))),
+    Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(rawCurrency, "transferPrecision"))),
     Symbol("info") => rawCurrency,
     Symbol("active") => nothing,
     Symbol("deposit") => self.safeBool(rawCurrency, "depositAllEnable"),
@@ -850,7 +860,7 @@ function parseCurrency(self::Coinsph, rawCurrency)
 ))
 
 end
-function calculateRateLimiterCost(self::Coinsph, api, method, path, params, config=Dict())
+function calculateRateLimiterCost(self::Coinsph, api, method, path, params; config=Dict())
     if functions.ccxtruthy(@functions.ccxt_and((ccxt_in("noSymbol", config)), !functions.ccxtruthy((ccxt_in("symbol", params)))))
             return get(config, Symbol("noSymbol"), nothing)
     elseif functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((ccxt_in("noSymbolAndNoSymbols", config)), !functions.ccxtruthy((ccxt_in("symbol", params)))), !functions.ccxtruthy((ccxt_in("symbols", params)))))
@@ -859,7 +869,7 @@ function calculateRateLimiterCost(self::Coinsph, api, method, path, params, conf
         if functions.ccxtruthy(@functions.ccxt_and((ccxt_in("byNumberOfSymbols", config)), (ccxt_in("symbols", params))))
             symbols = get(params, Symbol("symbols"), nothing);
             symbolsAmount = length(symbols);
-            byNumberOfSymbols = self.safeList(config, "byNumberOfSymbols", []);
+            byNumberOfSymbols = self.safeList(config, "byNumberOfSymbols", defaultValue = []);
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(byNumberOfSymbols)))
                 entry = get(byNumberOfSymbols, i + 1, nothing);
@@ -871,7 +881,7 @@ function calculateRateLimiterCost(self::Coinsph, api, method, path, params, conf
 
         elseif functions.ccxtruthy(@functions.ccxt_and((ccxt_in("byLimit", config)), (ccxt_in("limit", params))))
             limit = get(params, Symbol("limit"), nothing);
-            byLimit = self.safeList(config, "byLimit", []);
+            byLimit = self.safeList(config, "byLimit", defaultValue = []);
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(byLimit)))
                 entry = get(byLimit, i + 1, nothing);
@@ -886,7 +896,17 @@ function calculateRateLimiterCost(self::Coinsph, api, method, path, params, conf
     return safeValue(config, "cost", 1)
 
 end
-function fetchStatus(self::Coinsph, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.coins.ph/rest-api/#test-connectivity
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Coinsph; params=Dict())
     response = Base.fetch(self.publicGetOpenapiV1Ping(params));
     return Dict{Symbol, Any}(
     Symbol("status") => "ok",
@@ -897,14 +917,34 @@ function fetchStatus(self::Coinsph, params=Dict())
 )
 
 end
-function fetchTime(self::Coinsph, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.coins.ph/rest-api/#check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Coinsph; params=Dict())
     response = Base.fetch(self.publicGetOpenapiV1Time(params));
     return safeInteger(response, "serverTime")
 
 end
-function fetchMarkets(self::Coinsph, params=Dict())
+"""
+retrieves data on all markets for coinsph
+see: https://docs.coins.ph/rest-api/#exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Coinsph; params=Dict())
     response = Base.fetch(self.publicGetOpenapiV1ExchangeInfo(params));
-    markets = self.safeList(response, "symbols", []);
+    markets = self.safeList(response, "symbols", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
@@ -914,7 +954,7 @@ function fetchMarkets(self::Coinsph, params=Dict())
         quoteId = safeString(market, "quoteAsset");
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
-        limits = indexBy(self.safeList(market, "filters", []), "filterType");
+        limits = indexBy(self.safeList(market, "filters", defaultValue = []), "filterType");
         amountLimits = safeValue(limits, "LOT_SIZE", Dict{Symbol, Any}());
         priceLimits = safeValue(limits, "PRICE_FILTER", Dict{Symbol, Any}());
         costLimits = safeValue(limits, "NOTIONAL", Dict{Symbol, Any}());
@@ -975,7 +1015,20 @@ function fetchMarkets(self::Coinsph, params=Dict())
     return result
 
 end
-function fetchTickers(self::Coinsph, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+see: https://docs.coins.ph/rest-api/#symbol-price-ticker
+see: https://docs.coins.ph/rest-api/#symbol-order-book-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Coinsph; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -993,7 +1046,7 @@ function fetchTickers(self::Coinsph, symbols=nothing, params=Dict())
         request[Symbol("symbols")] = ids;
     end
     defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-    options = self.safeDict(self.options, "fetchTickers", Dict{Symbol, Any}());
+    options = self.safeDict(self.options, "fetchTickers", defaultValue = Dict{Symbol, Any}());
     method = safeString(options, "method", defaultMethod);
     tickers = [];
     if functions.ccxtruthy(method == "publicGetOpenapiQuoteV1TickerPrice")
@@ -1003,10 +1056,23 @@ function fetchTickers(self::Coinsph, symbols=nothing, params=Dict())
     else
         tickers = Base.fetch(self.publicGetOpenapiQuoteV1Ticker24hr(extend(request, params)));
     end
-    return self.parseTickers(tickers, symbols, params)
+    return self.parseTickers(tickers, symbols = symbols, params = params)
 
 end
-function fetchTicker(self::Coinsph, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+see: https://docs.coins.ph/rest-api/#symbol-price-ticker
+see: https://docs.coins.ph/rest-api/#symbol-order-book-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Coinsph, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1015,7 +1081,7 @@ function fetchTicker(self::Coinsph, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-    options = self.safeDict(self.options, "fetchTicker", Dict{Symbol, Any}());
+    options = self.safeDict(self.options, "fetchTicker", defaultValue = Dict{Symbol, Any}());
     method = safeString(options, "method", defaultMethod);
     ticker = Dict{Symbol, Any}();
     if functions.ccxtruthy(method == "publicGetOpenapiQuoteV1TickerPrice")
@@ -1025,12 +1091,12 @@ function fetchTicker(self::Coinsph, symbol, params=Dict())
     else
         ticker = Base.fetch(self.publicGetOpenapiQuoteV1Ticker24hr(extend(request, params)));
     end
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
-function parseTicker(self::Coinsph, ticker, market=nothing)
+function parseTicker(self::Coinsph, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(ticker, "closeTime");
     bid = safeString(ticker, "bidPrice");
     ask = safeString(ticker, "askPrice");
@@ -1066,10 +1132,22 @@ function parseTicker(self::Coinsph, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchOrderBook(self::Coinsph, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.coins.ph/rest-api/#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (default 100, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Coinsph, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1086,7 +1164,22 @@ function fetchOrderBook(self::Coinsph, symbol, limit=nothing, params=Dict())
     return orderbook
 
 end
-function fetchOHLCV(self::Coinsph, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.coins.ph/rest-api/#klinecandlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (default 500, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Coinsph, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1119,14 +1212,27 @@ function fetchOHLCV(self::Coinsph, symbol, timeframe="1m", since=nothing, limit=
     params = omit(params, "until");
     response = Base.fetch(self.publicGetOpenapiQuoteV1Klines(extend(request, params)));
     ohlcvs = toArray(response);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Coinsph, ohlcv, market=nothing)
+function parseOHLCV(self::Coinsph, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchTrades(self::Coinsph, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.coins.ph/rest-api/#recent-trades-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (default 500, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Coinsph, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1142,10 +1248,23 @@ function fetchTrades(self::Coinsph, symbol, since=nothing, limit=nothing, params
         end
     end
     response = Base.fetch(self.publicGetOpenapiQuoteV1Trades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Coinsph, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.coins.ph/rest-api/#account-trade-list-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve (default 500, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Coinsph; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -1163,22 +1282,36 @@ function fetchMyTrades(self::Coinsph, symbol=nothing, since=nothing, limit=nothi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetOpenapiV1MyTrades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrderTrades(self::Coinsph, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://docs.coins.ph/rest-api/#account-trade-list-user_data
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Coinsph, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrderTrades() requires a symbol argument")));
     end
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    return Base.fetch(self.fetchMyTrades(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchMyTrades(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function parseTrade(self::Coinsph, trade, market=nothing)
+function parseTrade(self::Coinsph, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     id = safeString2(trade, "id", "tradeId");
     orderId = safeString(trade, "orderId");
@@ -1223,10 +1356,20 @@ function parseTrade(self::Coinsph, trade, market=nothing)
     Symbol("cost") => costString,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchBalance(self::Coinsph, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.coins.ph/rest-api/#accept-the-quote
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Coinsph; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1235,7 +1378,7 @@ function fetchBalance(self::Coinsph, params=Dict())
 
 end
 function parseBalance(self::Coinsph, response)
-    balances = self.safeList(response, "balances", []);
+    balances = self.safeList(response, "balances", defaultValue = []);
     result = Dict{Symbol, Any}(
         Symbol("info") => response,
         Symbol("timestamp") => nothing,
@@ -1257,12 +1400,29 @@ function parseBalance(self::Coinsph, response)
     return self.safeBalance(result)
 
 end
-function createOrder(self::Coinsph, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.coins.ph/rest-api/#new-order--trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: the quote quantity that can be used as an alternative for the amount for market buy orders
+- `params.test`::bool, optional: set to true to test an order, no order will be created but the request will be validated
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Coinsph, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    testOrder = self.safeBool(params, "test", false);
+    testOrder = self.safeBool(params, "test", defaultValue = false);
     params = omit(params, "test");
     orderType = safeString(params, "type", type_var);
     orderType = self.encodeOrderType(orderType);
@@ -1292,7 +1452,7 @@ function createOrder(self::Coinsph, symbol, type_var, side, amount, price=nothin
         elseif functions.ccxtruthy(orderSide == "BUY")
             quoteAmount = nothing;
             createMarketBuyOrderRequiresPrice = true;
-            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
             cost = self.safeNumber2(params, "cost", "quoteOrderQty");
             params = omit(params, "cost");
             if functions.ccxtruthy(cost != nothing)
@@ -1327,10 +1487,22 @@ function createOrder(self::Coinsph, symbol, type_var, side, amount, price=nothin
     else
         response = Base.fetch(self.privatePostOpenapiV1Order(extend(request, params)));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOrder(self::Coinsph, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.coins.ph/rest-api/#query-order-user_data
+
+# Arguments
+- `id`::any: order id
+- `symbol`::string: not used by fetchOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Coinsph, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1346,7 +1518,20 @@ function fetchOrder(self::Coinsph, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOpenOrders(self::Coinsph, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.coins.ph/rest-api/#current-open-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Coinsph; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1357,10 +1542,23 @@ function fetchOpenOrders(self::Coinsph, symbol=nothing, since=nothing, limit=not
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetOpenapiV1OpenOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Coinsph, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.coins.ph/rest-api/#history-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve (default 500, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Coinsph; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchClosedOrders() requires a symbol argument")));
     end
@@ -1378,10 +1576,22 @@ function fetchClosedOrders(self::Coinsph, symbol=nothing, since=nothing, limit=n
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetOpenapiV1HistoryOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function cancelOrder(self::Coinsph, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.coins.ph/rest-api/#cancel-order-trade
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Coinsph, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1397,7 +1607,18 @@ function cancelOrder(self::Coinsph, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelAllOrders(self::Coinsph, symbol=nothing, params=Dict())
+"""
+cancel open orders of market
+see: https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Coinsph; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -1411,13 +1632,13 @@ function cancelAllOrders(self::Coinsph, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateDeleteOpenapiV1OpenOrders(extend(request, params)));
-    return self.parseOrders(response, market)
+    return self.parseOrders(response, market = market)
 
 end
-function parseOrder(self::Coinsph, order, market=nothing)
+function parseOrder(self::Coinsph, order; market=nothing)
     id = safeString(order, "orderId");
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger2(order, "time", "transactTime");
     trades = safeValue(order, "fills");
     triggerPrice = safeString(order, "stopPrice");
@@ -1446,7 +1667,7 @@ function parseOrder(self::Coinsph, order, market=nothing)
     Symbol("fees") => nothing,
     Symbol("trades") => trades,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseOrderSide(self::Coinsph, status)
@@ -1530,7 +1751,18 @@ function parseOrderTimeInForce(self::Coinsph, status)
     return safeString(statuses, status, status)
 
 end
-function fetchTradingFee(self::Coinsph, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://docs.coins.ph/rest-api/#trade-fee-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Coinsph, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1539,11 +1771,21 @@ function fetchTradingFee(self::Coinsph, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetOpenapiV1AssetTradeFee(extend(request, params)));
-    tradingFee = self.safeDict(response, 0, Dict{Symbol, Any}());
-    return self.parseTradingFee(tradingFee, market)
+    tradingFee = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTradingFee(tradingFee, market = market)
 
 end
-function fetchTradingFees(self::Coinsph, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://docs.coins.ph/rest-api/#trade-fee-user_data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Coinsph; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1562,9 +1804,9 @@ function fetchTradingFees(self::Coinsph, params=Dict())
     return result
 
 end
-function parseTradingFee(self::Coinsph, fee, market=nothing)
+function parseTradingFee(self::Coinsph, fee; market=nothing)
     marketId = safeString(fee, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
@@ -1576,14 +1818,28 @@ function parseTradingFee(self::Coinsph, fee, market=nothing)
 )
 
 end
-function withdraw(self::Coinsph, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal to coins_ph account
+see: https://docs.coins.ph/rest-api/#withdrawuser_data
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: not used by withdraw ()
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Coinsph, code, amount, address; tag=nothing, params=Dict())
     options = safeValue(self.options, "withdraw");
-    warning = self.safeBool(options, "warning", true);
+    warning = self.safeBool(options, "warning", defaultValue = true);
     if functions.ccxtruthy(warning)
         throw(InvalidAddress(string(self.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")));
     end
     networkCode = safeString(params, "network");
-    networkId = functions.ccxtruthy((networkCode == nothing)) ? nothing : self.networkCodeToId(networkCode, code);
+    networkId = functions.ccxtruthy((networkCode == nothing)) ? nothing : self.networkCodeToId(networkCode, currencyCode = code);
     if functions.ccxtruthy(networkId == nothing)
         throw(BadRequest(string(self.id, " withdraw() require network parameter")));
     end
@@ -1602,10 +1858,23 @@ function withdraw(self::Coinsph, code, amount, address, tag=nothing, params=Dict
     end
     params = omit(params, "network");
     response = Base.fetch(self.privatePostOpenapiWalletV1WithdrawApply(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function fetchDeposits(self::Coinsph, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.coins.ph/rest-api/#deposit-history-user_data
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Coinsph; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1622,10 +1891,23 @@ function fetchDeposits(self::Coinsph, code=nothing, since=nothing, limit=nothing
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetOpenapiWalletV1DepositHistory(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Coinsph, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.coins.ph/rest-api/#withdraw-history-user_data
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Coinsph; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1642,10 +1924,10 @@ function fetchWithdrawals(self::Coinsph, code=nothing, since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetOpenapiWalletV1WithdrawHistory(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Coinsph, transaction, currency=nothing)
+function parseTransaction(self::Coinsph, transaction; currency=nothing)
     id = safeString(transaction, "id");
     address = safeString(transaction, "address");
     tag = safeString(transaction, "addressTag");
@@ -1656,7 +1938,7 @@ function parseTransaction(self::Coinsph, transaction, currency=nothing)
     end
     txid = safeString(transaction, "txId");
     currencyId = safeString(transaction, "coin");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = nothing;
     timestamp = safeInteger2(transaction, "insertTime", "applyTime");
     updated = nothing;
@@ -1717,9 +1999,21 @@ function parseTransactionStatus(self::Coinsph, status)
     return safeString(statuses, status, status)
 
 end
-function fetchDepositAddress(self::Coinsph, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.coins.ph/rest-api/#deposit-address-user_data
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: network for fetch deposit address
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Coinsph, code; params=Dict())
     networkCode = safeString(params, "network");
-    networkId = functions.ccxtruthy((networkCode == nothing)) ? nothing : self.networkCodeToId(networkCode, code);
+    networkId = functions.ccxtruthy((networkCode == nothing)) ? nothing : self.networkCodeToId(networkCode, currencyCode = code);
     if functions.ccxtruthy(networkId == nothing)
         throw(BadRequest(string(self.id, " fetchDepositAddress() require network parameter")));
     end
@@ -1733,12 +2027,12 @@ function fetchDepositAddress(self::Coinsph, code, params=Dict())
     );
     params = omit(params, "network");
     response = Base.fetch(self.privateGetOpenapiWalletV1DepositAddress(extend(request, params)));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function parseDepositAddress(self::Coinsph, depositAddress, currency=nothing)
+function parseDepositAddress(self::Coinsph, depositAddress; currency=nothing)
     currencyId = safeString(depositAddress, "coin");
-    parsedCurrency = self.safeCurrencyCode(currencyId, currency);
+    parsedCurrency = self.safeCurrencyCode(currencyId, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => parsedCurrency,
@@ -1748,7 +2042,7 @@ function parseDepositAddress(self::Coinsph, depositAddress, currency=nothing)
 )
 
 end
-function urlEncodeQuery(self::Coinsph, query=Dict())
+function urlEncodeQuery(self::Coinsph; query=Dict())
     encodedArrayParams = "";
     keys_var = objectKeys(query);
     i = 0
@@ -1781,7 +2075,7 @@ function parseArrayParam(self::Coinsph, array, key)
     return urlEncodedParam
 
 end
-function sign(self::Coinsph, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Coinsph, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing);
     query = omit(params, self.extractParams(path));
     endpoint = self.implodeParams(path, params);
@@ -1796,14 +2090,14 @@ function sign(self::Coinsph, path, api="public", method="GET", params=Dict(), he
                 query[Symbol("recvWindow")] = defaultRecvWindow;
             end
         end
-        query = self.urlEncodeQuery(query);
+        query = self.urlEncodeQuery(query = query);
         signature = self.hmac(self.encode(query), self.encode(self.secret), sha256);
         url = string(url, "?", query, "&signature=", signature);
         headers = Dict{Symbol, Any}(
             Symbol("X-COINS-APIKEY") => self.apiKey
         );
     else
-        query = self.urlEncodeQuery(query);
+        query = self.urlEncodeQuery(query = query);
         if functions.ccxtruthy(length(query) != 0)
             url += string("?", query);
         end
@@ -1837,315 +2131,315 @@ Base.getproperty(self::Coinsph, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetOpenapiV1Ping(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/ping", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/ping"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiV1Time(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiV1UserIp(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/user/ip", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/user/ip"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiQuoteV1Ticker24hr(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/quote/v1/ticker/24hr"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiQuoteV1TickerPrice(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/ticker/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/quote/v1/ticker/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiQuoteV1TickerBookTicker(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/quote/v1/ticker/bookTicker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiV1ExchangeInfo(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/exchangeInfo", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/exchangeInfo"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiQuoteV1Depth(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/quote/v1/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiQuoteV1Klines(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/klines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/quote/v1/klines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiQuoteV1Trades(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/quote/v1/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiV1Pairs(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/pairs", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/pairs"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOpenapiQuoteV1AvgPrice(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/avgPrice", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/quote/v1/avgPrice"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1CheckSysStatus(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/check-sys-status", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/check-sys-status"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiWalletV1ConfigGetall(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/config/getall", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/wallet/v1/config/getall"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiWalletV1DepositAddress(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/deposit/address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/wallet/v1/deposit/address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiWalletV1DepositHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/deposit/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/wallet/v1/deposit/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiWalletV1WithdrawHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/withdraw/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/wallet/v1/withdraw/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiWalletV1WithdrawAddressWhitelist(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/withdraw/address-whitelist", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/wallet/v1/withdraw/address-whitelist"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1Account(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1ApiKeys(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/api-keys", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/api-keys"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1OpenOrders(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1AssetTradeFee(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/asset/tradeFee", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/asset/tradeFee"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1Order(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1HistoryOrders(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/historyOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/historyOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1MyTrades(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/myTrades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/myTrades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1CapitalDepositHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/capital/deposit/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/capital/deposit/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1CapitalWithdrawHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/capital/withdraw/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/capital/withdraw/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV3PaymentRequestGetPaymentRequest(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v3/payment-request/get-payment-request", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v3/payment-request/get-payment-request"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMerchantApiV1GetInvoices(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "merchant-api/v1/get-invoices", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "merchant-api/v1/get-invoices"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiAccountV3CryptoAccounts(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/account/v3/crypto-accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/account/v3/crypto-accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiTransferV3TransfersId(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/transfer/v3/transfers/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/transfer/v3/transfers/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1SubAccountList(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1SubAccountAsset(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/asset", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/asset"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1SubAccountTransferUniversalTransferHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/transfer/universal-transfer-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/transfer/universal-transfer-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1SubAccountTransferSubHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/transfer/sub-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/transfer/sub-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1SubAccountApikeyIpRestriction(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/apikey/ip-restriction", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/apikey/ip-restriction"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1SubAccountWalletDepositAddress(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/wallet/deposit/address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/wallet/deposit/address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1SubAccountWalletDepositHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/wallet/deposit/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/wallet/deposit/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1FundCollectGetFundRecord(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/fund-collect/get-fund-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/fund-collect/get-fund-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenapiV1AssetTransactionHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/asset/transaction/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/asset/transaction/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiWalletV1WithdrawApply(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/withdraw/apply", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/wallet/v1/withdraw/apply"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1OrderTest(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/order/test", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/order/test"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1Order(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1OrderCancelReplace(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/order/cancelReplace", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/order/cancelReplace"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1CapitalWithdrawApply(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/capital/withdraw/apply", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/capital/withdraw/apply"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1CapitalDepositApply(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/capital/deposit/apply", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/capital/deposit/apply"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV3PaymentRequestPaymentRequests(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v3/payment-request/payment-requests", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v3/payment-request/payment-requests"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV3PaymentRequestDeletePaymentRequest(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v3/payment-request/delete-payment-request", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v3/payment-request/delete-payment-request"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV3PaymentRequestPaymentRequestReminder(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v3/payment-request/payment-request-reminder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v3/payment-request/payment-request-reminder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1UserDataStream(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/userDataStream", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/userDataStream"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMerchantApiV1Invoices(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "merchant-api/v1/invoices", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "merchant-api/v1/invoices"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMerchantApiV1InvoicesCancel(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "merchant-api/v1/invoices-cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "merchant-api/v1/invoices-cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiConvertV1GetSupportedTradingPairs(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/convert/v1/get-supported-trading-pairs", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/convert/v1/get-supported-trading-pairs"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiConvertV1GetQuote(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/convert/v1/get-quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/convert/v1/get-quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiConvertV1AcceptQuote(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/convert/v1/accept-quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/convert/v1/accept-quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiConvertV1QueryOrderHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/convert/v1/query-order-history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/convert/v1/query-order-history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiOtcTradeV1GetSupportedTradingPairs(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/otc-trade/v1/get-supported-trading-pairs", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/otc-trade/v1/get-supported-trading-pairs"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiOtcTradeV1CreateRfq(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/otc-trade/v1/create-rfq", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/otc-trade/v1/create-rfq"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiOtcTradeV1AcceptRfq(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/otc-trade/v1/accept-rfq", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/otc-trade/v1/accept-rfq"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiOtcTradeV1ManualSettle(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/otc-trade/v1/manual-settle", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/otc-trade/v1/manual-settle"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiOtcTradeV1QueryOrderHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/otc-trade/v1/query-order-history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/otc-trade/v1/query-order-history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiFiatV1SupportChannel(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/fiat/v1/support-channel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/fiat/v1/support-channel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiFiatV1CashOut(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/fiat/v1/cash-out", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/fiat/v1/cash-out"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiFiatV1History(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/fiat/v1/history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/fiat/v1/history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiMigrationV4Sellorder(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/migration/v4/sellorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/migration/v4/sellorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiMigrationV4ValidateField(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/migration/v4/validate-field", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/migration/v4/validate-field"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiTransferV3Transfers(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/transfer/v3/transfers", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/transfer/v3/transfers"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiTransferV4Transfers(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/transfer/v4/transfers", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/transfer/v4/transfers"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1SubAccountCreate(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1SubAccountTransferUniversalTransfer(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/transfer/universal-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/transfer/universal-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1SubAccountTransferSubToMaster(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/transfer/sub-to-master", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/transfer/sub-to-master"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1SubAccountApikeyAddIpRestriction(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/apikey/add-ip-restriction", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/apikey/add-ip-restriction"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/apikey/delete-ip-restriction", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/sub-account/apikey/delete-ip-restriction"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenapiV1FundCollectCollectFromSubAccount(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/fund-collect/collect-from-sub-account", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/fund-collect/collect-from-sub-account"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOpenapiV1UserDataStream(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/userDataStream", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/userDataStream"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOpenapiV1Order(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOpenapiV1OpenOrders(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/openOrders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/openOrders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOpenapiV1UserDataStream(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/userDataStream", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "openapi/v1/userDataStream"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Coinsph(; kwargs...)
@@ -2209,3 +2503,371 @@ function Coinsph(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Coinsph_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.coins.ph/rest-api/#all-coins-information-user_data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Coinsph_fetchCurrencies
+
+function __ccxt_doc_Coinsph_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.coins.ph/rest-api/#test-connectivity
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Coinsph_fetchStatus
+
+function __ccxt_doc_Coinsph_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.coins.ph/rest-api/#check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Coinsph_fetchTime
+
+function __ccxt_doc_Coinsph_fetchMarkets() end
+"""
+retrieves data on all markets for coinsph
+see: https://docs.coins.ph/rest-api/#exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Coinsph_fetchMarkets
+
+function __ccxt_doc_Coinsph_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+see: https://docs.coins.ph/rest-api/#symbol-price-ticker
+see: https://docs.coins.ph/rest-api/#symbol-order-book-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coinsph_fetchTickers
+
+function __ccxt_doc_Coinsph_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+see: https://docs.coins.ph/rest-api/#symbol-price-ticker
+see: https://docs.coins.ph/rest-api/#symbol-order-book-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coinsph_fetchTicker
+
+function __ccxt_doc_Coinsph_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.coins.ph/rest-api/#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (default 100, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Coinsph_fetchOrderBook
+
+function __ccxt_doc_Coinsph_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.coins.ph/rest-api/#klinecandlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (default 500, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Coinsph_fetchOHLCV
+
+function __ccxt_doc_Coinsph_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.coins.ph/rest-api/#recent-trades-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (default 500, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Coinsph_fetchTrades
+
+function __ccxt_doc_Coinsph_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.coins.ph/rest-api/#account-trade-list-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve (default 500, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Coinsph_fetchMyTrades
+
+function __ccxt_doc_Coinsph_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://docs.coins.ph/rest-api/#account-trade-list-user_data
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Coinsph_fetchOrderTrades
+
+function __ccxt_doc_Coinsph_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.coins.ph/rest-api/#accept-the-quote
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Coinsph_fetchBalance
+
+function __ccxt_doc_Coinsph_createOrder() end
+"""
+create a trade order
+see: https://docs.coins.ph/rest-api/#new-order--trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: the quote quantity that can be used as an alternative for the amount for market buy orders
+- `params.test`::bool, optional: set to true to test an order, no order will be created but the request will be validated
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinsph_createOrder
+
+function __ccxt_doc_Coinsph_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.coins.ph/rest-api/#query-order-user_data
+
+# Arguments
+- `id`::any: order id
+- `symbol`::string: not used by fetchOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinsph_fetchOrder
+
+function __ccxt_doc_Coinsph_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.coins.ph/rest-api/#current-open-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinsph_fetchOpenOrders
+
+function __ccxt_doc_Coinsph_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.coins.ph/rest-api/#history-orders-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve (default 500, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinsph_fetchClosedOrders
+
+function __ccxt_doc_Coinsph_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.coins.ph/rest-api/#cancel-order-trade
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinsph_cancelOrder
+
+function __ccxt_doc_Coinsph_cancelAllOrders() end
+"""
+cancel open orders of market
+see: https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinsph_cancelAllOrders
+
+function __ccxt_doc_Coinsph_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://docs.coins.ph/rest-api/#trade-fee-user_data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Coinsph_fetchTradingFee
+
+function __ccxt_doc_Coinsph_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://docs.coins.ph/rest-api/#trade-fee-user_data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Coinsph_fetchTradingFees
+
+function __ccxt_doc_Coinsph_withdraw() end
+"""
+make a withdrawal to coins_ph account
+see: https://docs.coins.ph/rest-api/#withdrawuser_data
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: not used by withdraw ()
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinsph_withdraw
+
+function __ccxt_doc_Coinsph_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.coins.ph/rest-api/#deposit-history-user_data
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinsph_fetchDeposits
+
+function __ccxt_doc_Coinsph_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.coins.ph/rest-api/#withdraw-history-user_data
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinsph_fetchWithdrawals
+
+function __ccxt_doc_Coinsph_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.coins.ph/rest-api/#deposit-address-user_data
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: network for fetch deposit address
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Coinsph_fetchDepositAddress

@@ -452,7 +452,17 @@ function describe(self::Bitteam, )
 ))
 
 end
-function fetchMarkets(self::Bitteam, params=Dict())
+"""
+retrieves data on all markets for bitteam
+see: https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitteam; params=Dict())
     response = Base.fetch(self.publicGetTradeApiCcxtPairs(params));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     markets = safeValue(result, "pairs", []);
@@ -471,13 +481,13 @@ function parseMarket(self::Bitteam, market)
     timeStart = safeString(market, "timeStart");
     created = self.parse8601(timeStart);
     minCost = nothing;
-    currenciesValuedInUsd = self.handleOption("fetchMarkets", "currenciesValuedInUsd", Dict{Symbol, Any}());
-    quoteInUsd = self.safeBool(currenciesValuedInUsd, quote_var, false);
+    currenciesValuedInUsd = self.handleOption("fetchMarkets", "currenciesValuedInUsd", defaultValue = Dict{Symbol, Any}());
+    quoteInUsd = self.safeBool(currenciesValuedInUsd, quote_var, defaultValue = false);
     if functions.ccxtruthy(quoteInUsd)
         settings = safeValue(market, "settings", Dict{Symbol, Any}());
         minCost = self.safeNumber(settings, "limit_usd");
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("numericId") => numericId,
     Symbol("symbol") => string(base, "/", quote_var),
@@ -503,8 +513,8 @@ function parseMarket(self::Bitteam, market)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "baseStep"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "quoteStep")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "baseStep"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quoteStep")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -529,7 +539,17 @@ function parseMarket(self::Bitteam, market)
 ))
 
 end
-function fetchCurrencies(self::Bitteam, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bitteam; params=Dict())
     response = Base.fetch(self.publicGetTradeApiCurrencies(params));
     responseResult = safeValue(response, "result", Dict{Symbol, Any}());
     currencies = safeValue(responseResult, "currencies", []);
@@ -546,8 +566,8 @@ function parseCurrency(self::Bitteam, currency)
     id = safeString(currency, "symbol");
     numericId = safeInteger(currency, "id");
     code = self.safeCurrencyCode(id);
-    active = self.safeBool(currency, "active", false);
-    precision = self.parseNumber(self.parsePrecision(safeString(currency, "precision")));
+    active = self.safeBool(currency, "active", defaultValue = false);
+    precision = self.parseNumber(self.parsePrecision(precision = safeString(currency, "precision")));
     txLimits = safeValue(currency, "txLimits", Dict{Symbol, Any}());
     minWithdraw = safeString(txLimits, "minWithdraw");
     maxWithdraw = safeString(txLimits, "maxWithdraw");
@@ -567,12 +587,12 @@ function parseCurrency(self::Bitteam, currency)
     withdraw = safeValue(statuses, "withdrawStatus");
     networkIds = objectKeys(feesByNetworkId);
     networks = Dict{Symbol, Any}();
-    networkPrecision = self.parseNumber(self.parsePrecision(safeString(currency, "decimals")));
+    networkPrecision = self.parseNumber(self.parsePrecision(precision = safeString(currency, "decimals")));
     typeRaw = safeString(currency, "type");
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkIds)))
         networkId = get(networkIds, j + 1, nothing);
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         networkFee = self.safeNumber(feesByNetworkId, networkId);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
@@ -632,7 +652,20 @@ function parseCurrency(self::Bitteam, currency)
 ))
 
 end
-function fetchOHLCV(self::Bitteam, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bitteam, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -644,15 +677,27 @@ function fetchOHLCV(self::Bitteam, symbol, timeframe="1m", since=nothing, limit=
     );
     response = Base.fetch(self.historyGetApiTwHistoryPairNameResolution(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(result, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Bitteam, ohlcv, market=nothing)
+function parseOHLCV(self::Bitteam, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, "t"), self.safeNumber(ohlcv, "o"), self.safeNumber(ohlcv, "h"), self.safeNumber(ohlcv, "l"), self.safeNumber(ohlcv, "c"), self.safeNumber(ohlcv, "v")]
 
 end
-function fetchOrderBook(self::Bitteam, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (default 100, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitteam, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -662,11 +707,25 @@ function fetchOrderBook(self::Bitteam, symbol, limit=nothing, params=Dict())
     );
     response = Base.fetch(self.publicGetTradeApiCmcOrderbookPair(extend(request, params)));
     timestamp = safeInteger(response, "timestamp");
-    orderbook = self.parseOrderBook(response, symbol, timestamp);
+    orderbook = self.parseOrderBook(response, symbol, timestamp = timestamp);
     return orderbook
 
 end
-function fetchOrders(self::Bitteam, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of  orde structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function fetchOrders(self::Bitteam; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -684,11 +743,23 @@ function fetchOrders(self::Bitteam, symbol=nothing, since=nothing, limit=nothing
     end
     response = Base.fetch(self.privateGetTradeApiCcxtOrdersOfUser(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    orders = self.safeList(result, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(result, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOrder(self::Bitteam, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
+
+# Arguments
+- `id`::any: order id
+- `symbol`::string: not used by fetchOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function fetchOrder(self::Bitteam, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -700,41 +771,95 @@ function fetchOrder(self::Bitteam, id, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     response = Base.fetch(self.privateGetTradeApiCcxtOrderId(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(result, market = market)
 
 end
-function fetchOpenOrders(self::Bitteam, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function fetchOpenOrders(self::Bitteam; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("type") => "active"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchClosedOrders(self::Bitteam, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of closed order structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function fetchClosedOrders(self::Bitteam; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("type") => "closed"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchCanceledOrders(self::Bitteam, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of canceled order structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function fetchCanceledOrders(self::Bitteam; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("type") => "cancelled"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function createOrder(self::Bitteam, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function createOrder(self::Bitteam, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -753,11 +878,23 @@ function createOrder(self::Bitteam, symbol, type_var, side, amount, price=nothin
         end
     end
     response = Base.fetch(self.privatePostTradeApiCcxtOrdercreate(extend(request, params)));
-    order = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(order, market)
+    order = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(order, market = market)
 
 end
-function cancelOrder(self::Bitteam, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function cancelOrder(self::Bitteam, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -765,11 +902,22 @@ function cancelOrder(self::Bitteam, id, symbol=nothing, params=Dict())
         Symbol("id") => id
     );
     response = Base.fetch(self.privatePostTradeApiCcxtCancelorder(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(result)
 
 end
-function cancelAllOrders(self::Bitteam, symbol=nothing, params=Dict())
+"""
+cancel open orders of market
+see: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+function cancelAllOrders(self::Bitteam; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -784,13 +932,13 @@ function cancelAllOrders(self::Bitteam, symbol=nothing, params=Dict())
     response = Base.fetch(self.privatePostTradeApiCcxtCancelAllOrder(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     orders = [result];
-    return self.parseOrders(orders, market)
+    return self.parseOrders(orders, market = market)
 
 end
-function parseOrder(self::Bitteam, order, market=nothing)
+function parseOrder(self::Bitteam, order; market=nothing)
     id = safeString(order, "id");
     marketId = safeString(order, "pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     clientOrderId = safeString(order, "orderCid");
     timestamp = nothing;
     createdAt = safeString(order, "createdAt");
@@ -841,7 +989,7 @@ function parseOrder(self::Bitteam, order, market=nothing)
     Symbol("trades") => nothing,
     Symbol("info") => order,
     Symbol("postOnly") => false
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Bitteam, status)
@@ -872,11 +1020,22 @@ function parseValueToPricision(self::Bitteam, valueObject, valueKey, preciseObje
     if functions.ccxtruthy(@functions.ccxt_or(valueRawString == nothing, precisionRawString == nothing))
             return nothing
     end
-    precisionString = self.parsePrecision(precisionRawString);
+    precisionString = self.parsePrecision(precision = precisionRawString);
     return stringMul(valueRawString, precisionString)
 
 end
-function fetchTickers(self::Bitteam, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+see: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+"""
+function fetchTickers(self::Bitteam; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -893,10 +1052,21 @@ function fetchTickers(self::Bitteam, symbols=nothing, params=Dict())
         push!(tickers, ticker);
         i += 1
     end
-    return self.filterByArrayTickers(tickers, "symbol", symbols)
+    return self.filterByArrayTickers(tickers, "symbol", values = symbols)
 
 end
-function fetchTicker(self::Bitteam, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+"""
+function fetchTicker(self::Bitteam, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -906,13 +1076,13 @@ function fetchTicker(self::Bitteam, symbol, params=Dict())
     );
     response = Base.fetch(self.publicGetTradeApiPairName(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    pair = self.safeDict(result, "pair", Dict{Symbol, Any}());
-    return self.parseTicker(pair, market)
+    pair = self.safeDict(result, "pair", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(pair, market = market)
 
 end
-function parseTicker(self::Bitteam, ticker, market=nothing)
+function parseTicker(self::Bitteam, ticker; market=nothing)
     marketId = safeStringLower(ticker, "trading_pairs");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     bestBidPrice = nothing;
     bestAskPrice = nothing;
     bestBidVolume = nothing;
@@ -956,10 +1126,23 @@ function parseTicker(self::Bitteam, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bitteam, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcTradesPair
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+"""
+function fetchTrades(self::Bitteam, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -968,10 +1151,23 @@ function fetchTrades(self::Bitteam, symbol, since=nothing, limit=nothing, params
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTradeApiCmcTradesPair(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Bitteam, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtTradesofuser
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+"""
+function fetchMyTrades(self::Bitteam; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -986,13 +1182,13 @@ function fetchMyTrades(self::Bitteam, symbol=nothing, since=nothing, limit=nothi
     end
     response = Base.fetch(self.privateGetTradeApiCcxtTradesOfUser(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    trades = self.safeList(result, "trades", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(result, "trades", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Bitteam, trade, market=nothing)
+function parseTrade(self::Bitteam, trade; market=nothing)
     marketId = safeString(trade, "pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     id = safeString2(trade, "id", "trade_id");
     price = safeString(trade, "price");
@@ -1039,10 +1235,20 @@ function parseTrade(self::Bitteam, trade, market=nothing)
     Symbol("cost") => cost,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchBalance(self::Bitteam, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+"""
+function fetchBalance(self::Bitteam; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1080,7 +1286,20 @@ function parseBalance(self::Bitteam, response)
     return self.safeBalance(balance)
 
 end
-function fetchDepositsWithdrawals(self::Bitteam, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiTransactionsofuser
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal
+- `limit`::int, optional: max number of deposit/withdrawals to return (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Bitteam; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1095,14 +1314,14 @@ function fetchDepositsWithdrawals(self::Bitteam, code=nothing, since=nothing, li
     end
     response = Base.fetch(self.privateGetTradeApiTransactionsOfUser(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    transactions = self.safeList(result, "transactions", []);
-    return self.parseTransactions(transactions, currency, since, limit)
+    transactions = self.safeList(result, "transactions", defaultValue = []);
+    return self.parseTransactions(transactions, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Bitteam, transaction, currency=nothing)
+function parseTransaction(self::Bitteam, transaction; currency=nothing)
     currencyObject = safeValue(transaction, "currency");
     currencyId = safeString(currencyObject, "symbol");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     id = safeString(transaction, "id");
     params = safeValue(transaction, "params");
     txid = safeString(params, "tx_id");
@@ -1125,7 +1344,7 @@ function parseTransaction(self::Bitteam, transaction, currency=nothing)
     Symbol("txid") => txid,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("addressFrom") => addressFrom,
     Symbol("address") => nothing,
     Symbol("addressTo") => addressTo,
@@ -1159,7 +1378,7 @@ function parseTransactionStatus(self::Bitteam, status)
     return safeString(statuses, status, status)
 
 end
-function sign(self::Bitteam, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitteam, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     request = omit(params, self.extractParams(path));
     endpoint = string("/", self.implodeParams(path, params));
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), endpoint);
@@ -1223,103 +1442,103 @@ Base.getproperty(self::Bitteam, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function historyGetApiTwHistoryPairNameResolution(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "api/tw/history/{pairName}/{resolution}", "history", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/tw/history/{pairName}/{resolution}"; api="history", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiAsset(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/asset", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/asset"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiCurrencies(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiOrderbooksSymbol(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/orderbooks/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/orderbooks/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiOrders(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/orders", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/orders"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiPairName(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/pair/{name}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/pair/{name}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiPairs(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/pairs", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/pairs"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiPairsPrecisions(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/pairs/precisions", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/pairs/precisions"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiRates(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/rates", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/rates"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiTradeId(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/trade/{id}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/trade/{id}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiTrades(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiCcxtPairs(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/pairs", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/ccxt/pairs"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiCmcAssets(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/cmc/assets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/cmc/assets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiCmcOrderbookPair(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/cmc/orderbook/{pair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/cmc/orderbook/{pair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiCmcSummary(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/cmc/summary", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/cmc/summary"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiCmcTicker(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/cmc/ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/cmc/ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradeApiCmcTradesPair(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/cmc/trades/{pair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/cmc/trades/{pair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeApiCcxtBalance(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/ccxt/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeApiCcxtOrderId(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/order/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/ccxt/order/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeApiCcxtOrdersOfUser(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/ordersOfUser", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/ccxt/ordersOfUser"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeApiCcxtTradesOfUser(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/tradesOfUser", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/ccxt/tradesOfUser"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeApiTransactionsOfUser(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/transactionsOfUser", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/api/transactionsOfUser"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeApiCcxtCancelAllOrder(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/cancel-all-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/api/ccxt/cancel-all-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeApiCcxtCancelorder(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/cancelorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/api/ccxt/cancelorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeApiCcxtOrdercreate(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/ordercreate", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/api/ccxt/ordercreate"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitteam(; kwargs...)
@@ -1383,3 +1602,278 @@ function Bitteam(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitteam_fetchMarkets() end
+"""
+retrieves data on all markets for bitteam
+see: https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitteam_fetchMarkets
+
+function __ccxt_doc_Bitteam_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bitteam_fetchCurrencies
+
+function __ccxt_doc_Bitteam_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bitteam_fetchOHLCV
+
+function __ccxt_doc_Bitteam_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (default 100, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitteam_fetchOrderBook
+
+function __ccxt_doc_Bitteam_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of  orde structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Bitteam_fetchOrders
+
+function __ccxt_doc_Bitteam_fetchOrder() end
+"""
+fetches information on an order
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
+
+# Arguments
+- `id`::any: order id
+- `symbol`::string: not used by fetchOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Bitteam_fetchOrder
+
+function __ccxt_doc_Bitteam_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Bitteam_fetchOpenOrders
+
+function __ccxt_doc_Bitteam_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of closed order structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Bitteam_fetchClosedOrders
+
+function __ccxt_doc_Bitteam_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of canceled order structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Bitteam_fetchCanceledOrders
+
+function __ccxt_doc_Bitteam_createOrder() end
+"""
+create a trade order
+see: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Bitteam_createOrder
+
+function __ccxt_doc_Bitteam_cancelOrder() end
+"""
+cancels an open order
+see: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Bitteam_cancelOrder
+
+function __ccxt_doc_Bitteam_cancelAllOrders() end
+"""
+cancel open orders of market
+see: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+"""
+__ccxt_doc_Bitteam_cancelAllOrders
+
+function __ccxt_doc_Bitteam_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+see: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+"""
+__ccxt_doc_Bitteam_fetchTickers
+
+function __ccxt_doc_Bitteam_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+"""
+__ccxt_doc_Bitteam_fetchTicker
+
+function __ccxt_doc_Bitteam_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcTradesPair
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+"""
+__ccxt_doc_Bitteam_fetchTrades
+
+function __ccxt_doc_Bitteam_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtTradesofuser
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+"""
+__ccxt_doc_Bitteam_fetchMyTrades
+
+function __ccxt_doc_Bitteam_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+"""
+__ccxt_doc_Bitteam_fetchBalance
+
+function __ccxt_doc_Bitteam_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
+see: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiTransactionsofuser
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal
+- `limit`::int, optional: max number of deposit/withdrawals to return (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+"""
+__ccxt_doc_Bitteam_fetchDepositsWithdrawals

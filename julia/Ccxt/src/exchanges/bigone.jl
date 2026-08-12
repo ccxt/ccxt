@@ -587,12 +587,21 @@ function describe(self::Bigone, )
 ))
 
 end
-function fetchCurrencies(self::Bigone, params=Dict())
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bigone; params=Dict())
     data = Base.fetch(self.fetchWebEndpoint("fetchCurrencies", "webExchangeGetV3Assets", true));
     if functions.ccxtruthy(data == nothing)
             return Dict{Symbol, Any}()
     end
-    currenciesData = self.safeList(data, "data", []);
+    currenciesData = self.safeList(data, "data", defaultValue = []);
     return self.parseCurrencies(currenciesData)
 
 end
@@ -601,19 +610,19 @@ function parseCurrency(self::Bigone, rawCurrency)
     code = self.safeCurrencyCode(id);
     name = safeString(rawCurrency, "name");
     networks = Dict{Symbol, Any}();
-    chains = self.safeList(rawCurrency, "binding_gateways", []);
-    currencyMaxPrecision = self.parsePrecision(safeString2(rawCurrency, "withdrawal_scale", "scale"));
+    chains = self.safeList(rawCurrency, "binding_gateways", defaultValue = []);
+    currencyMaxPrecision = self.parsePrecision(precision = safeString2(rawCurrency, "withdrawal_scale", "scale"));
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "gateway_name");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         deposit = self.safeBool(chain, "is_deposit_enabled");
         withdraw = self.safeBool(chain, "is_withdrawal_enabled");
         minDepositAmount = safeString(chain, "min_deposit_amount");
         minWithdrawalAmount = safeString(chain, "min_withdrawal_amount");
         withdrawalFee = safeString(chain, "withdrawal_fee");
-        precision = self.parsePrecision(safeString2(chain, "withdrawal_scale", "scale"));
+        precision = self.parsePrecision(precision = safeString2(chain, "withdrawal_scale", "scale"));
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -677,23 +686,33 @@ function parseCurrency(self::Bigone, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Bigone, params=Dict())
+"""
+retrieves data on all markets for bigone
+see: https://open.big.one/docs/spot_asset_pair.html
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bigone; params=Dict())
     promises = [self.publicGetAssetPairs(params), self.contractPublicGetSymbols(params)];
     promisesResult = Base.fetch(asyncmap(Base.fetch, promises));
     response = get(promisesResult, 1, nothing);
     contractResponse = get(promisesResult, 2, nothing);
-    markets = self.safeList(response, "data", []);
+    markets = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
         market = get(markets, i + 1, nothing);
-        baseAsset = self.safeDict(market, "base_asset", Dict{Symbol, Any}());
-        quoteAsset = self.safeDict(market, "quote_asset", Dict{Symbol, Any}());
+        baseAsset = self.safeDict(market, "base_asset", defaultValue = Dict{Symbol, Any}());
+        quoteAsset = self.safeDict(market, "quote_asset", defaultValue = Dict{Symbol, Any}());
         baseId = safeString(baseAsset, "symbol");
         quoteId = safeString(quoteAsset, "symbol");
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
-        push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => safeString(market, "name"),
     Symbol("uuid") => safeString(market, "id"),
     Symbol("symbol") => string(base, "/", quote_var),
@@ -719,8 +738,8 @@ function fetchMarkets(self::Bigone, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "base_scale"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "quote_scale")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "base_scale"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quote_scale")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -757,7 +776,7 @@ function fetchMarkets(self::Bigone, params=Dict())
         quote_var = self.safeCurrencyCode(quoteId);
         settle = self.safeCurrencyCode(settleId);
         inverse = self.safeBool(market, "isInverse");
-        push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => string(base, "/", quote_var, ":", settle),
     Symbol("base") => base,
@@ -782,8 +801,8 @@ function fetchMarkets(self::Bigone, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "valuePrecision"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "pricePrecision")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "valuePrecision"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "pricePrecision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -810,13 +829,13 @@ function fetchMarkets(self::Bigone, params=Dict())
     return result
 
 end
-function parseTicker(self::Bigone, ticker, market=nothing)
+function parseTicker(self::Bigone, ticker; market=nothing)
     marketType = functions.ccxtruthy((ccxt_in("asset_pair_name", ticker))) ? "spot" : "swap";
     marketId = safeString2(ticker, "asset_pair_name", "symbol");
-    symbol = self.safeSymbol(marketId, market, "-", marketType);
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "-", marketType = marketType);
     close = safeString2(ticker, "close", "latestPrice");
-    bid = self.safeDict(ticker, "bid", Dict{Symbol, Any}());
-    ask = self.safeDict(ticker, "ask", Dict{Symbol, Any}());
+    bid = self.safeDict(ticker, "bid", defaultValue = Dict{Symbol, Any}());
+    ask = self.safeDict(ticker, "ask", defaultValue = Dict{Symbol, Any}());
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => nothing,
@@ -840,30 +859,52 @@ function parseTicker(self::Bigone, ticker, market=nothing)
     Symbol("markPrice") => safeString(ticker, "markPrice"),
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bigone, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://open.big.one/docs/spot_tickers.html
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bigone, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTicker", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTicker", market = market, params = params);
     if functions.ccxtruthy(type_var == "spot")
         request = Dict{Symbol, Any}(
             Symbol("asset_pair_name") => get(market, Symbol("id"), nothing)
         );
         response = Base.fetch(self.publicGetAssetPairsAssetPairNameTicker(extend(request, params)));
-        ticker = self.safeDict(response, "data", Dict{Symbol, Any}());
-            return self.parseTicker(ticker, market)
+        ticker = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+            return self.parseTicker(ticker, market = market)
     else
-        tickers = Base.fetch(self.fetchTickers([symbol], params));
+        tickers = Base.fetch(self.fetchTickers(symbols = [symbol], params = params));
         return safeValue(tickers, symbol)
     end
 
 end
-function fetchTickers(self::Bigone, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://open.big.one/docs/spot_tickers.html
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bigone; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -873,29 +914,39 @@ function fetchTickers(self::Bigone, symbols=nothing, params=Dict())
         market = self.market(symbol);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     isSpot = type_var == "spot";
     request = Dict{Symbol, Any}();
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     data = nothing;
     if functions.ccxtruthy(isSpot)
         if functions.ccxtruthy(symbols != nothing)
-            ids = self.marketIds(symbols);
+            ids = self.marketIds(symbols = symbols);
             request[Symbol("pair_names")] =             join(ids, ",");
         end
         response = Base.fetch(self.publicGetAssetPairsTickers(extend(request, params)));
-        data = self.safeList(response, "data", []);
+        data = self.safeList(response, "data", defaultValue = []);
     else
         instruments = Base.fetch(self.contractPublicGetInstruments(params));
         data = toArray(instruments);
     end
-    tickers = self.parseTickers(data, symbols);
-    return self.filterByArrayTickers(tickers, "symbol", symbols)
+    tickers = self.parseTickers(data, symbols = symbols);
+    return self.filterByArrayTickers(tickers, "symbol", values = symbols)
 
 end
-function fetchTime(self::Bigone, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://open.big.one/docs/spot_ping.html
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Bigone; params=Dict())
     response = Base.fetch(self.publicGetPing(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(data, "Timestamp");
     if functions.ccxtruthy(timestamp == nothing)
         throw(ExchangeError(string(self.id, " fetchTime() missing timestamp")));
@@ -903,7 +954,19 @@ function fetchTime(self::Bigone, params=Dict())
     return self.parseToInt(timestamp / 1000000)
 
 end
-function fetchOrderBook(self::Bigone, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://open.big.one/docs/contract_misc.html#get-orderbook-snapshot
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bigone, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -913,7 +976,7 @@ function fetchOrderBook(self::Bigone, symbol, limit=nothing, params=Dict())
             Symbol("symbol") => get(market, Symbol("id"), nothing)
         );
         response = Base.fetch(self.contractPublicGetDepthSymbolSnapshot(extend(request, params)));
-            return self.parseContractOrderBook(response, get(market, Symbol("symbol"), nothing), limit)
+            return self.parseContractOrderBook(response, get(market, Symbol("symbol"), nothing), limit = limit)
     else
         request = Dict{Symbol, Any}(
             Symbol("asset_pair_name") => get(market, Symbol("id"), nothing)
@@ -922,8 +985,8 @@ function fetchOrderBook(self::Bigone, symbol, limit=nothing, params=Dict())
             request[Symbol("limit")] = limit;
         end
         response = Base.fetch(self.publicGetAssetPairsAssetPairNameDepth(extend(request, params)));
-        orderbook = self.safeDict(response, "data", Dict{Symbol, Any}());
-        return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), nothing, "bids", "asks", "price", "quantity")
+        orderbook = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "quantity")
     end
 
 end
@@ -940,27 +1003,27 @@ function parseContractBidsAsks(self::Bigone, bidsAsks)
     return result
 
 end
-function parseContractOrderBook(self::Bigone, orderbook, symbol, limit=nothing)
+function parseContractOrderBook(self::Bigone, orderbook, symbol; limit=nothing)
     responseBids = safeValue(orderbook, "bids");
     responseAsks = safeValue(orderbook, "asks");
     bids = self.parseContractBidsAsks(responseBids);
     asks = self.parseContractBidsAsks(responseAsks);
     return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
-    Symbol("bids") => self.filterByLimit(sortBy(bids, 0, true), limit),
-    Symbol("asks") => self.filterByLimit(sortBy(asks, 0), limit),
+    Symbol("bids") => self.filterByLimit(sortBy(bids, 0, true), limit = limit),
+    Symbol("asks") => self.filterByLimit(sortBy(asks, 0), limit = limit),
     Symbol("timestamp") => nothing,
     Symbol("datetime") => nothing,
     Symbol("nonce") => nothing
 )
 
 end
-function parseTrade(self::Bigone, trade, market=nothing)
+function parseTrade(self::Bigone, trade; market=nothing)
     timestamp = self.parse8601(safeString2(trade, "created_at", "inserted_at"));
     priceString = safeString(trade, "price");
     amountString = safeString(trade, "amount");
     marketId = safeString(trade, "asset_pair_name");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     side = safeString(trade, "side");
     takerSide = safeString(trade, "taker_side");
     takerOrMaker = nothing;
@@ -1056,10 +1119,23 @@ function parseTrade(self::Bigone, trade, market=nothing)
     else
         result[Symbol("fee")] = nothing;
     end
-    return self.safeTrade(result, market)
+    return self.safeTrade(result, market = market)
 
 end
-function fetchTrades(self::Bigone, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://open.big.one/docs/spot_asset_pair_trade.html
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bigone, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1071,15 +1147,30 @@ function fetchTrades(self::Bigone, symbol, since=nothing, limit=nothing, params=
         Symbol("asset_pair_name") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetAssetPairsAssetPairNameTrades(extend(request, params)));
-    trades = self.safeList(response, "data", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Bigone, ohlcv, market=nothing)
+function parseOHLCV(self::Bigone, ohlcv; market=nothing)
     return [self.parse8601(safeString(ohlcv, "time")), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchOHLCV(self::Bigone, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://open.big.one/docs/spot_asset_pair_candle.html
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the earliest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bigone, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1111,8 +1202,8 @@ function fetchOHLCV(self::Bigone, symbol, timeframe="1m", since=nothing, limit=n
     end
     params = omit(params, "until");
     response = Base.fetch(self.publicGetAssetPairsAssetPairNameCandles(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
 function parseBalance(self::Bigone, response)
@@ -1121,7 +1212,7 @@ function parseBalance(self::Bigone, response)
         Symbol("timestamp") => nothing,
         Symbol("datetime") => nothing
     );
-    balances = self.safeList(response, "data", []);
+    balances = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         balance = get(balances, i + 1, nothing);
@@ -1138,7 +1229,18 @@ function parseBalance(self::Bigone, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bigone, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://open.big.one/docs/fund_accounts.html
+see: https://open.big.one/docs/spot_accounts.html
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bigone; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1162,10 +1264,10 @@ function parseType(self::Bigone, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseOrder(self::Bigone, order, market=nothing)
+function parseOrder(self::Bigone, order; market=nothing)
     id = safeString(order, "id");
     marketId = safeString(order, "asset_pair_name");
-    symbol = self.safeSymbol(marketId, market, "-");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "-");
     timestamp = self.parse8601(safeString(order, "created_at"));
     side = safeString(order, "side");
     if functions.ccxtruthy(side == "BID")
@@ -1215,10 +1317,22 @@ function parseOrder(self::Bigone, order, market=nothing)
     Symbol("status") => self.parseOrderStatus(safeString(order, "state")),
     Symbol("fee") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function createMarketBuyOrderWithCost(self::Bigone, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://open.big.one/docs/spot_orders.html#create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Bigone, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1227,10 +1341,31 @@ function createMarketBuyOrderWithCost(self::Bigone, symbol, cost, params=Dict())
         throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
     end
     params[Symbol("createMarketBuyOrderRequiresPrice")] = false;
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = params))
 
 end
-function createOrder(self::Bigone, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://open.big.one/docs/spot_orders.html#create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "PO"
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount EXCHANGE SPECIFIC PARAMETERS
+- `params.operator`::string, optional: *stop order only* GTE or LTE (default)
+- `params.client_order_id`::string, optional: must match ^[a-zA-Z0-9-_]{1,36}\$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bigone, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1239,9 +1374,9 @@ function createOrder(self::Bigone, symbol, type_var, side, amount, price=nothing
     requestSide = functions.ccxtruthy(isBuy) ? "BID" : "ASK";
     uppercaseType = uppercase(type_var);
     isLimit = uppercaseType == "LIMIT";
-    exchangeSpecificParam = self.safeBool(params, "post_only", false);
+    exchangeSpecificParam = self.safeBool(params, "post_only", defaultValue = false);
     postOnly = nothing;
-    (postOnly, params) = self.handlePostOnly(uppercaseType == "MARKET", exchangeSpecificParam, params);
+    (postOnly, params) = self.handlePostOnly(uppercaseType == "MARKET", exchangeSpecificParam, params = params);
     triggerPrice = safeStringN(params, ["triggerPrice", "stopPrice", "stop_price"]);
     request = Dict{Symbol, Any}(
         Symbol("asset_pair_name") => get(market, Symbol("id"), nothing),
@@ -1263,7 +1398,7 @@ function createOrder(self::Bigone, symbol, type_var, side, amount, price=nothing
     else
         if functions.ccxtruthy(isBuy)
             createMarketBuyOrderRequiresPrice = nothing;
-            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
             cost = self.safeNumber(params, "cost");
             params = omit(params, "cost");
             if functions.ccxtruthy(createMarketBuyOrderRequiresPrice)
@@ -1299,11 +1434,23 @@ function createOrder(self::Bigone, symbol, type_var, side, amount, price=nothing
     end
     params = omit(params, ["stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"]);
     response = Base.fetch(self.privatePostOrders(extend(request, params)));
-    order = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(order, market)
+    order = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(order, market = market)
 
 end
-function cancelOrder(self::Bigone, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://open.big.one/docs/spot_orders.html#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: Not used by bigone cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bigone, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1311,11 +1458,22 @@ function cancelOrder(self::Bigone, id, symbol=nothing, params=Dict())
         Symbol("id") => id
     );
     response = Base.fetch(self.privatePostOrdersIdCancel(extend(request, params)));
-    order = self.safeDict(response, "data", Dict{Symbol, Any}());
+    order = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(order)
 
 end
-function cancelAllOrders(self::Bigone, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://open.big.one/docs/spot_orders.html#cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bigone; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1324,9 +1482,9 @@ function cancelAllOrders(self::Bigone, symbol=nothing, params=Dict())
         Symbol("asset_pair_name") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privatePostOrdersCancel(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    cancelled = self.safeList(data, "cancelled", []);
-    failed = self.safeList(data, "failed", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    cancelled = self.safeList(data, "cancelled", defaultValue = []);
+    failed = self.safeList(data, "failed", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(cancelled)))
@@ -1351,7 +1509,19 @@ function cancelAllOrders(self::Bigone, symbol=nothing, params=Dict())
     return result
 
 end
-function fetchOrder(self::Bigone, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://open.big.one/docs/spot_orders.html#get-one-order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by bigone fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bigone, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1359,11 +1529,24 @@ function fetchOrder(self::Bigone, id, symbol=nothing, params=Dict())
         Symbol("id") => id
     );
     response = Base.fetch(self.privateGetOrdersId(extend(request, params)));
-    order = self.safeDict(response, "data", Dict{Symbol, Any}());
+    order = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(order)
 
 end
-function fetchOrders(self::Bigone, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Bigone; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -1378,11 +1561,24 @@ function fetchOrders(self::Bigone, symbol=nothing, since=nothing, limit=nothing,
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetOrders(extend(request, params)));
-    orders = self.safeList(response, "data", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Bigone, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://open.big.one/docs/spot_trade.html#trades-of-user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bigone; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -1397,8 +1593,8 @@ function fetchMyTrades(self::Bigone, symbol=nothing, since=nothing, limit=nothin
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetTrades(extend(request, params)));
-    trades = self.safeList(response, "data", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Bigone, status)
@@ -1410,18 +1606,44 @@ function parseOrderStatus(self::Bigone, status)
     return safeString(statuses, status)
 
 end
-function fetchOpenOrders(self::Bigone, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bigone; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("state") => "PENDING"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchClosedOrders(self::Bigone, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Bigone; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("state") => "FILLED"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
 function nonce(self::Bigone, )
@@ -1429,7 +1651,7 @@ function nonce(self::Bigone, )
     return self.sum(microseconds() * 1000, exchangeTimeCorrection)
 
 end
-function sign(self::Bigone, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bigone, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     query = omit(params, self.extractParams(path));
     baseUrl = self.implodeHostname(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing));
     url = string(baseUrl, "/", self.implodeParams(path, params));
@@ -1466,7 +1688,18 @@ function sign(self::Bigone, path, api="public", method="GET", params=Dict(), hea
 )
 
 end
-function fetchDepositAddress(self::Bigone, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bigone, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1476,21 +1709,21 @@ function fetchDepositAddress(self::Bigone, code, params=Dict())
     );
     (networkCode, paramsOmitted) = self.handleNetworkCodeAndParams(params);
     response = Base.fetch(self.privateGetAssetsAssetSymbolAddress(extend(request, paramsOmitted)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     dataLength = length(data);
     if functions.ccxtruthy(functions.ccxt_lt(dataLength, 1))
         throw(ExchangeError(string(self.id, " fetchDepositAddress() returned empty address response")));
     end
     chainsIndexedById = indexBy(data, "chain");
     selectedNetworkId = self.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
-    addressObject = self.safeDict(chainsIndexedById, selectedNetworkId, Dict{Symbol, Any}());
+    addressObject = self.safeDict(chainsIndexedById, selectedNetworkId, defaultValue = Dict{Symbol, Any}());
     address = safeString(addressObject, "value");
     tag = safeString(addressObject, "memo");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(selectedNetworkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = selectedNetworkId, currencyCode = code),
     Symbol("address") => address,
     Symbol("tag") => tag
 )
@@ -1507,7 +1740,7 @@ function parseTransactionStatus(self::Bigone, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Bigone, transaction, currency=nothing)
+function parseTransaction(self::Bigone, transaction; currency=nothing)
     currencyId = safeString(transaction, "asset_symbol");
     code = self.safeCurrencyCode(currencyId);
     id = safeString(transaction, "id");
@@ -1544,7 +1777,20 @@ function parseTransaction(self::Bigone, transaction, currency=nothing)
 )
 
 end
-function fetchDeposits(self::Bigone, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://open.big.one/docs/spot_deposit.html#deposit-of-user
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bigone; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1558,11 +1804,24 @@ function fetchDeposits(self::Bigone, code=nothing, since=nothing, limit=nothing,
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetDeposits(extend(request, params)));
-    deposits = self.safeList(response, "data", []);
-    return self.parseTransactions(deposits, currency, since, limit)
+    deposits = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(deposits, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Bigone, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://open.big.one/docs/spot_withdrawal.html#get-withdrawals-of-user
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bigone; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1576,16 +1835,30 @@ function fetchWithdrawals(self::Bigone, code=nothing, since=nothing, limit=nothi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetWithdrawals(extend(request, params)));
-    withdrawals = self.safeList(response, "data", []);
-    return self.parseTransactions(withdrawals, currency, since, limit)
+    withdrawals = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(withdrawals, currency = currency, since = since, limit = limit)
 
 end
-function transfer(self::Bigone, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://open.big.one/docs/spot_transfer.html#transfer-of-user
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'SPOT', 'FUND', or 'CONTRACT'
+- `toAccount`::string: 'SPOT', 'FUND', or 'CONTRACT'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Bigone, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(accountsByType, fromAccount, fromAccount);
     toId = safeString(accountsByType, toAccount, toAccount);
     guid = safeString(params, "guid", uuid());
@@ -1597,9 +1870,9 @@ function transfer(self::Bigone, code, amount, fromAccount, toAccount, params=Dic
         Symbol("guid") => guid
     );
     response = Base.fetch(self.privatePostTransfer(extend(request, params)));
-    transfer = self.parseTransfer(response, currency);
-    transferOptions = self.safeDict(self.options, "transfer", Dict{Symbol, Any}());
-    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", true);
+    transfer = self.parseTransfer(response, currency = currency);
+    transferOptions = self.safeDict(self.options, "transfer", defaultValue = Dict{Symbol, Any}());
+    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         transfer[Symbol("fromAccount")] = fromAccount;
         transfer[Symbol("toAccount")] = toAccount;
@@ -1609,7 +1882,7 @@ function transfer(self::Bigone, code, amount, fromAccount, toAccount, params=Dic
     return transfer
 
 end
-function parseTransfer(self::Bigone, transfer, currency=nothing)
+function parseTransfer(self::Bigone, transfer; currency=nothing)
     code = safeString(transfer, "code");
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
@@ -1631,7 +1904,21 @@ function parseTransferStatus(self::Bigone, status)
     return safeString(statuses, status, "failed")
 
 end
-function withdraw(self::Bigone, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bigone, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1648,11 +1935,11 @@ function withdraw(self::Bigone, code, amount, address, tag=nothing, params=Dict(
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("gateway_name")] = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        request[Symbol("gateway_name")] = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     end
     response = Base.fetch(self.privatePostWithdrawals(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransaction(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(data, currency = currency)
 
 end
 function handleErrors(self::Bigone, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody)
@@ -1678,167 +1965,167 @@ Base.getproperty(self::Bigone, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetPing(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "ping", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetPairs(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "asset_pairs", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset_pairs"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetPairsAssetPairNameDepth(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "asset_pairs/{asset_pair_name}/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset_pairs/{asset_pair_name}/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetPairsAssetPairNameTrades(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "asset_pairs/{asset_pair_name}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset_pairs/{asset_pair_name}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetPairsAssetPairNameTicker(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "asset_pairs/{asset_pair_name}/ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset_pairs/{asset_pair_name}/ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetPairsAssetPairNameCandles(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "asset_pairs/{asset_pair_name}/candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset_pairs/{asset_pair_name}/candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetPairsTickers(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "asset_pairs/tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset_pairs/tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccounts(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFundAccounts(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "fund/accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fund/accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetsAssetSymbolAddress(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "assets/{asset_symbol}/address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/{asset_symbol}/address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrders(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersId(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersMulti(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/multi", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/multi"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTrades(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawals(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeposits(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "deposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersIdCancel(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/{id}/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersCancel(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawals(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransfer(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSymbols(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "symbols", "contractPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "symbols"; api="contractPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetInstruments(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "instruments", "contractPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "instruments"; api="contractPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetDepthSymbolSnapshot(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "depth@{symbol}/snapshot", "contractPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "depth@{symbol}/snapshot"; api="contractPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetInstrumentsDifference(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "instruments/difference", "contractPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "instruments/difference"; api="contractPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetInstrumentsPrices(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "instruments/prices", "contractPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "instruments/prices"; api="contractPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetAccounts(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "accounts", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetOrdersId(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetOrders(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetOrdersOpening(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/opening", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/opening"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetOrdersCount(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/count", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/count"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetOrdersOpeningCount(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/opening/count", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/opening/count"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetTrades(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "trades", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetTradesCount(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "trades/count", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades/count"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostOrders(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostOrdersBatch(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePutPositionsSymbolMargin(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "positions/{symbol}/margin", "contractPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "positions/{symbol}/margin"; api="contractPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePutPositionsSymbolRiskLimit(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "positions/{symbol}/risk-limit", "contractPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "positions/{symbol}/risk-limit"; api="contractPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateDeleteOrdersId(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="contractPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateDeleteOrdersBatch(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api="contractPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function webExchangeGetV3Assets(self::Bigone, params=Dict(), context=Dict())
-    return request(self, "v3/assets", "webExchange", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/assets"; api="webExchange", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bigone(; kwargs...)
@@ -1902,3 +2189,361 @@ function Bigone(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bigone_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bigone_fetchCurrencies
+
+function __ccxt_doc_Bigone_fetchMarkets() end
+"""
+retrieves data on all markets for bigone
+see: https://open.big.one/docs/spot_asset_pair.html
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bigone_fetchMarkets
+
+function __ccxt_doc_Bigone_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://open.big.one/docs/spot_tickers.html
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bigone_fetchTicker
+
+function __ccxt_doc_Bigone_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://open.big.one/docs/spot_tickers.html
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bigone_fetchTickers
+
+function __ccxt_doc_Bigone_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://open.big.one/docs/spot_ping.html
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Bigone_fetchTime
+
+function __ccxt_doc_Bigone_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://open.big.one/docs/contract_misc.html#get-orderbook-snapshot
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bigone_fetchOrderBook
+
+function __ccxt_doc_Bigone_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://open.big.one/docs/spot_asset_pair_trade.html
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bigone_fetchTrades
+
+function __ccxt_doc_Bigone_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://open.big.one/docs/spot_asset_pair_candle.html
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the earliest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bigone_fetchOHLCV
+
+function __ccxt_doc_Bigone_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://open.big.one/docs/fund_accounts.html
+see: https://open.big.one/docs/spot_accounts.html
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bigone_fetchBalance
+
+function __ccxt_doc_Bigone_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://open.big.one/docs/spot_orders.html#create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bigone_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Bigone_createOrder() end
+"""
+create a trade order
+see: https://open.big.one/docs/spot_orders.html#create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "PO"
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount EXCHANGE SPECIFIC PARAMETERS
+- `params.operator`::string, optional: *stop order only* GTE or LTE (default)
+- `params.client_order_id`::string, optional: must match ^[a-zA-Z0-9-_]{1,36}\$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bigone_createOrder
+
+function __ccxt_doc_Bigone_cancelOrder() end
+"""
+cancels an open order
+see: https://open.big.one/docs/spot_orders.html#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: Not used by bigone cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bigone_cancelOrder
+
+function __ccxt_doc_Bigone_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://open.big.one/docs/spot_orders.html#cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bigone_cancelAllOrders
+
+function __ccxt_doc_Bigone_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://open.big.one/docs/spot_orders.html#get-one-order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by bigone fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bigone_fetchOrder
+
+function __ccxt_doc_Bigone_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bigone_fetchOrders
+
+function __ccxt_doc_Bigone_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://open.big.one/docs/spot_trade.html#trades-of-user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bigone_fetchMyTrades
+
+function __ccxt_doc_Bigone_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bigone_fetchOpenOrders
+
+function __ccxt_doc_Bigone_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bigone_fetchClosedOrders
+
+function __ccxt_doc_Bigone_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bigone_fetchDepositAddress
+
+function __ccxt_doc_Bigone_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://open.big.one/docs/spot_deposit.html#deposit-of-user
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bigone_fetchDeposits
+
+function __ccxt_doc_Bigone_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://open.big.one/docs/spot_withdrawal.html#get-withdrawals-of-user
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bigone_fetchWithdrawals
+
+function __ccxt_doc_Bigone_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://open.big.one/docs/spot_transfer.html#transfer-of-user
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'SPOT', 'FUND', or 'CONTRACT'
+- `toAccount`::string: 'SPOT', 'FUND', or 'CONTRACT'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bigone_transfer
+
+function __ccxt_doc_Bigone_withdraw() end
+"""
+make a withdrawal
+see: https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bigone_withdraw

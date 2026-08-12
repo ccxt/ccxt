@@ -579,9 +579,19 @@ function describe(self::Bydfi, )
 ))
 
 end
-function fetchMarkets(self::Bydfi, params=Dict())
+"""
+retrieves data on all markets for bydfi
+see: https://developers.bydfi.com/en/futures/market#fetching-trading-rules-and-pairs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bydfi; params=Dict())
     response = Base.fetch(self.publicGetV1FapiMarketExchangeInfo(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseMarkets(data)
 
 end
@@ -602,15 +612,15 @@ function parseMarket(self::Bydfi, market)
     limitMinQty = safeString(market, "limitMinQty");
     minAmountString = stringMin(marketMinQty, limitMinQty);
     contractSize = safeString(market, "contractFactor");
-    pricePrecision = self.parsePrecision(safeString(market, "priceOrderPrecision"));
-    rawAmountPrecision = self.parsePrecision(safeString(market, "volumePrecision"));
+    pricePrecision = self.parsePrecision(precision = safeString(market, "priceOrderPrecision"));
+    rawAmountPrecision = self.parsePrecision(precision = safeString(market, "volumePrecision"));
     amountPrecision = stringDiv(rawAmountPrecision, contractSize);
-    basePrecision = self.parsePrecision(safeString(market, "basePrecision"));
+    basePrecision = self.parsePrecision(precision = safeString(market, "basePrecision"));
     taker = self.safeNumber(market, "feeRateTaker");
     maker = self.safeNumber(market, "feeRateMaker");
     maxLeverage = self.safeNumber(market, "maxLeverageLevel");
     status = safeString(market, "status");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -664,7 +674,20 @@ function parseMarket(self::Bydfi, market)
 ))
 
 end
-function fetchOrderBook(self::Bydfi, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://developers.bydfi.com/en/futures/market#depth-information
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bydfi, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -676,9 +699,9 @@ function fetchOrderBook(self::Bydfi, symbol, limit=nothing, params=Dict())
         request[Symbol("limit")] = self.getClosestLimit(limit);
     end
     response = Base.fetch(self.publicGetV1FapiMarketDepth(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = milliseconds();
-    orderBook = self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", "price", "amount");
+    orderBook = self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "amount");
     orderBook[Symbol("nonce")] = safeInteger(data, "lastUpdateId");
     return orderBook
 
@@ -700,7 +723,21 @@ function getClosestLimit(self::Bydfi, limit)
     return result
 
 end
-function fetchTrades(self::Bydfi, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://developers.bydfi.com/en/futures/market#recent-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (default 500, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fromId`::int, optional: retrieve from which trade ID to start. Default to retrieve the most recent trade records
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bydfi, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -712,26 +749,43 @@ function fetchTrades(self::Bydfi, symbol, since=nothing, limit=nothing, params=D
         request[Symbol("limit")] = min(limit, 1000);
     end
     response = Base.fetch(self.publicGetV1FapiMarketTrades(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Bydfi, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://developers.bydfi.com/en/futures/trade#historical-trades-query
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet
+- `params.orderType`::string, optional: order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bydfi; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    paginate = self.safeBool(params, "paginate", false);
+    paginate = self.safeBool(params, "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
         maxLimit = 500;
         params = omit(params, "paginate");
         params = extend(params, Dict{Symbol, Any}(
     Symbol("paginationDirection") => "backward"
 ));
-        paginatedResponse = Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, maxLimit, true));
+        paginatedResponse = Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit, removeRepeated = true));
             return sortBy(paginatedResponse, "timestamp")
     end
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "fetchMyTrades", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "fetchMyTrades", "contractType", defaultValue = contractType);
     request = Dict{Symbol, Any}(
         Symbol("contractType") => contractType
     );
@@ -740,18 +794,18 @@ function fetchMyTrades(self::Bydfi, symbol=nothing, since=nothing, limit=nothing
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
-    params = self.handleSinceAndUntil("fetchMyTrades", since, params);
+    params = self.handleSinceAndUntil("fetchMyTrades", since = since, params = params);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetV1FapiTradeHistoryTrade(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Bydfi, trade, market=nothing)
+function parseTrade(self::Bydfi, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(trade, "time");
     fee = nothing;
     rawType = safeString(trade, "type");
@@ -781,7 +835,7 @@ function parseTrade(self::Bydfi, trade, market=nothing)
     Symbol("amount") => safeString2(trade, "quantity", "dealVolume"),
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
 function parseTradeType(self::Bydfi, type_var)
@@ -793,7 +847,22 @@ function parseTradeType(self::Bydfi, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function fetchOHLCV(self::Bydfi, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://developers.bydfi.com/en/futures/market#candlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (max 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bydfi, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -801,7 +870,7 @@ function fetchOHLCV(self::Bydfi, symbol, timeframe="1m", since=nothing, limit=no
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit)
+            return self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxLimit)
     end
     market = self.market(symbol);
     interval = safeString(self.timeframes, timeframe, timeframe);
@@ -839,25 +908,47 @@ function fetchOHLCV(self::Bydfi, symbol, timeframe="1m", since=nothing, limit=no
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetV1FapiMarketKlines(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    result = self.parseOHLCVs(data, market, timeframe, since, limit);
+    data = self.safeList(response, "data", defaultValue = []);
+    result = self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit);
     return result
 
 end
-function parseOHLCV(self::Bydfi, ohlcv, market=nothing)
+function parseOHLCV(self::Bydfi, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "t"), self.safeNumber(ohlcv, "o"), self.safeNumber(ohlcv, "h"), self.safeNumber(ohlcv, "l"), self.safeNumber(ohlcv, "c"), self.safeNumber(ohlcv, "v")]
 
 end
-function fetchTickers(self::Bydfi, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bydfi; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetV1FapiMarketTicker24hr(params));
-    data = self.safeList(response, "data", []);
-    return self.parseTickers(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(data, symbols = symbols)
 
 end
-function fetchTicker(self::Bydfi, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bydfi, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -866,18 +957,18 @@ function fetchTicker(self::Bydfi, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetV1FapiMarketTicker24hr(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    ticker = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTicker(ticker, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    ticker = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(ticker, market = market)
 
 end
-function parseTicker(self::Bydfi, ticker, market=nothing)
+function parseTicker(self::Bydfi, ticker; market=nothing)
     marketId = safeString2(ticker, "symbol", "s");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger2(ticker, "time", "E");
     last_var = safeString2(ticker, "last", "c");
     return self.safeTicker(Dict{Symbol, Any}(
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("high") => safeString2(ticker, "high", "h"),
@@ -899,10 +990,21 @@ function parseTicker(self::Bydfi, ticker, market=nothing)
     Symbol("markPrice") => nothing,
     Symbol("indexPrice") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchFundingRate(self::Bydfi, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://developers.bydfi.com/en/futures/market#recent-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Bydfi, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -912,12 +1014,12 @@ function fetchFundingRate(self::Bydfi, symbol, params=Dict())
     );
     response = Base.fetch(self.publicGetV1FapiMarketFundingRate(extend(request, params)));
     data = self.safeDict(response, "data");
-    return self.parseFundingRate(data, market)
+    return self.parseFundingRate(data, market = market)
 
 end
-function parseFundingRate(self::Bydfi, contract, market=nothing)
+function parseFundingRate(self::Bydfi, contract; market=nothing)
     marketId = safeString(contract, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     timestamp = safeInteger(contract, "time");
     nextFundingTimestamp = safeInteger(contract, "nextFundingTime");
     return Dict{Symbol, Any}(
@@ -942,7 +1044,21 @@ function parseFundingRate(self::Bydfi, contract, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Bydfi, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://developers.bydfi.com/en/futures/market#historical-funding-rates
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Bydfi; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -965,39 +1081,66 @@ function fetchFundingRateHistory(self::Bydfi, symbol=nothing, since=nothing, lim
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.publicGetV1FapiMarketFundingRateHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseFundingRateHistories(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseFundingRateHistories(data, market = market, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Bydfi, contract, market=nothing)
+function parseFundingRateHistory(self::Bydfi, contract; market=nothing)
     marketId = safeString(contract, "symbol");
     timestamp = safeInteger(contract, "fundingTime");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("fundingRate") => self.safeNumber(contract, "fundingRate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 )
 
 end
-function createOrder(self::Bydfi, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://developers.bydfi.com/en/futures/trade#placing-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+- `params.hedged`::bool, optional: true for hedged mode, false for one way mode, default is false
+- `params.clientOrderId`::string, optional: Custom order ID, must be unique for open orders
+- `params.timeInForce`::string, optional: 'GTC' (Good Till Cancelled), 'FOK' (Fill Or Kill), 'IOC' (Immediate Or Cancel), 'PO' (Post Only)
+- `params.postOnly`::bool, optional: true or false, whether the order is post-only
+- `params.reduceOnly`::bool, optional: true or false, true or false whether the order is reduce-only
+- `params.stopLossPrice`::float, optional: The price a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price a take profit order is triggered at
+- `params.trailingTriggerPrice`::float, optional: the price to activate a trailing order, default uses the price argument or market price if price is not provided
+- `params.trailingPercent`::float, optional: the percent to trail away from the current market price
+- `params.triggerPriceType`::string, optional: 'MARK_PRICE' or 'CONTRACT_PRICE', default is 'CONTRACT_PRICE', the price type used to trigger stop orders
+- `params.closePosition`::bool, optional: true or false, whether to close all positions after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity;
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bydfi, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "createOrder", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "createOrder", "wallet", defaultValue = wallet);
     orderRequest = extend(orderRequest, Dict{Symbol, Any}(
     Symbol("wallet") => wallet
 ));
     response = Base.fetch(self.privatePostV1FapiTradePlaceOrder(orderRequest));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function createOrderRequest(self::Bydfi, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Bydfi, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1027,7 +1170,7 @@ function createOrderRequest(self::Bydfi, symbol, type_var, side, amount, price=n
         params = omit(params, ["trailingPercent"]);
         request[Symbol("callbackRate")] = trailingPercent;
         trailingTriggerPrice = numberToString(price);
-        (trailingTriggerPrice, params) = self.handleParamString(params, "trailingTriggerPrice", trailingTriggerPrice);
+        (trailingTriggerPrice, params) = self.handleParamString(params, "trailingTriggerPrice", defaultValue = trailingTriggerPrice);
         if functions.ccxtruthy(trailingTriggerPrice != nothing)
             request[Symbol("activationPrice")] = self.priceToPrecision(symbol, trailingTriggerPrice);
             params = omit(params, ["trailingTriggerPrice"]);
@@ -1061,8 +1204,8 @@ function createOrderRequest(self::Bydfi, symbol, type_var, side, amount, price=n
     end
     request[Symbol("type")] = type_var;
     hedged = false;
-    (hedged, params) = self.handleOptionAndParams(params, "createOrder", "hedged", hedged);
-    reduceOnly = self.safeBool(params, "reduceOnly", false);
+    (hedged, params) = self.handleOptionAndParams(params, "createOrder", "hedged", defaultValue = hedged);
+    reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
     if functions.ccxtruthy(hedged)
         params = omit(params, "reduceOnly");
         if functions.ccxtruthy(side == "buy")
@@ -1071,16 +1214,16 @@ function createOrderRequest(self::Bydfi, symbol, type_var, side, amount, price=n
             request[Symbol("positionSide")] = functions.ccxtruthy(reduceOnly) ? "LONG" : "SHORT";
         end
     end
-    closePosition = self.safeBool(params, "closePosition", false);
+    closePosition = self.safeBool(params, "closePosition", defaultValue = false);
     if functions.ccxtruthy(!functions.ccxtruthy(closePosition))
         params = omit(params, "closePosition");
         request[Symbol("quantity")] = self.amountToPrecision(symbol, amount);
     elseif functions.ccxtruthy(@functions.ccxt_and((type_var != "STOP_MARKET"), (type_var != "TAKE_PROFIT_MARKET")))
         throw(NotSupported(string(self.id, " createOrder() closePosition is only supported for stopLoss and takeProfit market orders")));
     end
-    timeInForce = self.handleTimeInForce(params);
+    timeInForce = self.handleTimeInForce(params = params);
     postOnly = false;
-    (postOnly, params) = self.handlePostOnly(isMarketOrder, timeInForce == "POST_ONLY", params);
+    (postOnly, params) = self.handlePostOnly(isMarketOrder, timeInForce == "POST_ONLY", params = params);
     if functions.ccxtruthy(postOnly)
         timeInForce = "POST_ONLY";
     end
@@ -1090,7 +1233,7 @@ function createOrderRequest(self::Bydfi, symbol, type_var, side, amount, price=n
     end
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(isStopLossOrder, isTakeProfitOrder), isTailingStopOrder))
         workingType = "CONTRACT_PRICE";
-        (workingType, params) = self.handleOptionAndParams(params, "createOrder", "triggerPriceType", workingType);
+        (workingType, params) = self.handleOptionAndParams(params, "createOrder", "triggerPriceType", defaultValue = workingType);
         request[Symbol("workingType")] = self.encodeWorkingType(workingType);
     end
     return extend(request, params)
@@ -1107,7 +1250,19 @@ function encodeWorkingType(self::Bydfi, workingType)
     return safeString(types, workingType, workingType)
 
 end
-function createOrders(self::Bydfi, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://developers.bydfi.com/en/futures/trade#batch-order-placement
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Bydfi, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1124,36 +1279,66 @@ function createOrders(self::Bydfi, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = self.safeNumber(rawOrder, "amount");
         price = self.safeNumber(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price, orderParams);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "createOrder", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "createOrder", "wallet", defaultValue = wallet);
     request = Dict{Symbol, Any}(
         Symbol("wallet") => wallet,
         Symbol("orders") => ordersRequests
     );
     response = Base.fetch(self.privatePostV1FapiTradeBatchPlaceOrder(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseOrders(data)
 
 end
-function editOrder(self::Bydfi, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://developers.bydfi.com/en/futures/trade#order-modification
+
+# Arguments
+- `id`::string: order id (mandatory if params.clientOrderId is not provided)
+- `symbol`::string, optional: unified symbol of the market to create an order in
+- `type`::string, optional: not used by bydfi editOrder
+- `side`::string, optional: 'buy' or 'sell'
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price for the order, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique identifier for the order (could be alternative to id)
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Bydfi, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    request = self.createEditOrderRequest(id, symbol, "limit", side, amount, price, params);
+    request = self.createEditOrderRequest(id, symbol, "limit", side, amount = amount, price = price, params = params);
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "editOrder", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "editOrder", "wallet", defaultValue = wallet);
     request[Symbol("wallet")] = wallet;
     response = Base.fetch(self.privatePostV1FapiTradeEditOrder(request));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(data)
 
 end
-function editOrders(self::Bydfi, orders, params=Dict())
+"""
+edit a list of trade orders
+see: https://developers.bydfi.com/en/futures/trade#batch-order-modification
+
+# Arguments
+- `orders`::array: list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrders(self::Bydfi, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1170,23 +1355,23 @@ function editOrders(self::Bydfi, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = self.safeNumber(rawOrder, "amount");
         price = self.safeNumber(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createEditOrderRequest(id, symbol, "limit", side, amount, price, orderParams);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.createEditOrderRequest(id, symbol, "limit", side, amount = amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "editOrder", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "editOrder", "wallet", defaultValue = wallet);
     request = Dict{Symbol, Any}(
         Symbol("wallet") => wallet,
         Symbol("editOrders") => ordersRequests
     );
     response = Base.fetch(self.privatePostV1FapiTradeBatchEditOrder(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseOrders(data)
 
 end
-function createEditOrderRequest(self::Bydfi, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+function createEditOrderRequest(self::Bydfi, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     clientOrderId = safeString(params, "clientOrderId");
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(@functions.ccxt_and((id == nothing), (clientOrderId == nothing)))
@@ -1208,7 +1393,19 @@ function createEditOrderRequest(self::Bydfi, id, symbol, type_var, side, amount=
     return extend(request, params)
 
 end
-function cancelAllOrders(self::Bydfi, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://developers.bydfi.com/en/futures/trade#complete-order-cancellation
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bydfi; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -1217,17 +1414,33 @@ function cancelAllOrders(self::Bydfi, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "cancelAllOrders", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "cancelAllOrders", "wallet", defaultValue = wallet);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("wallet") => wallet
     );
     response = Base.fetch(self.privatePostV1FapiTradeCancelAllOrder(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market)
 
 end
-function fetchOpenOrders(self::Bydfi, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://developers.bydfi.com/en/futures/trade#pending-order-query
+see: https://developers.bydfi.com/en/futures/trade#planned-order-query
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true or false, whether to fetch conditional orders only
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bydfi; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument")));
     end
@@ -1236,23 +1449,39 @@ function fetchOpenOrders(self::Bydfi, symbol=nothing, since=nothing, limit=nothi
     end
     market = self.market(symbol);
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "wallet", defaultValue = wallet);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("wallet") => wallet
     );
     trigger = false;
-    (trigger, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "trigger", trigger);
+    (trigger, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "trigger", defaultValue = trigger);
     if functions.ccxtruthy(!functions.ccxtruthy(trigger))
         response = Base.fetch(self.privateGetV1FapiTradeOpenOrder(extend(request, params)));
     else
         response = Base.fetch(self.privateGetV1FapiTradePlanOrder(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrder(self::Bydfi, id, symbol=nothing, params=Dict())
+"""
+fetch an open order by the id
+see: https://developers.bydfi.com/en/futures/trade#pending-order-query
+see: https://developers.bydfi.com/en/futures/trade#planned-order-query
+
+# Arguments
+- `id`::string: order id (mandatory if params.clientOrderId is not provided)
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true or false, whether to fetch conditional orders only
+- `params.clientOrderId`::string, optional: a unique identifier for the order (could be alternative to id)
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrder(self::Bydfi, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrder() requires a symbol argument")));
     end
@@ -1270,36 +1499,53 @@ function fetchOpenOrder(self::Bydfi, id, symbol=nothing, params=Dict())
         request[Symbol("orderId")] = id;
     end
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "fetchOpenOrder", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "fetchOpenOrder", "wallet", defaultValue = wallet);
     request[Symbol("wallet")] = wallet;
     trigger = false;
-    (trigger, params) = self.handleOptionAndParams(params, "fetchOpenOrder", "trigger", trigger);
+    (trigger, params) = self.handleOptionAndParams(params, "fetchOpenOrder", "trigger", defaultValue = trigger);
     if functions.ccxtruthy(!functions.ccxtruthy(trigger))
         response = Base.fetch(self.privateGetV1FapiTradeOpenOrder(extend(request, params)));
     else
         response = Base.fetch(self.privateGetV1FapiTradePlanOrder(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    order = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseOrder(order, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    order = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(order, market = market)
 
 end
-function fetchCanceledAndClosedOrders(self::Bydfi, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled and closed orders made by the user
+see: https://developers.bydfi.com/en/futures/trade#historical-orders-query
+
+# Arguments
+- `symbol`::string: unified market symbol of the closed orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of closed orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet
+- `params.orderType`::string, optional: order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Bydfi; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    paginate = self.safeBool(params, "paginate", false);
+    paginate = self.safeBool(params, "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
         maxLimit = 500;
         params = omit(params, "paginate");
         params = extend(params, Dict{Symbol, Any}(
     Symbol("paginationDirection") => "backward"
 ));
-        paginatedResponse = Base.fetch(self.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, params, maxLimit, true));
+        paginatedResponse = Base.fetch(self.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit, removeRepeated = true));
             return sortBy(paginatedResponse, "timestamp")
     end
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "contractType", defaultValue = contractType);
     request = Dict{Symbol, Any}(
         Symbol("contractType") => contractType
     );
@@ -1308,16 +1554,16 @@ function fetchCanceledAndClosedOrders(self::Bydfi, symbol=nothing, since=nothing
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
-    params = self.handleSinceAndUntil("fetchCanceledAndClosedOrders", since, params);
+    params = self.handleSinceAndUntil("fetchCanceledAndClosedOrders", since = since, params = params);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetV1FapiTradeHistoryOrder(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function handleSinceAndUntil(self::Bydfi, methodName, since=nothing, params=Dict())
+function handleSinceAndUntil(self::Bydfi, methodName; since=nothing, params=Dict())
     until = nothing;
     (until, params) = self.handleOptionAndParams2(params, methodName, "until", "endTime");
     now = milliseconds();
@@ -1345,9 +1591,9 @@ function handleSinceAndUntil(self::Bydfi, methodName, since=nothing, params=Dict
     return extend(request, params)
 
 end
-function parseOrder(self::Bydfi, order, market=nothing)
+function parseOrder(self::Bydfi, order; market=nothing)
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger2(order, "createTime", "ctime");
     rawType = safeString(order, "orderType");
     stopPrice = safeStringN(order, ["stopPrice", "activatePrice", "triggerPrice"]);
@@ -1392,7 +1638,7 @@ function parseOrder(self::Bydfi, order, market=nothing)
     Symbol("trades") => nothing,
     Symbol("fee") => fee,
     Symbol("average") => omitZero(safeString(order, "avgPrice"))
-), market)
+), market = market)
 
 end
 function parseOrderType(self::Bydfi, type_var)
@@ -1433,7 +1679,20 @@ function parseOrderStatus(self::Bydfi, status)
     return safeString(statuses, status, status)
 
 end
-function setLeverage(self::Bydfi, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://developers.bydfi.com/en/futures/trade#set-leverage-for-single-trading-pair
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Bydfi, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -1442,18 +1701,30 @@ function setLeverage(self::Bydfi, leverage, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "setLeverage", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "setLeverage", "wallet", defaultValue = wallet);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("leverage") => leverage,
         Symbol("wallet") => wallet
     );
     response = Base.fetch(self.privatePostV1FapiTradeLeverage(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return data
 
 end
-function fetchLeverage(self::Bydfi, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://developers.bydfi.com/en/futures/trade#get-leverage-for-single-trading-pair
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Bydfi, symbol; params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchLeverage() requires a symbol argument")));
     end
@@ -1462,60 +1733,85 @@ function fetchLeverage(self::Bydfi, symbol, params=Dict())
     end
     market = self.market(symbol);
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "fetchLeverage", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "fetchLeverage", "wallet", defaultValue = wallet);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("wallet") => wallet
     );
     response = Base.fetch(self.privateGetV1FapiTradeLeverage(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Bydfi, leverage, market=nothing)
+function parseLeverage(self::Bydfi, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => nothing,
     Symbol("longLeverage") => safeInteger(leverage, "leverage"),
     Symbol("shortLeverage") => safeInteger(leverage, "leverage")
 )
 
 end
-function fetchPositions(self::Bydfi, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://developers.bydfi.com/en/futures/trade#positions-query
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.settleCoin`::string, optional: the settlement currency (USDT or USDC or USD)
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Bydfi; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "fetchPositions", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "fetchPositions", "contractType", defaultValue = contractType);
     request = Dict{Symbol, Any}(
         Symbol("contractType") => contractType
     );
     response = Base.fetch(self.privateGetV1FapiTradePositions(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parsePositions(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parsePositions(data, symbols = symbols)
 
 end
-function fetchPositionsForSymbol(self::Bydfi, symbol, params=Dict())
+"""
+fetch open positions for a single market fetch all open positions for specific symbol
+see: https://developers.bydfi.com/en/futures/trade#positions-query
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsForSymbol(self::Bydfi, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "fetchPositions", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "fetchPositions", "contractType", defaultValue = contractType);
     request = Dict{Symbol, Any}(
         Symbol("contractType") => contractType,
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetV1FapiTradePositions(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parsePositions(data, [get(market, Symbol("symbol"), nothing)])
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parsePositions(data, symbols = [get(market, Symbol("symbol"), nothing)])
 
 end
-function parsePosition(self::Bydfi, position, market=nothing)
+function parsePosition(self::Bydfi, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     buyOrSell = safeString(position, "side");
     rawPositionSide = safeStringLower(position, "positionSide");
     positionSide = self.parsePositionSide(buyOrSell);
@@ -1574,75 +1870,134 @@ function parsePositionSide(self::Bydfi, side)
     return safeString(sides, side, side)
 
 end
-function fetchPositionHistory(self::Bydfi, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
+
+# Arguments
+- `symbol`::string: a unified market symbol
+- `since`::int, optional: timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
+- `limit`::int, optional: the maximum amount of records to fetch (default 500, max 500)
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionHistory(self::Bydfi, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "fetchPositionHistory", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "fetchPositionHistory", "contractType", defaultValue = contractType);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("contractType") => contractType
     );
-    params = self.handleSinceAndUntil("fetchPositionsHistory", since, params);
+    params = self.handleSinceAndUntil("fetchPositionsHistory", since = since, params = params);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetV1FapiTradePositionHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     positions = self.parsePositions(data);
-    return self.filterBySinceLimit(positions, since, limit)
+    return self.filterBySinceLimit(positions, since = since, limit = limit)
 
 end
-function fetchPositionsHistory(self::Bydfi, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
+
+# Arguments
+- `symbols`::array: a list of unified market symbols
+- `since`::int, optional: timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
+- `limit`::int, optional: the maximum amount of records to fetch (default 500, max 500)
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsHistory(self::Bydfi; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "fetchPositionsHistory", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "fetchPositionsHistory", "contractType", defaultValue = contractType);
     request = Dict{Symbol, Any}(
         Symbol("contractType") => contractType
     );
-    params = self.handleSinceAndUntil("fetchPositionsHistory", since, params);
+    params = self.handleSinceAndUntil("fetchPositionsHistory", since = since, params = params);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetV1FapiTradePositionHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    positions = self.parsePositions(data, symbols);
-    return self.filterBySinceLimit(positions, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    positions = self.parsePositions(data, symbols = symbols);
+    return self.filterBySinceLimit(positions, since = since, limit = limit)
 
 end
-function fetchMarginMode(self::Bydfi, symbol, params=Dict())
+"""
+fetches the margin mode of a trading pair
+see: https://developers.bydfi.com/en/futures/user#margin-mode-query
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Bydfi, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "fetchMarginMode", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "fetchMarginMode", "contractType", defaultValue = contractType);
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "fetchMarginMode", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "fetchMarginMode", "wallet", defaultValue = wallet);
     request = Dict{Symbol, Any}(
         Symbol("contractType") => contractType,
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("wallet") => wallet
     );
     response = Base.fetch(self.privateGetV1FapiUserDataAssetsMargin(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginMode(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginMode(data, market = market)
 
 end
-function parseMarginMode(self::Bydfi, marginMode, market=nothing)
+function parseMarginMode(self::Bydfi, marginMode; market=nothing)
     marketId = safeString(marginMode, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => marginMode,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => safeStringLower(marginMode, "marginType")
 )
 
 end
-function setMarginMode(self::Bydfi, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://developers.bydfi.com/en/futures/user#change-margin-type-cross-margin
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Bydfi, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -1655,9 +2010,9 @@ function setMarginMode(self::Bydfi, marginMode, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "setMarginMode", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "setMarginMode", "contractType", defaultValue = contractType);
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "setMarginMode", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "setMarginMode", "wallet", defaultValue = wallet);
     request = Dict{Symbol, Any}(
         Symbol("contractType") => contractType,
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -1667,7 +2022,22 @@ function setMarginMode(self::Bydfi, marginMode, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePostV1FapiUserDataMarginType(extend(request, params)))
 
 end
-function setPositionMode(self::Bydfi, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
+see: https://developers.bydfi.com/en/futures/user#change-position-mode-dual
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string, optional: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+- `params.settleCoin`::string, optional: The settlement currency - USDT or USDC or USD (default is USDT)
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Bydfi, hedged; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol != nothing)
         throw(NotSupported(string(self.id, " setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency")));
     end
@@ -1676,11 +2046,11 @@ function setPositionMode(self::Bydfi, hedged, symbol=nothing, params=Dict())
     end
     positionType = functions.ccxtruthy(hedged) ? "HEDGE" : "ONEWAY";
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "setPositionMode", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "setPositionMode", "wallet", defaultValue = wallet);
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "setPositionMode", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "setPositionMode", "contractType", defaultValue = contractType);
     settleCoin = "USDT";
-    (settleCoin, params) = self.handleOptionAndParams(params, "setPositionMode", "settleCoin", settleCoin);
+    (settleCoin, params) = self.handleOptionAndParams(params, "setPositionMode", "settleCoin", defaultValue = settleCoin);
     request = Dict{Symbol, Any}(
         Symbol("contractType") => contractType,
         Symbol("wallet") => wallet,
@@ -1690,17 +2060,31 @@ function setPositionMode(self::Bydfi, hedged, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePostV1FapiUserDataPositionSideDual(extend(request, params)))
 
 end
-function fetchPositionMode(self::Bydfi, symbol=nothing, params=Dict())
+"""
+fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
+see: https://developers.bydfi.com/en/futures/user#get-position-mode
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+- `params.settleCoin`::string, optional: The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+function fetchPositionMode(self::Bydfi; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "fetchPositionMode", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "fetchPositionMode", "wallet", defaultValue = wallet);
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "fetchPositionMode", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "fetchPositionMode", "contractType", defaultValue = contractType);
     settleCoin = "USDT";
     if functions.ccxtruthy(symbol == nothing)
-        (settleCoin, params) = self.handleOptionAndParams(params, "fetchPositionMode", "settleCoin", settleCoin);
+        (settleCoin, params) = self.handleOptionAndParams(params, "fetchPositionMode", "settleCoin", defaultValue = settleCoin);
     else
         market = self.market(symbol);
         settleCoin = get(market, Symbol("settleId"), nothing);
@@ -1711,7 +2095,7 @@ function fetchPositionMode(self::Bydfi, symbol=nothing, params=Dict())
         Symbol("wallet") => wallet
     );
     response = Base.fetch(self.privateGetV1FapiUserDataPositionSideDual(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     hedged = safeString(data, "positionType") == "HEDGE";
     return Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -1719,17 +2103,31 @@ function fetchPositionMode(self::Bydfi, symbol=nothing, params=Dict())
 )
 
 end
-function fetchBalance(self::Bydfi, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://developers.bydfi.com/en/account#asset-inquiry
+see: https://developers.bydfi.com/en/futures/user#asset-query
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: the type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING' (default is 'SPOT')
+- `params.wallet`::string, optional: *swap only* The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+- `params.asset`::string, optional: currency id for the balance to fetch
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bydfi; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     wallet = nothing;
     (wallet, params) = self.handleOptionAndParams(params, "fetchBalance", "wallet");
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(wallet == nothing)
-        options = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+        options = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
         parsedAccountType = safeStringUpper(options, type_var, type_var);
         request[Symbol("walletType")] = parsedAccountType;
         response = Base.fetch(self.privateGetV1AccountAssets(extend(request, params)));
@@ -1737,7 +2135,7 @@ function fetchBalance(self::Bydfi, params=Dict())
         request[Symbol("wallet")] = wallet;
         response = Base.fetch(self.privateGetV1FapiAccountBalance(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseBalance(data)
 
 end
@@ -1764,12 +2162,26 @@ function parseBalance(self::Bydfi, response)
     return self.safeBalance(result)
 
 end
-function transfer(self::Bydfi, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://developers.bydfi.com/en/account#asset-transfer-between-accounts
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'spot', 'funding', or 'swap'
+- `toAccount`::string: 'spot', 'funding', or 'swap'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Bydfi, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(accountsByType, fromAccount, fromAccount);
     toId = safeString(accountsByType, toAccount, toAccount);
     request = Dict{Symbol, Any}(
@@ -1779,9 +2191,9 @@ function transfer(self::Bydfi, code, amount, fromAccount, toAccount, params=Dict
         Symbol("toType") => toId
     );
     response = Base.fetch(self.privatePostV1AccountTransfer(extend(request, params)));
-    transfer = self.parseTransfer(response, currency);
-    transferOptions = self.safeDict(self.options, "transfer", Dict{Symbol, Any}());
-    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", true);
+    transfer = self.parseTransfer(response, currency = currency);
+    transferOptions = self.safeDict(self.options, "transfer", defaultValue = Dict{Symbol, Any}());
+    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         timestamp = milliseconds();
         transfer[Symbol("timestamp")] = timestamp;
@@ -1794,7 +2206,21 @@ function transfer(self::Bydfi, code, amount, fromAccount, toAccount, params=Dict
     return transfer
 
 end
-function fetchTransfers(self::Bydfi, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://developers.bydfi.com/en/account#query-wallet-transfer-records
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Bydfi; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchTransfers() requires a code argument")));
     end
@@ -1802,14 +2228,14 @@ function fetchTransfers(self::Bydfi, code=nothing, since=nothing, limit=nothing,
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    paginate = self.safeBool(params, "paginate", false);
+    paginate = self.safeBool(params, "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
         maxLimit = 50;
         params = omit(params, "paginate");
         params = extend(params, Dict{Symbol, Any}(
     Symbol("paginationDirection") => "backward"
 ));
-        paginatedResponse = Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", get(currency, Symbol("code"), nothing), since, limit, params, maxLimit, true));
+        paginatedResponse = Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", symbol = get(currency, Symbol("code"), nothing), since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit, removeRepeated = true));
             return sortBy(paginatedResponse, "timestamp")
     end
     request = Dict{Symbol, Any}(
@@ -1829,13 +2255,13 @@ function fetchTransfers(self::Bydfi, code=nothing, since=nothing, limit=nothing,
         request[Symbol("rows")] = limit;
     end
     response = Base.fetch(self.privateGetV1AccountTransferRecords(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransfers(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransfers(data, currency = currency, since = since, limit = limit)
 
 end
-function parseTransfer(self::Bydfi, transfer, currency=nothing)
+function parseTransfer(self::Bydfi, transfer; currency=nothing)
     status = safeStringUpper2(transfer, "message", "status");
-    accountsById = self.safeDict(self.options, "accountsById", Dict{Symbol, Any}());
+    accountsById = self.safeDict(self.options, "accountsById", defaultValue = Dict{Symbol, Any}());
     fromId = safeStringUpper(transfer, "sourceWallet");
     toId = safeStringUpper(transfer, "targetWallet");
     fromAccount = safeString(accountsById, fromId, fromId);
@@ -1847,7 +2273,7 @@ function parseTransfer(self::Bydfi, transfer, currency=nothing)
     Symbol("id") => safeString(transfer, "txId"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(transfer, "amount"),
     Symbol("fromAccount") => fromAccount,
     Symbol("toAccount") => toAccount,
@@ -1864,11 +2290,37 @@ function paraseTransferStatus(self::Bydfi, status)
     return safeString(statuses, status, status)
 
 end
-function fetchDeposits(self::Bydfi, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://developers.bydfi.com/en/spot/account#query-deposit-records
+
+# Arguments
+- `code`::string: unified currency code (mandatory)
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bydfi; code=nothing, since=nothing, limit=nothing, params=Dict())
     return Base.fetch(self.fetchTransactionsHelper("deposit", code, since, limit, params))
 
 end
-function fetchWithdrawals(self::Bydfi, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://developers.bydfi.com/en/spot/account#query-withdrawal-records
+
+# Arguments
+- `code`::string: unified currency code (mandatory)
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bydfi; code=nothing, since=nothing, limit=nothing, params=Dict())
     return Base.fetch(self.fetchTransactionsHelper("withdrawal", code, since, limit, params))
 
 end
@@ -1881,14 +2333,14 @@ function fetchTransactionsHelper(self::Bydfi, type_var, code, since, limit, para
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    paginate = self.safeBool(params, "paginate", false);
+    paginate = self.safeBool(params, "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
         maxLimit = 50;
         params = omit(params, "paginate");
         params = extend(params, Dict{Symbol, Any}(
     Symbol("paginationDirection") => "backward"
 ));
-        paginatedResponse = Base.fetch(self.fetchPaginatedCallDynamic(methodName, get(currency, Symbol("code"), nothing), since, limit, params, maxLimit, true));
+        paginatedResponse = Base.fetch(self.fetchPaginatedCallDynamic(methodName, symbol = get(currency, Symbol("code"), nothing), since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit, removeRepeated = true));
             return sortBy(paginatedResponse, "timestamp")
     end
     request = Dict{Symbol, Any}(
@@ -1924,17 +2376,17 @@ function fetchTransactionsHelper(self::Bydfi, type_var, code, since, limit, para
     else
         response = Base.fetch(self.privateGetV1SpotWithdrawRecords(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     transactionParams = Dict{Symbol, Any}(
         Symbol("type") => type_var
     );
     params = extend(params, transactionParams);
-    return self.parseTransactions(data, currency, since, limit, params)
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit, params = params)
 
 end
-function parseTransaction(self::Bydfi, transaction, currency=nothing)
+function parseTransaction(self::Bydfi, transaction; currency=nothing)
     currencyId = safeString(transaction, "asset");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     rawStatus = safeStringLower(transaction, "status");
     timestamp = safeInteger(transaction, "createTime");
     fee = nothing;
@@ -1951,7 +2403,7 @@ function parseTransaction(self::Bydfi, transaction, currency=nothing)
     Symbol("txid") => safeString(transaction, "txId"),
     Symbol("type") => nothing,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(safeString(transaction, "network"), code),
+    Symbol("network") => self.networkIdToCode(networkId = safeString(transaction, "network"), currencyCode = code),
     Symbol("amount") => self.safeNumber(transaction, "amount"),
     Symbol("status") => self.parseTransactionStatus(rawStatus),
     Symbol("timestamp") => timestamp,
@@ -1978,7 +2430,7 @@ function parseTransactionStatus(self::Bydfi, status)
     return safeString(statuses, status, status)
 
 end
-function sign(self::Bydfi, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bydfi, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing);
     endpoint = string("/", path);
     query = "";
@@ -2044,183 +2496,183 @@ Base.getproperty(self::Bydfi, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetV1PublicApiLimits(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/public/api_limits", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/public/api_limits"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1FapiMarketExchangeInfo(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/exchange_info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/market/exchange_info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1FapiMarketDepth(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/market/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1FapiMarketTrades(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/market/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1FapiMarketKlines(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/klines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/market/klines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1FapiMarketTicker24hr(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/market/ticker/24hr"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1FapiMarketTickerPrice(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/ticker/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/market/ticker/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1FapiMarketMarkPrice(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/mark_price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/market/mark_price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1FapiMarketFundingRate(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/funding_rate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/market/funding_rate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1FapiMarketFundingRateHistory(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/funding_rate_history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/market/funding_rate_history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1FapiMarketRiskLimit(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/risk_limit", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/market/risk_limit"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AccountAssets(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/account/assets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/account/assets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AccountTransferRecords(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/account/transfer_records", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/account/transfer_records"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1SpotDepositRecords(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/spot/deposit_records", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/spot/deposit_records"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1SpotWithdrawRecords(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/spot/withdraw_records", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/spot/withdraw_records"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1FapiTradeOpenOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/open_order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/open_order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1FapiTradePlanOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/plan_order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/plan_order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1FapiTradeLeverage(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/leverage", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/leverage"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1FapiTradeHistoryOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/history_order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/history_order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1FapiTradeHistoryTrade(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/history_trade", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/history_trade"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1FapiTradePositionHistory(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/position_history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/position_history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1FapiTradePositions(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1FapiAccountBalance(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/account/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/account/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1FapiUserDataAssetsMargin(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/user_data/assets_margin", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/user_data/assets_margin"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1FapiUserDataPositionSideDual(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/user_data/position_side/dual", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/user_data/position_side/dual"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AgentTeams(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/teams", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/agent/teams"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AgentAgentLinks(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/agent_links", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/agent/agent_links"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AgentRegularOverview(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/regular_overview", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/agent/regular_overview"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AgentAgentSubOverview(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/agent_sub_overview", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/agent/agent_sub_overview"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AgentPartenerUserDeposit(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/partener_user_deposit", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/agent/partener_user_deposit"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AgentPartenerUsersData(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/partener_users_data", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/agent/partener_users_data"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AgentAffiliateUids(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/affiliate_uids", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/agent/affiliate_uids"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AgentAffiliateCommission(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/affiliate_commission", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/agent/affiliate_commission"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV1AgentInternalWithdrawalStatus(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/internal_withdrawal_status", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/agent/internal_withdrawal_status"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1AccountTransfer(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/account/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/account/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1FapiTradePlaceOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/place_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/place_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1FapiTradeBatchPlaceOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/batch_place_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/batch_place_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1FapiTradeEditOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/edit_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/edit_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1FapiTradeBatchEditOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/batch_edit_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/batch_edit_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1FapiTradeCancelAllOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/cancel_all_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/cancel_all_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1FapiTradeLeverage(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1FapiTradeBatchLeverageMargin(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/batch_leverage_margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/trade/batch_leverage_margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1FapiUserDataMarginType(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/user_data/margin_type", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/user_data/margin_type"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1FapiUserDataPositionSideDual(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/user_data/position_side/dual", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/fapi/user_data/position_side/dual"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV1AgentInternalWithdrawal(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/internal_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/agent/internal_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bydfi(; kwargs...)
@@ -2284,3 +2736,553 @@ function Bydfi(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bydfi_fetchMarkets() end
+"""
+retrieves data on all markets for bydfi
+see: https://developers.bydfi.com/en/futures/market#fetching-trading-rules-and-pairs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bydfi_fetchMarkets
+
+function __ccxt_doc_Bydfi_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://developers.bydfi.com/en/futures/market#depth-information
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bydfi_fetchOrderBook
+
+function __ccxt_doc_Bydfi_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://developers.bydfi.com/en/futures/market#recent-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (default 500, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fromId`::int, optional: retrieve from which trade ID to start. Default to retrieve the most recent trade records
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bydfi_fetchTrades
+
+function __ccxt_doc_Bydfi_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://developers.bydfi.com/en/futures/trade#historical-trades-query
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet
+- `params.orderType`::string, optional: order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bydfi_fetchMyTrades
+
+function __ccxt_doc_Bydfi_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://developers.bydfi.com/en/futures/market#candlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (max 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bydfi_fetchOHLCV
+
+function __ccxt_doc_Bydfi_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bydfi_fetchTickers
+
+function __ccxt_doc_Bydfi_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bydfi_fetchTicker
+
+function __ccxt_doc_Bydfi_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://developers.bydfi.com/en/futures/market#recent-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Bydfi_fetchFundingRate
+
+function __ccxt_doc_Bydfi_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://developers.bydfi.com/en/futures/market#historical-funding-rates
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Bydfi_fetchFundingRateHistory
+
+function __ccxt_doc_Bydfi_createOrder() end
+"""
+create a trade order
+see: https://developers.bydfi.com/en/futures/trade#placing-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+- `params.hedged`::bool, optional: true for hedged mode, false for one way mode, default is false
+- `params.clientOrderId`::string, optional: Custom order ID, must be unique for open orders
+- `params.timeInForce`::string, optional: 'GTC' (Good Till Cancelled), 'FOK' (Fill Or Kill), 'IOC' (Immediate Or Cancel), 'PO' (Post Only)
+- `params.postOnly`::bool, optional: true or false, whether the order is post-only
+- `params.reduceOnly`::bool, optional: true or false, true or false whether the order is reduce-only
+- `params.stopLossPrice`::float, optional: The price a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price a take profit order is triggered at
+- `params.trailingTriggerPrice`::float, optional: the price to activate a trailing order, default uses the price argument or market price if price is not provided
+- `params.trailingPercent`::float, optional: the percent to trail away from the current market price
+- `params.triggerPriceType`::string, optional: 'MARK_PRICE' or 'CONTRACT_PRICE', default is 'CONTRACT_PRICE', the price type used to trigger stop orders
+- `params.closePosition`::bool, optional: true or false, whether to close all positions after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity;
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bydfi_createOrder
+
+function __ccxt_doc_Bydfi_createOrders() end
+"""
+create a list of trade orders
+see: https://developers.bydfi.com/en/futures/trade#batch-order-placement
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bydfi_createOrders
+
+function __ccxt_doc_Bydfi_editOrder() end
+"""
+edit a trade order
+see: https://developers.bydfi.com/en/futures/trade#order-modification
+
+# Arguments
+- `id`::string: order id (mandatory if params.clientOrderId is not provided)
+- `symbol`::string, optional: unified symbol of the market to create an order in
+- `type`::string, optional: not used by bydfi editOrder
+- `side`::string, optional: 'buy' or 'sell'
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price for the order, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique identifier for the order (could be alternative to id)
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bydfi_editOrder
+
+function __ccxt_doc_Bydfi_editOrders() end
+"""
+edit a list of trade orders
+see: https://developers.bydfi.com/en/futures/trade#batch-order-modification
+
+# Arguments
+- `orders`::array: list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bydfi_editOrders
+
+function __ccxt_doc_Bydfi_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://developers.bydfi.com/en/futures/trade#complete-order-cancellation
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bydfi_cancelAllOrders
+
+function __ccxt_doc_Bydfi_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://developers.bydfi.com/en/futures/trade#pending-order-query
+see: https://developers.bydfi.com/en/futures/trade#planned-order-query
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true or false, whether to fetch conditional orders only
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bydfi_fetchOpenOrders
+
+function __ccxt_doc_Bydfi_fetchOpenOrder() end
+"""
+fetch an open order by the id
+see: https://developers.bydfi.com/en/futures/trade#pending-order-query
+see: https://developers.bydfi.com/en/futures/trade#planned-order-query
+
+# Arguments
+- `id`::string: order id (mandatory if params.clientOrderId is not provided)
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true or false, whether to fetch conditional orders only
+- `params.clientOrderId`::string, optional: a unique identifier for the order (could be alternative to id)
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bydfi_fetchOpenOrder
+
+function __ccxt_doc_Bydfi_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple canceled and closed orders made by the user
+see: https://developers.bydfi.com/en/futures/trade#historical-orders-query
+
+# Arguments
+- `symbol`::string: unified market symbol of the closed orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of closed orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet
+- `params.orderType`::string, optional: order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bydfi_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Bydfi_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://developers.bydfi.com/en/futures/trade#set-leverage-for-single-trading-pair
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bydfi_setLeverage
+
+function __ccxt_doc_Bydfi_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://developers.bydfi.com/en/futures/trade#get-leverage-for-single-trading-pair
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Bydfi_fetchLeverage
+
+function __ccxt_doc_Bydfi_fetchPositions() end
+"""
+fetch all open positions
+see: https://developers.bydfi.com/en/futures/trade#positions-query
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.settleCoin`::string, optional: the settlement currency (USDT or USDC or USD)
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bydfi_fetchPositions
+
+function __ccxt_doc_Bydfi_fetchPositionsForSymbol() end
+"""
+fetch open positions for a single market fetch all open positions for specific symbol
+see: https://developers.bydfi.com/en/futures/trade#positions-query
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bydfi_fetchPositionsForSymbol
+
+function __ccxt_doc_Bydfi_fetchPositionHistory() end
+"""
+fetches historical positions
+see: https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
+
+# Arguments
+- `symbol`::string: a unified market symbol
+- `since`::int, optional: timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
+- `limit`::int, optional: the maximum amount of records to fetch (default 500, max 500)
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bydfi_fetchPositionHistory
+
+function __ccxt_doc_Bydfi_fetchPositionsHistory() end
+"""
+fetches historical positions
+see: https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
+
+# Arguments
+- `symbols`::array: a list of unified market symbols
+- `since`::int, optional: timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
+- `limit`::int, optional: the maximum amount of records to fetch (default 500, max 500)
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bydfi_fetchPositionsHistory
+
+function __ccxt_doc_Bydfi_fetchMarginMode() end
+"""
+fetches the margin mode of a trading pair
+see: https://developers.bydfi.com/en/futures/user#margin-mode-query
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Bydfi_fetchMarginMode
+
+function __ccxt_doc_Bydfi_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://developers.bydfi.com/en/futures/user#change-margin-type-cross-margin
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bydfi_setMarginMode
+
+function __ccxt_doc_Bydfi_setPositionMode() end
+"""
+set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
+see: https://developers.bydfi.com/en/futures/user#change-position-mode-dual
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string, optional: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+- `params.settleCoin`::string, optional: The settlement currency - USDT or USDC or USD (default is USDT)
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bydfi_setPositionMode
+
+function __ccxt_doc_Bydfi_fetchPositionMode() end
+"""
+fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
+see: https://developers.bydfi.com/en/futures/user#get-position-mode
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.contractType`::string, optional: FUTURE or DELIVERY, default is FUTURE
+- `params.wallet`::string, optional: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+- `params.settleCoin`::string, optional: The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+__ccxt_doc_Bydfi_fetchPositionMode
+
+function __ccxt_doc_Bydfi_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://developers.bydfi.com/en/account#asset-inquiry
+see: https://developers.bydfi.com/en/futures/user#asset-query
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: the type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING' (default is 'SPOT')
+- `params.wallet`::string, optional: *swap only* The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+- `params.asset`::string, optional: currency id for the balance to fetch
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bydfi_fetchBalance
+
+function __ccxt_doc_Bydfi_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://developers.bydfi.com/en/account#asset-transfer-between-accounts
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'spot', 'funding', or 'swap'
+- `toAccount`::string: 'spot', 'funding', or 'swap'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bydfi_transfer
+
+function __ccxt_doc_Bydfi_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://developers.bydfi.com/en/account#query-wallet-transfer-records
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve (default 10)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bydfi_fetchTransfers
+
+function __ccxt_doc_Bydfi_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://developers.bydfi.com/en/spot/account#query-deposit-records
+
+# Arguments
+- `code`::string: unified currency code (mandatory)
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bydfi_fetchDeposits
+
+function __ccxt_doc_Bydfi_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://developers.bydfi.com/en/spot/account#query-withdrawal-records
+
+# Arguments
+- `code`::string: unified currency code (mandatory)
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bydfi_fetchWithdrawals

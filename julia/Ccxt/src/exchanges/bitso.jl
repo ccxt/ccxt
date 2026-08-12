@@ -435,7 +435,19 @@ function describe(self::Bitso, )
 ))
 
 end
-function fetchLedger(self::Bitso, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Bitso; code=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
@@ -443,7 +455,7 @@ function fetchLedger(self::Bitso, code=nothing, since=nothing, limit=nothing, pa
     response = Base.fetch(self.privateGetLedger(extend(request, params)));
     payload = safeValue(response, "payload", []);
     currency = self.safeCurrency(code);
-    return self.parseLedger(payload, currency, since, limit)
+    return self.parseLedger(payload, currency = currency, since = since, limit = limit)
 
 end
 function parseLedgerEntryType(self::Bitso, type_var)
@@ -456,7 +468,7 @@ function parseLedgerEntryType(self::Bitso, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Bitso, item, currency=nothing)
+function parseLedgerEntry(self::Bitso, item; currency=nothing)
     operation = safeString(item, "operation");
     type_var = self.parseLedgerEntryType(operation);
     balanceUpdates = safeValue(item, "balance_updates", []);
@@ -465,8 +477,8 @@ function parseLedgerEntry(self::Bitso, item, currency=nothing)
     fee = nothing;
     amount = safeString(firstBalance, "amount");
     currencyId = safeString(firstBalance, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     details = safeValue(item, "details", Dict{Symbol, Any}());
     referenceId = safeString2(details, "fid", "wid");
     if functions.ccxtruthy(referenceId == nothing)
@@ -506,10 +518,20 @@ function parseLedgerEntry(self::Bitso, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => "ok",
     Symbol("fee") => fee
-), currency)
+), currency = currency)
 
 end
-function fetchMarkets(self::Bitso, params=Dict())
+"""
+retrieves data on all markets for bitso
+see: https://docs.bitso.com/bitso-api/docs/list-available-books
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitso; params=Dict())
     response = Base.fetch(self.publicGetAvailableBooks(params));
     markets = safeValue(response, "payload", []);
     currencies = self.safeDict(self.options, "cachedCurrencies");
@@ -558,7 +580,7 @@ function fetchMarkets(self::Bitso, params=Dict())
         );
         fee[Symbol("tiers")] = tiers;
         baseCurrency = self.safeDict(currencies, base);
-        push!(result, self.safeMarketStructure(extend(Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(market = extend(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -614,11 +636,21 @@ function fetchMarkets(self::Bitso, params=Dict())
     return result
 
 end
-function fetchCurrencies(self::Bitso, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.bitso.com/bitso-payouts-funding/docs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bitso; params=Dict())
     catalogues = Base.fetch(self.publicGetCatalogues(params));
     payload = self.safeDict(catalogues, "payload");
     currencies = self.safeDict(payload, "currencies");
-    metadata = self.safeList(currencies, "metadata", []);
+    metadata = self.safeList(currencies, "metadata", defaultValue = []);
     return self.parseCurrencies(metadata)
 
 end
@@ -634,7 +666,7 @@ function parseCurrency(self::Bitso, rawCurrency)
     Symbol("deposit") => nothing,
     Symbol("withdraw") => nothing,
     Symbol("fee") => nothing,
-    Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(rawCurrency, "precision"))),
+    Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(rawCurrency, "precision"))),
     Symbol("margin") => self.safeBool(rawCurrency, "marginAvailable"),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("amount") => Dict{Symbol, Any}(
@@ -680,7 +712,17 @@ function parseBalance(self::Bitso, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bitso, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.bitso.com/bitso-api/docs/get-account-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bitso; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -688,7 +730,19 @@ function fetchBalance(self::Bitso, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Bitso, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.bitso.com/bitso-api/docs/list-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitso, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -699,11 +753,11 @@ function fetchOrderBook(self::Bitso, symbol, limit=nothing, params=Dict())
     response = Base.fetch(self.publicGetOrderBook(extend(request, params)));
     orderbook = safeValue(response, "payload");
     timestamp = self.parse8601(safeString(orderbook, "updated_at"));
-    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", "price", "amount")
+    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "amount")
 
 end
-function parseTicker(self::Bitso, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Bitso, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     timestamp = self.parse8601(safeString(ticker, "created_at"));
     vwap = safeString(ticker, "vwap");
     baseVolume = safeString(ticker, "volume");
@@ -730,10 +784,21 @@ function parseTicker(self::Bitso, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bitso, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.bitso.com/bitso-api/docs/ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bitso, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -743,10 +808,23 @@ function fetchTicker(self::Bitso, symbol, params=Dict())
     );
     response = Base.fetch(self.publicGetTicker(extend(request, params)));
     ticker = safeValue(response, "payload");
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
-function fetchOHLCV(self::Bitso, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bitso, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -767,18 +845,18 @@ function fetchOHLCV(self::Bitso, symbol, timeframe="1m", since=nothing, limit=no
         request[Symbol("start")] = now - self.parseTimeframe(timeframe) * 1000 * limit;
     end
     response = Base.fetch(self.publicGetOhlc(extend(request, params)));
-    payload = self.safeList(response, "payload", []);
-    return self.parseOHLCVs(payload, market, timeframe, since, limit)
+    payload = self.safeList(response, "payload", defaultValue = []);
+    return self.parseOHLCVs(payload, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Bitso, ohlcv, market=nothing)
+function parseOHLCV(self::Bitso, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "bucket_start_time"), self.safeNumber(ohlcv, "first_rate"), self.safeNumber(ohlcv, "max_rate"), self.safeNumber(ohlcv, "min_rate"), self.safeNumber(ohlcv, "last_rate"), self.safeNumber(ohlcv, "volume")]
 
 end
-function parseTrade(self::Bitso, trade, market=nothing)
+function parseTrade(self::Bitso, trade; market=nothing)
     timestamp = self.parse8601(safeString(trade, "created_at"));
     marketId = safeString(trade, "book");
-    symbol = self.safeSymbol(marketId, market, "_");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_");
     side = safeString(trade, "side");
     makerSide = safeString(trade, "maker_side");
     takerOrMaker = nothing;
@@ -830,10 +908,23 @@ function parseTrade(self::Bitso, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => cost,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bitso, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.bitso.com/bitso-api/docs/list-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bitso, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -842,11 +933,21 @@ function fetchTrades(self::Bitso, symbol, since=nothing, limit=nothing, params=D
         Symbol("book") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTrades(extend(request, params)));
-    payload = self.safeList(response, "payload", []);
-    return self.parseTrades(payload, market, since, limit)
+    payload = self.safeList(response, "payload", defaultValue = []);
+    return self.parseTrades(payload, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFees(self::Bitso, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://docs.bitso.com/bitso-api/docs/list-fees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Bitso; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -858,7 +959,7 @@ function fetchTradingFees(self::Bitso, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fees)))
         fee = get(fees, i + 1, nothing);
         marketId = safeString(fee, "book");
-        symbol = self.safeSymbol(marketId, nothing, "_");
+        symbol = self.safeSymbol(marketId, market = nothing, delimiter = "_");
         result[Symbol(symbol)] = Dict{Symbol, Any}(
             Symbol("info") => fee,
             Symbol("symbol") => symbol,
@@ -872,7 +973,20 @@ function fetchTradingFees(self::Bitso, params=Dict())
     return result
 
 end
-function fetchMyTrades(self::Bitso, symbol=nothing, since=nothing, limit=25, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.bitso.com/bitso-api/docs/user-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bitso; symbol=nothing, since=nothing, limit=25, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -892,11 +1006,26 @@ function fetchMyTrades(self::Bitso, symbol=nothing, since=nothing, limit=25, par
         Symbol("limit") => limit
     );
     response = Base.fetch(self.privateGetUserTrades(extend(request, params)));
-    payload = self.safeList(response, "payload", []);
-    return self.parseTrades(payload, market, since, limit)
+    payload = self.safeList(response, "payload", defaultValue = []);
+    return self.parseTrades(payload, market = market, since = since, limit = limit)
 
 end
-function createOrder(self::Bitso, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.bitso.com/bitso-api/docs/place-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bitso, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -911,15 +1040,27 @@ function createOrder(self::Bitso, symbol, type_var, side, amount, price=nothing,
         request[Symbol("price")] = self.priceToPrecision(get(market, Symbol("symbol"), nothing), price);
     end
     response = Base.fetch(self.privatePostOrders(extend(request, params)));
-    payload = self.safeDict(response, "payload", Dict{Symbol, Any}());
+    payload = self.safeDict(response, "payload", defaultValue = Dict{Symbol, Any}());
     id = safeString(payload, "oid");
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("id") => id
-), market)
+), market = market)
 
 end
-function cancelOrder(self::Bitso, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bitso, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -927,7 +1068,7 @@ function cancelOrder(self::Bitso, id, symbol=nothing, params=Dict())
         Symbol("oid") => id
     );
     response = Base.fetch(self.privateDeleteOrdersOid(extend(request, params)));
-    payload = self.safeList(response, "payload", []);
+    payload = self.safeList(response, "payload", defaultValue = []);
     orderId = safeString(payload, 0);
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -935,7 +1076,19 @@ function cancelOrder(self::Bitso, id, symbol=nothing, params=Dict())
 ))
 
 end
-function cancelOrders(self::Bitso, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Bitso, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(ids)))
         throw(ArgumentsRequired(string(self.id, " cancelOrders() ids argument should be an array")));
     end
@@ -953,13 +1106,24 @@ function cancelOrders(self::Bitso, ids, symbol=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(payload)))
         id = get(payload, i + 1, nothing);
-        push!(orders, self.parseOrder(id, market));
+        push!(orders, self.parseOrder(id, market = market));
         i += 1
     end
     return orders
 
 end
-function cancelAllOrders(self::Bitso, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
+# Arguments
+- `symbol`::string, optional: bitso does not support canceling orders for only a specific market
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bitso; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol != nothing)
         throw(NotSupported(string(self.id, " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")));
     end
@@ -985,7 +1149,7 @@ function parseOrderStatus(self::Bitso, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Bitso, order, market=nothing)
+function parseOrder(self::Bitso, order; market=nothing)
     id = nothing;
     if functions.ccxtruthy(isa(order, AbstractString))
         id = order;
@@ -995,7 +1159,7 @@ function parseOrder(self::Bitso, order, market=nothing)
     side = safeString(order, "side");
     status = self.parseOrderStatus(safeString(order, "status"));
     marketId = safeString(order, "book");
-    symbol = self.safeSymbol(marketId, market, "_");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_");
     orderType = safeString(order, "type");
     timestamp = self.parse8601(safeString(order, "created_at"));
     price = safeString(order, "price");
@@ -1024,10 +1188,23 @@ function parseOrder(self::Bitso, order, market=nothing)
     Symbol("fee") => nothing,
     Symbol("average") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function fetchOpenOrders(self::Bitso, symbol=nothing, since=nothing, limit=25, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.bitso.com/bitso-api/docs/list-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bitso; symbol=nothing, since=nothing, limit=25, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1047,12 +1224,24 @@ function fetchOpenOrders(self::Bitso, symbol=nothing, since=nothing, limit=25, p
         Symbol("limit") => limit
     );
     response = Base.fetch(self.privateGetOpenOrders(extend(request, params)));
-    payload = self.safeList(response, "payload", []);
-    orders = self.parseOrders(payload, market, since, limit);
+    payload = self.safeList(response, "payload", defaultValue = []);
+    orders = self.parseOrders(payload, market = market, since = since, limit = limit);
     return orders
 
 end
-function fetchOrder(self::Bitso, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.bitso.com/bitso-api/docs/look-up-orders
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by bitso fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bitso, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1069,7 +1258,21 @@ function fetchOrder(self::Bitso, id, symbol=nothing, params=Dict())
     throw(OrderNotFound(string(self.id, ": The order ", id, " not found.")));
 
 end
-function fetchOrderTrades(self::Bitso, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://docs.bitso.com/bitso-api/docs/list-user-trades
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Bitso, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1078,11 +1281,23 @@ function fetchOrderTrades(self::Bitso, id, symbol=nothing, since=nothing, limit=
         Symbol("oid") => id
     );
     response = Base.fetch(self.privateGetOrderTradesOid(extend(request, params)));
-    payload = self.safeList(response, "payload", []);
-    return self.parseTrades(payload, market)
+    payload = self.safeList(response, "payload", defaultValue = []);
+    return self.parseTrades(payload, market = market)
 
 end
-function fetchDeposit(self::Bitso, id, code=nothing, params=Dict())
+"""
+fetch information on a deposit
+see: https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+
+# Arguments
+- `id`::string: deposit id
+- `code`::string: bitso does not support filtering by currency code and will ignore this argument
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposit(self::Bitso, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1091,11 +1306,24 @@ function fetchDeposit(self::Bitso, id, code=nothing, params=Dict())
     );
     response = Base.fetch(self.privateGetFundingsFid(extend(request, params)));
     transactions = safeValue(response, "payload", []);
-    first_var = self.safeDict(transactions, 0, Dict{Symbol, Any}());
+    first_var = self.safeDict(transactions, 0, defaultValue = Dict{Symbol, Any}());
     return self.parseTransaction(first_var)
 
 end
-function fetchDeposits(self::Bitso, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bitso; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1104,11 +1332,21 @@ function fetchDeposits(self::Bitso, code=nothing, since=nothing, limit=nothing, 
         currency = self.currency(code);
     end
     response = Base.fetch(self.privateGetFundings(params));
-    transactions = self.safeList(response, "payload", []);
-    return self.parseTransactions(transactions, currency, since, limit, params)
+    transactions = self.safeList(response, "payload", defaultValue = []);
+    return self.parseTransactions(transactions, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchDepositAddress(self::Bitso, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bitso, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1117,7 +1355,7 @@ function fetchDepositAddress(self::Bitso, code, params=Dict())
         Symbol("fund_currency") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetFundingDestination(extend(request, params)));
-    payload = self.safeDict(response, "payload", Dict{Symbol, Any}());
+    payload = self.safeDict(response, "payload", defaultValue = Dict{Symbol, Any}());
     address = safeString(payload, "account_identifier");
     tag = nothing;
     if functions.ccxtruthy(findfirst("?dt=", address) !== nothing)
@@ -1125,7 +1363,7 @@ function fetchDepositAddress(self::Bitso, code, params=Dict())
         address = safeString(parts, 0);
         tag = safeString(parts, 1);
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
@@ -1135,7 +1373,18 @@ function fetchDepositAddress(self::Bitso, code, params=Dict())
 )
 
 end
-function fetchTransactionFees(self::Bitso, codes=nothing, params=Dict())
+"""
+please use fetchDepositWithdrawFees instead
+see: https://docs.bitso.com/bitso-api/docs/list-fees
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTransactionFees(self::Bitso; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1187,16 +1436,27 @@ function fetchTransactionFees(self::Bitso, codes=nothing, params=Dict())
     return result
 
 end
-function fetchDepositWithdrawFees(self::Bitso, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://docs.bitso.com/bitso-api/docs/list-fees
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Bitso; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetFees(params));
-    payload = self.safeList(response, "payload", []);
-    return self.parseDepositWithdrawFees(payload, codes)
+    payload = self.safeList(response, "payload", defaultValue = []);
+    return self.parseDepositWithdrawFees(payload, codes = codes)
 
 end
-function parseDepositWithdrawFees(self::Bitso, response, codes=nothing, currencyIdKey=nothing)
+function parseDepositWithdrawFees(self::Bitso, response; codes=nothing, currencyIdKey=nothing)
     result = Dict{Symbol, Any}();
     depositResponse = safeValue(response, "deposit_fees", []);
     withdrawalResponse = safeValue(response, "withdrawal_fees", []);
@@ -1242,9 +1502,22 @@ function parseDepositWithdrawFees(self::Bitso, response, codes=nothing, currency
     return result
 
 end
-function withdraw(self::Bitso, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bitso, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1269,12 +1542,12 @@ function withdraw(self::Bitso, code, amount, address, tag=nothing, params=Dict()
     response = Base.fetch(getproperty(self, Symbol(classMethod))(extend(request, params)));
     payload = safeValue(response, "payload", []);
     first_var = self.safeDict(payload, 0);
-    return self.parseTransaction(first_var, currency)
+    return self.parseTransaction(first_var, currency = currency)
 
 end
-function parseTransaction(self::Bitso, transaction, currency=nothing)
+function parseTransaction(self::Bitso, transaction; currency=nothing)
     currencyId = safeString2(transaction, "currency", "asset");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     details = safeValue(transaction, "details", Dict{Symbol, Any}());
     datetime = safeString(transaction, "created_at");
     withdrawalAddress = safeString(details, "withdrawal_address");
@@ -1282,7 +1555,7 @@ function parseTransaction(self::Bitso, transaction, currency=nothing)
     networkId = safeString2(transaction, "network", "method");
     status = safeString(transaction, "status");
     withdrawId = safeString(transaction, "wid");
-    networkCode = self.networkIdToCode(networkId, get(currency, Symbol("code"), nothing));
+    networkCode = self.networkIdToCode(networkId = networkId, currencyCode = get(currency, Symbol("code"), nothing));
     networkCodeUpper = functions.ccxtruthy((networkCode != nothing)) ? uppercase(networkCode) : nothing;
     return Dict{Symbol, Any}(
     Symbol("id") => safeString2(transaction, "wid", "fid"),
@@ -1295,7 +1568,7 @@ function parseTransaction(self::Bitso, transaction, currency=nothing)
     Symbol("addressTo") => withdrawalAddress,
     Symbol("amount") => self.safeNumber(transaction, "amount"),
     Symbol("type") => functions.ccxtruthy((withdrawId == nothing)) ? "deposit" : "withdrawal",
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("status") => self.parseTransactionStatus(status),
     Symbol("updated") => nothing,
     Symbol("tagFrom") => nothing,
@@ -1322,7 +1595,7 @@ function nonce(self::Bitso, )
     return milliseconds()
 
 end
-function sign(self::Bitso, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitso, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     endpoint = string("/", self.version, "/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
     if functions.ccxtruthy(@functions.ccxt_or(method == "GET", method == "DELETE"))
@@ -1362,7 +1635,7 @@ function handleErrors(self::Bitso, httpCode, reason, url, method, headers, body,
             return nothing
     end
     if functions.ccxtruthy(ccxt_in("success", response))
-        success = self.safeBool(response, "success", false);
+        success = self.safeBool(response, "success", defaultValue = false);
         if functions.ccxtruthy(isa(success, AbstractString))
             if functions.ccxtruthy(@functions.ccxt_or((success == "true"), (success == "1")))
                 success = true;
@@ -1391,163 +1664,163 @@ Base.getproperty(self::Bitso, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetAvailableBooks(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "available_books", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "available_books"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCatalogues(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "catalogues", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "catalogues"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderBook(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "order_book", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "order_book"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrades(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOhlc(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "ohlc", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ohlc"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountStatus(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "account_status", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account_status"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBalance(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFees(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFundings(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "fundings", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fundings"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFundingsFid(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "fundings/{fid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fundings/{fid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFundingDestination(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "funding_destination", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding_destination"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetKycDocuments(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "kyc_documents", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "kyc_documents"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLedger(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "ledger", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "ledger"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLedgerTrades(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "ledger/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "ledger/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLedgerFees(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "ledger/fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "ledger/fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLedgerFundings(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "ledger/fundings", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "ledger/fundings"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLedgerWithdrawals(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "ledger/withdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "ledger/withdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMxBankCodes(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "mx_bank_codes", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "mx_bank_codes"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenOrders(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "open_orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "open_orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderTradesOid(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "order_trades/{oid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order_trades/{oid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersOid(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "orders/{oid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{oid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserTrades(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "user_trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user_trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserTradesTid(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "user_trades/{tid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user_trades/{tid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawals(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "withdrawals/", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawalsWid(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "withdrawals/{wid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/{wid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBitcoinWithdrawal(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "bitcoin_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bitcoin_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDebitCardWithdrawal(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "debit_card_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "debit_card_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEtherWithdrawal(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "ether_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ether_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPhoneNumber(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "phone_number", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "phone_number"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPhoneVerification(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "phone_verification", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "phone_verification"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPhoneWithdrawal(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "phone_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "phone_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSpeiWithdrawal(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "spei_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "spei_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRippleWithdrawal(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "ripple_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ripple_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBcashWithdrawal(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "bcash_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bcash_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLitecoinWithdrawal(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "litecoin_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "litecoin_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrders(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersOid(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "orders/{oid}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{oid}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersAll(self::Bitso, params=Dict(), context=Dict())
-    return request(self, "orders/all", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/all"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitso(; kwargs...)
@@ -1611,3 +1884,347 @@ function Bitso(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitso_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Bitso_fetchLedger
+
+function __ccxt_doc_Bitso_fetchMarkets() end
+"""
+retrieves data on all markets for bitso
+see: https://docs.bitso.com/bitso-api/docs/list-available-books
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitso_fetchMarkets
+
+function __ccxt_doc_Bitso_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.bitso.com/bitso-payouts-funding/docs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bitso_fetchCurrencies
+
+function __ccxt_doc_Bitso_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.bitso.com/bitso-api/docs/get-account-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bitso_fetchBalance
+
+function __ccxt_doc_Bitso_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.bitso.com/bitso-api/docs/list-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitso_fetchOrderBook
+
+function __ccxt_doc_Bitso_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.bitso.com/bitso-api/docs/ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitso_fetchTicker
+
+function __ccxt_doc_Bitso_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bitso_fetchOHLCV
+
+function __ccxt_doc_Bitso_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.bitso.com/bitso-api/docs/list-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bitso_fetchTrades
+
+function __ccxt_doc_Bitso_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://docs.bitso.com/bitso-api/docs/list-fees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Bitso_fetchTradingFees
+
+function __ccxt_doc_Bitso_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.bitso.com/bitso-api/docs/user-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitso_fetchMyTrades
+
+function __ccxt_doc_Bitso_createOrder() end
+"""
+create a trade order
+see: https://docs.bitso.com/bitso-api/docs/place-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitso_createOrder
+
+function __ccxt_doc_Bitso_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitso_cancelOrder
+
+function __ccxt_doc_Bitso_cancelOrders() end
+"""
+cancel multiple orders
+see: https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitso_cancelOrders
+
+function __ccxt_doc_Bitso_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://docs.bitso.com/bitso-api/docs/cancel-an-order
+
+# Arguments
+- `symbol`::string, optional: bitso does not support canceling orders for only a specific market
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitso_cancelAllOrders
+
+function __ccxt_doc_Bitso_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.bitso.com/bitso-api/docs/list-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitso_fetchOpenOrders
+
+function __ccxt_doc_Bitso_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.bitso.com/bitso-api/docs/look-up-orders
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by bitso fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitso_fetchOrder
+
+function __ccxt_doc_Bitso_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://docs.bitso.com/bitso-api/docs/list-user-trades
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitso_fetchOrderTrades
+
+function __ccxt_doc_Bitso_fetchDeposit() end
+"""
+fetch information on a deposit
+see: https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+
+# Arguments
+- `id`::string: deposit id
+- `code`::string: bitso does not support filtering by currency code and will ignore this argument
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitso_fetchDeposit
+
+function __ccxt_doc_Bitso_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitso_fetchDeposits
+
+function __ccxt_doc_Bitso_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bitso_fetchDepositAddress
+
+function __ccxt_doc_Bitso_fetchTransactionFees() end
+"""
+please use fetchDepositWithdrawFees instead
+see: https://docs.bitso.com/bitso-api/docs/list-fees
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitso_fetchTransactionFees
+
+function __ccxt_doc_Bitso_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://docs.bitso.com/bitso-api/docs/list-fees
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitso_fetchDepositWithdrawFees
+
+function __ccxt_doc_Bitso_withdraw() end
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitso_withdraw

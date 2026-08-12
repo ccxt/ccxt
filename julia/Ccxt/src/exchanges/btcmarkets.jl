@@ -426,7 +426,7 @@ function describe(self::Btcmarkets, )
 ))
 
 end
-function fetchTransactionsWithMethod(self::Btcmarkets, method, code=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchTransactionsWithMethod(self::Btcmarkets, method; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -442,19 +442,58 @@ function fetchTransactionsWithMethod(self::Btcmarkets, method, code=nothing, sin
         currency = self.currency(code);
     end
     response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchDepositsWithdrawals(self::Btcmarkets, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchTransactionsWithMethod("privateGetTransfers", code, since, limit, params))
+"""
+fetch history of deposits and withdrawals
+see: https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1transfers/get
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Btcmarkets; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchTransactionsWithMethod("privateGetTransfers", code = code, since = since, limit = limit, params = params))
 
 end
-function fetchDeposits(self::Btcmarkets, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchTransactionsWithMethod("privateGetDeposits", code, since, limit, params))
+"""
+fetch all deposits made to an account
+see: https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1deposits/get
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Btcmarkets; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchTransactionsWithMethod("privateGetDeposits", code = code, since = since, limit = limit, params = params))
 
 end
-function fetchWithdrawals(self::Btcmarkets, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchTransactionsWithMethod("privateGetWithdrawals", code, since, limit, params))
+"""
+fetch all withdrawals made from an account
+see: https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/get
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Btcmarkets; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchTransactionsWithMethod("privateGetWithdrawals", code = code, since = since, limit = limit, params = params))
 
 end
 function parseTransactionStatus(self::Btcmarkets, status)
@@ -476,14 +515,14 @@ function parseTransactionType(self::Btcmarkets, type_var)
     return safeString(statuses, type_var, type_var)
 
 end
-function parseTransaction(self::Btcmarkets, transaction, currency=nothing)
+function parseTransaction(self::Btcmarkets, transaction; currency=nothing)
     timestamp = self.parse8601(safeString(transaction, "creationTime"));
     lastUpdate = self.parse8601(safeString(transaction, "lastUpdate"));
     type_var = self.parseTransactionType(safeStringLower(transaction, "type"));
     if functions.ccxtruthy(type_var == "withdraw")
         type_var = "withdrawal";
     end
-    cryptoPaymentDetail = self.safeDict(transaction, "paymentDetail", Dict{Symbol, Any}());
+    cryptoPaymentDetail = self.safeDict(transaction, "paymentDetail", defaultValue = Dict{Symbol, Any}());
     txid = safeString(cryptoPaymentDetail, "txId");
     address = safeString(cryptoPaymentDetail, "address");
     tag = nothing;
@@ -535,7 +574,17 @@ function parseTransaction(self::Btcmarkets, transaction, currency=nothing)
 )
 
 end
-function fetchMarkets(self::Btcmarkets, params=Dict())
+"""
+retrieves data on all markets for btcmarkets
+see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets/get
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Btcmarkets; params=Dict())
     response = Base.fetch(self.publicGetMarkets(params));
     return self.parseMarkets(response)
 
@@ -547,8 +596,8 @@ function parseMarket(self::Btcmarkets, market)
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
     symbol = string(base, "/", quote_var);
-    fees = safeValue(self.safeDict(self.options, "fees", Dict{Symbol, Any}()), quote_var, self.fees);
-    pricePrecision = self.parseNumber(self.parsePrecision(safeString(market, "priceDecimals")));
+    fees = safeValue(self.safeDict(self.options, "fees", defaultValue = Dict{Symbol, Any}()), quote_var, self.fees);
+    pricePrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "priceDecimals")));
     minAmount = self.safeNumber(market, "minOrderAmount");
     maxAmount = self.safeNumber(market, "maxOrderAmount");
     status = safeString(market, "status");
@@ -556,7 +605,7 @@ function parseMarket(self::Btcmarkets, market)
     if functions.ccxtruthy(quote_var == "AUD")
         minPrice = pricePrecision;
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -583,7 +632,7 @@ function parseMarket(self::Btcmarkets, market)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "amountDecimals"))),
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "amountDecimals"))),
         Symbol("price") => pricePrecision
     ),
     Symbol("limits") => Dict{Symbol, Any}(
@@ -609,7 +658,17 @@ function parseMarket(self::Btcmarkets, market)
 ))
 
 end
-function fetchTime(self::Btcmarkets, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.btcmarkets.net/v3/#tag/Misc-APIs/paths/~1v3~1time/get
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Btcmarkets; params=Dict())
     response = Base.fetch(self.publicGetTime(params));
     return self.parse8601(safeString(response, "timestamp"))
 
@@ -634,7 +693,17 @@ function parseBalance(self::Btcmarkets, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Btcmarkets, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.btcmarkets.net/v3/#tag/Account-APIs/paths/~1v3~1accounts~1me~1balances/get
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Btcmarkets; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -642,11 +711,25 @@ function fetchBalance(self::Btcmarkets, params=Dict())
     return self.parseBalance(response)
 
 end
-function parseOHLCV(self::Btcmarkets, ohlcv, market=nothing)
+function parseOHLCV(self::Btcmarkets, ohlcv; market=nothing)
     return [self.parse8601(safeString(ohlcv, 0)), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCV(self::Btcmarkets, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1candles/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Btcmarkets, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -662,10 +745,22 @@ function fetchOHLCV(self::Btcmarkets, symbol, timeframe="1m", since=nothing, lim
         request[Symbol("limit")] = min(limit, 200);
     end
     response = Base.fetch(self.publicGetMarketsMarketIdCandles(extend(request, params)));
-    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchOrderBook(self::Btcmarkets, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1orderbook/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Btcmarkets, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -675,14 +770,14 @@ function fetchOrderBook(self::Btcmarkets, symbol, limit=nothing, params=Dict())
     );
     response = Base.fetch(self.publicGetMarketsMarketIdOrderbook(extend(request, params)));
     timestamp = safeIntegerProduct(response, "snapshotId", 0.001);
-    orderbook = self.parseOrderBook(response, symbol, timestamp);
+    orderbook = self.parseOrderBook(response, symbol, timestamp = timestamp);
     orderbook[Symbol("nonce")] = safeInteger(response, "snapshotId");
     return orderbook
 
 end
-function parseTicker(self::Btcmarkets, ticker, market=nothing)
+function parseTicker(self::Btcmarkets, ticker; market=nothing)
     marketId = safeString(ticker, "marketId");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = self.parse8601(safeString(ticker, "timestamp"));
     last_var = safeString(ticker, "lastPrice");
@@ -711,10 +806,21 @@ function parseTicker(self::Btcmarkets, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Btcmarkets, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1ticker/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Btcmarkets, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -723,10 +829,10 @@ function fetchTicker(self::Btcmarkets, symbol, params=Dict())
         Symbol("marketId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketsMarketIdTicker(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchTicker2(self::Btcmarkets, symbol, params=Dict())
+function fetchTicker2(self::Btcmarkets, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -735,13 +841,13 @@ function fetchTicker2(self::Btcmarkets, symbol, params=Dict())
         Symbol("id") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketsMarketIdTicker(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function parseTrade(self::Btcmarkets, trade, market=nothing)
+function parseTrade(self::Btcmarkets, trade; market=nothing)
     timestamp = self.parse8601(safeString(trade, "timestamp"));
     marketId = safeString(trade, "marketId");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     feeCurrencyCode = functions.ccxtruthy((get(market, Symbol("quote"), nothing) == "AUD")) ? get(market, Symbol("quote"), nothing) : get(market, Symbol("base"), nothing);
     side = safeString(trade, "side");
     if functions.ccxtruthy(side == "Bid")
@@ -776,10 +882,23 @@ function parseTrade(self::Btcmarkets, trade, market=nothing)
     Symbol("cost") => nothing,
     Symbol("takerOrMaker") => takerOrMaker,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Btcmarkets, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1trades/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Btcmarkets, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -788,10 +907,26 @@ function fetchTrades(self::Btcmarkets, symbol, since=nothing, limit=nothing, par
         Symbol("marketId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketsMarketIdTrades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function createOrder(self::Btcmarkets, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.btcmarkets.net/v3/#tag/Order-Placement-APIs/paths/~1v3~1orders/post
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Btcmarkets, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -847,10 +982,22 @@ function createOrder(self::Btcmarkets, symbol, type_var, side, amount, price=not
     end
     params = omit(params, "clientOrderId");
     response = Base.fetch(self.privatePostOrders(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrders(self::Btcmarkets, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: not used by cancelOrders ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Btcmarkets, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -864,13 +1011,25 @@ function cancelOrders(self::Btcmarkets, ids, symbol=nothing, params=Dict())
         Symbol("ids") => numericIds
     );
     response = Base.fetch(self.privateDeleteBatchordersIds(extend(request, params)));
-    cancelOrders = self.safeList(response, "cancelOrders", []);
-    unprocessedRequests = self.safeList(response, "unprocessedRequests", []);
+    cancelOrders = self.safeList(response, "cancelOrders", defaultValue = []);
+    unprocessedRequests = self.safeList(response, "unprocessedRequests", defaultValue = []);
     orders = arrayConcat(cancelOrders, unprocessedRequests);
     return self.parseOrders(orders)
 
 end
-function cancelOrder(self::Btcmarkets, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.btcmarkets.net/v3/#operation/cancelOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Btcmarkets, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -881,7 +1040,7 @@ function cancelOrder(self::Btcmarkets, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function calculateFee(self::Btcmarkets, symbol, type_var, side, amount, price, takerOrMaker="taker", params=Dict())
+function calculateFee(self::Btcmarkets, symbol, type_var, side, amount, price; takerOrMaker="taker", params=Dict())
     market = self.market(symbol);
     currency = nothing;
     cost = nothing;
@@ -922,10 +1081,10 @@ function parseOrderStatus(self::Btcmarkets, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Btcmarkets, order, market=nothing)
+function parseOrder(self::Btcmarkets, order; market=nothing)
     timestamp = self.parse8601(safeString(order, "creationTime"));
     marketId = safeString(order, "marketId");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     side = safeString(order, "side");
     if functions.ccxtruthy(side == "Bid")
         side = "buy";
@@ -963,10 +1122,22 @@ function parseOrder(self::Btcmarkets, order, market=nothing)
     Symbol("status") => status,
     Symbol("trades") => nothing,
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Btcmarkets, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.btcmarkets.net/v3/#operation/getOrderById
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by btcmarkets fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Btcmarkets, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -977,7 +1148,20 @@ function fetchOrder(self::Btcmarkets, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOrders(self::Btcmarkets, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.btcmarkets.net/v3/#operation/listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Btcmarkets; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -996,22 +1180,61 @@ function fetchOrders(self::Btcmarkets, symbol=nothing, since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Btcmarkets, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.btcmarkets.net/v3/#operation/listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Btcmarkets; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "open"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchClosedOrders(self::Btcmarkets, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    orders = Base.fetch(self.fetchOrders(symbol, since, limit, params));
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.btcmarkets.net/v3/#operation/listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Btcmarkets; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = params));
     return filterBy(orders, "status", "closed")
 
 end
-function fetchMyTrades(self::Btcmarkets, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.btcmarkets.net/v3/#operation/getTrades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Btcmarkets; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1028,10 +1251,24 @@ function fetchMyTrades(self::Btcmarkets, symbol=nothing, since=nothing, limit=no
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetTrades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function withdraw(self::Btcmarkets, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/post
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Btcmarkets, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1042,21 +1279,21 @@ function withdraw(self::Btcmarkets, code, amount, address, tag=nothing, params=D
         Symbol("amount") => self.currencyToPrecision(code, amount)
     );
     if functions.ccxtruthy(code != "AUD")
-        self.checkAddress(address);
+        self.checkAddress(address = address);
         request[Symbol("toAddress")] = address;
     end
     if functions.ccxtruthy(tag != nothing)
         request[Symbol("toAddress")] = string(address, "?dt=", tag);
     end
     response = Base.fetch(self.privatePostWithdrawals(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
 function nonce(self::Btcmarkets, )
     return milliseconds()
 
 end
-function sign(self::Btcmarkets, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Btcmarkets, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     request = string("/", self.version, "/", self.implodeParams(path, params));
     query = keysort(omit(params, self.extractParams(path)));
     if functions.ccxtruthy(api == "private")
@@ -1118,143 +1355,143 @@ Base.getproperty(self::Btcmarkets, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarkets(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsMarketIdTicker(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "markets/{marketId}/ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{marketId}/ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsMarketIdTrades(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "markets/{marketId}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{marketId}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsMarketIdOrderbook(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "markets/{marketId}/orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{marketId}/orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsMarketIdCandles(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "markets/{marketId}/candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{marketId}/candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsTickers(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "markets/tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsOrderbooks(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "markets/orderbooks", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/orderbooks"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTime(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrders(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersId(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBatchordersIds(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "batchorders/{ids}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "batchorders/{ids}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTrades(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradesId(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "trades/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawals(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawalsId(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "withdrawals/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeposits(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "deposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDepositsId(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "deposits/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransfers(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "transfers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransfersId(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "transfers/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAddresses(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "addresses", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "addresses"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawalFees(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "withdrawal-fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawal-fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssets(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "assets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "assets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsMeTradingFees(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "accounts/me/trading-fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/me/trading-fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsMeWithdrawalLimits(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "accounts/me/withdrawal-limits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/me/withdrawal-limits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsMeBalances(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "accounts/me/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/me/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsMeTransactions(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "accounts/me/transactions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/me/transactions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetReportsId(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "reports/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "reports/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBatchorders(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "batchorders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "batchorders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawals(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostReports(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "reports", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "reports"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrders(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersId(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteBatchordersIds(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "batchorders/{ids}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "batchorders/{ids}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOrdersId(self::Btcmarkets, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Btcmarkets(; kwargs...)
@@ -1318,3 +1555,299 @@ function Btcmarkets(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Btcmarkets_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1transfers/get
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchDepositsWithdrawals
+
+function __ccxt_doc_Btcmarkets_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1deposits/get
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchDeposits
+
+function __ccxt_doc_Btcmarkets_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/get
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchWithdrawals
+
+function __ccxt_doc_Btcmarkets_fetchMarkets() end
+"""
+retrieves data on all markets for btcmarkets
+see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets/get
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Btcmarkets_fetchMarkets
+
+function __ccxt_doc_Btcmarkets_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.btcmarkets.net/v3/#tag/Misc-APIs/paths/~1v3~1time/get
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Btcmarkets_fetchTime
+
+function __ccxt_doc_Btcmarkets_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.btcmarkets.net/v3/#tag/Account-APIs/paths/~1v3~1accounts~1me~1balances/get
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchBalance
+
+function __ccxt_doc_Btcmarkets_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1candles/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Btcmarkets_fetchOHLCV
+
+function __ccxt_doc_Btcmarkets_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1orderbook/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchOrderBook
+
+function __ccxt_doc_Btcmarkets_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1ticker/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchTicker
+
+function __ccxt_doc_Btcmarkets_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1trades/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Btcmarkets_fetchTrades
+
+function __ccxt_doc_Btcmarkets_createOrder() end
+"""
+create a trade order
+see: https://docs.btcmarkets.net/v3/#tag/Order-Placement-APIs/paths/~1v3~1orders/post
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcmarkets_createOrder
+
+function __ccxt_doc_Btcmarkets_cancelOrders() end
+"""
+cancel multiple orders
+see: https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: not used by cancelOrders ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcmarkets_cancelOrders
+
+function __ccxt_doc_Btcmarkets_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.btcmarkets.net/v3/#operation/cancelOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcmarkets_cancelOrder
+
+function __ccxt_doc_Btcmarkets_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.btcmarkets.net/v3/#operation/getOrderById
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by btcmarkets fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchOrder
+
+function __ccxt_doc_Btcmarkets_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.btcmarkets.net/v3/#operation/listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchOrders
+
+function __ccxt_doc_Btcmarkets_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.btcmarkets.net/v3/#operation/listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchOpenOrders
+
+function __ccxt_doc_Btcmarkets_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.btcmarkets.net/v3/#operation/listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchClosedOrders
+
+function __ccxt_doc_Btcmarkets_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.btcmarkets.net/v3/#operation/getTrades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Btcmarkets_fetchMyTrades
+
+function __ccxt_doc_Btcmarkets_withdraw() end
+"""
+make a withdrawal
+see: https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/post
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Btcmarkets_withdraw

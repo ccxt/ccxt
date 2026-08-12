@@ -35,14 +35,37 @@ function describe(self::Kucoinfutures, )
 ))
 
 end
-function fetchBidsAsks(self::Kucoinfutures, symbols=nothing, params=Dict())
+"""
+fetches the bid and ask price and volume for multiple markets
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchBidsAsks(self::Kucoinfutures; symbols=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("method") => "futuresPublicGetAllTickers"
     );
-    return Base.fetch(self.fetchTickers(symbols, extend(request, params)))
+    return Base.fetch(self.fetchTickers(symbols = symbols, params = extend(request, params)))
 
 end
-function transfer(self::Kucoinfutures, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Kucoinfutures, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -63,8 +86,8 @@ function transfer(self::Kucoinfutures, code, amount, fromAccount, toAccount, par
     else
         throw(BadRequest(string(self.id, " transfer() only supports transfers between future/swap, spot and funding accounts")));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return extend(self.parseTransfer(data, currency), Dict{Symbol, Any}(
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return extend(self.parseTransfer(data, currency = currency), Dict{Symbol, Any}(
     Symbol("amount") => self.parseNumber(amountToPrecision),
     Symbol("fromAccount") => fromAccount,
     Symbol("toAccount") => toAccount
@@ -145,3 +168,34 @@ function Kucoinfutures(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Kucoinfutures_fetchBidsAsks() end
+"""
+fetches the bid and ask price and volume for multiple markets
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Kucoinfutures_fetchBidsAsks
+
+function __ccxt_doc_Kucoinfutures_transfer() end
+"""
+transfer currency internally between wallets on the same account
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Kucoinfutures_transfer

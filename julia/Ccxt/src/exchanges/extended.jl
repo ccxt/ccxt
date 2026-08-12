@@ -555,8 +555,8 @@ function describe(self::Extended, )
 ))
 
 end
-function loadMarkets(self::Extended, reload=false, params=Dict())
-    markets = Base.fetch(loadMarkets(self.parent, reload, params));
+function loadMarkets(self::Extended; reload=false, params=Dict())
+    markets = Base.fetch(loadMarkets(self.parent, reload = reload, params = params));
     currenciesByNumericId = self.safeDict(self.options, "currenciesByNumericId");
     if functions.ccxtruthy(@functions.ccxt_or((currenciesByNumericId == nothing), reload))
         self.options[Symbol("currenciesByNumericId")] = self.indexByStringifiedNumericId(self.currencies);
@@ -584,14 +584,24 @@ function indexByStringifiedNumericId(self::Extended, input)
     return result
 
 end
-function fetchMarkets(self::Extended, params=Dict())
+"""
+retrieves data on all markets for extended
+see: https://api.docs.extended.exchange/#get-markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Extended; params=Dict())
     response = Base.fetch(self.v1PublicGetInfoMarkets(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseMarkets(data)
 
 end
 function parseMarket(self::Extended, market)
-    tradingConfig = self.safeDict(market, "tradingConfig", Dict{Symbol, Any}());
+    tradingConfig = self.safeDict(market, "tradingConfig", defaultValue = Dict{Symbol, Any}());
     marketId = safeString(market, "name");
     baseId = safeString(market, "assetName", "");
     if functions.ccxtruthy(findfirst("SPOT", baseId) !== nothing)
@@ -630,7 +640,7 @@ function parseMarket(self::Extended, market)
         linear = true;
         inverse = false;
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -683,9 +693,19 @@ function parseMarket(self::Extended, market)
 ))
 
 end
-function fetchCurrencies(self::Extended, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://api.docs.extended.exchange/#get-assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Extended; params=Dict())
     response = Base.fetch(self.v1PublicGetInfoAssets(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseCurrencies(data)
 
 end
@@ -716,20 +736,42 @@ function parseCurrency(self::Extended, currency)
 ))
 
 end
-function fetchTicker(self::Extended, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api.docs.extended.exchange/#get-market-statistics
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Extended, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PublicGetInfoMarketsMarketStats(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTicker(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(data, market = market)
 
 end
-function fetchTickers(self::Extended, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for all markets
+see: https://api.docs.extended.exchange/#get-markets
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Extended; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
         marketIds = [];
@@ -743,26 +785,26 @@ function fetchTickers(self::Extended, symbols=nothing, params=Dict())
         request[Symbol("market")] = marketIds;
     end
     response = Base.fetch(self.v1PublicGetInfoMarkets(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     tickers = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         marketData = get(data, i + 1, nothing);
         marketId = safeString(marketData, "name");
-        market = self.safeMarket(marketId);
-        stats = self.safeDict(marketData, "marketStats", Dict{Symbol, Any}());
-        ticker = self.parseTicker(stats, market);
+        market = self.safeMarket(marketId = marketId);
+        stats = self.safeDict(marketData, "marketStats", defaultValue = Dict{Symbol, Any}());
+        ticker = self.parseTicker(stats, market = market);
         symbol = get(ticker, Symbol("symbol"), nothing);
         if functions.ccxtruthy(symbol != nothing)
             tickers[Symbol(symbol)] = ticker;
         end
         i += 1
     end
-    return self.filterByArrayTickers(tickers, "symbol", symbols)
+    return self.filterByArrayTickers(tickers, "symbol", values = symbols)
 
 end
-function parseTicker(self::Extended, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Extended, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     last_var = self.safeNumber(ticker, "lastPrice");
     percentageRaw = safeString(ticker, "dailyPriceChangePercentage");
     percentage = functions.ccxtruthy((percentageRaw != nothing)) ? stringMul(percentageRaw, "100") : nothing;
@@ -789,43 +831,82 @@ function parseTicker(self::Extended, ticker, market=nothing)
     Symbol("markPrice") => self.safeNumber(ticker, "markPrice"),
     Symbol("indexPrice") => self.safeNumber(ticker, "indexPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchOrderBook(self::Extended, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api.docs.extended.exchange/#get-market-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Extended, symbol; limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PublicGetInfoMarketsMarketOrderbook(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = milliseconds();
-    orderbook = self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp, "bid", "ask", "price", "qty");
+    orderbook = self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bid", asksKey = "ask", priceKey = "price", amountKey = "qty");
     if functions.ccxtruthy(limit != nothing)
-        orderbook[Symbol("bids")] = self.arraySlice(get(orderbook, Symbol("bids"), nothing), 0, limit);
-        orderbook[Symbol("asks")] = self.arraySlice(get(orderbook, Symbol("asks"), nothing), 0, limit);
+        orderbook[Symbol("bids")] = self.arraySlice(get(orderbook, Symbol("bids"), nothing), 0, second = limit);
+        orderbook[Symbol("asks")] = self.arraySlice(get(orderbook, Symbol("asks"), nothing), 0, second = limit);
     end
     return orderbook
 
 end
-function fetchTrades(self::Extended, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://api.docs.extended.exchange/#get-market-last-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Extended, symbol; since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PublicGetInfoMarketsMarketTrades(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Extended, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://api.docs.extended.exchange/#get-trades
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the trades
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Extended; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -837,8 +918,8 @@ function fetchMyTrades(self::Extended, symbol=nothing, since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v1PrivateGetUserTrades(extend(params, request)));
-    data = self.safeList(response, "data", []);
-    pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    pagination = self.safeDict(response, "pagination", defaultValue = Dict{Symbol, Any}());
     cursor = safeString(pagination, "cursor");
     result = [];
     dataLength = length(data);
@@ -853,15 +934,29 @@ function fetchMyTrades(self::Extended, symbol=nothing, since=nothing, limit=noth
         push!(result, entry);
         i += 1
     end
-    return self.parseTrades(result, market, since, limit)
+    return self.parseTrades(result, market = market, since = since, limit = limit)
 
 end
-function fetchFundingHistory(self::Extended, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the funding payments history
+see: https://api.docs.extended.exchange/#get-funding-payments
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Extended; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -876,8 +971,8 @@ function fetchFundingHistory(self::Extended, symbol=nothing, since=nothing, limi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v1PrivateGetUserFundingHistory(extend(params, request)));
-    data = self.safeList(response, "data", []);
-    pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    pagination = self.safeDict(response, "pagination", defaultValue = Dict{Symbol, Any}());
     cursor = safeString(pagination, "cursor");
     result = [];
     dataLength = length(data);
@@ -892,12 +987,12 @@ function fetchFundingHistory(self::Extended, symbol=nothing, since=nothing, limi
         push!(result, entry);
         i += 1
     end
-    return self.parseFundingHistories(result, market, since, limit)
+    return self.parseFundingHistories(result, market = market, since = since, limit = limit)
 
 end
-function parseFundingHistory(self::Extended, history, market=nothing)
+function parseFundingHistory(self::Extended, history; market=nothing)
     marketId = safeString(history, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(history, "paidTime");
     return Dict{Symbol, Any}(
     Symbol("info") => history,
@@ -911,20 +1006,20 @@ function parseFundingHistory(self::Extended, history, market=nothing)
 )
 
 end
-function parseFundingHistories(self::Extended, histories, market=nothing, since=nothing, limit=nothing)
+function parseFundingHistories(self::Extended, histories; market=nothing, since=nothing, limit=nothing)
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(histories)))
-        push!(result, self.parseFundingHistory(get(histories, i + 1, nothing), market));
+        push!(result, self.parseFundingHistory(get(histories, i + 1, nothing), market = market));
         i += 1
     end
     symbol = functions.ccxtruthy((market == nothing)) ? nothing : get(market, Symbol("symbol"), nothing);
-    return self.filterBySymbolSinceLimit(result, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(result, symbol = symbol, since = since, limit = limit)
 
 end
-function parseTrade(self::Extended, trade, market=nothing)
+function parseTrade(self::Extended, trade; market=nothing)
     marketId = safeString2(trade, "m", "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger2(trade, "T", "createdTime");
     priceString = safeString2(trade, "p", "price");
     amountString = safeString2(trade, "q", "qty");
@@ -954,10 +1049,27 @@ function parseTrade(self::Extended, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => safeString(trade, "value"),
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchOHLCV(self::Extended, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api.docs.extended.exchange/#get-candles-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch, default 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.candleType`::string, optional: candle type: 'trades' (default), 'mark-prices', or 'index-prices'
+- `params.price`::string, optional: *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
+- `params.until`::int, optional: end timestamp in ms for the requested period
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Extended, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     price = safeString(params, "price");
@@ -983,15 +1095,32 @@ function fetchOHLCV(self::Extended, symbol, timeframe="1m", since=nothing, limit
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.v1PublicGetInfoCandlesMarketCandleType(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Extended, ohlcv, market=nothing)
+function parseOHLCV(self::Extended, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "T"), self.safeNumber(ohlcv, "o"), self.safeNumber(ohlcv, "h"), self.safeNumber(ohlcv, "l"), self.safeNumber(ohlcv, "c"), self.safeNumber(ohlcv, "v")]
 
 end
-function fetchFundingRateHistory(self::Extended, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://api.docs.extended.exchange/#get-funding-rates-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of entries to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+- `params.endTime`::int, optional: exchange-specific end timestamp in ms of the latest funding rate to fetch
+- `params.cursor`::int, optional: offset of the result set
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Extended; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -999,7 +1128,7 @@ function fetchFundingRateHistory(self::Extended, symbol=nothing, since=nothing, 
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "cursor", "cursor", nothing, 10000))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 10000))
     end
     market = self.market(symbol);
     symbol = get(market, Symbol("symbol"), nothing);
@@ -1019,8 +1148,8 @@ function fetchFundingRateHistory(self::Extended, symbol=nothing, since=nothing, 
         Symbol("limit") => limit
     );
     response = Base.fetch(self.v1PublicGetInfoMarketFunding(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    pagination = self.safeDict(response, "pagination", defaultValue = Dict{Symbol, Any}());
     cursor = safeString(pagination, "cursor");
     result = [];
     dataLength = length(data);
@@ -1032,16 +1161,16 @@ function fetchFundingRateHistory(self::Extended, symbol=nothing, since=nothing, 
     Symbol("cursor") => cursor
 ));
         end
-        push!(result, self.parseFundingRateHistory(entry, market));
+        push!(result, self.parseFundingRateHistory(entry, market = market));
         i += 1
     end
     sorted = sortBy(result, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Extended, info, market=nothing)
+function parseFundingRateHistory(self::Extended, info; market=nothing)
     marketId = safeString(info, "m");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(info, "T");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
@@ -1052,7 +1181,22 @@ function parseFundingRateHistory(self::Extended, info, market=nothing)
 )
 
 end
-function fetchOpenInterestHistory(self::Extended, symbol, timeframe="1h", since=nothing, limit=nothing, params=Dict())
+"""
+Retrieves the open interest history of a currency
+see: https://api.docs.extended.exchange/#get-open-interest-history
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `timeframe`::string: '1h' or '1d'
+- `since`::int, optional: the time(ms) of the earliest record to retrieve as a unix timestamp
+- `limit`::int, optional: the maximum amount of open interest structures to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.until`::int, optional: timestamp in ms of the latest open interest record to fetch
+
+# Returns
+- an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterestHistory(self::Extended, symbol; timeframe="1h", since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     interval = safeString(self.timeframes, timeframe);
@@ -1076,11 +1220,11 @@ function fetchOpenInterestHistory(self::Extended, symbol, timeframe="1h", since=
         Symbol("limit") => limit
     );
     response = Base.fetch(self.v1PublicGetInfoMarketOpenInterests(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOpenInterestsHistory(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOpenInterestsHistory(data, market = market, since = since, limit = limit)
 
 end
-function parseOpenInterest(self::Extended, interest, market=nothing)
+function parseOpenInterest(self::Extended, interest; market=nothing)
     timestamp = safeInteger(interest, "t");
     return self.safeOpenInterest(Dict{Symbol, Any}(
     Symbol("symbol") => safeString(market, "symbol"),
@@ -1091,13 +1235,23 @@ function parseOpenInterest(self::Extended, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchBalance(self::Extended, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api.docs.extended.exchange/#get-spot-balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Extended; params=Dict())
     Base.fetch(self.loadMarkets());
     response = Base.fetch(self.v1PrivateGetUserSpotBalances(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseBalance(data)
 
 end
@@ -1107,7 +1261,7 @@ function parseBalance(self::Extended, response)
     );
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        balance = self.safeDict(response, i, Dict{Symbol, Any}());
+        balance = self.safeDict(response, i, defaultValue = Dict{Symbol, Any}());
         currencyId = safeString(balance, "asset");
         code = self.safeCurrencyCode(currencyId);
         account = self.account();
@@ -1121,15 +1275,35 @@ function parseBalance(self::Extended, response)
     return self.safeBalance(result)
 
 end
-function fetchAccount(self::Extended, params=Dict())
+"""
+fetch the current authenticated sub-account
+see: https://api.docs.extended.exchange/#get-account-details
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [account structure]{@link https://docs.ccxt.com/?id=account-structure}
+"""
+function fetchAccount(self::Extended; params=Dict())
     response = Base.fetch(self.v1PrivateGetUserAccountInfo(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseAccount(data)
 
 end
-function fetchAccounts(self::Extended, params=Dict())
+"""
+fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
+see: https://api.docs.extended.exchange/#get-sub-accounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+"""
+function fetchAccounts(self::Extended; params=Dict())
     response = Base.fetch(self.v1PrivateGetUserAccounts(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseAccounts(data)
 
 end
@@ -1147,12 +1321,26 @@ function parseAccount(self::Extended, account)
 )
 
 end
-function fetchLedger(self::Extended, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+"""
+function fetchLedger(self::Extended; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "cursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchLedger", symbol = code, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -1163,8 +1351,8 @@ function fetchLedger(self::Extended, code=nothing, since=nothing, limit=nothing,
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v1PrivateGetUserAssetOperations(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    pagination = self.safeDict(response, "pagination", defaultValue = Dict{Symbol, Any}());
     cursor = safeString(pagination, "cursor");
     result = [];
     dataLength = length(data);
@@ -1179,14 +1367,14 @@ function fetchLedger(self::Extended, code=nothing, since=nothing, limit=nothing,
         push!(result, entry);
         i += 1
     end
-    return self.parseLedger(result, currency, since, limit)
+    return self.parseLedger(result, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Extended, item, currency=nothing)
+function parseLedgerEntry(self::Extended, item; currency=nothing)
     timestamp = safeInteger(item, "time");
     assetId = safeString(item, "asset");
-    code = self.getExtendedCurrencyCodeById(assetId, currency);
-    ledgerCurrency = self.safeCurrency(code, currency);
+    code = self.getExtendedCurrencyCodeById(assetId, currency = currency);
+    ledgerCurrency = self.safeCurrency(code, currency = currency);
     amountString = safeString(item, "amount");
     direction = nothing;
     if functions.ccxtruthy(amountString != nothing)
@@ -1216,15 +1404,29 @@ function parseLedgerEntry(self::Extended, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => self.parseTransactionStatus(safeString(item, "status")),
     Symbol("fee") => fee
-), ledgerCurrency)
+), currency = ledgerCurrency)
 
 end
-function fetchTransactions(self::Extended, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits, withdrawals, and transfers
+see: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch transactions for
+- `limit`::int, optional: the maximum number of transaction structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchTransactions(self::Extended; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTransactions", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransactions", code, since, limit, params, "cursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransactions", symbol = code, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -1235,8 +1437,8 @@ function fetchTransactions(self::Extended, code=nothing, since=nothing, limit=no
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v1PrivateGetUserAssetOperations(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    pagination = self.safeDict(response, "pagination", defaultValue = Dict{Symbol, Any}());
     cursor = safeString(pagination, "cursor");
     result = [];
     dataLength = length(data);
@@ -1251,22 +1453,66 @@ function fetchTransactions(self::Extended, code=nothing, since=nothing, limit=no
         push!(result, entry);
         i += 1
     end
-    return self.parseTransactions(result, currency, since, limit)
+    return self.parseTransactions(result, currency = currency, since = since, limit = limit)
 
 end
-function fetchDeposits(self::Extended, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchTransactions(code, since, limit, extend(Dict{Symbol, Any}(
+"""
+fetch all deposits made to an account
+see: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposit structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Extended; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchTransactions(code = code, since = since, limit = limit, params = extend(Dict{Symbol, Any}(
     Symbol("type") => "DEPOSIT"
 ), params)))
 
 end
-function fetchWithdrawals(self::Extended, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchTransactions(code, since, limit, extend(Dict{Symbol, Any}(
+"""
+fetch all withdrawals made from an account
+see: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Extended; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchTransactions(code = code, since = since, limit = limit, params = extend(Dict{Symbol, Any}(
     Symbol("type") => "WITHDRAWAL"
 ), params)))
 
 end
-function withdraw(self::Extended, code, amount, address, tag=nothing, params=Dict())
+"""
+make a Starknet withdrawal
+see: https://api.docs.extended.exchange/#withdrawals
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the Starknet address to withdraw to
+- `tag`::string: unused
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.chainId`::string, optional: only STRK is supported
+- `params.settlementExpiration`::int, optional: settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Extended, code, amount, address; tag=nothing, params=Dict())
     self.checkRequiredCredentials();
     Base.fetch(self.loadMarkets());
     currency = self.currency(code);
@@ -1280,7 +1526,7 @@ function withdraw(self::Extended, code, amount, address, tag=nothing, params=Dic
     account = Base.fetch(self.fetchExtendedAccount());
     amountString = self.currencyToPrecision(code, amount);
     accountId = safeString(account, "accountId");
-    settlement = self.createWithdrawalSettlementData(address, amountString, currency, account, params);
+    settlement = self.createWithdrawalSettlementData(address, amountString, currency, account, params = params);
     request = Dict{Symbol, Any}(
         Symbol("accountId") => accountId,
         Symbol("amount") => amountString,
@@ -1315,12 +1561,26 @@ function withdraw(self::Extended, code, amount, address, tag=nothing, params=Dic
 )
 
 end
-function fetchTransfers(self::Extended, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Extended; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransfers", symbol = code, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -1333,8 +1593,8 @@ function fetchTransfers(self::Extended, code=nothing, since=nothing, limit=nothi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v1PrivateGetUserAssetOperations(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    pagination = self.safeDict(response, "pagination", defaultValue = Dict{Symbol, Any}());
     cursor = safeString(pagination, "cursor");
     result = [];
     dataLength = length(data);
@@ -1349,10 +1609,27 @@ function fetchTransfers(self::Extended, code=nothing, since=nothing, limit=nothi
         push!(result, entry);
         i += 1
     end
-    return self.parseTransfers(result, currency, since, limit)
+    return self.parseTransfers(result, currency = currency, since = since, limit = limit)
 
 end
-function transfer(self::Extended, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer collateral between sub-accounts associated with the same wallet
+see: https://api.docs.extended.exchange/#create-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to transfer
+- `fromAccount`::string: source account id, defaults to the authenticated account id
+- `toAccount`::string: destination account id
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.toVault`::string: destination account L2 vault
+- `params.toL2Key`::string: destination account L2 public key
+- `params.settlementExpiration`::int, optional: settlement expiration timestamp in seconds, defaults to now + 21 days
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Extended, code, amount, fromAccount, toAccount; params=Dict())
     self.checkRequiredCredentials();
     Base.fetch(self.loadMarkets());
     currency = self.currency(code);
@@ -1369,7 +1646,7 @@ function transfer(self::Extended, code, amount, fromAccount, toAccount, params=D
         throw(ArgumentsRequired(string(self.id, " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")));
     end
     amountString = self.currencyToPrecision(code, amount);
-    settlement = self.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, params);
+    settlement = self.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, params = params);
     request = Dict{Symbol, Any}(
         Symbol("fromAccount") => fromAccount,
         Symbol("toAccount") => toAccount,
@@ -1379,7 +1656,7 @@ function transfer(self::Extended, code, amount, fromAccount, toAccount, params=D
     );
     params = omit(params, ["fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution"]);
     response = Base.fetch(self.v1PrivatePostUserTransfer(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     validSignature = self.safeBool(data, "validSignature");
     now = milliseconds();
     status = "pending";
@@ -1399,10 +1676,10 @@ function transfer(self::Extended, code, amount, fromAccount, toAccount, params=D
 )
 
 end
-function parseTransfer(self::Extended, transfer, currency=nothing)
+function parseTransfer(self::Extended, transfer; currency=nothing)
     timestamp = safeInteger(transfer, "time");
     assetId = safeString(transfer, "asset");
-    code = self.getExtendedCurrencyCodeById(assetId, currency);
+    code = self.getExtendedCurrencyCodeById(assetId, currency = currency);
     amountString = safeString(transfer, "amount");
     amount = functions.ccxtruthy((amountString == nothing)) ? nothing : self.parseNumber(stringAbs(amountString));
     accountId = safeString(transfer, "accountId");
@@ -1433,11 +1710,11 @@ function parseTransfer(self::Extended, transfer, currency=nothing)
 )
 
 end
-function getExtendedCurrencyCodeById(self::Extended, assetId, currency=nothing)
+function getExtendedCurrencyCodeById(self::Extended, assetId; currency=nothing)
     if functions.ccxtruthy(assetId == nothing)
             return safeString(currency, "code")
     end
-    currenciesByNumericId = self.safeDict(self.options, "currenciesByNumericId", Dict{Symbol, Any}());
+    currenciesByNumericId = self.safeDict(self.options, "currenciesByNumericId", defaultValue = Dict{Symbol, Any}());
     currencyByNumericId = self.safeDict(currenciesByNumericId, assetId);
     if functions.ccxtruthy(currencyByNumericId != nothing)
             return safeString(currencyByNumericId, "code")
@@ -1472,10 +1749,10 @@ function parseTransactionType(self::Extended, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseTransaction(self::Extended, transaction, currency=nothing)
+function parseTransaction(self::Extended, transaction; currency=nothing)
     timestamp = safeInteger(transaction, "time");
     assetId = safeString(transaction, "asset");
-    code = self.getExtendedCurrencyCodeById(assetId, currency);
+    code = self.getExtendedCurrencyCodeById(assetId, currency = currency);
     amountString = safeString(transaction, "amount");
     amount = functions.ccxtruthy((amountString == nothing)) ? nothing : self.parseNumber(stringAbs(amountString));
     fee = nothing;
@@ -1512,26 +1789,50 @@ function parseTransaction(self::Extended, transaction, currency=nothing)
 )
 
 end
-function fetchTradingFee(self::Extended, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://api.docs.extended.exchange/#get-fees
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.builderId`::string, optional: builder client id
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Extended, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PrivateGetUserFees(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTradingFee(first_var, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTradingFee(first_var, market = market)
 
 end
-function fetchTradingFees(self::Extended, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://api.docs.extended.exchange/#get-fees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.market`::string, optional: exchange market id
+- `params.builderId`::string, optional: builder client id
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Extended; params=Dict())
     Base.fetch(self.loadMarkets());
     response = Base.fetch(self.v1PrivateGetUserFees(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
-        fee = self.safeDict(data, i, Dict{Symbol, Any}());
+        fee = self.safeDict(data, i, defaultValue = Dict{Symbol, Any}());
         parsed = self.parseTradingFee(fee);
         symbol = safeString(parsed, "symbol");
         if functions.ccxtruthy(symbol != nothing)
@@ -1542,9 +1843,9 @@ function fetchTradingFees(self::Extended, params=Dict())
     return result
 
 end
-function parseTradingFee(self::Extended, fee, market=nothing)
+function parseTradingFee(self::Extended, fee; market=nothing)
     marketId = safeString(fee, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -1555,18 +1856,41 @@ function parseTradingFee(self::Extended, fee, market=nothing)
 )
 
 end
-function fetchLeverage(self::Extended, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://api.docs.extended.exchange/#get-leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Extended, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PrivateGetUserLeverage(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseLeverage(self.safeDict(data, 0, Dict{Symbol, Any}()), market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLeverage(self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}()), market = market)
 
 end
-function setLeverage(self::Extended, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://api.docs.extended.exchange/#update-leverage
+
+# Arguments
+- `leverage`::int: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Extended, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -1577,13 +1901,13 @@ function setLeverage(self::Extended, leverage, symbol=nothing, params=Dict())
         Symbol("leverage") => numberToString(leverage)
     );
     response = Base.fetch(self.v1PrivatePatchUserLeverage(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Extended, leverage, market=nothing)
+function parseLeverage(self::Extended, leverage; market=nothing)
     marketId = safeString(leverage, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     leverageValue = self.safeNumber(leverage, "leverage");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
@@ -1594,24 +1918,60 @@ function parseLeverage(self::Extended, leverage, market=nothing)
 )
 
 end
-function fetchPositions(self::Extended, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://api.docs.extended.exchange/#get-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Extended; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
-        marketIds = self.marketIds(symbols);
+        marketIds = self.marketIds(symbols = symbols);
         request[Symbol("market")] = marketIds;
     end
     response = Base.fetch(self.v1PrivateGetUserPositions(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parsePositions(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parsePositions(data, symbols = symbols)
 
 end
-function fetchPosition(self::Extended, symbol, params=Dict())
-    positions = Base.fetch(self.fetchPositions([symbol], params));
+"""
+fetch data on an open position
+see: https://api.docs.extended.exchange/#get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Extended, symbol; params=Dict())
+    positions = Base.fetch(self.fetchPositions(symbols = [symbol], params = params));
     return self.safeDict(positions, 0)
 
 end
-function fetchPositionsHistory(self::Extended, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch historical positions
+see: https://api.docs.extended.exchange/#get-positions-history
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum number of position structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsHistory(self::Extended; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     if functions.ccxtruthy(isa(symbols, AbstractString))
         symbols = [symbols];
@@ -1619,16 +1979,16 @@ function fetchPositionsHistory(self::Extended, symbols=nothing, since=nothing, l
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchPositionsHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, params, "cursor", "cursor", nothing, 10000))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchPositionsHistory", symbol = symbols, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 10000))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
-        marketIds = self.marketIds(symbols);
+        marketIds = self.marketIds(symbols = symbols);
         request[Symbol("market")] = marketIds;
     end
     response = Base.fetch(self.v1PrivateGetUserPositionsHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    pagination = self.safeDict(response, "pagination", defaultValue = Dict{Symbol, Any}());
     cursor = safeString(pagination, "cursor");
     result = [];
     dataLength = length(data);
@@ -1643,13 +2003,13 @@ function fetchPositionsHistory(self::Extended, symbols=nothing, since=nothing, l
         push!(result, entry);
         i += 1
     end
-    positions = self.parsePositions(result, symbols);
-    return self.filterBySinceLimit(positions, since, limit, "timestamp")
+    positions = self.parsePositions(result, symbols = symbols);
+    return self.filterBySinceLimit(positions, since = since, limit = limit, key = "timestamp")
 
 end
-function parsePosition(self::Extended, position, market=nothing)
+function parsePosition(self::Extended, position; market=nothing)
     marketId = safeString(position, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger2(position, "createdAt", "createdTime");
     lastUpdateTimestamp = safeInteger2(position, "updatedAt", "updatedTime");
     lastUpdateTimestamp = safeInteger(position, "closedTime", lastUpdateTimestamp);
@@ -1687,7 +2047,7 @@ function parsePosition(self::Extended, position, market=nothing)
 ))
 
 end
-function getExtendedStarkAmount(self::Extended, amount, resolution, roundUp=false)
+function getExtendedStarkAmount(self::Extended, amount, resolution; roundUp=false)
     resolutionString = numberToString(resolution);
     precise = stringMul(amount, resolutionString);
     result = decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
@@ -1697,18 +2057,18 @@ function getExtendedStarkAmount(self::Extended, amount, resolution, roundUp=fals
     return result
 
 end
-function fetchExtendedAccount(self::Extended, params=Dict())
+function fetchExtendedAccount(self::Extended; params=Dict())
     account = self.safeDict(self.options, "account");
     if functions.ccxtruthy(account != nothing)
             return account
     end
-    accountData = Base.fetch(self.fetchAccount(params));
+    accountData = Base.fetch(self.fetchAccount(params = params));
     account = get(accountData, Symbol("info"), nothing);
     self.options[Symbol("account")] = account;
     return account
 
 end
-function createOrderSettlementData(self::Extended, isBuy, amountString, priceString, params=Dict())
+function createOrderSettlementData(self::Extended, isBuy, amountString, priceString; params=Dict())
     totalFee = safeString(params, "totalFee");
     settlementExpiration = safeInteger(params, "settlementExpiration");
     nonce = safeInteger(params, "nonce");
@@ -1721,14 +2081,14 @@ function createOrderSettlementData(self::Extended, isBuy, amountString, priceStr
     quoteAmount = stringMul(amountString, priceString);
     baseRoundUp = isBuy;
     quoteRoundUp = isBuy;
-    baseAmount = self.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
-    collateralAmount = self.getExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp);
+    baseAmount = self.getExtendedStarkAmount(amountString, syntheticResolution, roundUp = baseRoundUp);
+    collateralAmount = self.getExtendedStarkAmount(quoteAmount, collateralResolution, roundUp = quoteRoundUp);
     if functions.ccxtruthy(isBuy)
         collateralAmount = stringNeg(collateralAmount);
     else
         baseAmount = stringNeg(baseAmount);
     end
-    feeAmount = self.getExtendedStarkAmount(stringMul(totalFee, quoteAmount), collateralResolution, true);
+    feeAmount = self.getExtendedStarkAmount(stringMul(totalFee, quoteAmount), collateralResolution, roundUp = true);
     settlement = Dict{Symbol, Any}(
         Symbol("starkKey") => starkKey,
         Symbol("collateralPosition") => collateralPosition,
@@ -1750,13 +2110,13 @@ function createOrderSettlementData(self::Extended, isBuy, amountString, priceStr
     return settlement
 
 end
-function createWithdrawalSettlementData(self::Extended, address, amountString, currency, account, params=Dict())
+function createWithdrawalSettlementData(self::Extended, address, amountString, currency, account; params=Dict())
     now = milliseconds();
     settlementExpiration = safeInteger(params, "settlementExpiration", self.parseToInt((now + 999) / 1000) + 1209600 + 60);
     nonce = safeInteger(params, "nonce", self.nonce());
     positionId = safeString2(params, "positionId", "l2Vault", safeString(account, "l2Vault"));
     recipient = safeString(params, "recipient", address);
-    currencyInfo = self.safeDict(currency, "info", Dict{Symbol, Any}());
+    currencyInfo = self.safeDict(currency, "info", defaultValue = Dict{Symbol, Any}());
     collateralId = safeString(params, "collateralId", safeString2(currencyInfo, "starkexId", "l1Id"));
     resolution = safeInteger(params, "resolution", safeValue2(currencyInfo, "starkexResolution", "l1Resolution"));
     starkKey = safeString(account, "l2Key");
@@ -1783,13 +2143,13 @@ function createWithdrawalSettlementData(self::Extended, address, amountString, c
     return settlement
 
 end
-function createTransferSettlementData(self::Extended, amountString, currency, account, toVault, toL2Key, params=Dict())
+function createTransferSettlementData(self::Extended, amountString, currency, account, toVault, toL2Key; params=Dict())
     now = milliseconds();
     settlementExpiration = safeInteger(params, "settlementExpiration", self.parseToInt((now + 999) / 1000) + 1814400);
     nonce = safeInteger(params, "nonce", self.nonce());
     fromVault = safeString2(params, "fromVault", "senderPositionId", safeString(account, "l2Vault"));
     fromL2Key = safeString2(params, "fromL2Key", "senderPublicKey", safeString(account, "l2Key"));
-    currencyInfo = self.safeDict(currency, "info", Dict{Symbol, Any}());
+    currencyInfo = self.safeDict(currency, "info", defaultValue = Dict{Symbol, Any}());
     collateralId = safeString2(params, "assetId", "collateralId", safeString2(currencyInfo, "starkexId", "l1Id"));
     resolution = safeInteger(params, "resolution", safeValue2(currencyInfo, "starkexResolution", "l1Resolution"));
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((fromVault == nothing), (fromL2Key == nothing)), (collateralId == nothing)), (resolution == nothing)))
@@ -1815,7 +2175,7 @@ function createTransferSettlementData(self::Extended, amountString, currency, ac
     return settlement
 
 end
-function createExtendedOrderRequest(self::Extended, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createExtendedOrderRequest(self::Extended, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1837,8 +2197,8 @@ function createExtendedOrderRequest(self::Extended, symbol, type_var, side, amou
     end
     amountString = self.amountToPrecision(symbol, amount);
     priceString = self.priceToPrecision(symbol, price);
-    postOnly = self.isPostOnly(uppercaseType == "MARKET", nothing, params);
-    reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", false);
+    postOnly = self.isPostOnly(uppercaseType == "MARKET", nothing, params = params);
+    reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", defaultValue = false);
     timeInForce = safeStringUpper(params, "timeInForce");
     if functions.ccxtruthy(timeInForce == nothing)
         timeInForce = functions.ccxtruthy((uppercaseType == "MARKET")) ? "IOC" : "GTT";
@@ -1851,7 +2211,7 @@ function createExtendedOrderRequest(self::Extended, symbol, type_var, side, amou
         builderId = safeString2(params, "builderId", "defaultBuilderId");
         params = omit(params, ["builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"]);
     else
-        (builderFeeRate, params) = self.handleOptionAndParams(params, "createOrder", "builderFeeRate", "0.0001");
+        (builderFeeRate, params) = self.handleOptionAndParams(params, "createOrder", "builderFeeRate", defaultValue = "0.0001");
         (builderId, params) = self.handleOptionAndParams(params, "createOrder", "builderId");
     end
     totalFee = fee;
@@ -1865,8 +2225,8 @@ function createExtendedOrderRequest(self::Extended, symbol, type_var, side, amou
     account = Base.fetch(self.fetchExtendedAccount());
     starkKey = safeString(account, "l2Key");
     collateralPosition = safeString(account, "l2Vault");
-    info = self.safeDict(market, "info", Dict{Symbol, Any}());
-    l2Config = self.safeDict(info, "l2Config", Dict{Symbol, Any}());
+    info = self.safeDict(market, "info", defaultValue = Dict{Symbol, Any}());
+    l2Config = self.safeDict(info, "l2Config", defaultValue = Dict{Symbol, Any}());
     syntheticId = safeString(l2Config, "syntheticId");
     collateralId = safeString(l2Config, "collateralId");
     syntheticResolution = safeInteger(l2Config, "syntheticResolution");
@@ -1912,7 +2272,7 @@ function createExtendedOrderRequest(self::Extended, symbol, type_var, side, amou
     if functions.ccxtruthy(cancelId != nothing)
         request[Symbol("cancelId")] = cancelId;
     end
-    settlement = self.createOrderSettlementData(isBuy, amountString, priceString, settlementParams);
+    settlement = self.createOrderSettlementData(isBuy, amountString, priceString, params = settlementParams);
     request[Symbol("settlement")] = Dict{Symbol, Any}(
         Symbol("signature") => Dict{Symbol, Any}(
             Symbol("r") => get(settlement, Symbol("r"), nothing),
@@ -1937,7 +2297,7 @@ function createExtendedOrderRequest(self::Extended, symbol, type_var, side, amou
             stopLossTriggerPriceType = safeString(stopLoss, "triggerPriceType");
             stopLossExecutionPrice = safeString(stopLoss, "price");
             stopLossType = safeString(stopLoss, "type");
-            stopLossSettlement = self.createOrderSettlementData(!functions.ccxtruthy(isBuy), amountString, stopLossExecutionPrice, settlementParams);
+            stopLossSettlement = self.createOrderSettlementData(!functions.ccxtruthy(isBuy), amountString, stopLossExecutionPrice, params = settlementParams);
             requestStopLoss = Dict{Symbol, Any}(
                 Symbol("triggerPrice") => self.priceToPrecision(symbol, stopLossTrigger),
                 Symbol("price") => self.priceToPrecision(symbol, stopLossExecutionPrice),
@@ -1963,7 +2323,7 @@ function createExtendedOrderRequest(self::Extended, symbol, type_var, side, amou
             takeProfitTriggerPriceType = safeString(takeProfit, "triggerPriceType");
             takeProfitExecutionPrice = safeString(takeProfit, "price");
             takeProfitType = safeString(takeProfit, "type");
-            takeProfitSettlement = self.createOrderSettlementData(!functions.ccxtruthy(isBuy), amountString, takeProfitExecutionPrice, settlementParams);
+            takeProfitSettlement = self.createOrderSettlementData(!functions.ccxtruthy(isBuy), amountString, takeProfitExecutionPrice, params = settlementParams);
             requestTakeProfit = Dict{Symbol, Any}(
                 Symbol("triggerPrice") => self.priceToPrecision(symbol, takeProfitTrigger),
                 Symbol("price") => self.priceToPrecision(symbol, takeProfitExecutionPrice),
@@ -2021,20 +2381,69 @@ function createExtendedOrderRequest(self::Extended, symbol, type_var, side, amou
 )
 
 end
-function createOrder(self::Extended, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://api.docs.extended.exchange/#create-or-edit-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, required for all order types
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, sent as the exchange order id
+- `params.cancelId`::string, optional: previous external order id to replace
+- `params.timeInForce`::string, optional: 'GTT' or 'IOC'
+- `params.postOnly`::bool, optional: true if the order should only make liquidity
+- `params.reduceOnly`::bool, optional: true if the order should only reduce a position
+- `params.fee`::string, optional: max fee rate for the order, default is 0.0005
+- `params.expiryEpochMillis`::int, optional: order expiration timestamp in milliseconds, default is now + 1 hour
+- `params.triggerPrice`::float, optional: *swap only* The price at which a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: *swap only* The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: *swap only* The price at which a take profit order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: *swap only* take profit trigger price
+- `params.takeProfit.price`::float, optional: *swap only* the execution price for a take profit attached to a trigger order
+- `params.takeProfit.type`::string, optional: *swap only* the type for a take profit attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: *swap only* stop loss trigger price
+- `params.stopLoss.price`::float, optional: *swap only* the execution price for a stop loss attached to a trigger order
+- `params.stopLoss.type`::string, optional: *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Extended, symbol, type_var, side, amount; price=nothing, params=Dict())
     self.checkRequiredCredentials();
-    extendedOrderRequest = Base.fetch(self.createExtendedOrderRequest(symbol, type_var, side, amount, price, params));
-    request = self.safeDict(extendedOrderRequest, "request", Dict{Symbol, Any}());
+    extendedOrderRequest = Base.fetch(self.createExtendedOrderRequest(symbol, type_var, side, amount, price = price, params = params));
+    request = self.safeDict(extendedOrderRequest, "request", defaultValue = Dict{Symbol, Any}());
     response = Base.fetch(self.v1PrivatePostUserOrder(request));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     market = get(extendedOrderRequest, Symbol("market"), nothing);
     now = safeInteger(extendedOrderRequest, "timestamp");
     data[Symbol("timestamp")] = now;
     data[Symbol("status")] = "NEW";
-    return self.parseOrder(extend(request, data), market)
+    return self.parseOrder(extend(request, data), market = market)
 
 end
-function editOrder(self::Extended, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://api.docs.extended.exchange/#create-or-edit-order
+
+# Arguments
+- `id`::string: order id assigned by Extended
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float, optional: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Extended, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(id == nothing)
         throw(ArgumentsRequired(string(self.id, " editOrder() requires an id argument")));
     end
@@ -2046,7 +2455,7 @@ function editOrder(self::Extended, id, symbol, type_var, side, amount=nothing, p
         response = Base.fetch(self.v1PrivateGetUserOrdersId(Dict{Symbol, Any}(
             Symbol("id") => id
         )));
-        order = self.safeDict(response, "data", Dict{Symbol, Any}());
+        order = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         if functions.ccxtruthy(amount == nothing)
             amount = self.safeNumber(order, "qty");
         end
@@ -2057,10 +2466,10 @@ function editOrder(self::Extended, id, symbol, type_var, side, amount=nothing, p
             expiryEpochMillis = safeInteger(order, "expireTime");
         end
         if functions.ccxtruthy(postOnly == nothing)
-            postOnly = self.safeBool(order, "postOnly", false);
+            postOnly = self.safeBool(order, "postOnly", defaultValue = false);
         end
         if functions.ccxtruthy(reduceOnly == nothing)
-            reduceOnly = self.safeBool(order, "reduceOnly", false);
+            reduceOnly = self.safeBool(order, "reduceOnly", defaultValue = false);
         end
         if functions.ccxtruthy(cancelId == nothing)
             cancelId = safeString(order, "externalId");
@@ -2080,18 +2489,32 @@ function editOrder(self::Extended, id, symbol, type_var, side, amount=nothing, p
         Symbol("cancelId") => cancelId,
         Symbol("expiryEpochMillis") => expiryEpochMillis
     ));
-    extendedOrderRequest = Base.fetch(self.createExtendedOrderRequest(symbol, type_var, side, amount, price, requestParams));
-    request = self.safeDict(extendedOrderRequest, "request", Dict{Symbol, Any}());
+    extendedOrderRequest = Base.fetch(self.createExtendedOrderRequest(symbol, type_var, side, amount, price = price, params = requestParams));
+    request = self.safeDict(extendedOrderRequest, "request", defaultValue = Dict{Symbol, Any}());
     editResponse = Base.fetch(self.v1PrivatePostUserOrder(request));
-    responseData = self.safeDict(editResponse, "data", Dict{Symbol, Any}());
+    responseData = self.safeDict(editResponse, "data", defaultValue = Dict{Symbol, Any}());
     market = get(extendedOrderRequest, Symbol("market"), nothing);
     now = safeInteger(extendedOrderRequest, "timestamp");
     responseData[Symbol("timestamp")] = now;
     responseData[Symbol("status")] = "NEW";
-    return self.parseOrder(extend(request, responseData), market)
+    return self.parseOrder(extend(request, responseData), market = market)
 
 end
-function cancelOrder(self::Extended, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://api.docs.extended.exchange/#cancel-order-by-id
+see: https://api.docs.extended.exchange/#cancel-order-by-external-id
+
+# Arguments
+- `id`::string: order id assigned by Extended
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: user-defined order id, cancels by external id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Extended, id; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -2124,10 +2547,24 @@ function cancelOrder(self::Extended, id, symbol=nothing, params=Dict())
     Symbol("datetime") => nothing,
     Symbol("symbol") => orderSymbol,
     Symbol("status") => "canceled"
-), market)
+), market = market)
 
 end
-function cancelOrders(self::Extended, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders by order ids or client order ids
+see: https://api.docs.extended.exchange/#mass-cancel
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol, only used to populate the returned orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+- `params.clientOrderId`::string, optional: single client order id
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Extended, ids; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     clientOrderIds = self.safeListN(params, ["clientOrderIds", "client_order_ids", "externalOrderIds", "external_order_ids"]);
     clientOrderId = safeString2(params, "clientOrderId", "client_id");
@@ -2157,7 +2594,18 @@ function cancelOrders(self::Extended, ids, symbol=nothing, params=Dict())
     return []
 
 end
-function cancelAllOrders(self::Extended, symbol=nothing, params=Dict())
+"""
+cancels all open orders, optionally filtered by symbol
+see: https://api.docs.extended.exchange/#mass-cancel
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Extended; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     request = Dict{Symbol, Any}(
         Symbol("cancelAll") => true
@@ -2171,7 +2619,18 @@ function cancelAllOrders(self::Extended, symbol=nothing, params=Dict())
     return []
 
 end
-function cancelAllOrdersAfter(self::Extended, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://api.docs.extended.exchange/#mass-auto-cancel-dead-man-39-s-switch
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Extended, timeout; params=Dict())
     Base.fetch(self.loadMarkets());
     request = Dict{Symbol, Any}(
         Symbol("countdownTime") => functions.ccxtruthy((functions.ccxt_gt(timeout, 0))) ? self.parseToInt(timeout / 1000) : 0
@@ -2179,7 +2638,21 @@ function cancelAllOrdersAfter(self::Extended, timeout, params=Dict())
     return Base.fetch(self.v1PrivatePostUserDeadmanswitch(extend(request, params)))
 
 end
-function fetchOrder(self::Extended, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://api.docs.extended.exchange/#get-order-by-id
+see: https://api.docs.extended.exchange/#get-orders-by-external-id
+
+# Arguments
+- `id`::string: order id assigned by Extended
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: user-defined order id, fetches by external id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Extended, id; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -2194,8 +2667,8 @@ function fetchOrder(self::Extended, id, symbol=nothing, params=Dict())
             Symbol("externalId") => clientOrderId
         );
         response = Base.fetch(self.v1PrivateGetUserOrdersExternalExternalId(extend(request, params)));
-        data = self.safeList(response, "data", []);
-        order = self.safeDict(data, 0, Dict{Symbol, Any}());
+        data = self.safeList(response, "data", defaultValue = []);
+        order = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     else
         if functions.ccxtruthy(id == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchOrder() requires an id argument")));
@@ -2204,12 +2677,25 @@ function fetchOrder(self::Extended, id, symbol=nothing, params=Dict())
             Symbol("id") => id
         );
         response = Base.fetch(self.v1PrivateGetUserOrdersId(extend(request, params)));
-        order = self.safeDict(response, "data", Dict{Symbol, Any}());
+        order = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     end
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function fetchOpenOrders(self::Extended, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://api.docs.extended.exchange/#get-open-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Extended; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -2218,17 +2704,31 @@ function fetchOpenOrders(self::Extended, symbol=nothing, since=nothing, limit=no
         request[Symbol("market")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.v1PrivateGetUserOrders(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    orders = self.parseOrders(data, market, since, limit);
-    return self.filterBySymbolSinceLimit(orders, symbol, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    orders = self.parseOrders(data, market = market, since = since, limit = limit);
+    return self.filterBySymbolSinceLimit(orders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchOrders(self::Extended, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://api.docs.extended.exchange/#get-orders-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Extended; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOrders", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -2240,8 +2740,8 @@ function fetchOrders(self::Extended, symbol=nothing, since=nothing, limit=nothin
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v1PrivateGetUserOrdersHistory(extend(params, request)));
-    data = self.safeList(response, "data", []);
-    pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    pagination = self.safeDict(response, "pagination", defaultValue = Dict{Symbol, Any}());
     cursor = safeString(pagination, "cursor");
     result = [];
     dataLength = length(data);
@@ -2256,20 +2756,48 @@ function fetchOrders(self::Extended, symbol=nothing, since=nothing, limit=nothin
         push!(result, entry);
         i += 1
     end
-    orders = self.parseOrders(result, market, since, limit);
-    return self.filterBySymbolSinceLimit(orders, symbol, since, limit)
+    orders = self.parseOrders(result, market = market, since = since, limit = limit);
+    return self.filterBySymbolSinceLimit(orders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Extended, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    orders = Base.fetch(self.fetchOrders(symbol, since, nothing, params));
+"""
+fetches information on multiple closed orders made by the user
+see: https://api.docs.extended.exchange/#get-orders-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Extended; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = params));
     closedOrders = filterBy(orders, "status", "closed");
-    return self.filterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(closedOrders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchCanceledOrders(self::Extended, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    orders = Base.fetch(self.fetchOrders(symbol, since, nothing, params));
+"""
+fetches information on multiple canceled orders made by the user
+see: https://api.docs.extended.exchange/#get-orders-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Extended; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = params));
     canceledOrders = filterBy(orders, "status", "canceled");
-    return self.filterBySymbolSinceLimit(canceledOrders, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(canceledOrders, symbol = symbol, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Extended, status)
@@ -2286,9 +2814,9 @@ function parseOrderStatus(self::Extended, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Extended, order, market=nothing)
+function parseOrder(self::Extended, order; market=nothing)
     marketId = safeString(order, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger2(order, "createdTime", "timestamp");
     lastUpdateTimestamp = safeInteger(order, "updatedTime");
     status = self.parseOrderStatus(safeString(order, "status"));
@@ -2297,9 +2825,9 @@ function parseOrder(self::Extended, order, market=nothing)
     amount = safeString(order, "qty");
     filled = safeString(order, "filledQty");
     feeCost = safeString(order, "payedFee");
-    trigger = self.safeDict(order, "trigger", Dict{Symbol, Any}());
-    takeProfit = self.safeDict(order, "takeProfit", Dict{Symbol, Any}());
-    stopLoss = self.safeDict(order, "stopLoss", Dict{Symbol, Any}());
+    trigger = self.safeDict(order, "trigger", defaultValue = Dict{Symbol, Any}());
+    takeProfit = self.safeDict(order, "takeProfit", defaultValue = Dict{Symbol, Any}());
+    stopLoss = self.safeDict(order, "stopLoss", defaultValue = Dict{Symbol, Any}());
     fee = Dict{Symbol, Any}(
         Symbol("cost") => feeCost,
         Symbol("currency") => functions.ccxtruthy((market == nothing)) ? nothing : get(market, Symbol("settle"), nothing)
@@ -2330,7 +2858,7 @@ function parseOrder(self::Extended, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => fee,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
 function getExtendedStringToFelt(self::Extended, value)
@@ -2408,7 +2936,7 @@ end
 function getExtendedWithdrawalMsgHash(self::Extended, settlement, starkKey)
     withdrawalTypeHash = self.convertToBigInt(self.extendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
     domainHash = self.getExtendedDomainHash();
-    expiration = self.safeDict(settlement, "expiration", Dict{Symbol, Any}());
+    expiration = self.safeDict(settlement, "expiration", defaultValue = Dict{Symbol, Any}());
     withdrawalHash = self.convertToBigInt(self.extendedStarknetComputePoseidonHashOnElements([withdrawalTypeHash, self.convertToBigInt(safeString(settlement, "recipient", "0")), self.convertToBigInt(safeString(settlement, "positionId", "0")), self.convertToBigInt(safeString(settlement, "collateralId", "0")), self.convertToBigInt(safeString(settlement, "amount", "0")), self.convertToBigInt(safeString(expiration, "seconds", "0")), self.convertToBigInt(safeString(settlement, "salt", "0"))]));
     return self.extendedStarknetComputePoseidonHashOnElements([self.getExtendedStringToFelt("StarkNet Message"), domainHash, self.convertToBigInt(starkKey), withdrawalHash])
 
@@ -2437,7 +2965,7 @@ function handleErrors(self::Extended, httpCode, reason, url, method, headers, bo
     return nothing
 
 end
-function sign(self::Extended, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Extended, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     version = safeString(api, 0);
     accessibility = safeString(api, 1);
     endpoint = string("/", self.implodeParams(path, params));
@@ -2475,207 +3003,207 @@ Base.getproperty(self::Extended, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v1PublicGetInfoMarkets(self::Extended, params=Dict(), context=Dict())
-    return request(self, "info/markets", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/markets"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfoAssets(self::Extended, params=Dict(), context=Dict())
-    return request(self, "info/assets", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/assets"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfoAssetsAssetPrice(self::Extended, params=Dict(), context=Dict())
-    return request(self, "info/assets/{asset}/price", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/assets/{asset}/price"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfoMarketsMarketStats(self::Extended, params=Dict(), context=Dict())
-    return request(self, "info/markets/{market}/stats", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/markets/{market}/stats"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfoMarketsMarketOrderbook(self::Extended, params=Dict(), context=Dict())
-    return request(self, "info/markets/{market}/orderbook", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/markets/{market}/orderbook"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfoMarketsMarketTrades(self::Extended, params=Dict(), context=Dict())
-    return request(self, "info/markets/{market}/trades", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/markets/{market}/trades"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfoCandlesMarketCandleType(self::Extended, params=Dict(), context=Dict())
-    return request(self, "info/candles/{market}/{candleType}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/candles/{market}/{candleType}"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfoMarketFunding(self::Extended, params=Dict(), context=Dict())
-    return request(self, "info/{market}/funding", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/{market}/funding"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfoMarketOpenInterests(self::Extended, params=Dict(), context=Dict())
-    return request(self, "info/{market}/open-interests", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/{market}/open-interests"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetInfoBuilderDashboard(self::Extended, params=Dict(), context=Dict())
-    return request(self, "info/builder/dashboard", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "info/builder/dashboard"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserAccounts(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/accounts", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/accounts"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserAccountInfo(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/account/info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/account/info"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserBalance(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/balance"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserSpotBalances(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/spot/balances", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/spot/balances"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserAssetOperations(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/assetOperations", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/assetOperations"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserPositions(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/positions", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/positions"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserPositionsHistory(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/positions/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/positions/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserOrders(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/orders", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/orders"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserOrdersHistory(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/orders/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/orders/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserOrdersId(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/orders/{id}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/orders/{id}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserOrdersExternalExternalId(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/orders/external/{externalId}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/orders/external/{externalId}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserTrades(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/trades", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/trades"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserFundingHistory(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/funding/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/funding/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserRebatesStats(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/rebates/stats", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/rebates/stats"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserLeverage(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/leverage", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/leverage"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserFees(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/fees", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/fees"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserBridgeConfig(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/bridge/config", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/bridge/config"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserBridgeQuote(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/bridge/quote", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/bridge/quote"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserAffiliate(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/affiliate", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/affiliate"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserReferralsStatus(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/referrals/status", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/referrals/status"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserReferralsLinks(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/referrals/links", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/referrals/links"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserReferralsDashboard(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/referrals/dashboard", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/referrals/dashboard"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserRewardsEarned(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/rewards/earned", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/rewards/earned"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetUserRewardsLeaderboardStats(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/rewards/leaderboard/stats", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/rewards/leaderboard/stats"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetPortfolioChartsEquities(self::Extended, params=Dict(), context=Dict())
-    return request(self, "portfolio/charts/equities", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/charts/equities"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetPortfolioChartsPnl(self::Extended, params=Dict(), context=Dict())
-    return request(self, "portfolio/charts/pnl", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/charts/pnl"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetVaultPublicPerformance(self::Extended, params=Dict(), context=Dict())
-    return request(self, "vault/public/performance", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "vault/public/performance"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetVaultPublicSummary(self::Extended, params=Dict(), context=Dict())
-    return request(self, "vault/public/summary", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "vault/public/summary"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetBuilderTrades(self::Extended, params=Dict(), context=Dict())
-    return request(self, "builder/trades", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "builder/trades"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostUserOrder(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/order"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostUserOrderMassCancel(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/order/massCancel", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/order/massCancel"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostUserDeadmanswitch(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/deadmanswitch", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/deadmanswitch"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostUserBridgeQuote(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/bridge/quote", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/bridge/quote"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostUserWithdrawal(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/withdrawal", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/withdrawal"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostUserTransfer(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/transfer"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostUserReferralsUse(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/referrals/use", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/referrals/use"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostUserReferrals(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/referrals", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/referrals"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePutUserReferrals(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/referrals", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "user/referrals"; api=["v1", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePatchUserLeverage(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/leverage", ["v1", "private"], "PATCH", params, nothing, nothing, Dict())
+    return request(self, "user/leverage"; api=["v1", "private"], method="PATCH", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteUserOrderId(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/order/{id}", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "user/order/{id}"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteUserOrder(self::Extended, params=Dict(), context=Dict())
-    return request(self, "user/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "user/order"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Extended(; kwargs...)
@@ -2739,3 +3267,650 @@ function Extended(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Extended_fetchMarkets() end
+"""
+retrieves data on all markets for extended
+see: https://api.docs.extended.exchange/#get-markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Extended_fetchMarkets
+
+function __ccxt_doc_Extended_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://api.docs.extended.exchange/#get-assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Extended_fetchCurrencies
+
+function __ccxt_doc_Extended_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api.docs.extended.exchange/#get-market-statistics
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Extended_fetchTicker
+
+function __ccxt_doc_Extended_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for all markets
+see: https://api.docs.extended.exchange/#get-markets
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Extended_fetchTickers
+
+function __ccxt_doc_Extended_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api.docs.extended.exchange/#get-market-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Extended_fetchOrderBook
+
+function __ccxt_doc_Extended_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://api.docs.extended.exchange/#get-market-last-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Extended_fetchTrades
+
+function __ccxt_doc_Extended_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://api.docs.extended.exchange/#get-trades
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the trades
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Extended_fetchMyTrades
+
+function __ccxt_doc_Extended_fetchFundingHistory() end
+"""
+fetch the funding payments history
+see: https://api.docs.extended.exchange/#get-funding-payments
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Extended_fetchFundingHistory
+
+function __ccxt_doc_Extended_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api.docs.extended.exchange/#get-candles-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch, default 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.candleType`::string, optional: candle type: 'trades' (default), 'mark-prices', or 'index-prices'
+- `params.price`::string, optional: *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
+- `params.until`::int, optional: end timestamp in ms for the requested period
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Extended_fetchOHLCV
+
+function __ccxt_doc_Extended_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://api.docs.extended.exchange/#get-funding-rates-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of entries to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+- `params.endTime`::int, optional: exchange-specific end timestamp in ms of the latest funding rate to fetch
+- `params.cursor`::int, optional: offset of the result set
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Extended_fetchFundingRateHistory
+
+function __ccxt_doc_Extended_fetchOpenInterestHistory() end
+"""
+Retrieves the open interest history of a currency
+see: https://api.docs.extended.exchange/#get-open-interest-history
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `timeframe`::string: '1h' or '1d'
+- `since`::int, optional: the time(ms) of the earliest record to retrieve as a unix timestamp
+- `limit`::int, optional: the maximum amount of open interest structures to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.until`::int, optional: timestamp in ms of the latest open interest record to fetch
+
+# Returns
+- an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Extended_fetchOpenInterestHistory
+
+function __ccxt_doc_Extended_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api.docs.extended.exchange/#get-spot-balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Extended_fetchBalance
+
+function __ccxt_doc_Extended_fetchAccount() end
+"""
+fetch the current authenticated sub-account
+see: https://api.docs.extended.exchange/#get-account-details
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [account structure]{@link https://docs.ccxt.com/?id=account-structure}
+"""
+__ccxt_doc_Extended_fetchAccount
+
+function __ccxt_doc_Extended_fetchAccounts() end
+"""
+fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
+see: https://api.docs.extended.exchange/#get-sub-accounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+"""
+__ccxt_doc_Extended_fetchAccounts
+
+function __ccxt_doc_Extended_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+"""
+__ccxt_doc_Extended_fetchLedger
+
+function __ccxt_doc_Extended_fetchTransactions() end
+"""
+fetch history of deposits, withdrawals, and transfers
+see: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch transactions for
+- `limit`::int, optional: the maximum number of transaction structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Extended_fetchTransactions
+
+function __ccxt_doc_Extended_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposit structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Extended_fetchDeposits
+
+function __ccxt_doc_Extended_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Extended_fetchWithdrawals
+
+function __ccxt_doc_Extended_withdraw() end
+"""
+make a Starknet withdrawal
+see: https://api.docs.extended.exchange/#withdrawals
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the Starknet address to withdraw to
+- `tag`::string: unused
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.chainId`::string, optional: only STRK is supported
+- `params.settlementExpiration`::int, optional: settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Extended_withdraw
+
+function __ccxt_doc_Extended_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Extended_fetchTransfers
+
+function __ccxt_doc_Extended_transfer() end
+"""
+transfer collateral between sub-accounts associated with the same wallet
+see: https://api.docs.extended.exchange/#create-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to transfer
+- `fromAccount`::string: source account id, defaults to the authenticated account id
+- `toAccount`::string: destination account id
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.toVault`::string: destination account L2 vault
+- `params.toL2Key`::string: destination account L2 public key
+- `params.settlementExpiration`::int, optional: settlement expiration timestamp in seconds, defaults to now + 21 days
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Extended_transfer
+
+function __ccxt_doc_Extended_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://api.docs.extended.exchange/#get-fees
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.builderId`::string, optional: builder client id
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Extended_fetchTradingFee
+
+function __ccxt_doc_Extended_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://api.docs.extended.exchange/#get-fees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.market`::string, optional: exchange market id
+- `params.builderId`::string, optional: builder client id
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Extended_fetchTradingFees
+
+function __ccxt_doc_Extended_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://api.docs.extended.exchange/#get-leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Extended_fetchLeverage
+
+function __ccxt_doc_Extended_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://api.docs.extended.exchange/#update-leverage
+
+# Arguments
+- `leverage`::int: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Extended_setLeverage
+
+function __ccxt_doc_Extended_fetchPositions() end
+"""
+fetch all open positions
+see: https://api.docs.extended.exchange/#get-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Extended_fetchPositions
+
+function __ccxt_doc_Extended_fetchPosition() end
+"""
+fetch data on an open position
+see: https://api.docs.extended.exchange/#get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Extended_fetchPosition
+
+function __ccxt_doc_Extended_fetchPositionsHistory() end
+"""
+fetch historical positions
+see: https://api.docs.extended.exchange/#get-positions-history
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum number of position structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Extended_fetchPositionsHistory
+
+function __ccxt_doc_Extended_createOrder() end
+"""
+create a trade order
+see: https://api.docs.extended.exchange/#create-or-edit-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, required for all order types
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, sent as the exchange order id
+- `params.cancelId`::string, optional: previous external order id to replace
+- `params.timeInForce`::string, optional: 'GTT' or 'IOC'
+- `params.postOnly`::bool, optional: true if the order should only make liquidity
+- `params.reduceOnly`::bool, optional: true if the order should only reduce a position
+- `params.fee`::string, optional: max fee rate for the order, default is 0.0005
+- `params.expiryEpochMillis`::int, optional: order expiration timestamp in milliseconds, default is now + 1 hour
+- `params.triggerPrice`::float, optional: *swap only* The price at which a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: *swap only* The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: *swap only* The price at which a take profit order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: *swap only* take profit trigger price
+- `params.takeProfit.price`::float, optional: *swap only* the execution price for a take profit attached to a trigger order
+- `params.takeProfit.type`::string, optional: *swap only* the type for a take profit attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: *swap only* stop loss trigger price
+- `params.stopLoss.price`::float, optional: *swap only* the execution price for a stop loss attached to a trigger order
+- `params.stopLoss.type`::string, optional: *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Extended_createOrder
+
+function __ccxt_doc_Extended_editOrder() end
+"""
+edit a trade order
+see: https://api.docs.extended.exchange/#create-or-edit-order
+
+# Arguments
+- `id`::string: order id assigned by Extended
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float, optional: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Extended_editOrder
+
+function __ccxt_doc_Extended_cancelOrder() end
+"""
+cancels an open order
+see: https://api.docs.extended.exchange/#cancel-order-by-id
+see: https://api.docs.extended.exchange/#cancel-order-by-external-id
+
+# Arguments
+- `id`::string: order id assigned by Extended
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: user-defined order id, cancels by external id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Extended_cancelOrder
+
+function __ccxt_doc_Extended_cancelOrders() end
+"""
+cancel multiple orders by order ids or client order ids
+see: https://api.docs.extended.exchange/#mass-cancel
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol, only used to populate the returned orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+- `params.clientOrderId`::string, optional: single client order id
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Extended_cancelOrders
+
+function __ccxt_doc_Extended_cancelAllOrders() end
+"""
+cancels all open orders, optionally filtered by symbol
+see: https://api.docs.extended.exchange/#mass-cancel
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Extended_cancelAllOrders
+
+function __ccxt_doc_Extended_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://api.docs.extended.exchange/#mass-auto-cancel-dead-man-39-s-switch
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Extended_cancelAllOrdersAfter
+
+function __ccxt_doc_Extended_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://api.docs.extended.exchange/#get-order-by-id
+see: https://api.docs.extended.exchange/#get-orders-by-external-id
+
+# Arguments
+- `id`::string: order id assigned by Extended
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: user-defined order id, fetches by external id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Extended_fetchOrder
+
+function __ccxt_doc_Extended_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://api.docs.extended.exchange/#get-open-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Extended_fetchOpenOrders
+
+function __ccxt_doc_Extended_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://api.docs.extended.exchange/#get-orders-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Extended_fetchOrders
+
+function __ccxt_doc_Extended_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://api.docs.extended.exchange/#get-orders-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Extended_fetchClosedOrders
+
+function __ccxt_doc_Extended_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://api.docs.extended.exchange/#get-orders-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the orders
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Extended_fetchCanceledOrders

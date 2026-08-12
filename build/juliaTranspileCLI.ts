@@ -247,11 +247,13 @@ function normalizeJuliaComments(input: string): string {
     const trimmed = line.trim();
 
     // Track triple-quote docstrings so we don't mangle their contents.
+    // Julia docstrings use `"""`; the upstream transpiler's emitted block
+    // comments historically used `'''`, so both delimiters are recognised.
     if (!inBlockComment) {
-      const tripleQuotes = (line.match(/'''/g) || []).length;
-      if (tripleQuotes === 1) {
+      const tripleQuotes = (line.match(/'''/g) || []).length + (line.match(/"""/g) || []).length;
+      if (tripleQuotes === 1 && !/""".*"""/.test(line.trim())) {
         inDocstring = !inDocstring;
-        docstringQuote = inDocstring ? "'''" : null;
+        docstringQuote = inDocstring ? (line.includes('"""') ? '"""' : "'''") : null;
       }
       if (inDocstring) {
         out.push(line);
@@ -1456,7 +1458,7 @@ function generateEndpointMethods(exchangeId: string, tsSource: string): string {
     seen.add(camelcase);
     methods.push(
       `function ${camelcase}(self::${exchangeId}, params=Dict(), context=Dict())\n` +
-      `    return request(self, "${path}", ${typeArgument}, "${uppercaseMethod}", params, nothing, nothing, ${configStr})\n` +
+      `    return request(self, "${path}"; api=${typeArgument}, method="${uppercaseMethod}", params=params, headers=nothing, body=nothing, config=${configStr})\n` +
       `end`
     );
   }
@@ -1489,6 +1491,632 @@ function injectEndpointFields(content: string, fields: string): string {
     const fieldBlock = '\n# Generated REST endpoint fields\n' + fields + '\n';
     lines.splice(structEndIdx, 0, fieldBlock);
     return lines.join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// TS JSDoc -> Julia triple-quote docstrings
+//
+// The upstream Julia transpiler does not emit a loadable docstring for class
+// methods (it drops the leading `/** ... */` JSDoc block, so `@doc e.fetchOHLCV`
+// returns nothing). To give every generated exchange function a docstring
+// derived from the TypeScript source, we parse the TS JSDoc here and inject a
+// Julia `"""` block directly above each matching `function name(self::...)` in
+// the already-transpiled output. This runs as a CLI post-process — we never
+// hand-patch the emitted files — and `normalizeJuliaComments` is aware of
+// triple-quote blocks, so the docstrings survive the rest of the cleanup pass.
+// ---------------------------------------------------------------------------
+
+interface JSDocParam {
+    name: string;
+    type: string;
+    optional: boolean;
+    description: string;
+}
+
+interface JSDocInfo {
+    name: string;
+    description: string;
+    params: JSDocParam[];
+    returns: string | null;
+    see: string[];
+}
+
+// Map a TS JSDoc type token to a Julia-ish type label for the docstring.
+function mapJSDocTypeToLabel(jsDocType: string): string {
+    let t = (jsDocType || '').trim();
+    if (t.endsWith('[]')) return 'array';
+    if (t.includes('|')) return 'any';
+    if (t === 'int' || t === 'Int') return 'int';
+    if (t === 'float' || t === 'number' || t === 'Num') return 'float';
+    if (t === 'string' || t === 'Str') return 'string';
+    if (t === 'bool' || t === 'boolean') return 'bool';
+    if (t === 'object' || t === 'Dict' || t === 'dict') return 'object';
+    if (t === 'any' || t === '') return 'any';
+    return t.toLowerCase();
+}
+
+// Parse every `/** ... */` block that immediately precedes a method/function
+// declaration in the TS exchange source. Returns a map keyed by the JS method
+// name. Overrides (e.g. `override async fetchOHLCV`) are matched by name only.
+function extractJSDoc(tsSource: string): Map<string, JSDocInfo> {
+    const sf = ts.createSourceFile('exchange.ts', tsSource, ts.ScriptTarget.Latest, true);
+    const map = new Map<string, JSDocInfo>();
+
+    function getMethodName(node: ts.Node): string | null {
+        if (
+            (ts.isMethodDeclaration(node) ||
+                ts.isFunctionDeclaration(node) ||
+                ts.isGetAccessor(node) ||
+                ts.isSetAccessor(node)) &&
+            node.name
+        ) {
+            return node.name.getText(sf);
+        }
+        return null;
+    }
+
+    function visit(node: ts.Node) {
+        const name = getMethodName(node);
+        if (name) {
+            const ranges = ts.getLeadingCommentRanges(tsSource, node.pos);
+            if (ranges && ranges.length > 0) {
+                const last = ranges[ranges.length - 1];
+                const text = tsSource.slice(last.pos, last.end);
+                if (text.startsWith('/**')) {
+                    map.set(name, parseJSDocBlock(text));
+                }
+            }
+        }
+        ts.forEachChild(node, visit);
+    }
+    ts.forEachChild(sf, visit);
+    return map;
+}
+
+// Parse a single `/** ... */` JSDoc block into structured info.
+function parseJSDocBlock(block: string): JSDocInfo {
+    // Strip the `/*` `*/` delimiters and leading ` * ` on each line.
+    const body = block
+        .replace(/^\s*\/\*\*?/, '')
+        .replace(/\*\/\s*$/, '')
+        .split('\n')
+        .map((l) => l.replace(/^\s*\*\s?/, '').trimEnd())
+        .join('\n');
+
+    const lines = body.split('\n');
+    const params: JSDocParam[] = [];
+    const see: string[] = [];
+    let returns: string | null = null;
+    let descriptionLines: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith('@')) {
+            const paramMatch = line.match(/^@param\s+\{([^}]*)\}\s+(\[?)([\w$.\[\]'-]+)\]?(.*)$/);
+            if (paramMatch) {
+                const type = paramMatch[1].trim();
+                const optional = paramMatch[2] === '[';
+                let pname = paramMatch[3];
+                // The optional form is `[@param {type} [name] desc]`, where the
+                // name itself is wrapped in square brackets; strip them so the
+                // docstring shows the bare identifier.
+                pname = pname.replace(/^\[/, '').replace(/\]$/, '');
+                // Description may extend to following non-@ lines.
+                let desc = paramMatch[4].trim();
+                while (i + 1 < lines.length && !lines[i + 1].trim().startsWith('@')) {
+                    i++;
+                    const extra = lines[i].trim();
+                    if (extra) desc += ' ' + extra;
+                }
+                params.push({ name: pname, type: mapJSDocTypeToLabel(type), optional, description: desc });
+                continue;
+            }
+            const retMatch = line.match(/^@returns?\s+(.*)$/);
+            if (retMatch) {
+                let desc = retMatch[1].replace(/^\{[^}]*\}\s*/, '').trim();
+                while (i + 1 < lines.length && !lines[i + 1].trim().startsWith('@')) {
+                    i++;
+                    const extra = lines[i].trim();
+                    if (extra) desc += ' ' + extra;
+                }
+                returns = (returns ? returns + ' ' : '') + desc;
+                continue;
+            }
+            const seeMatch = line.match(/^@see\s+(.*)$/);
+            if (seeMatch) {
+                see.push(seeMatch[1].trim());
+                continue;
+            }
+            const descMatch = line.match(/^@description\s+(.*)$/);
+            if (descMatch) {
+                // The one-line form is `@description <text>`; the tag itself is
+                // stripped and the remaining text becomes the summary line.
+                const d = descMatch[1].trim();
+                if (d) descriptionLines.push(d);
+                continue;
+            }
+            // Ignore other tags (@method, @name, @augments, @class, ...) for docstring content.
+            continue;
+        }
+        // Non-tag line: part of the description body (free-text summary lines
+        // that appear without an explicit @description tag).
+        if (line.length > 0) {
+            descriptionLines.push(line);
+        }
+    }
+
+    return {
+        name: '',
+        description: descriptionLines.join(' ').trim(),
+        params,
+        returns,
+        see,
+    };
+}
+
+// Render a JSDocInfo into a Julia triple-quote docstring body (without the
+// surrounding """ quotes). Mirrors the structure the upstream transpiler aims
+// for: one-line summary, optional # Arguments / # Returns sections.
+function renderDocstring(doc: JSDocInfo): string {
+    // Julia triple-quoted strings interpolate `$name`; JSDoc text (regex
+    // literals like `^[a-zA-Z0-9-_]{1,36}$`, `$`-prefixed placeholders) must
+    // not be parsed as interpolation, or the generated file fails to load.
+    const esc = (s: string) => s.replace(/\$/g, '\\$');
+    const out: string[] = [];
+    if (doc.description) out.push(esc(doc.description));
+    if (doc.see.length > 0) {
+        for (const s of doc.see) out.push(`see: ${esc(s)}`);
+    }
+    if (doc.params.length > 0) {
+        out.push('');
+        out.push('# Arguments');
+        for (const p of doc.params) {
+            const opt = p.optional ? ', optional' : '';
+            const desc = p.description ? ` ${esc(p.description)}` : '';
+            out.push(`- \`${p.name}\`::${p.type}${opt}:${desc}`);
+        }
+    }
+    if (doc.returns) {
+        out.push('');
+        out.push('# Returns');
+        out.push(`- ${esc(doc.returns)}`);
+    }
+    return out.join('\n');
+}
+
+// Emit per-(exchange, method) dummy doc-holder functions. Julia's `@doc`
+// macro resolves `@doc e.fetchOHLCV` by building a `Binding(instance, :method)`
+// and looking the docstring up on the *module* binding — but every exchange
+// shares the generic `Ccxt.fetchOHLCV` function, so a plain module binding
+// returns whichever exchange's doc happened to be registered first (and that
+// one often lacks a `@description`). To make `@doc e.fetchOHLCV` return the
+// *correct per-exchange* docstring, we give each documented method its own
+// holder function `__ccxt_doc_<Exchange>_<method>()` carrying that exchange's
+// JSDoc, and redirect `Binding(instance, :method)` to it (see CCXTBase.jl).
+// The dummy functions are never called; they exist purely so the docsystem
+// can resolve a per-instance docstring.
+function buildDocRegistrySource(exchangeId: string, docs: Map<string, JSDocInfo>): string {
+  if (docs.size === 0) return '';
+  const wrapperName = capitalize(exchangeId);
+  const out: string[] = [];
+  for (const [methodName, doc] of docs) {
+    const body = renderDocstring(doc);
+    if (body.trim().length === 0) continue;
+    const holder = `__ccxt_doc_${wrapperName}_${methodName}`;
+    out.push(`function ${holder}() end`);
+    out.push('"""');
+    out.push(body);
+    out.push(`"""`);
+    out.push(`${holder}`);
+    out.push('');
+  }
+  if (out.length === 0) return '';
+  return '# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).\n' + out.join('\n');
+}
+
+// Inject triple-quote docstrings above each generated method whose name matches
+// a parsed JSDoc entry. The generated header is `function NAME(self::<Class>`,
+// so we anchor on that exact shape to avoid touching helpers or struct fields.
+function injectMethodDocstrings(juliaSource: string, docs: Map<string, JSDocInfo>): string {
+    if (docs.size === 0) return juliaSource;
+    const lines = juliaSource.split('\n');
+    const out: string[] = [];
+
+    // Build a regex per method name: `function NAME(self::` at column 0.
+    const nameRe = /^function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(self::/;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const m = line.match(nameRe);
+        if (m) {
+            const methodName = m[1];
+            const doc = docs.get(methodName);
+            if (doc) {
+                const body = renderDocstring(doc);
+                if (body.trim().length > 0) {
+                    // Don't double-inject if a docstring already sits above.
+                    const prev = out.length > 0 ? out[out.length - 1].trim() : '';
+                    const prev2 = out.length > 1 ? out[out.length - 2].trim() : '';
+                    if (prev !== '"""' && prev2 !== '"""') {
+                        out.push('"""');
+                        out.push(body);
+                        out.push('"""');
+                    }
+                }
+            }
+        }
+        out.push(line);
+    }
+    return out.join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Optional positional params -> Julia keyword arguments (`; kwargs`)
+//
+// TS unified methods declare optional arguments positionally with defaults
+// (`fetchOHLCV(symbol, timeframe = '1m', since, limit, params = {})`). A fresh
+// Julia consumer expects to call them with keyword arguments
+// (`e.fetchOHLCV("BTC/USDT"; since = 1000, limit = 5)`). Julia forbids passing
+// positional args past a `;` separator, so changing a definition's signature
+// requires rewriting every internal call site too — otherwise the package
+// fails to load. This post-process does both: it rewrites each `function
+// name(self::Cls, req, opt = def, ...)` to `function name(self::Cls, req; opt =
+// def, ...)` and rewrites matching `self.name(a, b, c)` call sites to keyword
+// form using a per-method parameter map.
+// ---------------------------------------------------------------------------
+
+interface ParamInfo {
+    name: string;
+    hasDefault: boolean;
+}
+
+interface SigInfo {
+    params: ParamInfo[]; // includes `self` as params[0]
+    requiredCount: number; // leading params (incl. self) without a default
+}
+
+// Split a parameter list string on top-level commas (respecting nested
+// (), [], {} and string literals) preserving exact text per element. A
+// top-level `;` is the Julia keyword-argument separator and is also treated
+// as a split point: a signature like `safeMarketStructure(self; market =
+// nothing)` has no comma before the `;`, so without this it would collapse to
+// a single token and `self` would be mis-read as carrying a default. The `;`
+// itself is dropped by the split (as commas are); `rewriteDefParams`/
+// `classifyParam` re-attach/clean it, so the pass stays idempotent.
+function splitTopLevelCommas(list: string): string[] {
+    const parts: string[] = [];
+    let depth = 0;
+    let cur = '';
+    let inString: string | null = null;
+    for (let i = 0; i < list.length; i++) {
+        const ch = list[i];
+        if (inString) {
+            if (ch === inString && list[i - 1] !== '\\') inString = null;
+            cur += ch;
+            continue;
+        }
+        if (ch === '"' || ch === "'") {
+            inString = ch;
+            cur += ch;
+            continue;
+        }
+        if (ch === '(' || ch === '[' || ch === '{') depth++;
+        else if (ch === ')' || ch === ']' || ch === '}') depth--;
+        if (depth === 0 && (ch === ',' || ch === ';')) {
+            parts.push(cur.trim());
+            cur = '';
+            continue;
+        }
+        cur += ch;
+    }
+    parts.push(cur.trim());
+    return parts;
+}
+
+// Classify a raw parameter token into a name + default flag. A token may
+// carry a leading `;` (from an already-converted signature like `; market =
+// nothing`); strip it so the parsed name is clean and the pass is idempotent.
+function classifyParam(raw: string): ParamInfo {
+    const eq = raw.indexOf('=');
+    const namePart = eq >= 0 ? raw.slice(0, eq) : raw;
+    const name = namePart.replace(/^\s*;\s*/, '').replace(/\.\.\.$/, '').replace(/::.*$/, '').trim();
+    return { name, hasDefault: eq >= 0 };
+}
+
+// Collect every `function name(self::Cls, ...)` definition across the file,
+// handling multi-line parameter lists. Returns a map name -> signature.
+function collectSignatures(input: string): Map<string, SigInfo> {
+    const map = new Map<string, SigInfo>();
+    const re = /^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(/;
+    const lines = input.split('\n');
+    // Precompute absolute start offset of every line (no incremental drift).
+    const lineStarts: number[] = [];
+    let pos = 0;
+    for (const ln of lines) {
+        lineStarts.push(pos);
+        pos += ln.length + 1;
+    }
+    let defHits = 0;
+    for (let i = 0; i < lines.length; i++) {
+        const m = lines[i].match(re);
+        if (!m) continue;
+        defHits++;
+        const name = m[1];
+        // Extract the full parameter list: from the `(` on this line to the
+        // matching `)` (may span several lines). `openIdx` is absolute in `input`.
+        const openIdx = lineStarts[i] + lines[i].indexOf('(');
+        let depth = 0;
+        let end = -1;
+        let buf = '';
+        for (let k = openIdx; k < input.length; k++) {
+            const ch = input[k];
+            buf += ch;
+            if (ch === '(') depth++;
+            else if (ch === ')') {
+                depth--;
+                if (depth === 0) {
+                    end = k;
+                    break;
+                }
+            }
+        }
+        if (end < 0) continue;
+        const list = buf.slice(1, -1);
+        const rawParams = splitTopLevelCommas(list).filter((p) => p.length > 0);
+        if (rawParams.length === 0 || !rawParams[0].startsWith('self')) continue;
+        const params = rawParams.map(classifyParam);
+        let requiredCount = 0;
+        for (const p of params) {
+            if (p.hasDefault) break;
+            requiredCount++;
+        }
+        // Only convert methods that have at least one optional param.
+        if (requiredCount < params.length) {
+            map.set(name, { params, requiredCount });
+        }
+    }
+    return map;
+}
+
+// Collect signatures of base methods from the already-generated
+// BaseMethods.jl on disk, so exchange files can rewrite cross-file call sites
+// to base methods whose optional params became keyword-only. Returns an empty
+// map (no throw) if the base file is absent — callers then just skip merging.
+function collectBaseSignatures(): Map<string, SigInfo> {
+    const baseFile = path.join(JULIA_SRC, 'BaseMethods.jl');
+    if (!fs.existsSync(baseFile)) return new Map<string, SigInfo>();
+    const src = fs.readFileSync(baseFile, 'utf8');
+    return collectSignatures(src);
+}
+
+// Rewrite a definition's parameter list text to use a `;` before the first
+// optional parameter. `rawList` is the text between the outer parens. Julia
+// forbids a comma immediately before `;` (`f(a, ; b)` is a syntax error — the
+// separator must be `f(a; b)`), so we join the required params (comma-
+// separated) and then append `; <optional>` (semicolon-separated) with no
+// comma in between. Already-converted input may carry a leading `;` on the
+// first optional token (`a, ; b`); we strip it so the pass is idempotent.
+function rewriteDefParams(rawList: string, sig: SigInfo): string {
+    const rawParams = splitTopLevelCommas(rawList);
+    const required = rawParams.slice(0, sig.requiredCount);
+    const optional = rawParams.slice(sig.requiredCount);
+    if (optional.length === 0) {
+        return rawParams.join(', ');
+    }
+    const optClean = optional.map((o) => o.replace(/^\s*;\s*/, '').trim());
+    return required.join(', ') + '; ' + optClean.join(', ');
+}
+
+// Rewrite a single call `NAME(...)` / `self.NAME(...)` to keyword form.
+// `selfOffset` is 1 when the call uses a `self.` receiver (so call arg `i`
+// maps to `sig.params[i + 1]`, since `params[0]` is the receiver `self`) and
+// 0 when the call passes `self` explicitly as the first argument
+// (e.g. `request(self, path, ...)`). The keyword boundary (`requiredCount`)
+// is indexed over the same `params` array, so the offset applies to it too.
+function rewriteCall(callText: string, sig: SigInfo, selfOffset: number): string {
+    const open = callText.indexOf('(');
+    const prefix = callText.slice(0, open + 1);
+    const close = callText.lastIndexOf(')');
+    const argStr = callText.slice(open + 1, close);
+    const args = splitTopLevelCommas(argStr).filter((a) => a.length > 0);
+    if (args.length === 0) return callText; // no args: defaults apply
+    // Conservative guards. Skip splats (`...`) and list/array comprehensions
+    // (` for `) — their arity cannot be mapped safely. NOTE: we do NOT skip on
+    // `=>`/`->`: the transpiler lowers TS arrow functions to `function ... end`,
+    // so every `=>` in the output is a Julia Dict-pair separator
+    // (`Dict{Symbol, Any}(key => value)`), not an arrow. Skipping on `=>` would
+    // wrongly refuse to rewrite calls whose argument is a literal Dict.
+    for (const a of args) {
+        if (a.includes('...') || a.includes(' for ')) {
+            return callText;
+        }
+    }
+    // The call supplies `params[selfOffset..]`; refuse if it overflows the sig.
+    if (args.length > sig.params.length - selfOffset) return callText;
+    const pos: string[] = [];
+    const kw: string[] = [];
+    for (let i = 0; i < args.length; i++) {
+        const pIdx = i + selfOffset;
+        const paramName = sig.params[pIdx].name;
+        if (pIdx < sig.requiredCount) pos.push(args[i]);
+        else kw.push(`${paramName} = ${args[i]}`);
+    }
+    return prefix + pos.concat(kw).join(', ') + ')';
+}
+
+// Rewrite every eligible call site across the WHOLE file in a single
+// balanced-paren scan. Unlike a per-line pass this correctly handles calls
+// that span several lines (e.g. `safeMarketStructure(Dict{Symbol, Any}(\n ...
+// ))`), because it tracks paren depth over the entire text rather than per
+// line. Lines that declare a `function`/`end` are skipped so method
+// definitions are never mistaken for call sites.
+// Rewrite call sites across the whole text. Call sites can be nested (e.g.
+// `outer(inner(...))`), so we cannot simply scan left-to-right and jump
+// `lastIndex` past each matched `)` — that would skip inner calls trapped
+// inside an outer call's argument list (a real case: `safeMarketStructure(...)`
+// calls sit inside `deepExtend(...)` in `describe()`). Instead we collect ALL
+// matches first, then rewrite them RIGHT-TO-LEFT on a mutable string. Because
+// we always mutate from the end, earlier (outer) indices stay valid, and the
+// outer call's own rewrite happens after its inner call is already in keyword
+// form, so nothing is skipped.
+function rewriteCallsInText(input: string, sigs: Map<string, SigInfo>): string {
+    // Lookbehind for the boundary (instead of a capturing group) so that
+    // matching `outer(` does NOT consume the `(` that precedes an immediately
+    // nested `self.inner(` — a capturing boundary group would advance the
+    // scan past the inner call and skip it. The lookbehind is zero-width, so
+    // `m.index` points at the call name and `m[0]` starts there too.
+    const re = /(?<=^|[^A-Za-z0-9_.])((?:self\.)?)([A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
+    const matches: RegExpExecArray[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(input)) !== null) {
+        matches.push(m);
+    }
+    let out = input;
+    // Right-to-left so inner (later) calls are rewritten before the outer
+    // (earlier) call that contains them.
+    for (let i = matches.length - 1; i >= 0; i--) {
+        m = matches[i];
+        const name = m[2];
+        const selfPrefix = m[1] === 'self.' ? 1 : 0;
+        // Lookbehind is zero-width, so `m.index` already points at the call
+        // name; the optional `self.` prefix is part of `m[0]` and accounts for
+        // `m[1].length` characters before the name within the match.
+        const callStart = m.index + m[1].length;
+        // Find the matching `)` with a depth scan from the `(` we matched. The
+        // scan is string- and comment-aware: parentheses inside string
+        // literals (`"..."` / `'...'` / `"""..."""`) or `#` line comments must
+        // NOT count, otherwise an unbalanced-looking string such as `"("`
+        // would drive the depth below zero and abort the rewrite. We scan from
+        // the matched `(` (inclusive) at depth 0, so the matched `(` is the
+        // first open paren and a nested `outer(inner(...))` resolves to the
+        // OUTER close.
+        const openAt = callStart + name.length;
+        let close = -1;
+        {
+            let d = 0;
+            let k = openAt;
+            while (k < out.length) {
+                const ch = out[k];
+                if (ch === '"') {
+                    if (out.startsWith('"""', k)) {
+                        k += 3;
+                        while (k < out.length && !out.startsWith('"""', k)) k++;
+                        k += 3;
+                        continue;
+                    }
+                    k++;
+                    while (k < out.length && out[k] !== '"') k++;
+                    k++;
+                    continue;
+                }
+                if (ch === '\'') {
+                    k++;
+                    while (k < out.length && out[k] !== '\'') k++;
+                    k++;
+                    continue;
+                }
+                if (ch === '#') {
+                    while (k < out.length && out[k] !== '\n') k++;
+                    continue;
+                }
+                if (ch === '(') d++;
+                else if (ch === ')') {
+                    d--;
+                    if (d === 0) {
+                        close = k;
+                        break;
+                    }
+                }
+                k++;
+            }
+        }
+        if (close < 0) continue; // unbalanced: skip (should not happen in valid Julia)
+        const callText = out.slice(callStart, close + 1);
+        // Never rewrite a definition header (`function name(`). The header is
+        // handled by the definition branch; here we only touch call sites.
+        // The regex matched just `name(` — a definition reads `function name(`,
+        // so we test the text immediately BEFORE the match for a `function`
+        // token. Note the method NAME itself is not in `before` (it starts at
+        // `m.index`), so we match `function` ending the preceding text, not
+        // `function name`.
+        const before = out.slice(Math.max(0, m.index - 12), m.index);
+        const isDefHeader = /\bfunction\s*$/.test(before);
+        const sig = sigs.get(name);
+        let rewritten = callText;
+        if (sig && !isDefHeader) {
+            rewritten = rewriteCall(callText, sig, selfPrefix);
+        }
+        out = out.slice(0, callStart) + rewritten + out.slice(close + 1);
+    }
+    return out;
+}
+
+// Master pass: rewrite definitions and call sites for optional -> kwargs.
+// `extraSigs` carries signatures from OTHER files (e.g. base methods defined
+// in BaseMethods.jl) so that cross-file call sites — an exchange invoking a
+// base method whose optional params became keyword-only — are rewritten too.
+// File-local signatures always win over extraSigs.
+function convertOptionalParamsToKwargs(input: string, extraSigs?: Map<string, SigInfo>): string {
+    const sigs = collectSignatures(input);
+    if (extraSigs) {
+        for (const [name, sig] of extraSigs) {
+            if (!sigs.has(name)) sigs.set(name, sig);
+        }
+    }
+    if (sigs.size === 0) return input;
+
+    const lines = input.split('\n');
+    const out: string[] = [];
+    // Precompute absolute start offset of every line (no incremental drift).
+    const lineStarts: number[] = [];
+    let pos = 0;
+    for (const ln of lines) {
+        lineStarts.push(pos);
+        pos += ln.length + 1;
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const defM = line.match(/^(\s*function\s+)([A-Za-z_][A-Za-z0-9_]*)\s*\(/);
+        if (defM && sigs.has(defM[2])) {
+            const sig = sigs.get(defM[2])!;
+            // Capture the full multi-line parameter list starting at this `(`.
+            // `openIdx` is absolute in `input` (lineStart + line-relative index).
+            const openIdx = lineStarts[i] + line.indexOf('(');
+            let depth = 0;
+            let end = -1;
+            let buf = '';
+            for (let k = openIdx; k < input.length; k++) {
+                const ch = input[k];
+                buf += ch;
+                if (ch === '(') depth++;
+                else if (ch === ')') {
+                    depth--;
+                    if (depth === 0) {
+                        end = k;
+                        break;
+                    }
+                }
+            }
+            const rawList = buf.slice(1, -1);
+            const newList = rewriteDefParams(rawList, sig);
+            // How many source lines the signature spans (so we skip them).
+            const startLine = input.slice(0, openIdx).split('\n').length - 1;
+            const endLine = input.slice(0, end + 1).split('\n').length - 1;
+            const sigSpan = endLine - startLine;
+            out.push(`${defM[1]}${defM[2]}(${newList})`);
+            i += sigSpan; // skip the original multi-line signature body
+            continue;
+        }
+        out.push(line);
+    }
+    // Join the (unchanged) lines back, then rewrite call sites across the
+    // whole file in a balanced-paren scan. This handles calls that span
+    // several lines (e.g. `safeMarketStructure(Dict{Symbol, Any}(\n ... ))`),
+    // which a per-line pass cannot, because a multi-line call would otherwise
+    // keep its optional arg positional and fail to load.
+    const joined = out.join('\n');
+    return rewriteCallsInText(joined, sigs);
 }
 
 export async function main() {
@@ -1543,7 +2171,15 @@ Flags:
   if (command === '--base') {
     const basePath = path.join(TS_SRC, 'base', 'Exchange.ts');
     const result = transpiler.transpileJuliaByPath(basePath);
+    const tsSource = fs.readFileSync(basePath, 'utf8');
     const content = cleanupJuliaBaseSource(cleanupJuliaSource(result.content ?? ''));
+    // Inject TS-derived triple-quote docstrings above each base class method
+    // so `@doc e.fetchOHLCV` etc. return the TypeScript JSDoc text for base
+    // unified methods too.
+    const contentWithDocs = injectMethodDocstrings(content, extractJSDoc(tsSource));
+    // Rewrite optional positional params into Julia keyword arguments and
+    // update internal call sites so the package keeps loading.
+    const contentWithKwargs = convertOptionalParamsToKwargs(contentWithDocs);
     const outFile = path.join(JULIA_SRC, 'BaseMethods.jl');
     // Hand-written base methods that have no direct TS source equivalent:
     // computed-key get/set on the Exchange struct (used by unCamelCaseProperties
@@ -1675,7 +2311,7 @@ end
       if hasfield(Exchange, name)
           value = getfield(self, name)
           if value isa Function
-              return (args...) -> (ccxt_takes_self(value) ? value(self, args...) : value(args...))
+              return (args...; kwargs...) -> (ccxt_takes_self(value) ? value(self, args...; kwargs...) : value(args...; kwargs...))
           else
               return value
           end
@@ -1684,7 +2320,7 @@ end
       if hasfield(Exchange, camel)
           value = getfield(self, camel)
           if value isa Function
-              return (args...) -> (ccxt_takes_self(value) ? value(self, args...) : value(args...))
+              return (args...; kwargs...) -> (ccxt_takes_self(value) ? value(self, args...; kwargs...) : value(args...; kwargs...))
           else
               return value
           end
@@ -1694,12 +2330,12 @@ end
         # so self.method(...) dispatches correctly.
         if isdefined(@__MODULE__, name) && getfield(@__MODULE__, name) isa Function
             fn = getfield(@__MODULE__, name)
-            return (args...) -> (ccxt_takes_self(fn) ? fn(self, args...) : fn(args...))
+            return (args...; kwargs...) -> (ccxt_takes_self(fn) ? fn(self, args...; kwargs...) : fn(args...; kwargs...))
         end
         error("Property \$name not found")
     end
 `;
-    fs.writeFileSync(outFile, content + baseExtras, 'utf8');
+    fs.writeFileSync(outFile, contentWithKwargs + baseExtras, 'utf8');
     console.log(`Julia base transpiled -> ${outFile}`);
     return;
   }
@@ -1794,6 +2430,14 @@ end
     // Inject endpoint method field declarations into the struct body so
     // self.publicGetXxx(...) dispatches correctly (hasfield check succeeds).
     content = injectEndpointFields(content, endpoints.fields);
+    // Inject TS-derived triple-quote docstrings above each class method so
+    // `@doc e.fetchOHLCV` etc. return the TypeScript JSDoc text.
+    content = injectMethodDocstrings(content, extractJSDoc(tsSource));
+    // Rewrite optional positional params into Julia keyword arguments and
+    // update internal call sites so the package keeps loading. Merge base
+    // method signatures so cross-file calls to base methods (e.g.
+    // safeMarketStructure, setMarkets) are rewritten too.
+    content = convertOptionalParamsToKwargs(content, collectBaseSignatures());
     const outFile = path.join(JULIA_SRC, 'exchanges', `${exchangeId}.jl`);
     const wrapperName = capitalize(exchangeId);
 
@@ -1821,7 +2465,8 @@ end
 
         // Run cleanup on the FULL combined content (struct + wrapper) so any
         // artifacts in the wrapper (e.g., bare `undefined`) are also removed.
-        const finalContent = cleanupJuliaSource(content + wrapperSource);
+        const docRegistry = buildDocRegistrySource(exchangeId, extractJSDoc(tsSource));
+        const finalContent = cleanupJuliaSource(content + wrapperSource + (docRegistry ? '\n\n' + docRegistry : ''));
 
         fs.writeFileSync(outFile, finalContent, 'utf8');
       console.log(`Julia exchange ${exchangeId} transpiled -> ${outFile}`);
@@ -1845,6 +2490,13 @@ end
       // Inject endpoint method field declarations into the struct body so
       // self.publicGetXxx(...) dispatches correctly.
       content = injectEndpointFields(content, endpoints.fields);
+      // Inject TS-derived triple-quote docstrings above each class method so
+      // `@doc e.fetchOHLCV` etc. return the TypeScript JSDoc text.
+      content = injectMethodDocstrings(content, extractJSDoc(tsSource));
+      // Rewrite optional positional params into Julia keyword arguments and
+      // update internal call sites so the package keeps loading. Merge base
+      // method signatures so cross-file calls to base methods are rewritten too.
+      content = convertOptionalParamsToKwargs(content, collectBaseSignatures());
       const outFile = path.join(JULIA_SRC, 'exchanges', `${exchangeId}.jl`);
       const wrapperName = capitalize(exchangeId);
 
@@ -1869,7 +2521,8 @@ end
 
         // Run cleanup on the FULL combined content (struct + wrapper) so any
         // artifacts in the wrapper (e.g., bare `undefined`) are also removed.
-        const finalContent = cleanupJuliaSource(content + wrapperSource);
+        const docRegistry = buildDocRegistrySource(exchangeId, extractJSDoc(tsSource));
+        const finalContent = cleanupJuliaSource(content + wrapperSource + (docRegistry ? '\n\n' + docRegistry : ''));
 
         fs.writeFileSync(outFile, finalContent, 'utf8');
         console.log(`Julia exchange ${exchangeId} transpiled -> ${outFile}`);

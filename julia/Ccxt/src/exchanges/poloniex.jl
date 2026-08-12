@@ -907,7 +907,7 @@ function describe(self::Poloniex, )
 ))
 
 end
-function parseOHLCV(self::Poloniex, ohlcv, market=nothing)
+function parseOHLCV(self::Poloniex, ohlcv; market=nothing)
     ohlcvLength = length(ohlcv);
     isContract = ohlcvLength == 9;
     if functions.ccxtruthy(isContract)
@@ -916,12 +916,29 @@ function parseOHLCV(self::Poloniex, ohlcv, market=nothing)
     return [safeInteger(ohlcv, 12), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 0), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCV(self::Poloniex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api-docs.poloniex.com/spot/api/public/market-data#candles
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Poloniex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 500))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 500))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -943,18 +960,18 @@ function fetchOHLCV(self::Poloniex, symbol, timeframe="1m", since=nothing, limit
         end
         responseRaw = Base.fetch(self.swapPublicGetV3MarketCandles(extend(request, params)));
         data = self.safeList(responseRaw, "data");
-            return self.parseOHLCVs(data, market, timeframe, since, limit)
+            return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
     end
     response = Base.fetch(self.publicGetMarketsSymbolCandles(extend(request, params)));
     candles = [];
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         candles = response;
     end
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function loadMarkets(self::Poloniex, reload=false, params=Dict())
-    markets = Base.fetch(loadMarkets(self.parent, reload, params));
+function loadMarkets(self::Poloniex; reload=false, params=Dict())
+    markets = Base.fetch(loadMarkets(self.parent, reload = reload, params = params));
     currenciesByNumericId = safeValue(self.options, "currenciesByNumericId");
     if functions.ccxtruthy(@functions.ccxt_or((currenciesByNumericId == nothing), reload))
         self.options[Symbol("currenciesByNumericId")] = indexBy(self.currencies, "numericId");
@@ -962,18 +979,29 @@ function loadMarkets(self::Poloniex, reload=false, params=Dict())
     return markets
 
 end
-function fetchMarkets(self::Poloniex, params=Dict())
-    promises = [self.fetchSpotMarkets(params), self.fetchSwapMarkets(params)];
+"""
+retrieves data on all markets for poloniex
+see: https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Poloniex; params=Dict())
+    promises = [self.fetchSpotMarkets(params = params), self.fetchSwapMarkets(params = params)];
     results = Base.fetch(asyncmap(Base.fetch, promises));
     return arrayConcat(get(results, 1, nothing), get(results, 2, nothing))
 
 end
-function fetchSpotMarkets(self::Poloniex, params=Dict())
+function fetchSpotMarkets(self::Poloniex; params=Dict())
     markets = Base.fetch(self.publicGetMarkets(params));
     return self.parseMarkets(markets)
 
 end
-function fetchSwapMarkets(self::Poloniex, params=Dict())
+function fetchSwapMarkets(self::Poloniex; params=Dict())
     response = Base.fetch(self.swapPublicGetV3MarketAllInstruments(params));
     markets = self.safeList(response, "data");
     return self.parseMarkets(markets)
@@ -996,7 +1024,7 @@ function parseSpotMarket(self::Poloniex, market)
     state = safeString(market, "state");
     active = state == "NORMAL";
     symbolTradeLimit = safeValue(market, "symbolTradeLimit");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -1021,8 +1049,8 @@ function parseSpotMarket(self::Poloniex, market)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(symbolTradeLimit, "quantityScale"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(symbolTradeLimit, "priceScale")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(symbolTradeLimit, "quantityScale"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(symbolTradeLimit, "priceScale")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("amount") => Dict{Symbol, Any}(
@@ -1066,7 +1094,7 @@ function parseSwapMarket(self::Poloniex, market)
         type_var = "future";
     end
     marketType = functions.ccxtruthy((type_var == "future")) ? "future" : "swap";
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -1119,15 +1147,25 @@ function parseSwapMarket(self::Poloniex, market)
 ))
 
 end
-function fetchTime(self::Poloniex, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api-docs.poloniex.com/spot/api/public/reference-data#system-timestamp
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Poloniex; params=Dict())
     response = Base.fetch(self.publicGetTimestamp(params));
     return safeInteger(response, "serverTime")
 
 end
-function parseTicker(self::Poloniex, ticker, market=nothing)
+function parseTicker(self::Poloniex, ticker; market=nothing)
     timestamp = safeInteger2(ticker, "ts", "cT");
     marketId = safeString2(ticker, "symbol", "s");
-    market = self.safeMarket(marketId);
+    market = self.safeMarket(marketId = marketId);
     relativeChange = safeString2(ticker, "dailyChange", "dc");
     percentage = stringMul(relativeChange, "100");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1153,15 +1191,27 @@ function parseTicker(self::Poloniex, ticker, market=nothing)
     Symbol("markPrice") => safeString2(ticker, "markPrice", "mPx"),
     Symbol("indexPrice") => safeString(ticker, "iPx"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Poloniex, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Poloniex; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = nothing;
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
-        symbols = self.marketSymbols(symbols, nothing, true, true, false);
+        symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = false);
         symbolsLength = length(symbols);
         if functions.ccxtruthy(functions.ccxt_gt(symbolsLength, 0))
             market = self.market(get(symbols, 1, nothing));
@@ -1171,17 +1221,27 @@ function fetchTickers(self::Poloniex, symbols=nothing, params=Dict())
         end
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     if functions.ccxtruthy(marketType == "swap")
         responseRaw = Base.fetch(self.swapPublicGetV3MarketTickers(extend(request, params)));
         data = self.safeList(responseRaw, "data");
-            return self.parseTickers(data, symbols)
+            return self.parseTickers(data, symbols = symbols)
     end
     response = Base.fetch(self.publicGetMarketsTicker24h(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function fetchCurrencies(self::Poloniex, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Poloniex; params=Dict())
     response = Base.fetch(self.publicGetV2Currencies(params));
     return self.parseCurrencies(response)
 
@@ -1191,13 +1251,13 @@ function parseCurrency(self::Poloniex, currency)
     id = safeString(entry, "coin");
     code = self.safeCurrencyCode(id);
     networks = Dict{Symbol, Any}();
-    chains = self.safeList(entry, "networkList", []);
+    chains = self.safeList(entry, "networkList", defaultValue = []);
     chainsLength = length(chains);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, chainsLength))
         chain = get(chains, j + 1, nothing);
         chainId = safeString(chain, "blockchain");
-        networkCode = self.networkIdToCode(chainId, code);
+        networkCode = self.networkIdToCode(networkId = chainId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("info") => chain,
@@ -1208,7 +1268,7 @@ function parseCurrency(self::Poloniex, currency)
                 Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
                 Symbol("deposit") => self.safeBool(chain, "depositEnable"),
                 Symbol("withdraw") => self.safeBool(chain, "withdrawalEnable"),
-                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chain, "decimals"))),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(chain, "decimals"))),
                 Symbol("limits") => Dict{Symbol, Any}(
                     Symbol("withdraw") => Dict{Symbol, Any}(
                         Symbol("min") => self.safeNumber(chain, "withdrawMin"),
@@ -1240,26 +1300,38 @@ function parseCurrency(self::Poloniex, currency)
 ))
 
 end
-function fetchTicker(self::Poloniex, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Poloniex, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
-        tickers = Base.fetch(self.fetchTickers([get(market, Symbol("symbol"), nothing)], params));
+        tickers = Base.fetch(self.fetchTickers(symbols = [get(market, Symbol("symbol"), nothing)], params = params));
             return self.safeDict(tickers, symbol)
     end
     response = Base.fetch(self.publicGetMarketsSymbolTicker24h(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function parseTrade(self::Poloniex, trade, market=nothing)
+function parseTrade(self::Poloniex, trade; market=nothing)
     id = safeStringN(trade, ["id", "tradeID", "trdId"]);
     orderId = safeString2(trade, "orderId", "ordId");
     timestamp = safeIntegerN(trade, ["ts", "createTime", "cT", "cTime"]);
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market, "_");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
     symbol = get(market, Symbol("symbol"), nothing);
     side = safeStringLower2(trade, "side", "takerSide");
     fee = nothing;
@@ -1289,10 +1361,24 @@ function parseTrade(self::Poloniex, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Poloniex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://api-docs.poloniex.com/spot/api/public/market-data#trades
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Poloniex, symbol; since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1303,26 +1389,42 @@ function fetchTrades(self::Poloniex, symbol, since=nothing, limit=nothing, param
     end
     if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
         response = Base.fetch(self.swapPublicGetV3MarketTrades(extend(request, params)));
-        tradesList = self.safeList(response, "data", []);
-            return self.parseTrades(tradesList, market, since, limit)
+        tradesList = self.safeList(response, "data", defaultValue = []);
+            return self.parseTrades(tradesList, market = market, since = since, limit = limit)
     end
     trades = Base.fetch(self.publicGetMarketsSymbolTrades(extend(request, params)));
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Poloniex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://api-docs.poloniex.com/spot/api/private/trade#trade-history
+see: https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Poloniex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     isContract = inArray(marketType, ["swap", "future"]);
     request = Dict{Symbol, Any}();
     startKey = functions.ccxtruthy(isContract) ? "sTime" : "startTime";
@@ -1339,11 +1441,11 @@ function fetchMyTrades(self::Poloniex, symbol=nothing, since=nothing, limit=noth
     (request, params) = self.handleUntilOption(endKey, request, params);
     if functions.ccxtruthy(isContract)
         raw = Base.fetch(self.swapPrivateGetV3TradeOrderTrades(extend(request, params)));
-        data = self.safeList(raw, "data", []);
-            return self.parseTrades(data, market, since, limit)
+        data = self.safeList(raw, "data", defaultValue = []);
+            return self.parseTrades(data, market = market, since = since, limit = limit)
     end
     response = Base.fetch(self.privateGetTrades(extend(request, params)));
-    result = self.parseTrades(response, market, since, limit);
+    result = self.parseTrades(response, market = market, since = since, limit = limit);
     return result
 
 end
@@ -1360,13 +1462,13 @@ function parseOrderStatus(self::Poloniex, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Poloniex, order, market=nothing)
+function parseOrder(self::Poloniex, order; market=nothing)
     timestamp = safeIntegerN(order, ["timestamp", "createTime", "cTime"]);
     if functions.ccxtruthy(timestamp == nothing)
         timestamp = self.parse8601(safeString(order, "date"));
     end
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market, "_");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
     symbol = get(market, Symbol("symbol"), nothing);
     resultingTrades = safeValue(order, "resultingTrades");
     if functions.ccxtruthy(resultingTrades != nothing)
@@ -1431,7 +1533,7 @@ function parseOrder(self::Poloniex, order, market=nothing)
     Symbol("reduceOnly") => reduceOnly,
     Symbol("leverage") => leverage,
     Symbol("hedged") => hedged
-), market)
+), market = market)
 
 end
 function parseOrderType(self::Poloniex, status)
@@ -1455,13 +1557,29 @@ function parseOpenOrders(self::Poloniex, orders, market, result)
             Symbol("side") => get(order, Symbol("type"), nothing),
             Symbol("price") => get(order, Symbol("rate"), nothing)
         ));
-        push!(result, self.parseOrder(extended, market));
+        push!(result, self.parseOrder(extended, market = market));
         i += 1
     end
     return result
 
 end
-function fetchOpenOrders(self::Poloniex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://api-docs.poloniex.com/spot/api/private/order#open-orders
+see: https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+see: https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set true to fetch trigger orders instead of regular orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Poloniex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -1470,7 +1588,7 @@ function fetchOpenOrders(self::Poloniex, symbol=nothing, since=nothing, limit=no
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market = market, params = params);
     if functions.ccxtruthy(limit != nothing)
         max = functions.ccxtruthy((marketType == "spot")) ? 2000 : 100;
         request[Symbol("limit")] = max(limit, max);
@@ -1480,7 +1598,7 @@ function fetchOpenOrders(self::Poloniex, symbol=nothing, since=nothing, limit=no
     response = [];
     if functions.ccxtruthy(marketType != "spot")
         raw = Base.fetch(self.swapPrivateGetV3TradeOrderOpens(extend(request, params)));
-        response = self.safeList(raw, "data", []);
+        response = self.safeList(raw, "data", defaultValue = []);
     elseif functions.ccxtruthy(isTrigger)
         response = Base.fetch(self.privateGetSmartorders(extend(request, params)));
     else
@@ -1489,10 +1607,24 @@ function fetchOpenOrders(self::Poloniex, symbol=nothing, since=nothing, limit=no
     extension = Dict{Symbol, Any}(
         Symbol("status") => "open"
     );
-    return self.parseOrders(response, market, since, limit, extension)
+    return self.parseOrders(response, market = market, since = since, limit = limit, params = extension)
 
 end
-function fetchClosedOrders(self::Poloniex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest entry
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Poloniex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -1501,7 +1633,7 @@ function fetchClosedOrders(self::Poloniex, symbol=nothing, since=nothing, limit=
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchClosedOrders", market, params, "swap");
+    (marketType, params) = self.handleMarketTypeAndParams("fetchClosedOrders", market = market, params = params, defaultValue = "swap");
     if functions.ccxtruthy(marketType == "spot")
         throw(NotSupported(string(self.id, " fetchClosedOrders() is not supported for spot markets yet")));
     end
@@ -1513,11 +1645,29 @@ function fetchClosedOrders(self::Poloniex, symbol=nothing, since=nothing, limit=
     end
     (request, params) = self.handleUntilOption("eTime", request, params);
     response = Base.fetch(self.swapPrivateGetV3TradeOrderHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function createOrder(self::Poloniex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://api-docs.poloniex.com/spot/api/private/order#create-order
+see: https://api-docs.poloniex.com/spot/api/private/smart-order#create-order  // trigger orders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Poloniex, symbol, type_var, side, amount; price=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1525,27 +1675,27 @@ function createOrder(self::Poloniex, symbol, type_var, side, amount, price=nothi
         Symbol("side") => uppercase(side)
     );
     triggerPrice = self.safeNumber2(params, "stopPrice", "triggerPrice");
-    (request, params) = self.orderRequest(symbol, type_var, side, amount, request, price, params);
+    (request, params) = self.orderRequest(symbol, type_var, side, amount, request, price = price, params = params);
     response = Dict{Symbol, Any}();
     if functions.ccxtruthy(@functions.ccxt_or(get(market, Symbol("swap"), nothing), get(market, Symbol("future"), nothing)))
         responseInitial = Base.fetch(self.swapPrivatePostV3TradeOrder(extend(request, params)));
-        response = self.safeDict(responseInitial, "data", Dict{Symbol, Any}());
+        response = self.safeDict(responseInitial, "data", defaultValue = Dict{Symbol, Any}());
     elseif functions.ccxtruthy(triggerPrice != nothing)
         response = Base.fetch(self.privatePostSmartorders(extend(request, params)));
     else
         response = Base.fetch(self.privatePostOrders(extend(request, params)));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function orderRequest(self::Poloniex, symbol, type_var, side, amount, request, price=nothing, params=Dict())
+function orderRequest(self::Poloniex, symbol, type_var, side, amount, request; price=nothing, params=Dict())
     triggerPrice = self.safeNumber2(params, "stopPrice", "triggerPrice");
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
         marginMode = nothing;
         (marginMode, params) = self.handleParamString(params, "marginMode");
         if functions.ccxtruthy(marginMode != nothing)
-            self.checkRequiredArgument("createOrder", marginMode, "marginMode", ["cross", "isolated"]);
+            self.checkRequiredArgument("createOrder", marginMode, "marginMode", options = ["cross", "isolated"]);
             request[Symbol("mgnMode")] =             uppercase(marginMode);
         end
         hedged = nothing;
@@ -1561,7 +1711,7 @@ function orderRequest(self::Poloniex, symbol, type_var, side, amount, request, p
     end
     upperCaseType = uppercase(type_var);
     isMarket = upperCaseType == "MARKET";
-    isPostOnly = self.isPostOnly(isMarket, upperCaseType == "LIMIT_MAKER", params);
+    isPostOnly = self.isPostOnly(isMarket, upperCaseType == "LIMIT_MAKER", params = params);
     params = omit(params, ["postOnly", "triggerPrice", "stopPrice"]);
     if functions.ccxtruthy(triggerPrice != nothing)
         if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
@@ -1577,7 +1727,7 @@ function orderRequest(self::Poloniex, symbol, type_var, side, amount, request, p
         if functions.ccxtruthy(side == "buy")
             quoteAmount = nothing;
             createMarketBuyOrderRequiresPrice = true;
-            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
             cost = self.safeNumber(params, "cost");
             params = omit(params, "cost");
             if functions.ccxtruthy(cost != nothing)
@@ -1614,7 +1764,25 @@ function orderRequest(self::Poloniex, symbol, type_var, side, amount, request, p
     return [request, params]
 
 end
-function editOrder(self::Poloniex, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://api-docs.poloniex.com/spot/api/private/order#cancel-replace-order
+see: https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-replace-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Poloniex, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
@@ -1624,7 +1792,7 @@ function editOrder(self::Poloniex, id, symbol, type_var, side, amount=nothing, p
         Symbol("id") => id
     );
     triggerPrice = self.safeNumber2(params, "stopPrice", "triggerPrice");
-    (request, params) = self.orderRequest(symbol, type_var, side, amount, request, price, params);
+    (request, params) = self.orderRequest(symbol, type_var, side, amount, request, price = price, params = params);
     response = Dict{Symbol, Any}();
     if functions.ccxtruthy(triggerPrice != nothing)
         response = Base.fetch(self.privatePutSmartordersId(extend(request, params)));
@@ -1635,10 +1803,10 @@ function editOrder(self::Poloniex, id, symbol, type_var, side, amount=nothing, p
     Symbol("side") => side,
     Symbol("type") => type_var
 ));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Poloniex, id, symbol=nothing, params=Dict())
+function cancelOrder(self::Poloniex, id; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
@@ -1649,7 +1817,7 @@ function cancelOrder(self::Poloniex, id, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         request[Symbol("ordId")] = id;
         raw = Base.fetch(self.swapPrivateDeleteV3TradeOrder(extend(request, params)));
-            return self.parseOrder(self.safeDict(raw, "data", Dict{Symbol, Any}()))
+            return self.parseOrder(self.safeDict(raw, "data", defaultValue = Dict{Symbol, Any}()))
     end
     clientOrderId = safeValue(params, "clientOrderId");
     if functions.ccxtruthy(clientOrderId != nothing)
@@ -1667,7 +1835,21 @@ function cancelOrder(self::Poloniex, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelAllOrders(self::Poloniex, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
+see: https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
+see: https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if canceling trigger orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Poloniex; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     request = Dict{Symbol, Any}(
         Symbol("symbols") => []
@@ -1679,11 +1861,11 @@ function cancelAllOrders(self::Poloniex, symbol=nothing, params=Dict())
     end
     response = [];
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market = market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or(marketType == "swap", marketType == "future"))
         raw = Base.fetch(self.swapPrivateDeleteV3TradeAllOrders(extend(request, params)));
-        response = self.safeList(raw, "data", []);
-            return self.parseOrders(response, market)
+        response = self.safeList(raw, "data", defaultValue = []);
+            return self.parseOrders(response, market = market)
     end
     isTrigger = safeValue2(params, "trigger", "stop");
     params = omit(params, ["trigger", "stop"]);
@@ -1692,10 +1874,24 @@ function cancelAllOrders(self::Poloniex, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.privateDeleteOrders(extend(request, params)));
     end
-    return self.parseOrders(response, market)
+    return self.parseOrders(response, market = market)
 
 end
-function fetchOrder(self::Poloniex, id, symbol=nothing, params=Dict())
+"""
+fetch an order by it's id
+see: https://api-docs.poloniex.com/spot/api/private/order#order-details
+see: https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if fetching a trigger order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Poloniex, id; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     id = string(id);
     request = Dict{Symbol, Any}(
@@ -1707,7 +1903,7 @@ function fetchOrder(self::Poloniex, id, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrder", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOrder", market = market, params = params);
     if functions.ccxtruthy(marketType != "spot")
         throw(NotSupported(string(self.id, " fetchOrder() is not supported for ", marketType, " markets yet")));
     end
@@ -1725,14 +1921,28 @@ function fetchOrder(self::Poloniex, id, symbol=nothing, params=Dict())
     return order
 
 end
-function fetchOrderStatus(self::Poloniex, id, symbol=nothing, params=Dict())
+function fetchOrderStatus(self::Poloniex, id; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
-    orders = Base.fetch(self.fetchOpenOrders(symbol, nothing, nothing, params));
+    orders = Base.fetch(self.fetchOpenOrders(symbol = symbol, since = nothing, limit = nothing, params = params));
     indexed = indexBy(orders, "id");
     return functions.ccxtruthy((ccxt_in(id, indexed))) ? "open" : "closed"
 
 end
-function fetchOrderTrades(self::Poloniex, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://api-docs.poloniex.com/spot/api/private/trade#trades-by-order-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Poloniex, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     request = Dict{Symbol, Any}(
         Symbol("id") => id
@@ -1751,7 +1961,7 @@ function parseBalance(self::Poloniex, response)
         ts = safeInteger(response, "uTime");
         result[Symbol("timestamp")] = ts;
         result[Symbol("datetime")] = self.iso8601(ts);
-        details = self.safeList(response, "details", []);
+        details = self.safeList(response, "details", defaultValue = []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(details)))
             balance = get(details, i + 1, nothing);
@@ -1790,13 +2000,24 @@ function parseBalance(self::Poloniex, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Poloniex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
+see: https://api-docs.poloniex.com/v3/futures/api/account/balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Poloniex; params=Dict())
     Base.fetch(self.loadMarkets());
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     if functions.ccxtruthy(marketType != "spot")
         responseRaw = Base.fetch(self.swapPrivateGetV3AccountBalance(params));
-        data = self.safeDict(responseRaw, "data", Dict{Symbol, Any}());
+        data = self.safeDict(responseRaw, "data", defaultValue = Dict{Symbol, Any}());
             return self.parseBalance(data)
     end
     request = Dict{Symbol, Any}(
@@ -1806,7 +2027,17 @@ function fetchBalance(self::Poloniex, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchTradingFees(self::Poloniex, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://api-docs.poloniex.com/spot/api/private/account#fee-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Poloniex; params=Dict())
     Base.fetch(self.loadMarkets());
     response = Base.fetch(self.privateGetFeeinfo(params));
     result = Dict{Symbol, Any}();
@@ -1827,7 +2058,20 @@ function fetchTradingFees(self::Poloniex, params=Dict())
     return result
 
 end
-function fetchOrderBook(self::Poloniex, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api-docs.poloniex.com/spot/api/public/market-data#order-book
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Poloniex, symbol; limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1841,9 +2085,9 @@ function fetchOrderBook(self::Poloniex, symbol, limit=nothing, params=Dict())
     end
     if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
         responseRaw = Base.fetch(self.swapPublicGetV3MarketOrderBook(extend(request, params)));
-        data = self.safeDict(responseRaw, "data", Dict{Symbol, Any}());
+        data = self.safeDict(responseRaw, "data", defaultValue = Dict{Symbol, Any}());
         ts = safeInteger(data, "ts");
-            return self.parseOrderBook(data, symbol, ts)
+            return self.parseOrderBook(data, symbol, timestamp = ts)
     end
     response = Base.fetch(self.publicGetMarketsSymbolOrderBook(extend(request, params)));
     timestamp = safeInteger(response, "time");
@@ -1879,17 +2123,39 @@ function fetchOrderBook(self::Poloniex, symbol, limit=nothing, params=Dict())
 )
 
 end
-function createDepositAddress(self::Poloniex, code, params=Dict())
+"""
+create a currency deposit address
+see: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Poloniex, code; params=Dict())
     Base.fetch(self.loadMarkets());
-    (request, extraParams, currency, networkEntry) = self.prepareRequestForDepositAddress(code, params);
+    (request, extraParams, currency, networkEntry) = self.prepareRequestForDepositAddress(code, params = params);
     params = extraParams;
     response = Base.fetch(self.privatePostWalletsAddress(extend(request, params)));
     return self.parseDepositAddressSpecial(response, currency, networkEntry)
 
 end
-function fetchDepositAddress(self::Poloniex, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Poloniex, code; params=Dict())
     Base.fetch(self.loadMarkets());
-    (request, extraParams, currency, networkEntry) = self.prepareRequestForDepositAddress(code, params);
+    (request, extraParams, currency, networkEntry) = self.prepareRequestForDepositAddress(code, params = params);
     params = extraParams;
     response = Base.fetch(self.privateGetWalletsAddresses(extend(request, params)));
     keys_var = objectKeys(response);
@@ -1900,7 +2166,7 @@ function fetchDepositAddress(self::Poloniex, code, params=Dict())
     return self.parseDepositAddressSpecial(response, currency, networkEntry)
 
 end
-function prepareRequestForDepositAddress(self::Poloniex, code, params=Dict())
+function prepareRequestForDepositAddress(self::Poloniex, code; params=Dict())
     if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(code, self.currencies))))
         throw(BadSymbol(string(self.id, " fetchDepositAddress(): can not recognize ", code, " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")));
     end
@@ -1911,7 +2177,7 @@ function prepareRequestForDepositAddress(self::Poloniex, code, params=Dict())
         throw(ArgumentsRequired(string(self.id, " fetchDepositAddress requires a network parameter for ", code, ".")));
     end
     exchangeNetworkId = nothing;
-    networkCode = self.networkIdToCode(networkCode, code);
+    networkCode = self.networkIdToCode(networkId = networkCode, currencyCode = code);
     networkEntry = functions.ccxtruthy((networkCode == nothing)) ? nothing : self.safeDict(get(currency, Symbol("networks"), nothing), networkCode);
     if functions.ccxtruthy(networkEntry != nothing)
         exchangeNetworkId = get(networkEntry, Symbol("id"), nothing);
@@ -1930,7 +2196,7 @@ function parseDepositAddressSpecial(self::Poloniex, response, currency, networkE
         address = safeString(response, get(networkEntry, Symbol("id"), nothing));
     end
     tag = nothing;
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(networkEntry != nothing)
         depositAddress = safeString(get(networkEntry, Symbol("info"), nothing), "depositAddress");
         if functions.ccxtruthy(depositAddress != nothing)
@@ -1947,7 +2213,21 @@ function parseDepositAddressSpecial(self::Poloniex, response, currency, networkE
 )
 
 end
-function transfer(self::Poloniex, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Poloniex, code, amount, fromAccount, toAccount; params=Dict())
     Base.fetch(self.loadMarkets());
     currency = self.currency(code);
     accountsByType = safeValue(self.options, "accountsByType", Dict{Symbol, Any}());
@@ -1960,10 +2240,10 @@ function transfer(self::Poloniex, code, amount, fromAccount, toAccount, params=D
         Symbol("toAccount") => toId
     );
     response = Base.fetch(self.privatePostAccountsTransfer(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function parseTransfer(self::Poloniex, transfer, currency=nothing)
+function parseTransfer(self::Poloniex, transfer; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
     Symbol("id") => safeString(transfer, "transferId"),
@@ -1977,9 +2257,23 @@ function parseTransfer(self::Poloniex, transfer, currency=nothing)
 )
 
 end
-function withdraw(self::Poloniex, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Poloniex, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("coin") => get(currency, Symbol("id"), nothing),
@@ -1991,15 +2285,15 @@ function withdraw(self::Poloniex, code, amount, address, tag=nothing, params=Dic
     if functions.ccxtruthy(networkCode == nothing)
         throw(ArgumentsRequired(string(self.id, " withdraw requires a network parameter for ", code, ".")));
     end
-    request[Symbol("network")] = self.networkCodeToId(networkCode, code);
+    request[Symbol("network")] = self.networkCodeToId(networkCode, currencyCode = code);
     if functions.ccxtruthy(tag != nothing)
         request[Symbol("paymentId")] = tag;
     end
     response = Base.fetch(self.privatePostV2WalletsWithdraw(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function fetchTransactionsHelper(self::Poloniex, code=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchTransactionsHelper(self::Poloniex; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     year = 31104000;
     now = seconds();
@@ -2012,33 +2306,70 @@ function fetchTransactionsHelper(self::Poloniex, code=nothing, since=nothing, li
     return response
 
 end
-function fetchDepositsWithdrawals(self::Poloniex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Poloniex; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
-    response = Base.fetch(self.fetchTransactionsHelper(code, since, limit, params));
+    response = Base.fetch(self.fetchTransactionsHelper(code = code, since = since, limit = limit, params = params));
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
     withdrawals = safeValue(response, "withdrawals", []);
     deposits = safeValue(response, "deposits", []);
-    withdrawalTransactions = self.parseTransactions(withdrawals, currency, since, limit);
-    depositTransactions = self.parseTransactions(deposits, currency, since, limit);
+    withdrawalTransactions = self.parseTransactions(withdrawals, currency = currency, since = since, limit = limit);
+    depositTransactions = self.parseTransactions(deposits, currency = currency, since = since, limit = limit);
     transactions = arrayConcat(depositTransactions, withdrawalTransactions);
-    return self.filterByCurrencySinceLimit(sortBy(transactions, "timestamp"), code, since, limit)
+    return self.filterByCurrencySinceLimit(sortBy(transactions, "timestamp"), code = code, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Poloniex, code=nothing, since=nothing, limit=nothing, params=Dict())
-    response = Base.fetch(self.fetchTransactionsHelper(code, since, limit, params));
+"""
+fetch all withdrawals made from an account
+see: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Poloniex; code=nothing, since=nothing, limit=nothing, params=Dict())
+    response = Base.fetch(self.fetchTransactionsHelper(code = code, since = since, limit = limit, params = params));
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
     withdrawals = safeValue(response, "withdrawals", []);
-    transactions = self.parseTransactions(withdrawals, currency, since, limit);
-    return self.filterByCurrencySinceLimit(transactions, code, since, limit)
+    transactions = self.parseTransactions(withdrawals, currency = currency, since = since, limit = limit);
+    return self.filterByCurrencySinceLimit(transactions, code = code, since = since, limit = limit)
 
 end
-function fetchDepositWithdrawFees(self::Poloniex, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Poloniex; codes=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     response = Base.fetch(self.publicGetCurrencies(extend(params, Dict{Symbol, Any}(
         Symbol("includeMultiChainCurrencies") => true
@@ -2056,12 +2387,12 @@ function fetchDepositWithdrawFees(self::Poloniex, codes=nothing, params=Dict())
         data[Symbol(currencyId)] = get(entry, Symbol(currencyId), nothing);
         i += 1
     end
-    return self.parseDepositWithdrawFees(data, codes)
+    return self.parseDepositWithdrawFees(data, codes = codes)
 
 end
-function parseDepositWithdrawFees(self::Poloniex, response, codes=nothing, currencyIdKey=nothing)
+function parseDepositWithdrawFees(self::Poloniex, response; codes=nothing, currencyIdKey=nothing)
     depositWithdrawFees = Dict{Symbol, Any}();
-    codes = self.marketCodes(codes);
+    codes = self.marketCodes(codes = codes);
     responseKeys = objectKeys(response);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(responseKeys)))
@@ -2070,7 +2401,7 @@ function parseDepositWithdrawFees(self::Poloniex, response, codes=nothing, curre
         feeInfo = get(response, Symbol(currencyId), nothing);
         if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (@functions.ccxt_or((codes == nothing), (inArray(code, codes))))))
             currency = self.currency(code);
-            depositWithdrawFees[Symbol(code)] = self.parseDepositWithdrawFee(feeInfo, currency);
+            depositWithdrawFees[Symbol(code)] = self.parseDepositWithdrawFee(feeInfo, currency = currency);
             childChains = safeValue(feeInfo, "childChains");
             chainsLength = length(childChains);
             if functions.ccxtruthy(functions.ccxt_gt(chainsLength, 0))
@@ -2078,7 +2409,7 @@ function parseDepositWithdrawFees(self::Poloniex, response, codes=nothing, curre
                 while functions.ccxtruthy(functions.ccxt_lt(j, length(childChains)))
                     networkId = get(childChains, j + 1, nothing);
                     networkId = replace(networkId, code => "");
-                    networkCode = self.networkIdToCode(networkId, get(currency, Symbol("code"), nothing));
+                    networkCode = self.networkIdToCode(networkId = networkId, currencyCode = get(currency, Symbol("code"), nothing));
                     networkInfo = safeValue(response, networkId);
                     networkObject = Dict{Symbol, Any}();
                     withdrawFee = self.safeNumber(networkInfo, "withdrawalFee");
@@ -2105,7 +2436,7 @@ function parseDepositWithdrawFees(self::Poloniex, response, codes=nothing, curre
     return depositWithdrawFees
 
 end
-function parseDepositWithdrawFee(self::Poloniex, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Poloniex, fee; currency=nothing)
     depositWithdrawFee = self.depositWithdrawFee(Dict{Symbol, Any}());
     currencyCode = safeString(currency, "code");
     depositWithdrawFee[Symbol("info")][Symbol(currencyCode)] = fee;
@@ -2121,7 +2452,7 @@ function parseDepositWithdrawFee(self::Poloniex, fee, currency=nothing)
     );
     depositWithdrawFee[Symbol("withdraw")] = withdrawResult;
     depositWithdrawFee[Symbol("deposit")] = depositResult;
-    networkCode = self.networkIdToCode(networkId, safeString(currency, "code"));
+    networkCode = self.networkIdToCode(networkId = networkId, currencyCode = safeString(currency, "code"));
     if functions.ccxtruthy(networkCode != nothing)
         depositWithdrawFee[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
             Symbol("withdraw") => withdrawResult,
@@ -2131,15 +2462,28 @@ function parseDepositWithdrawFee(self::Poloniex, fee, currency=nothing)
     return depositWithdrawFee
 
 end
-function fetchDeposits(self::Poloniex, code=nothing, since=nothing, limit=nothing, params=Dict())
-    response = Base.fetch(self.fetchTransactionsHelper(code, since, limit, params));
+"""
+fetch all deposits made to an account
+see: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Poloniex; code=nothing, since=nothing, limit=nothing, params=Dict())
+    response = Base.fetch(self.fetchTransactionsHelper(code = code, since = since, limit = limit, params = params));
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
     deposits = safeValue(response, "deposits", []);
-    transactions = self.parseTransactions(deposits, currency, since, limit);
-    return self.filterByCurrencySinceLimit(transactions, code, since, limit)
+    transactions = self.parseTransactions(deposits, currency = currency, since = since, limit = limit);
+    return self.filterByCurrencySinceLimit(transactions, code = code, since = since, limit = limit)
 
 end
 function parseTransactionStatus(self::Poloniex, status)
@@ -2156,7 +2500,7 @@ function parseTransactionStatus(self::Poloniex, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Poloniex, transaction, currency=nothing)
+function parseTransaction(self::Poloniex, transaction; currency=nothing)
     if functions.ccxtruthy(ccxt_in("withdrawNetworkEntry", transaction))
         transaction = get(transaction, Symbol("response"), nothing);
     end
@@ -2203,19 +2547,32 @@ function parseTransaction(self::Poloniex, transaction, currency=nothing)
 )
 
 end
-function setLeverage(self::Poloniex, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://api-docs.poloniex.com/v3/futures/api/positions/set-leverage
+
+# Arguments
+- `leverage`::int: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Poloniex, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params);
+    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params);
     if functions.ccxtruthy(marginMode == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")));
     end
     hedged = nothing;
-    (hedged, params) = self.handleParamBool(params, "hedged", false);
+    (hedged, params) = self.handleParamBool(params, "hedged", defaultValue = false);
     if functions.ccxtruthy(hedged)
         if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in("posSide", params))))
             throw(ArgumentsRequired(string(self.id, " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")));
@@ -2230,28 +2587,39 @@ function setLeverage(self::Poloniex, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchLeverage(self::Poloniex, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Poloniex, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchLeverage", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchLeverage", params = params);
     if functions.ccxtruthy(marginMode == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")));
     end
     request[Symbol("mgnMode")] =     uppercase(marginMode);
     response = Base.fetch(self.swapPrivateGetV3PositionLeverages(extend(request, params)));
-    return self.parseLeverage(response, market)
+    return self.parseLeverage(response, market = market)
 
 end
-function parseLeverage(self::Poloniex, leverage, market=nothing)
+function parseLeverage(self::Poloniex, leverage; market=nothing)
     shortLeverage = nothing;
     longLeverage = nothing;
     marketId = nothing;
     marginMode = nothing;
-    data = self.safeList(leverage, "data", []);
+    data = self.safeList(leverage, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
@@ -2271,16 +2639,27 @@ function parseLeverage(self::Poloniex, leverage, market=nothing)
     end
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => marginMode,
     Symbol("longLeverage") => longLeverage,
     Symbol("shortLeverage") => shortLeverage
 )
 
 end
-function fetchPositionMode(self::Poloniex, symbol=nothing, params=Dict())
+"""
+fetches the position mode, hedged or one way, hedged is set identically for all linear markets or all inverse markets
+see: https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the position mode for (not used by fetchPositionMode)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+function fetchPositionMode(self::Poloniex; symbol=nothing, params=Dict())
     response = Base.fetch(self.swapPrivateGetV3PositionMode(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     posMode = safeString(data, "posMode");
     hedged = posMode == "HEDGE";
     return Dict{Symbol, Any}(
@@ -2289,7 +2668,19 @@ function fetchPositionMode(self::Poloniex, symbol=nothing, params=Dict())
 )
 
 end
-function setPositionMode(self::Poloniex, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+
+# Arguments
+- `hedged`::bool: set to true to use the hedged position mode
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Poloniex, hedged; symbol=nothing, params=Dict())
     mode = functions.ccxtruthy(hedged) ? "HEDGE" : "ONE_WAY";
     request = Dict{Symbol, Any}(
         Symbol("posMode") => mode
@@ -2298,17 +2689,29 @@ function setPositionMode(self::Poloniex, hedged, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchPositions(self::Poloniex, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.standard`::bool, optional: whether to fetch standard contract positions
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Poloniex; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.swapPrivateGetV3TradePositionOpens(params));
-    positions = self.safeList(response, "data", []);
-    return self.parsePositions(positions, symbols)
+    positions = self.safeList(response, "data", defaultValue = []);
+    return self.parsePositions(positions, symbols = symbols)
 
 end
-function parsePosition(self::Poloniex, position, market=nothing)
+function parsePosition(self::Poloniex, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(position, "cTime");
     marginMode = safeStringLower(position, "mgnMode");
     leverage = safeString(position, "lever");
@@ -2348,7 +2751,7 @@ function parsePosition(self::Poloniex, position, market=nothing)
 ))
 
 end
-function modifyMarginHelper(self::Poloniex, symbol, amount, type_var, params=Dict())
+function modifyMarginHelper(self::Poloniex, symbol, amount, type_var; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     amount = self.amountToPrecision(symbol, amount);
@@ -2365,12 +2768,12 @@ function modifyMarginHelper(self::Poloniex, symbol, amount, type_var, params=Dic
         amount = stringAbs(amount);
     end
     data = self.safeDict(response, "data");
-    return self.parseMarginModification(data, market)
+    return self.parseMarginModification(data, market = market)
 
 end
-function parseMarginModification(self::Poloniex, data, market=nothing)
+function parseMarginModification(self::Poloniex, data; market=nothing)
     marketId = safeString(data, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     rawType = safeString(data, "type");
     type_var = functions.ccxtruthy((rawType == "ADD")) ? "add" : "reduce";
     return Dict{Symbol, Any}(
@@ -2387,19 +2790,41 @@ function parseMarginModification(self::Poloniex, data, market=nothing)
 )
 
 end
-function reduceMargin(self::Poloniex, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, -amount, "reduce", params))
+"""
+remove margin from a position
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Poloniex, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, -amount, "reduce", params = params))
 
 end
-function addMargin(self::Poloniex, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params))
+"""
+add margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Poloniex, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params = params))
 
 end
 function nonce(self::Poloniex, )
     return milliseconds()
 
 end
-function sign(self::Poloniex, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Poloniex, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = get(get(self.urls, Symbol("api"), nothing), Symbol("spot"), nothing);
     if functions.ccxtruthy(inArray(api, ["swapPublic", "swapPrivate"]))
         url = get(get(self.urls, Symbol("api"), nothing), Symbol("swap"), nothing);
@@ -2476,407 +2901,407 @@ Base.getproperty(self::Poloniex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarkets(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsSymbol(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrencies(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrenciesCurrency(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "currencies/{currency}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies/{currency}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV2Currencies(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v2/currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV2CurrenciesCurrency(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v2/currencies/{currency}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/currencies/{currency}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTimestamp(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "timestamp", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "timestamp"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsPrice(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsSymbolPrice(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{symbol}/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsMarkPrice(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/markPrice", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/markPrice"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsSymbolMarkPrice(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/markPrice", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{symbol}/markPrice"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsSymbolMarkPriceComponents(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/markPriceComponents", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{symbol}/markPriceComponents"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsSymbolOrderBook(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/orderBook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{symbol}/orderBook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsSymbolCandles(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{symbol}/candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsSymbolTrades(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{symbol}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsTicker24h(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/ticker24h", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/ticker24h"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsSymbolTicker24h(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/ticker24h", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{symbol}/ticker24h"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsCollateralInfo(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/collateralInfo", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/collateralInfo"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsCurrencyCollateralInfo(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{currency}/collateralInfo", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{currency}/collateralInfo"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsBorrowRatesInfo(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/borrowRatesInfo", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/borrowRatesInfo"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccounts(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsBalances(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsIdBalances(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/{id}/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsActivity(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/activity", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/activity"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsTransfer(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/transfer", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/transfer"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsTransferId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/transfer/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/transfer/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFeeinfo(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "feeinfo", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "feeinfo"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsInterestHistory(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/interest/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/interest/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubaccounts(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subaccounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubaccountsBalances(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subaccounts/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubaccountsIdBalances(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts/{id}/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subaccounts/{id}/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubaccountsTransfer(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfer", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subaccounts/transfer"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubaccountsTransferId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfer/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subaccounts/transfer/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletsAddresses(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "wallets/addresses", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallets/addresses"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletsAddressesCurrency(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "wallets/addresses/{currency}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallets/addresses/{currency}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletsActivity(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "wallets/activity", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallets/activity"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginAccountMargin(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "margin/accountMargin", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/accountMargin"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginBorrowStatus(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "margin/borrowStatus", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/borrowStatus"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginMaxSize(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "margin/maxSize", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/maxSize"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersKillSwitchStatus(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/killSwitchStatus", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/killSwitchStatus"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSmartorders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "smartorders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSmartordersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "smartorders/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersHistory(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSmartordersHistory(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "smartorders/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTrades(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersIdTrades(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/{id}/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountsTransfer(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "accounts/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubaccountsTransfer(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "subaccounts/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWalletsAddress(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "wallets/address", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wallets/address"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWalletsWithdraw(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "wallets/withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wallets/withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2WalletsWithdraw(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v2/wallets/withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/wallets/withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersBatch(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersKillSwitch(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/killSwitch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/killSwitch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSmartorders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "smartorders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersCancelByIds(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/cancelByIds", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/cancelByIds"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteSmartordersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders/{id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "smartorders/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteSmartordersCancelByIds(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders/cancelByIds", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "smartorders/cancelByIds"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteSmartorders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "smartorders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOrdersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutSmartordersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders/{id}", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "smartorders/{id}"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketAllInstruments(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/allInstruments", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/allInstruments"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketInstruments(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/instruments", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/instruments"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketOrderBook(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/orderBook", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/orderBook"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketCandles(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/candles", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/candles"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketIndexPriceCandlesticks(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/indexPriceCandlesticks", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/indexPriceCandlesticks"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketPremiumIndexCandlesticks(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/premiumIndexCandlesticks", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/premiumIndexCandlesticks"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketMarkPriceCandlesticks(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/markPriceCandlesticks", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/markPriceCandlesticks"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketTrades(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/trades", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/trades"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketLiquidationOrder(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/liquidationOrder", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/liquidationOrder"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketTickers(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/tickers", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/tickers"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketMarkPrice(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/markPrice", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/markPrice"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketIndexPrice(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/indexPrice", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/indexPrice"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketIndexPriceComponents(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/indexPriceComponents", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/indexPriceComponents"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketFundingRate(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/fundingRate", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/fundingRate"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketOpenInterest(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/openInterest", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/openInterest"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketInsurance(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/insurance", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/insurance"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPublicGetV3MarketRiskLimit(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/riskLimit", "swapPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/riskLimit"; api="swapPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateGetV3AccountBalance(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/account/balance", "swapPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/balance"; api="swapPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateGetV3AccountBills(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/account/bills", "swapPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/bills"; api="swapPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateGetV3TradeOrderOpens(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order/opens", "swapPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/order/opens"; api="swapPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateGetV3TradeOrderTrades(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order/trades", "swapPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/order/trades"; api="swapPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateGetV3TradeOrderHistory(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order/history", "swapPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/order/history"; api="swapPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateGetV3TradePositionOpens(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/position/opens", "swapPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/position/opens"; api="swapPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateGetV3TradePositionHistory(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/position/history", "swapPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/position/history"; api="swapPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateGetV3PositionLeverages(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/position/leverages", "swapPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/position/leverages"; api="swapPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateGetV3PositionMode(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/position/mode", "swapPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/position/mode"; api="swapPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivatePostV3TradeOrder(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order", "swapPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/order"; api="swapPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivatePostV3TradeOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/orders", "swapPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/orders"; api="swapPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivatePostV3TradePosition(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/position", "swapPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/position"; api="swapPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivatePostV3TradePositionAll(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/positionAll", "swapPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/positionAll"; api="swapPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivatePostV3PositionLeverage(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/position/leverage", "swapPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/position/leverage"; api="swapPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivatePostV3PositionMode(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/position/mode", "swapPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/position/mode"; api="swapPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivatePostV3TradePositionMargin(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/position/margin", "swapPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/position/margin"; api="swapPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateDeleteV3TradeOrder(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order", "swapPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/order"; api="swapPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateDeleteV3TradeBatchOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/batchOrders", "swapPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/batchOrders"; api="swapPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapPrivateDeleteV3TradeAllOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/allOrders", "swapPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/allOrders"; api="swapPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Poloniex(; kwargs...)
@@ -2940,3 +3365,529 @@ function Poloniex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Poloniex_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api-docs.poloniex.com/spot/api/public/market-data#candles
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Poloniex_fetchOHLCV
+
+function __ccxt_doc_Poloniex_fetchMarkets() end
+"""
+retrieves data on all markets for poloniex
+see: https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Poloniex_fetchMarkets
+
+function __ccxt_doc_Poloniex_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://api-docs.poloniex.com/spot/api/public/reference-data#system-timestamp
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Poloniex_fetchTime
+
+function __ccxt_doc_Poloniex_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Poloniex_fetchTickers
+
+function __ccxt_doc_Poloniex_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Poloniex_fetchCurrencies
+
+function __ccxt_doc_Poloniex_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Poloniex_fetchTicker
+
+function __ccxt_doc_Poloniex_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://api-docs.poloniex.com/spot/api/public/market-data#trades
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Poloniex_fetchTrades
+
+function __ccxt_doc_Poloniex_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://api-docs.poloniex.com/spot/api/private/trade#trade-history
+see: https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Poloniex_fetchMyTrades
+
+function __ccxt_doc_Poloniex_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://api-docs.poloniex.com/spot/api/private/order#open-orders
+see: https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+see: https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set true to fetch trigger orders instead of regular orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Poloniex_fetchOpenOrders
+
+function __ccxt_doc_Poloniex_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest entry
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Poloniex_fetchClosedOrders
+
+function __ccxt_doc_Poloniex_createOrder() end
+"""
+create a trade order
+see: https://api-docs.poloniex.com/spot/api/private/order#create-order
+see: https://api-docs.poloniex.com/spot/api/private/smart-order#create-order  // trigger orders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Poloniex_createOrder
+
+function __ccxt_doc_Poloniex_editOrder() end
+"""
+edit a trade order
+see: https://api-docs.poloniex.com/spot/api/private/order#cancel-replace-order
+see: https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-replace-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Poloniex_editOrder
+
+function __ccxt_doc_Poloniex_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
+see: https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
+see: https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if canceling trigger orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Poloniex_cancelAllOrders
+
+function __ccxt_doc_Poloniex_fetchOrder() end
+"""
+fetch an order by it's id
+see: https://api-docs.poloniex.com/spot/api/private/order#order-details
+see: https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if fetching a trigger order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Poloniex_fetchOrder
+
+function __ccxt_doc_Poloniex_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://api-docs.poloniex.com/spot/api/private/trade#trades-by-order-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Poloniex_fetchOrderTrades
+
+function __ccxt_doc_Poloniex_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
+see: https://api-docs.poloniex.com/v3/futures/api/account/balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Poloniex_fetchBalance
+
+function __ccxt_doc_Poloniex_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://api-docs.poloniex.com/spot/api/private/account#fee-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Poloniex_fetchTradingFees
+
+function __ccxt_doc_Poloniex_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api-docs.poloniex.com/spot/api/public/market-data#order-book
+see: https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Poloniex_fetchOrderBook
+
+function __ccxt_doc_Poloniex_createDepositAddress() end
+"""
+create a currency deposit address
+see: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Poloniex_createDepositAddress
+
+function __ccxt_doc_Poloniex_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Poloniex_fetchDepositAddress
+
+function __ccxt_doc_Poloniex_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Poloniex_transfer
+
+function __ccxt_doc_Poloniex_withdraw() end
+"""
+make a withdrawal
+see: https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Poloniex_withdraw
+
+function __ccxt_doc_Poloniex_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Poloniex_fetchDepositsWithdrawals
+
+function __ccxt_doc_Poloniex_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Poloniex_fetchWithdrawals
+
+function __ccxt_doc_Poloniex_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Poloniex_fetchDepositWithdrawFees
+
+function __ccxt_doc_Poloniex_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Poloniex_fetchDeposits
+
+function __ccxt_doc_Poloniex_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://api-docs.poloniex.com/v3/futures/api/positions/set-leverage
+
+# Arguments
+- `leverage`::int: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Poloniex_setLeverage
+
+function __ccxt_doc_Poloniex_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Poloniex_fetchLeverage
+
+function __ccxt_doc_Poloniex_fetchPositionMode() end
+"""
+fetches the position mode, hedged or one way, hedged is set identically for all linear markets or all inverse markets
+see: https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the position mode for (not used by fetchPositionMode)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+__ccxt_doc_Poloniex_fetchPositionMode
+
+function __ccxt_doc_Poloniex_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+
+# Arguments
+- `hedged`::bool: set to true to use the hedged position mode
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Poloniex_setPositionMode
+
+function __ccxt_doc_Poloniex_fetchPositions() end
+"""
+fetch all open positions
+see: https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.standard`::bool, optional: whether to fetch standard contract positions
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Poloniex_fetchPositions
+
+function __ccxt_doc_Poloniex_reduceMargin() end
+"""
+remove margin from a position
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Poloniex_reduceMargin
+
+function __ccxt_doc_Poloniex_addMargin() end
+"""
+add margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Poloniex_addMargin

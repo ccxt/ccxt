@@ -1879,12 +1879,22 @@ function setSandboxMode(self::Gate, enable)
     self.options[Symbol("sandboxMode")] = enable;
 
 end
-function loadUnifiedStatus(self::Gate, params=Dict())
+"""
+returns unifiedAccount so the user can check if the unified account is enabled
+see: https://www.gate.com/docs/developers/apiv4/#retrieve-user-account-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
+"""
+function loadUnifiedStatus(self::Gate; params=Dict())
     unifiedAccount = self.safeBool(self.options, "unifiedAccount");
     if functions.ccxtruthy(unifiedAccount == nothing)
         try
             response = Base.fetch(self.privateAccountGetDetail(params));
-            result = self.safeDict(response, "key", Dict{Symbol, Any}());
+            result = self.safeDict(response, "key", defaultValue = Dict{Symbol, Any}());
             self.options[Symbol("unifiedAccount")] = safeInteger(result, "mode") == 2;
         catch e
             self.options[Symbol("unifiedAccount")] = false;
@@ -1894,11 +1904,21 @@ function loadUnifiedStatus(self::Gate, params=Dict())
     return get(self.options, Symbol("unifiedAccount"), nothing)
 
 end
-function upgradeUnifiedTradeAccount(self::Gate, params=Dict())
+function upgradeUnifiedTradeAccount(self::Gate; params=Dict())
     return Base.fetch(self.privateUnifiedPutUnifiedMode(params))
 
 end
-function fetchTime(self::Gate, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.gate.com/docs/developers/apiv4/#get-server-current-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Gate; params=Dict())
     response = Base.fetch(self.publicSpotGetTime(params));
     return safeInteger(response, "server_time")
 
@@ -1967,36 +1987,50 @@ function createExpiredOptionMarket(self::Gate, symbol)
 )
 
 end
-function safeMarket(self::Gate, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
+function safeMarket(self::Gate; marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = @functions.ccxt_and((marketId != nothing), (@functions.ccxt_or((findfirst("-C", marketId) !== nothing), (findfirst("-P", marketId) !== nothing))));
     if functions.ccxtruthy(@functions.ccxt_and(isOption, (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
-    return safeMarket(self.parent, marketId, market, delimiter, marketType)
+    return safeMarket(self.parent, marketId = marketId, market = market, delimiter = delimiter, marketType = marketType)
 
 end
-function fetchMarkets(self::Gate, params=Dict())
+"""
+retrieves data on all markets for gate
+see: https://www.gate.com/docs/developers/apiv4/#query-all-supported-currency-pairs                                       // spot
+see: https://www.gate.com/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts                                           // swap
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2                                         // future
+see: https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date       // option
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Gate; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
-    if functions.ccxtruthy(self.checkRequiredCredentials(false))
+    if functions.ccxtruthy(self.checkRequiredCredentials(error = false))
         Base.fetch(self.loadUnifiedStatus());
     end
     rawPromises = [];
     fetchMarketsOptions = self.safeDict(self.options, "fetchMarkets");
-    types = self.safeList(fetchMarketsOptions, "types", ["spot", "swap", "future", "option"]);
+    types = self.safeList(fetchMarketsOptions, "types", defaultValue = ["spot", "swap", "future", "option"]);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(types)))
         marketType = get(types, i + 1, nothing);
         if functions.ccxtruthy(marketType == "spot")
-                        push!(rawPromises, self.fetchSpotMarkets(params));
+                        push!(rawPromises, self.fetchSpotMarkets(params = params));
         elseif functions.ccxtruthy(marketType == "swap")
-            push!(rawPromises, self.fetchSwapMarkets(params));
+            push!(rawPromises, self.fetchSwapMarkets(params = params));
         else
             if functions.ccxtruthy(marketType == "future")
-                                push!(rawPromises, self.fetchFutureMarkets(params));
+                                push!(rawPromises, self.fetchFutureMarkets(params = params));
             elseif functions.ccxtruthy(marketType == "option")
-                push!(rawPromises, self.fetchOptionMarkets(params));
+                push!(rawPromises, self.fetchOptionMarkets(params = params));
             end
 
         end
@@ -2006,7 +2040,7 @@ function fetchMarkets(self::Gate, params=Dict())
     return self.arraysConcat(results)
 
 end
-function fetchSpotMarkets(self::Gate, params=Dict())
+function fetchSpotMarkets(self::Gate; params=Dict())
     marginPromise = self.publicMarginGetCurrencyPairs(params);
     spotMarketsPromise = self.publicSpotGetCurrencyPairs(params);
     (marginResponse, spotMarketsResponse) = (Base.fetch(asyncmap(Base.fetch, [marginPromise, spotMarketsPromise])));
@@ -2014,7 +2048,7 @@ function fetchSpotMarkets(self::Gate, params=Dict())
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(spotMarketsResponse)))
-        spotMarket = self.safeDict(spotMarketsResponse, i, Dict{Symbol, Any}());
+        spotMarket = self.safeDict(spotMarketsResponse, i, defaultValue = Dict{Symbol, Any}());
         id = safeString(spotMarket, "id");
         marginMarket = safeValue(marginMarkets, id);
         market = deepExtend(marginMarket, spotMarket);
@@ -2023,7 +2057,7 @@ function fetchSpotMarkets(self::Gate, params=Dict())
         quote_var = self.safeCurrencyCode(quoteId);
         takerPercent = safeString(market, "fee");
         makerPercent = safeString(market, "maker_fee_rate", takerPercent);
-        amountPrecision = self.parseNumber(self.parsePrecision(safeString(market, "amount_precision")));
+        amountPrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "amount_precision")));
         tradeStatus = safeString(market, "trade_status");
         marginStatus = safeInteger(market, "status", 1);
         leverage = self.safeNumber(market, "leverage");
@@ -2059,15 +2093,15 @@ function fetchSpotMarkets(self::Gate, params=Dict())
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
         Symbol("amount") => amountPrecision,
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "precision")))
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "precision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
             Symbol("min") => self.parseNumber("1"),
-            Symbol("max") => self.safeNumber(market, "leverage", 1)
+            Symbol("max") => self.safeNumber(market, "leverage", defaultNumber = 1)
         ),
         Symbol("amount") => Dict{Symbol, Any}(
-            Symbol("min") => self.safeNumber(spotMarket, "min_base_amount", amountPrecision),
+            Symbol("min") => self.safeNumber(spotMarket, "min_base_amount", defaultNumber = amountPrecision),
             Symbol("max") => nothing
         ),
         Symbol("price") => Dict{Symbol, Any}(
@@ -2087,7 +2121,7 @@ function fetchSpotMarkets(self::Gate, params=Dict())
     return result
 
 end
-function fetchSwapMarkets(self::Gate, params=Dict())
+function fetchSwapMarkets(self::Gate; params=Dict())
     result = [];
     swapSettlementCurrencies = self.getSettlementCurrencies("swap", "fetchMarkets");
     if functions.ccxtruthy(get(self.options, Symbol("sandboxMode"), nothing))
@@ -2102,7 +2136,7 @@ function fetchSwapMarkets(self::Gate, params=Dict())
         response = Base.fetch(self.publicFuturesGetSettleContracts(extend(request, params)));
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-            contract = self.safeDict(response, i, Dict{Symbol, Any}());
+            contract = self.safeDict(response, i, defaultValue = Dict{Symbol, Any}());
             parsedMarket = self.parseContractMarket(contract, settleId);
             push!(result, parsedMarket);
             i += 1
@@ -2112,7 +2146,7 @@ function fetchSwapMarkets(self::Gate, params=Dict())
     return result
 
 end
-function fetchFutureMarkets(self::Gate, params=Dict())
+function fetchFutureMarkets(self::Gate; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("sandboxMode"), nothing))
             return []
     end
@@ -2127,7 +2161,7 @@ function fetchFutureMarkets(self::Gate, params=Dict())
         response = Base.fetch(self.publicDeliveryGetSettleContracts(extend(request, params)));
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-            contract = self.safeDict(response, i, Dict{Symbol, Any}());
+            contract = self.safeDict(response, i, defaultValue = Dict{Symbol, Any}());
             parsedMarket = self.parseContractMarket(contract, settleId);
             push!(result, parsedMarket);
             i += 1
@@ -2220,7 +2254,7 @@ function parseContractMarket(self::Gate, market, settleId)
 )
 
 end
-function fetchOptionMarkets(self::Gate, params=Dict())
+function fetchOptionMarkets(self::Gate; params=Dict())
     result = [];
     underlyings = Base.fetch(self.fetchOptionUnderlyings());
     i = 0
@@ -2231,7 +2265,7 @@ function fetchOptionMarkets(self::Gate, params=Dict())
         response = Base.fetch(self.publicOptionsGetContracts(query));
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(response)))
-            market = self.safeDict(response, j, Dict{Symbol, Any}());
+            market = self.safeDict(response, j, defaultValue = Dict{Symbol, Any}());
             id = safeString(market, "name");
             parts = split(underlying, "_");
             baseId = safeString(parts, 0);
@@ -2318,7 +2352,7 @@ function fetchOptionUnderlyings(self::Gate, )
     underlyings = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(underlyingsResponse)))
-        underlying = self.safeDict(underlyingsResponse, i, Dict{Symbol, Any}());
+        underlying = self.safeDict(underlyingsResponse, i, defaultValue = Dict{Symbol, Any}());
         name = safeString(underlying, "name");
         if functions.ccxtruthy(name != nothing)
                         push!(underlyings, name);
@@ -2328,7 +2362,7 @@ function fetchOptionUnderlyings(self::Gate, )
     return underlyings
 
 end
-function prepareRequest(self::Gate, market=nothing, type_var=nothing, params=Dict())
+function prepareRequest(self::Gate; market=nothing, type_var=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(market != nothing)
         if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
@@ -2352,7 +2386,7 @@ function prepareRequest(self::Gate, market=nothing, type_var=nothing, params=Dic
     return [request, params]
 
 end
-function spotOrderPrepareRequest(self::Gate, market=nothing, trigger=false, params=Dict())
+function spotOrderPrepareRequest(self::Gate; market=nothing, trigger=false, params=Dict())
     (marginMode, query) = self.getMarginMode(trigger, params);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(!functions.ccxtruthy(trigger))
@@ -2365,7 +2399,7 @@ function spotOrderPrepareRequest(self::Gate, market=nothing, trigger=false, para
     return [request, query]
 
 end
-function multiOrderSpotPrepareRequest(self::Gate, market=nothing, trigger=false, params=Dict())
+function multiOrderSpotPrepareRequest(self::Gate; market=nothing, trigger=false, params=Dict())
     (marginMode, query) = self.getMarginMode(trigger, params);
     request = Dict{Symbol, Any}(
         Symbol("account") => marginMode
@@ -2417,7 +2451,17 @@ function getSettlementCurrencies(self::Gate, type_var, method)
     return safeValue(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle)
 
 end
-function fetchCurrencies(self::Gate, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-currency-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Gate; params=Dict())
     apiBackup = safeValue(self.urls, "apiBackup");
     if functions.ccxtruthy(apiBackup != nothing)
             return Dict{Symbol, Any}()
@@ -2430,13 +2474,13 @@ function parseCurrency(self::Gate, rawCurrency)
     currencyId = safeString(rawCurrency, "currency");
     code = self.safeCurrencyCode(currencyId);
     type_var = functions.ccxtruthy(self.isLeveragedCurrency(currencyId)) ? "leveraged" : "crypto";
-    chains = self.safeList(rawCurrency, "chains", []);
+    chains = self.safeList(rawCurrency, "chains", defaultValue = []);
     networks = Dict{Symbol, Any}();
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "name");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("info") => chain,
@@ -2476,7 +2520,18 @@ function parseCurrency(self::Gate, rawCurrency)
 ))
 
 end
-function fetchFundingRate(self::Gate, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-contract-information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Gate, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2484,29 +2539,40 @@ function fetchFundingRate(self::Gate, symbol, params=Dict())
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
         throw(BadSymbol(string(self.id, " fetchFundingRate() supports swap contracts only")));
     end
-    (request, query) = self.prepareRequest(market, nothing, params);
+    (request, query) = self.prepareRequest(market = market, type_var = nothing, params = params);
     response = Base.fetch(self.publicFuturesGetSettleContractsContract(extend(request, query)));
     return self.parseFundingRate(response)
 
 end
-function fetchFundingRates(self::Gate, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Gate; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
         firstSymbol = safeString(symbols, 0);
         market = self.market(firstSymbol);
     end
-    (request, query) = self.prepareRequest(market, "swap", params);
+    (request, query) = self.prepareRequest(market = market, type_var = "swap", params = params);
     response = Base.fetch(self.publicFuturesGetSettleContracts(extend(request, query)));
-    return self.parseFundingRates(response, symbols)
+    return self.parseFundingRates(response, symbols = symbols)
 
 end
-function parseFundingRate(self::Gate, contract, market=nothing)
+function parseFundingRate(self::Gate, contract; market=nothing)
     marketId = safeString(contract, "name");
-    symbol = self.safeSymbol(marketId, market, "_", "swap");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_", marketType = "swap");
     markPrice = self.safeNumber(contract, "mark_price");
     indexPrice = self.safeNumber(contract, "index_price");
     interestRate = self.safeNumber(contract, "interest_rate");
@@ -2547,7 +2613,7 @@ function parseFundingInterval(self::Gate, interval)
     return safeString(intervals, interval, interval)
 
 end
-function fetchNetworkDepositAddress(self::Gate, code, params=Dict())
+function fetchNetworkDepositAddress(self::Gate, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2582,7 +2648,18 @@ function fetchNetworkDepositAddress(self::Gate, code, params=Dict())
     return result
 
 end
-function fetchDepositAddressesByNetwork(self::Gate, code, params=Dict())
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the api endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+function fetchDepositAddressesByNetwork(self::Gate, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2593,37 +2670,60 @@ function fetchDepositAddressesByNetwork(self::Gate, code, params=Dict())
     response = Base.fetch(self.privateWalletGetDepositAddress(extend(request, params)));
     chains = safeValue(response, "multichain_addresses", []);
     currencyId = safeString(response, "currency");
-    currency = self.safeCurrency(currencyId, currency);
-    parsed = self.parseDepositAddresses(chains, nothing, false);
+    currency = self.safeCurrency(currencyId, currency = currency);
+    parsed = self.parseDepositAddresses(chains, codes = nothing, indexed = false);
     return indexBy(parsed, "network")
 
 end
-function fetchDepositAddress(self::Gate, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: unified network code (not used directly by gate.com but used by ccxt to filter the response)
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Gate, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
-    chainsIndexedByIdRaw = Base.fetch(self.fetchDepositAddressesByNetwork(code, params));
+    chainsIndexedByIdRaw = Base.fetch(self.fetchDepositAddressesByNetwork(code, params = params));
     chainsIndexedById = chainsIndexedByIdRaw;
     selectedNetworkIdOrCode = self.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
     return get(chainsIndexedById, Symbol(selectedNetworkIdOrCode), nothing)
 
 end
-function parseDepositAddress(self::Gate, depositAddress, currency=nothing)
+function parseDepositAddress(self::Gate, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     code = safeString(currency, "code");
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
     Symbol("address") => address,
     Symbol("tag") => safeString(depositAddress, "payment_id"),
-    Symbol("network") => self.networkIdToCode(safeString(depositAddress, "chain"), code)
+    Symbol("network") => self.networkIdToCode(networkId = safeString(depositAddress, "chain"), currencyCode = code)
 )
 
 end
-function fetchTradingFee(self::Gate, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Gate, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2632,10 +2732,20 @@ function fetchTradingFee(self::Gate, symbol, params=Dict())
         Symbol("currency_pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateWalletGetFee(extend(request, params)));
-    return self.parseTradingFee(response, market)
+    return self.parseTradingFee(response, market = market)
 
 end
-function fetchTradingFees(self::Gate, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Gate; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2650,13 +2760,13 @@ function parseTradingFees(self::Gate, response)
     while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
         symbol = get(symbols, i + 1, nothing);
         market = self.market(symbol);
-        result[Symbol(symbol)] = self.parseTradingFee(response, market);
+        result[Symbol(symbol)] = self.parseTradingFee(response, market = market);
         i += 1
     end
     return result
 
 end
-function parseTradingFee(self::Gate, info, market=nothing)
+function parseTradingFee(self::Gate, info; market=nothing)
     gtDiscount = safeValue(info, "gt_discount");
     taker = functions.ccxtruthy(gtDiscount) ? "gt_taker_fee" : "taker_fee";
     maker = functions.ccxtruthy(gtDiscount) ? "gt_maker_fee" : "maker_fee";
@@ -2673,7 +2783,18 @@ function parseTradingFee(self::Gate, info, market=nothing)
 )
 
 end
-function fetchTransactionFees(self::Gate, codes=nothing, params=Dict())
+"""
+please use fetchDepositWithdrawFees instead
+see: https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTransactionFees(self::Gate; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2683,7 +2804,7 @@ function fetchTransactionFees(self::Gate, codes=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         withdrawFees = Dict{Symbol, Any}();
-        entry = self.safeDict(response, i, Dict{Symbol, Any}());
+        entry = self.safeDict(response, i, defaultValue = Dict{Symbol, Any}());
         currencyId = safeString(entry, "currency");
         code = self.safeCurrencyCode(currencyId);
         if functions.ccxtruthy(@functions.ccxt_and((codes != nothing), !functions.ccxtruthy(inArray(code, codes))))
@@ -2697,7 +2818,7 @@ function fetchTransactionFees(self::Gate, codes=nothing, params=Dict())
             j = 0
             while functions.ccxtruthy(functions.ccxt_lt(j, length(networkIds)))
                 networkId = get(networkIds, j + 1, nothing);
-                networkCode = self.networkIdToCode(networkId, code);
+                networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
                 if functions.ccxtruthy(networkCode != nothing)
                     withdrawFees[Symbol(networkCode)] = self.parseNumber(get(withdrawFixOnChains, Symbol(networkId), nothing));
                 end
@@ -2714,15 +2835,26 @@ function fetchTransactionFees(self::Gate, codes=nothing, params=Dict())
     return result
 
 end
-function fetchDepositWithdrawFees(self::Gate, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Gate; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateWalletGetWithdrawStatus(params));
-    return self.parseDepositWithdrawFees(response, codes, "currency")
+    return self.parseDepositWithdrawFees(response, codes = codes, currencyIdKey = "currency")
 
 end
-function parseDepositWithdrawFee(self::Gate, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Gate, fee; currency=nothing)
     withdrawFixOnChains = safeValue(fee, "withdraw_fix_on_chains");
     result = Dict{Symbol, Any}(
         Symbol("info") => fee,
@@ -2742,8 +2874,8 @@ function parseDepositWithdrawFee(self::Gate, fee, currency=nothing)
         while functions.ccxtruthy(functions.ccxt_lt(i, length(chainKeys)))
             chainKey = get(chainKeys, i + 1, nothing);
             currencyId = safeString(fee, "currency");
-            code = self.safeCurrencyCode(currencyId, currency);
-            networkCode = self.networkIdToCode(chainKey, code);
+            code = self.safeCurrencyCode(currencyId, currency = currency);
+            networkCode = self.networkIdToCode(networkId = chainKey, currencyCode = code);
             if functions.ccxtruthy(networkCode != nothing)
                 result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                     Symbol("withdraw") => Dict{Symbol, Any}(
@@ -2763,7 +2895,21 @@ function parseDepositWithdrawFee(self::Gate, fee, currency=nothing)
     return result
 
 end
-function fetchFundingHistory(self::Gate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history-2
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Gate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2772,8 +2918,8 @@ function fetchFundingHistory(self::Gate, symbol=nothing, since=nothing, limit=no
         market = self.market(symbol);
         symbol = get(market, Symbol("symbol"), nothing);
     end
-    (type_var, query) = self.handleMarketTypeAndParams("fetchFundingHistory", market, params);
-    (request, requestParams) = self.prepareRequest(market, type_var, query);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchFundingHistory", market = market, params = params);
+    (request, requestParams) = self.prepareRequest(market = market, type_var = type_var, params = query);
     request[Symbol("type")] = "fund";
     if functions.ccxtruthy(since != nothing)
         request[Symbol("from")] = self.parseToInt(since / 1000);
@@ -2801,13 +2947,13 @@ function parseFundingHistories(self::Gate, response, symbol, since, limit)
         i += 1
     end
     sorted = sortBy(result, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function parseFundingHistory(self::Gate, info, market=nothing)
+function parseFundingHistory(self::Gate, info; market=nothing)
     timestamp = safeTimestamp(info, "time");
     marketId = safeString(info, "text");
-    market = self.safeMarket(marketId, market, "_", "swap");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_", marketType = "swap");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
     Symbol("symbol") => safeString(market, "symbol"),
@@ -2819,12 +2965,27 @@ function parseFundingHistory(self::Gate, info, market=nothing)
 )
 
 end
-function fetchOrderBook(self::Gate, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.gate.com/docs/developers/apiv4/en/#get-market-depth-information
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-market-depth-information
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-market-depth-information-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-options-contract-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Gate, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    (request, query) = self.prepareRequest(market, get(market, Symbol("type"), nothing), params);
+    (request, query) = self.prepareRequest(market = market, type_var = get(market, Symbol("type"), nothing), params = params);
     if functions.ccxtruthy(limit != nothing)
         if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
             limit = min(limit, 1000);
@@ -2858,17 +3019,31 @@ function fetchOrderBook(self::Gate, symbol, limit=nothing, params=Dict())
     priceKey = functions.ccxtruthy(get(market, Symbol("spot"), nothing)) ? 0 : "p";
     amountKey = functions.ccxtruthy(get(market, Symbol("spot"), nothing)) ? 1 : "s";
     nonce = safeInteger(response, "id");
-    result = self.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
+    result = self.parseOrderBook(response, symbol, timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = priceKey, amountKey = amountKey);
     result[Symbol("nonce")] = nonce;
     return result
 
 end
-function fetchTicker(self::Gate, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
+see: https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+see: https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Gate, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    (request, query) = self.prepareRequest(market, nothing, params);
+    (request, query) = self.prepareRequest(market = market, type_var = nothing, params = params);
     if functions.ccxtruthy(@functions.ccxt_or(get(market, Symbol("spot"), nothing), get(market, Symbol("margin"), nothing)))
         response = Base.fetch(self.publicSpotGetTickers(extend(request, query)));
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
@@ -2904,13 +3079,13 @@ function fetchTicker(self::Gate, symbol, params=Dict())
     if functions.ccxtruthy(ticker == nothing)
         throw(NullResponse(string(self.id, " fetchTicker() returned empty response")));
     end
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
-function parseTicker(self::Gate, ticker, market=nothing)
+function parseTicker(self::Gate, ticker; market=nothing)
     marketId = safeStringN(ticker, ["currency_pair", "contract", "name"]);
     marketType = functions.ccxtruthy((ccxt_in("mark_price", ticker))) ? "contract" : "spot";
-    symbol = self.safeSymbol(marketId, market, "_", marketType);
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_", marketType = marketType);
     last_var = safeString2(ticker, "last", "last_price");
     ask = safeStringN(ticker, ["lowest_ask", "a", "ask1_price"]);
     bid = safeStringN(ticker, ["highest_bid", "b", "bid1_price"]);
@@ -2951,21 +3126,35 @@ function parseTicker(self::Gate, ticker, market=nothing)
     Symbol("markPrice") => safeString(ticker, "mark_price"),
     Symbol("indexPrice") => safeString(ticker, "index_price"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Gate, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
+see: https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+see: https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Gate; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     first_var = safeString(symbols, 0);
     market = nothing;
     if functions.ccxtruthy(first_var != nothing)
         market = self.market(first_var);
     end
-    (type_var, query) = self.handleMarketTypeAndParams("fetchTickers", market, params);
-    (request, requestParams) = self.prepareRequest(nothing, type_var, query);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
+    (request, requestParams) = self.prepareRequest(market = nothing, type_var = type_var, params = query);
     request[Symbol("timezone")] = "utc0";
     if functions.ccxtruthy(@functions.ccxt_or(type_var == "spot", type_var == "margin"))
         response = Base.fetch(self.publicSpotGetTickers(extend(request, requestParams)));
@@ -2985,7 +3174,7 @@ function fetchTickers(self::Gate, symbols=nothing, params=Dict())
         end
 
     end
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
 function parseBalanceHelper(self::Gate, entry)
@@ -2999,7 +3188,27 @@ function parseBalanceHelper(self::Gate, entry)
     return account
 
 end
-function fetchBalance(self::Gate, params=Dict())
+"""
+see: https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+see: https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+see: https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+see: https://www.gate.com/docs/developers/apiv4/en/#funding-account-list
+see: https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+see: https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-account-information
+
+# Arguments
+- `params`::object, optional: exchange specific parameters
+- `params.type`::string, optional: spot, margin, swap or future, if not provided this.options['defaultType'] is used
+- `params.settle`::string, optional: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+- `params.symbol`::string, optional: margin only - unified ccxt symbol
+- `params.unifiedAccount`::bool, optional: default false, set to true for fetching the unified account balance
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Gate; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3008,8 +3217,8 @@ function fetchBalance(self::Gate, params=Dict())
     params = omit(params, "symbol");
     isUnifiedAccount = false;
     (isUnifiedAccount, params) = self.handleOptionAndParams(params, "fetchBalance", "unifiedAccount");
-    (type_var, query) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
-    (request, requestParams) = self.prepareRequest(nothing, type_var, query);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
+    (request, requestParams) = self.prepareRequest(market = nothing, type_var = type_var, params = query);
     (marginMode, requestQuery) = self.getMarginMode(false, requestParams);
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
@@ -3076,7 +3285,7 @@ function fetchBalance(self::Gate, params=Dict())
         entry = get(data, i + 1, nothing);
         if functions.ccxtruthy(isolated)
             marketId = safeString(entry, "currency_pair");
-            symbolInner = self.safeSymbol(marketId, nothing, "_", "margin");
+            symbolInner = self.safeSymbol(marketId, market = nothing, delimiter = "_", marketType = "margin");
             base = safeValue(entry, "base", Dict{Symbol, Any}());
             quote_var = safeValue(entry, "quote", Dict{Symbol, Any}());
             baseCode = self.safeCurrencyCode(safeString(base, "currency"));
@@ -3095,7 +3304,27 @@ function fetchBalance(self::Gate, params=Dict())
     return returnResult
 
 end
-function fetchOHLCV(self::Gate, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
+see: https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
+see: https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart-2             // future
+see: https://www.gate.com/docs/developers/apiv4/en/#options-contract-market-candlestick-chart // option
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
+"""
+function fetchOHLCV(self::Gate, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3103,14 +3332,14 @@ function fetchOHLCV(self::Gate, symbol, timeframe="1m", since=nothing, limit=not
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 1000))
     end
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
-            return Base.fetch(self.fetchOptionOHLCV(symbol, timeframe, since, limit, params))
+            return Base.fetch(self.fetchOptionOHLCV(symbol, timeframe = timeframe, since = since, limit = limit, params = params))
     end
     price = safeString(params, "price");
     request = Dict{Symbol, Any}();
-    (request, params) = self.prepareRequest(market, nothing, params);
+    (request, params) = self.prepareRequest(market = market, type_var = nothing, params = params);
     request[Symbol("interval")] = safeString(self.timeframes, timeframe, timeframe);
     maxLimit = functions.ccxtruthy(get(market, Symbol("contract"), nothing)) ? 1999 : 1000;
     limit = functions.ccxtruthy((limit == nothing)) ? maxLimit : min(limit, maxLimit);
@@ -3153,22 +3382,37 @@ function fetchOHLCV(self::Gate, symbol, timeframe="1m", since=nothing, limit=not
     else
         response = Base.fetch(self.publicSpotGetCandlesticks(extend(request, params)));
     end
-    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchOptionOHLCV(self::Gate, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+function fetchOptionOHLCV(self::Gate, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}();
-    (request, params) = self.prepareRequest(market, nothing, params);
+    (request, params) = self.prepareRequest(market = market, type_var = nothing, params = params);
     request[Symbol("interval")] = safeString(self.timeframes, timeframe, timeframe);
     response = Base.fetch(self.publicOptionsGetCandlesticks(extend(request, params)));
-    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchFundingRateHistory(self::Gate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Gate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -3178,14 +3422,14 @@ function fetchFundingRateHistory(self::Gate, symbol=nothing, since=nothing, limi
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params))
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
         throw(BadSymbol(string(self.id, " fetchFundingRateHistory() supports swap contracts only")));
     end
     request = Dict{Symbol, Any}();
-    (request, params) = self.prepareRequest(market, nothing, params);
+    (request, params) = self.prepareRequest(market = market, type_var = nothing, params = params);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
@@ -3201,7 +3445,7 @@ function fetchFundingRateHistory(self::Gate, symbol=nothing, since=nothing, limi
     rates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        entry = self.safeDict(response, i, Dict{Symbol, Any}());
+        entry = self.safeDict(response, i, defaultValue = Dict{Symbol, Any}());
         timestamp = safeTimestamp(entry, "t");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
@@ -3213,10 +3457,10 @@ function fetchFundingRateHistory(self::Gate, symbol=nothing, since=nothing, limi
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function parseOHLCV(self::Gate, ohlcv, market=nothing)
+function parseOHLCV(self::Gate, ohlcv; market=nothing)
     if functions.ccxtruthy(functions.ccxt_isArray(ohlcv))
             return [safeTimestamp(ohlcv, 0), self.safeNumber(ohlcv, 5), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 6)]
     else
@@ -3224,17 +3468,35 @@ function parseOHLCV(self::Gate, ohlcv, market=nothing)
     end
 
 end
-function fetchTrades(self::Gate, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.gate.com/docs/developers/apiv4/en/#query-market-transaction-records
+see: https://www.gate.com/docs/developers/apiv4/en/#futures-market-transaction-records
+see: https://www.gate.com/docs/developers/apiv4/en/#futures-market-transaction-records-2
+see: https://www.gate.com/docs/developers/apiv4/en/#market-trade-records
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Gate, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = self.market(symbol);
-    (request, query) = self.prepareRequest(market, nothing, params);
+    (request, query) = self.prepareRequest(market = market, type_var = nothing, params = params);
     until = safeInteger2(params, "to", "until");
     if functions.ccxtruthy(until != nothing)
         params = omit(params, ["until"]);
@@ -3260,23 +3522,67 @@ function fetchTrades(self::Gate, symbol, since=nothing, limit=nothing, params=Di
         end
 
     end
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrderTrades(self::Gate, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Gate, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrderTrades() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    response = Base.fetch(self.fetchMyTrades(symbol, since, limit, Dict{Symbol, Any}(
+    response = Base.fetch(self.fetchMyTrades(symbol = symbol, since = since, limit = limit, params = Dict{Symbol, Any}(
         Symbol("order_id") => id
     )));
     return response
 
 end
-function fetchMyTrades(self::Gate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Fetch personal trading history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+- `params.type`::string, optional: 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+- `params.until`::int, optional: The latest timestamp, in ms, that fetched trades were made
+- `params.page`::int, optional: *spot only* Page number
+- `params.order_id`::string, optional: *spot only* Filter trades with specified order ID. symbol is also required if this field is present
+- `params.order`::string, optional: *contract only* Futures order ID, return related data only if specified
+- `params.offset`::int, optional: *contract only* list offset, starting from 0
+- `params.last_id`::string, optional: *contract only* specify list staring point using the id of last record in previous list-query results
+- `params.count_total`::int, optional: *contract only* whether to return total number matched, default to 0(no return)
+- `params.unifiedAccount`::bool, optional: set to true for fetching trades in a unified account
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Gate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3284,7 +3590,7 @@ function fetchMyTrades(self::Gate, symbol=nothing, since=nothing, limit=nothing,
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     type_var = nothing;
     marginMode = nothing;
@@ -3292,10 +3598,10 @@ function fetchMyTrades(self::Gate, symbol=nothing, since=nothing, limit=nothing,
     market = functions.ccxtruthy((symbol != nothing)) ? self.market(symbol) : nothing;
     until = safeInteger(params, "until");
     params = omit(params, ["until"]);
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     contract = @functions.ccxt_or(@functions.ccxt_or((type_var == "swap"), (type_var == "future")), (type_var == "option"));
     if functions.ccxtruthy(contract)
-        (request, params) = self.prepareRequest(market, type_var, params);
+        (request, params) = self.prepareRequest(market = market, type_var = type_var, params = params);
         if functions.ccxtruthy(type_var == "option")
             params = omit(params, "order_id");
         end
@@ -3329,10 +3635,10 @@ function fetchMyTrades(self::Gate, symbol=nothing, since=nothing, limit=nothing,
         end
 
     end
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Gate, trade, market=nothing)
+function parseTrade(self::Gate, trade; market=nothing)
     id = safeString2(trade, "id", "trade_id");
     timestamp = nothing;
     msString = safeString(trade, "create_time_ms");
@@ -3345,7 +3651,7 @@ function parseTrade(self::Gate, trade, market=nothing)
     end
     marketId = safeString2(trade, "currency_pair", "contract");
     marketType = functions.ccxtruthy((ccxt_in("contract", trade))) ? "contract" : "spot";
-    market = self.safeMarket(marketId, market, "_", marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_", marketType = marketType);
     amountString = safeString2(trade, "amount", "size");
     priceString = safeString(trade, "price");
     contractSide = functions.ccxtruthy(stringLt(amountString, "0")) ? "sell" : "buy";
@@ -3395,17 +3701,32 @@ function parseTrade(self::Gate, trade, market=nothing)
     Symbol("cost") => nothing,
     Symbol("fee") => nothing,
     Symbol("fees") => fees
-), market)
+), market = market)
 
 end
-function fetchDeposits(self::Gate, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://www.gate.com/docs/developers/apiv4/en/#get-deposit-records
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Gate; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", symbol = code, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -3421,19 +3742,34 @@ function fetchDeposits(self::Gate, code=nothing, since=nothing, limit=nothing, p
         request[Symbol("from")] = start;
         request[Symbol("to")] = self.sum(start, 30 * 24 * 60 * 60);
     end
-    (request, params) = self.handleUntilOption("to", request, params, 0.001);
+    (request, params) = self.handleUntilOption("to", request, params, multiplier = 0.001);
     response = Base.fetch(self.privateWalletGetDeposits(extend(request, params)));
-    return self.parseTransactions(response, currency)
+    return self.parseTransactions(response, currency = currency)
 
 end
-function fetchWithdrawals(self::Gate, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://www.gate.com/docs/developers/apiv4/en/#get-withdrawal-records
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Gate; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", symbol = code, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -3449,14 +3785,28 @@ function fetchWithdrawals(self::Gate, code=nothing, since=nothing, limit=nothing
         request[Symbol("from")] = start;
         request[Symbol("to")] = self.sum(start, 30 * 24 * 60 * 60);
     end
-    (request, params) = self.handleUntilOption("to", request, params, 0.001);
+    (request, params) = self.handleUntilOption("to", request, params, multiplier = 0.001);
     response = Base.fetch(self.privateWalletGetWithdrawals(extend(request, params)));
-    return self.parseTransactions(response, currency)
+    return self.parseTransactions(response, currency = currency)
 
 end
-function withdraw(self::Gate, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://www.gate.com/docs/developers/apiv4/en/#withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Gate, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3472,10 +3822,10 @@ function withdraw(self::Gate, code, amount, address, tag=nothing, params=Dict())
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("chain")] = self.networkCodeToId(networkCode, code);
+        request[Symbol("chain")] = self.networkCodeToId(networkCode, currencyCode = code);
     end
     response = Base.fetch(self.privateWithdrawalsPostWithdrawals(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
 function parseTransactionStatus(self::Gate, status)
@@ -3505,7 +3855,7 @@ function parseTransactionType(self::Gate, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseTransaction(self::Gate, transaction, currency=nothing)
+function parseTransaction(self::Gate, transaction; currency=nothing)
     id = safeString(transaction, "id");
     type_var = nothing;
     amountString = safeString(transaction, "amount");
@@ -3536,7 +3886,7 @@ function parseTransaction(self::Gate, transaction, currency=nothing)
     Symbol("txid") => txid,
     Symbol("currency") => code,
     Symbol("amount") => self.parseNumber(amountString),
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("address") => address,
     Symbol("addressTo") => nothing,
     Symbol("addressFrom") => nothing,
@@ -3557,7 +3907,45 @@ function parseTransaction(self::Gate, transaction, currency=nothing)
 )
 
 end
-function createOrder(self::Gate, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+Create an order on the exchange
+see: https://www.gate.com/docs/developers/apiv4/en/#create-an-order
+see: https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order
+see: https://www.gate.com/docs/developers/apiv4/en/#place-futures-order
+see: https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order-2
+see: https://www.gate.com/docs/developers/apiv4/en/#place-futures-order-2
+see: https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order-3
+see: https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market' *"market" is contract only*
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "PO"
+- `params.stopLossPrice`::float, optional: The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price at which a take profit order is triggered at
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+- `params.iceberg`::int, optional: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+- `params.text`::string, optional: User defined information
+- `params.account`::string, optional: *spot and margin only* "spot", "margin" or "cross_margin"
+- `params.auto_borrow`::bool, optional: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+- `params.settle`::string, optional: *contract only* Unified Currency Code for settle currency
+- `params.reduceOnly`::bool, optional: *contract only* Indicates if this order is to reduce the size of a position
+- `params.close`::bool, optional: *contract only* Set as true to close the position, with size set to 0
+- `params.auto_size`::bool, optional: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+- `params.price_type`::int, optional: *contract only* 0 latest deal price, 1 mark price, 2 index price
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.unifiedAccount`::bool, optional: set to true for creating an order in the unified account
+- `params.clientOrderId`::string, optional: the clientOrderId of the order
+
+# Returns
+- [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Gate, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3571,7 +3959,7 @@ function createOrder(self::Gate, symbol, type_var, side, amount, price=nothing, 
     isTakeProfitOrder = takeProfitPrice != nothing;
     isTpsl = @functions.ccxt_or(isStopLossOrder, isTakeProfitOrder);
     nonTriggerOrder = @functions.ccxt_and(!functions.ccxtruthy(isTpsl), (trigger == nothing));
-    orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     if functions.ccxtruthy(@functions.ccxt_or(get(market, Symbol("spot"), nothing), get(market, Symbol("margin"), nothing)))
         if functions.ccxtruthy(nonTriggerOrder)
             response = Base.fetch(self.privateSpotPostOrders(orderRequest));
@@ -3596,10 +3984,10 @@ function createOrder(self::Gate, symbol, type_var, side, amount, price=nothing, 
         end
 
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createOrdersRequest(self::Gate, orders, params=Dict())
+function createOrdersRequest(self::Gate, orders; params=Dict())
     ordersRequests = [];
     orderSymbols = [];
     ordersLength = length(orders);
@@ -3625,11 +4013,11 @@ function createOrdersRequest(self::Gate, orders, params=Dict())
             throw(NotSupported(string(self.id, " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")));
         end
         extendedParams[Symbol("textIsRequired")] = true;
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, extendedParams);
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = extendedParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
-    symbols = self.marketSymbols(orderSymbols, nothing, false, true, true);
+    symbols = self.marketSymbols(symbols = orderSymbols, type_var = nothing, allowEmpty = false, sameTypeOnly = true, sameSubTypeOnly = true);
     market = self.market(get(symbols, 1, nothing));
     if functions.ccxtruthy(@functions.ccxt_or(get(market, Symbol("future"), nothing), get(market, Symbol("option"), nothing)))
         throw(NotSupported(string(self.id, " createOrders() does not support futures or options markets")));
@@ -3637,12 +4025,24 @@ function createOrdersRequest(self::Gate, orders, params=Dict())
     return ordersRequests
 
 end
-function createOrders(self::Gate, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://www.gate.com/docs/developers/apiv4/en/#batch-place-orders
+see: https://www.gate.com/docs/developers/apiv4/en/#place-batch-futures-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Gate, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.loadUnifiedStatus());
-    ordersRequests = self.createOrdersRequest(orders, params);
+    ordersRequests = self.createOrdersRequest(orders, params = params);
     firstOrder = get(orders, 1, nothing);
     market = self.market(get(firstOrder, Symbol("symbol"), nothing));
     response = nothing;
@@ -3654,7 +4054,7 @@ function createOrders(self::Gate, orders, params=Dict())
     return self.parseOrders(response)
 
 end
-function createOrderRequest(self::Gate, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Gate, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -3676,8 +4076,8 @@ function createOrderRequest(self::Gate, symbol, type_var, side, amount, price=no
     reduceOnly = safeValue(params, "reduceOnly");
     exchangeSpecificTimeInForce = safeStringLowerN(params, ["timeInForce", "tif", "time_in_force"]);
     postOnly = nothing;
-    (postOnly, params) = self.handlePostOnly(type_var == "market", exchangeSpecificTimeInForce == "poc", params);
-    timeInForce = self.handleTimeInForce(params);
+    (postOnly, params) = self.handlePostOnly(type_var == "market", exchangeSpecificTimeInForce == "poc", params = params);
+    timeInForce = self.handleTimeInForce(params = params);
     if functions.ccxtruthy(postOnly)
         timeInForce = "poc";
     end
@@ -3746,7 +4146,7 @@ function createOrderRequest(self::Gate, symbol, type_var, side, amount, price=no
             if functions.ccxtruthy(@functions.ccxt_and(isMarketOrder, (side == "buy")))
                 quoteAmount = nothing;
                 createMarketBuyOrderRequiresPrice = true;
-                (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
                 cost = self.safeNumber(params, "cost");
                 params = omit(params, "cost");
                 if functions.ccxtruthy(cost != nothing)
@@ -3774,7 +4174,7 @@ function createOrderRequest(self::Gate, symbol, type_var, side, amount, price=no
                 request[Symbol("time_in_force")] = timeInForce;
             end
         end
-        textIsRequired = self.safeBool(params, "textIsRequired", false);
+        textIsRequired = self.safeBool(params, "textIsRequired", defaultValue = false);
         if functions.ccxtruthy(clientOrderId != nothing)
             if functions.ccxtruthy(functions.ccxt_gt(length(clientOrderId), 28))
                 throw(BadRequest(string(self.id, " createOrder () clientOrderId or text param must be up to 28 characters")));
@@ -3880,7 +4280,20 @@ function createOrderRequest(self::Gate, symbol, type_var, side, amount, price=no
     return extend(request, params)
 
 end
-function createMarketBuyOrderWithCost(self::Gate, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.gate.com/docs/developers/apiv4/en/#create-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unifiedAccount`::bool, optional: set to true for creating a unified account order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Gate, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3892,13 +4305,13 @@ function createMarketBuyOrderWithCost(self::Gate, symbol, cost, params=Dict())
     params = extend(params, Dict{Symbol, Any}(
     Symbol("createMarketBuyOrderRequiresPrice") => false
 ));
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = params))
 
 end
-function editOrderRequest(self::Gate, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+function editOrderRequest(self::Gate, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     market = self.market(symbol);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("editOrder", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("editOrder", market = market, params = params);
     account = self.convertTypeToAccount(marketType);
     isUnifiedAccount = false;
     (isUnifiedAccount, params) = self.handleOptionAndParams(params, "editOrder", "unifiedAccount");
@@ -3936,19 +4349,37 @@ function editOrderRequest(self::Gate, id, symbol, type_var, side, amount=nothing
     return extend(request, params)
 
 end
-function editOrder(self::Gate, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order, gate currently only supports the modification of the price or amount fields
+see: https://www.gate.com/docs/developers/apiv4/en/#amend-single-order
+see: https://www.gate.com/docs/developers/apiv4/en/#amend-single-order-2
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unifiedAccount`::bool, optional: set to true for editing an order in a unified account
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Gate, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.loadUnifiedStatus());
     market = self.market(symbol);
-    extendedRequest = self.editOrderRequest(id, symbol, type_var, side, amount, price, params);
+    extendedRequest = self.editOrderRequest(id, symbol, type_var, side, amount = amount, price = price, params = params);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         response = Base.fetch(self.privateSpotPatchOrdersOrderId(extendedRequest));
     else
         response = Base.fetch(self.privateFuturesPutSettleOrdersOrderId(extendedRequest));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
 function parseOrderStatus(self::Gate, status)
@@ -3968,8 +4399,8 @@ function parseOrderStatus(self::Gate, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Gate, order, market=nothing)
-    succeeded = self.safeBool(order, "succeeded", true);
+function parseOrder(self::Gate, order; market=nothing)
+    succeeded = self.safeBool(order, "succeeded", defaultValue = true);
     if functions.ccxtruthy(!functions.ccxtruthy(succeeded))
             return self.safeOrder(Dict{Symbol, Any}(
     Symbol("clientOrderId") => safeString(order, "text"),
@@ -4037,7 +4468,7 @@ function parseOrder(self::Gate, order, market=nothing)
         marketType = "spot";
     end
     exchangeSymbol = safeString2(order, "currency_pair", "market", contract);
-    symbol = self.safeSymbol(exchangeSymbol, market, "_", marketType);
+    symbol = self.safeSymbol(exchangeSymbol, market = market, delimiter = "_", marketType = marketType);
     fees = [];
     gtFee = safeString(order, "gt_fee");
     if functions.ccxtruthy(gtFee != nothing)
@@ -4083,9 +4514,9 @@ function parseOrder(self::Gate, order, market=nothing)
     if functions.ccxtruthy(lastTradeTimestampStr != nothing)
         lastTradeTimestamp = self.parseToInt(lastTradeTimestampStr);
     end
-    initial = self.safeDict(order, "initial", Dict{Symbol, Any}());
+    initial = self.safeDict(order, "initial", defaultValue = Dict{Symbol, Any}());
     reduceOnlyInitial = self.safeBool(initial, "is_reduce_only");
-    reduceOnly = self.safeBool(order, "is_reduce_only", reduceOnlyInitial);
+    reduceOnly = self.safeBool(order, "is_reduce_only", defaultValue = reduceOnlyInitial);
     clientOrderId = safeString(order, "text");
     if functions.ccxtruthy(clientOrderId == nothing)
         if functions.ccxtruthy(ccxt_in("initial", order))
@@ -4118,12 +4549,12 @@ function parseOrder(self::Gate, order, market=nothing)
     Symbol("fees") => functions.ccxtruthy(multipleFeeCurrencies) ? fees : [],
     Symbol("trades") => nothing,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
-function fetchOrderRequest(self::Gate, id, symbol=nothing, params=Dict())
+function fetchOrderRequest(self::Gate, id; symbol=nothing, params=Dict())
     market = functions.ccxtruthy((symbol == nothing)) ? nothing : self.market(symbol);
-    trigger = self.safeBoolN(params, ["trigger", "is_stop_order", "stop"], false);
+    trigger = self.safeBoolN(params, ["trigger", "is_stop_order", "stop"], defaultValue = false);
     params = omit(params, ["is_stop_order", "stop", "trigger"]);
     clientOrderId = safeString2(params, "text", "clientOrderId");
     orderId = id;
@@ -4134,23 +4565,46 @@ function fetchOrderRequest(self::Gate, id, symbol=nothing, params=Dict())
         end
         orderId = clientOrderId;
     end
-    (type_var, query) = self.handleMarketTypeAndParams("fetchOrder", market, params);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchOrder", market = market, params = params);
     contract = @functions.ccxt_or(@functions.ccxt_or((type_var == "swap"), (type_var == "future")), (type_var == "option"));
-    (request, requestParams) = functions.ccxtruthy(contract) ? self.prepareRequest(market, type_var, query) : self.spotOrderPrepareRequest(market, trigger, query);
+    (request, requestParams) = functions.ccxtruthy(contract) ? self.prepareRequest(market = market, type_var = type_var, params = query) : self.spotOrderPrepareRequest(market = market, trigger = trigger, params = query);
     request[Symbol("order_id")] =     string(orderId);
     return [request, requestParams]
 
 end
-function fetchOrder(self::Gate, id, symbol=nothing, params=Dict())
+"""
+Retrieves information on an order
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-3
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-3
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-4
+
+# Arguments
+- `id`::string: Order id
+- `symbol`::string: Unified market symbol, *required for spot and margin*
+- `params`::object, optional: Parameters specified by the exchange api
+- `params.trigger`::bool, optional: True if the order being fetched is a trigger order
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+- `params.type`::string, optional: 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+- `params.settle`::string, optional: 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
+- `params.unifiedAccount`::bool, optional: set to true for fetching a unified account order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Gate, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.loadUnifiedStatus());
     market = functions.ccxtruthy((symbol == nothing)) ? nothing : self.market(symbol);
-    result = self.handleMarketTypeAndParams("fetchOrder", market, params);
+    result = self.handleMarketTypeAndParams("fetchOrder", market = market, params = params);
     type_var = safeString(result, 0);
-    trigger = self.safeBoolN(params, ["trigger", "is_stop_order", "stop"], false);
-    (request, requestParams) = self.fetchOrderRequest(id, symbol, params);
+    trigger = self.safeBoolN(params, ["trigger", "is_stop_order", "stop"], defaultValue = false);
+    (request, requestParams) = self.fetchOrderRequest(id, symbol = symbol, params = params);
     if functions.ccxtruthy(@functions.ccxt_or(type_var == "spot", type_var == "margin"))
         if functions.ccxtruthy(trigger)
             response = Base.fetch(self.privateSpotGetPriceOrdersOrderId(extend(request, requestParams)));
@@ -4177,14 +4631,57 @@ function fetchOrder(self::Gate, id, symbol=nothing, params=Dict())
         end
 
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOpenOrders(self::Gate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStatus("open", symbol, since, limit, params))
+"""
+fetch all unfilled currently open orders
+see: https://www.gate.com/docs/developers/apiv4/en/#list-all-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true for fetching trigger orders
+- `params.type`::string, optional: spot, margin, swap or future, if not provided this.options['defaultType'] is used
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
+- `params.unifiedAccount`::bool, optional: set to true for fetching unified account orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Gate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStatus("open", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchClosedOrders(self::Gate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.gate.com/en-eu/docs/developers/apiv4/#list-orders
+see: https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list
+see: https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list-2
+see: https://www.gate.com/docs/developers/apiv4/en/#list-options-orders
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-by-time-range
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true for fetching trigger orders
+- `params.type`::string, optional: spot, swap or future, if not provided this.options['defaultType'] is used
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+- `params.historical`::bool, optional: *swap only* true for using historical endpoint
+- `params.unifiedAccount`::bool, optional: set to true for fetching unified account orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Gate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4192,7 +4689,7 @@ function fetchClosedOrders(self::Gate, symbol=nothing, since=nothing, limit=noth
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol = symbol, since = since, limit = limit, params = params))
     end
     until = safeInteger(params, "until");
     market = nothing;
@@ -4200,16 +4697,16 @@ function fetchClosedOrders(self::Gate, symbol=nothing, since=nothing, limit=noth
         market = self.market(symbol);
         symbol = get(market, Symbol("symbol"), nothing);
     end
-    res = self.handleMarketTypeAndParams("fetchClosedOrders", market, params);
+    res = self.handleMarketTypeAndParams("fetchClosedOrders", market = market, params = params);
     type_var = safeString(res, 0);
     useHistorical = false;
-    (useHistorical, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "historical", false);
+    (useHistorical, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "historical", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(useHistorical), (@functions.ccxt_or((@functions.ccxt_and(since == nothing, until == nothing)), (type_var != "swap")))))
-            return Base.fetch(self.fetchOrdersByStatus("finished", symbol, since, limit, params))
+            return Base.fetch(self.fetchOrdersByStatus("finished", symbol = symbol, since = since, limit = limit, params = params))
     end
     params = omit(params, "type");
     request = Dict{Symbol, Any}();
-    (request, params) = self.prepareRequest(market, type_var, params);
+    (request, params) = self.prepareRequest(market = market, type_var = type_var, params = params);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("from")] = self.parseToInt(since / 1000);
     end
@@ -4221,10 +4718,10 @@ function fetchClosedOrders(self::Gate, symbol=nothing, since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateFuturesGetSettleOrdersTimerange(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function prepareOrdersByStatusRequest(self::Gate, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function prepareOrdersByStatusRequest(self::Gate, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
@@ -4233,10 +4730,10 @@ function prepareOrdersByStatusRequest(self::Gate, status, symbol=nothing, since=
     trigger = nothing;
     (trigger, params) = self.handleParamBool2(params, "trigger", "stop");
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOrdersByStatus", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOrdersByStatus", market = market, params = params);
     spot = @functions.ccxt_or((type_var == "spot"), (type_var == "margin"));
     request = Dict{Symbol, Any}();
-    (request, params) = functions.ccxtruthy(spot) ? self.multiOrderSpotPrepareRequest(market, trigger, params) : self.prepareRequest(market, type_var, params);
+    (request, params) = functions.ccxtruthy(spot) ? self.multiOrderSpotPrepareRequest(market = market, trigger = trigger, params = params) : self.prepareRequest(market = market, type_var = type_var, params = params);
     if functions.ccxtruthy(@functions.ccxt_and(spot, trigger))
         request = omit(request, "account");
     end
@@ -4264,7 +4761,7 @@ function prepareOrdersByStatusRequest(self::Gate, status, symbol=nothing, since=
     return [request, finalParams]
 
 end
-function fetchOrdersByStatus(self::Gate, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrdersByStatus(self::Gate, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4275,9 +4772,9 @@ function fetchOrdersByStatus(self::Gate, status, symbol=nothing, since=nothing, 
         symbol = get(market, Symbol("symbol"), nothing);
     end
     trigger = self.safeBool2(params, "trigger", "stop");
-    res = self.handleMarketTypeAndParams("fetchOrdersByStatus", market, params);
+    res = self.handleMarketTypeAndParams("fetchOrdersByStatus", market = market, params = params);
     type_var = safeString(res, 0);
-    (request, requestParams) = self.prepareOrdersByStatusRequest(status, symbol, since, limit, params);
+    (request, requestParams) = self.prepareOrdersByStatusRequest(status, symbol = symbol, since = since, limit = limit, params = params);
     spot = @functions.ccxt_or((type_var == "spot"), (type_var == "margin"));
     openStatus = (status == "open");
     openSpotOrders = @functions.ccxt_and(@functions.ccxt_and(spot, openStatus), !functions.ccxtruthy(trigger));
@@ -4316,7 +4813,7 @@ function fetchOrdersByStatus(self::Gate, status, symbol=nothing, since=nothing, 
         spotResult = [];
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-            responseEntry = self.safeDict(response, i, Dict{Symbol, Any}());
+            responseEntry = self.safeDict(response, i, defaultValue = Dict{Symbol, Any}());
             ordersInner = safeValue(responseEntry, "orders");
             spotResult = arrayConcat(spotResult, ordersInner);
             i += 1
@@ -4324,20 +4821,40 @@ function fetchOrdersByStatus(self::Gate, status, symbol=nothing, since=nothing, 
 
         result = spotResult;
     end
-    orders = self.parseOrders(result, market, since, limit);
-    return self.filterBySymbolSinceLimit(orders, symbol, since, limit)
+    orders = self.parseOrders(result, market = market, since = since, limit = limit);
+    return self.filterBySymbolSinceLimit(orders, symbol = symbol, since = since, limit = limit)
 
 end
-function cancelOrder(self::Gate, id, symbol=nothing, params=Dict())
+"""
+Cancels an open order
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-2
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-2
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-3
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-3
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-4
+
+# Arguments
+- `id`::string: Order id
+- `symbol`::string: Unified market symbol
+- `params`::object, optional: Parameters specified by the exchange api
+- `params.trigger`::bool, optional: True if the order to be cancelled is a trigger order
+- `params.unifiedAccount`::bool, optional: set to true for canceling unified account orders
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Gate, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.loadUnifiedStatus());
     market = functions.ccxtruthy((symbol == nothing)) ? nothing : self.market(symbol);
-    trigger = self.safeBoolN(params, ["is_stop_order", "stop", "trigger"], false);
+    trigger = self.safeBoolN(params, ["is_stop_order", "stop", "trigger"], defaultValue = false);
     params = omit(params, ["is_stop_order", "stop", "trigger"]);
-    (type_var, query) = self.handleMarketTypeAndParams("cancelOrder", market, params);
-    (request, requestParams) = functions.ccxtruthy((@functions.ccxt_or(type_var == "spot", type_var == "margin"))) ? self.spotOrderPrepareRequest(market, trigger, query) : self.prepareRequest(market, type_var, query);
+    (type_var, query) = self.handleMarketTypeAndParams("cancelOrder", market = market, params = params);
+    (request, requestParams) = functions.ccxtruthy((@functions.ccxt_or(type_var == "spot", type_var == "margin"))) ? self.spotOrderPrepareRequest(market = market, trigger = trigger, params = query) : self.prepareRequest(market = market, type_var = type_var, params = query);
     request[Symbol("order_id")] = id;
     if functions.ccxtruthy(@functions.ccxt_or(type_var == "spot", type_var == "margin"))
         if functions.ccxtruthy(trigger)
@@ -4365,10 +4882,24 @@ function cancelOrder(self::Gate, id, symbol=nothing, params=Dict())
         end
 
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrders(self::Gate, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list-2
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unifiedAccount`::bool, optional: set to true for canceling unified account orders
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Gate, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4380,7 +4911,7 @@ function cancelOrders(self::Gate, ids, symbol=nothing, params=Dict())
     type_var = nothing;
     defaultSettle = functions.ccxtruthy((market == nothing)) ? "usdt" : get(market, Symbol("settle"), nothing);
     settle = safeStringLower(params, "settle", defaultSettle);
-    (type_var, params) = self.handleMarketTypeAndParams("cancelOrders", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("cancelOrders", market = market, params = params);
     isSpot = (type_var == "spot");
     if functions.ccxtruthy(@functions.ccxt_and(isSpot, (symbol == nothing)))
         throw(ArgumentsRequired(string(self.id, " cancelOrders requires a symbol argument for spot markets")));
@@ -4398,7 +4929,7 @@ function cancelOrders(self::Gate, ids, symbol=nothing, params=Dict())
             i += 1
         end
 
-            return Base.fetch(self.cancelOrdersForSymbols(ordersRequests, params))
+            return Base.fetch(self.cancelOrdersForSymbols(ordersRequests, params = params))
     end
     request = Dict{Symbol, Any}(
         Symbol("settle") => settle
@@ -4413,7 +4944,20 @@ function cancelOrders(self::Gate, ids, symbol=nothing, params=Dict())
     return self.parseOrders(response)
 
 end
-function cancelOrdersForSymbols(self::Gate, orders, params=Dict())
+"""
+cancel multiple orders for multiple symbols
+see: https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list
+
+# Arguments
+- `orders`::array: list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+- `params.unifiedAccount`::bool, optional: set to true for canceling unified account orders
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrdersForSymbols(self::Gate, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4439,7 +4983,25 @@ function cancelOrdersForSymbols(self::Gate, orders, params=Dict())
     return self.parseOrders(response)
 
 end
-function cancelAllOrders(self::Gate, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-2
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-2
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-3
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-3
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unifiedAccount`::bool, optional: set to true for canceling unified account orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Gate; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4447,8 +5009,8 @@ function cancelAllOrders(self::Gate, symbol=nothing, params=Dict())
     market = functions.ccxtruthy((symbol == nothing)) ? nothing : self.market(symbol);
     trigger = self.safeBool2(params, "stop", "trigger");
     params = omit(params, ["stop", "trigger"]);
-    (type_var, query) = self.handleMarketTypeAndParams("cancelAllOrders", market, params);
-    (request, requestParams) = functions.ccxtruthy((type_var == "spot")) ? self.multiOrderSpotPrepareRequest(market, trigger, query) : self.prepareRequest(market, type_var, query);
+    (type_var, query) = self.handleMarketTypeAndParams("cancelAllOrders", market = market, params = params);
+    (request, requestParams) = functions.ccxtruthy((type_var == "spot")) ? self.multiOrderSpotPrepareRequest(market = market, trigger = trigger, params = query) : self.prepareRequest(market = market, type_var = type_var, params = query);
     if functions.ccxtruthy(@functions.ccxt_or(type_var == "spot", type_var == "margin"))
         if functions.ccxtruthy(trigger)
             response = Base.fetch(self.privateSpotDeletePriceOrders(extend(request, requestParams)));
@@ -4475,10 +5037,25 @@ function cancelAllOrders(self::Gate, symbol=nothing, params=Dict())
         end
 
     end
-    return self.parseOrders(response, market)
+    return self.parseOrders(response, market = market)
 
 end
-function transfer(self::Gate, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://www.gate.com/docs/developers/apiv4/en/#transfer-between-trading-accounts
+
+# Arguments
+- `code`::string: unified currency code for currency being transferred
+- `amount`::float: the amount of currency to transfer
+- `fromAccount`::string: the account to transfer currency from
+- `toAccount`::string: the account to transfer currency to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: Unified market symbol *required for type == margin*
+
+# Returns
+- A [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Gate, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4515,15 +5092,15 @@ function transfer(self::Gate, code, amount, fromAccount, toAccount, params=Dict(
         request[Symbol("settle")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateWalletPostTransfers(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function parseTransfer(self::Gate, transfer, currency=nothing)
+function parseTransfer(self::Gate, transfer; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("id") => safeString(transfer, "tx_id"),
     Symbol("timestamp") => nothing,
     Symbol("datetime") => nothing,
-    Symbol("currency") => self.safeCurrencyCode(nothing, currency),
+    Symbol("currency") => self.safeCurrencyCode(nothing, currency = currency),
     Symbol("amount") => nothing,
     Symbol("fromAccount") => nothing,
     Symbol("toAccount") => nothing,
@@ -4532,7 +5109,20 @@ function parseTransfer(self::Gate, transfer, currency=nothing)
 )
 
 end
-function setLeverage(self::Gate, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-leverage
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-leverage-2
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Gate, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -4543,7 +5133,7 @@ function setLeverage(self::Gate, leverage, symbol=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    (request, query) = self.prepareRequest(market, nothing, params);
+    (request, query) = self.prepareRequest(market = market, type_var = nothing, params = params);
     defaultMarginMode = safeString2(self.options, "marginMode", "defaultMarginMode");
     crossLeverageLimit = safeString(query, "cross_leverage_limit");
     marginMode = safeString(query, "marginMode", defaultMarginMode);
@@ -4568,9 +5158,9 @@ function setLeverage(self::Gate, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function parsePosition(self::Gate, position, market=nothing)
+function parsePosition(self::Gate, position; market=nothing)
     contract = safeString(position, "contract");
-    market = self.safeMarket(contract, market, "_", "contract");
+    market = self.safeMarket(marketId = contract, market = market, delimiter = "_", marketType = "contract");
     size_var = safeString2(position, "size", "accum_size");
     side = safeString(position, "side");
     if functions.ccxtruthy(side == nothing)
@@ -4633,7 +5223,20 @@ function parsePosition(self::Gate, position, market=nothing)
 ))
 
 end
-function fetchPosition(self::Gate, symbol, params=Dict())
+"""
+fetch data on an open contract position
+see: https://www.gate.com/docs/developers/apiv4/en/#get-single-position-information
+see: https://www.gate.com/docs/developers/apiv4/en/#get-single-position-information-2
+see: https://www.gate.com/docs/developers/apiv4/en/#get-specified-contract-position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Gate, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4642,7 +5245,7 @@ function fetchPosition(self::Gate, symbol, params=Dict())
         throw(BadRequest(string(self.id, " fetchPosition() supports contract markets only")));
     end
     request = Dict{Symbol, Any}();
-    (request, params) = self.prepareRequest(market, get(market, Symbol("type"), nothing), params);
+    (request, params) = self.prepareRequest(market = market, type_var = get(market, Symbol("type"), nothing), params = params);
     extendedRequest = extend(request, params);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
@@ -4658,15 +5261,30 @@ function fetchPosition(self::Gate, symbol, params=Dict())
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " fetchPosition() returned empty response")));
     end
-    return self.parsePosition(response, market)
+    return self.parsePosition(response, market = market)
 
 end
-function fetchPositions(self::Gate, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://www.gate.com/docs/developers/apiv4/en/#get-user-position-list
+see: https://www.gate.com/docs/developers/apiv4/en/#get-user-position-list-2
+see: https://www.gate.com/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
+
+# Arguments
+- `symbols`::any: Not used by gate, but parsed internally by CCXT
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.settle`::string, optional: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+- `params.type`::string, optional: swap, future or option, if not provided this.options['defaultType'] is used
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Gate; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = nothing;
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     if functions.ccxtruthy(symbols != nothing)
         symbolsLength = length(symbols);
         if functions.ccxtruthy(functions.ccxt_gt(symbolsLength, 0))
@@ -4675,7 +5293,7 @@ function fetchPositions(self::Gate, symbols=nothing, params=Dict())
     end
     type_var = nothing;
     request = Dict{Symbol, Any}();
-    (type_var, params) = self.handleMarketTypeAndParams("fetchPositions", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchPositions", market = market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or((type_var == nothing), (type_var == "spot")))
         type_var = "swap";
     end
@@ -4686,7 +5304,7 @@ function fetchPositions(self::Gate, symbols=nothing, params=Dict())
             request[Symbol("underlying")] = safeString(optionParts, 0);
         end
     else
-        (request, params) = self.prepareRequest(nothing, type_var, params);
+        (request, params) = self.prepareRequest(market = nothing, type_var = type_var, params = params);
     end
     response = nothing;
     if functions.ccxtruthy(type_var == "swap")
@@ -4703,15 +5321,27 @@ function fetchPositions(self::Gate, symbols=nothing, params=Dict())
     if functions.ccxtruthy(response != nothing)
         responseList = toArray(response);
     end
-    return self.parsePositions(responseList, symbols)
+    return self.parsePositions(responseList, symbols = symbols)
 
 end
-function fetchLeverageTiers(self::Gate, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Gate; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    (type_var, query) = self.handleMarketTypeAndParams("fetchLeverageTiers", nothing, params);
-    (request, requestParams) = self.prepareRequest(nothing, type_var, query);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchLeverageTiers", market = nothing, params = params);
+    (request, requestParams) = self.prepareRequest(market = nothing, type_var = type_var, params = query);
     if functions.ccxtruthy(@functions.ccxt_and(type_var != "future", type_var != "swap"))
         throw(BadRequest(string(self.id, " fetchLeverageTiers only supports swap and future")));
     end
@@ -4722,16 +5352,28 @@ function fetchLeverageTiers(self::Gate, symbols=nothing, params=Dict())
     else
         throw(NotSupported(string(self.id, " fetchLeverageTiers() not support this market type")));
     end
-    return self.parseLeverageTiers(response, symbols, "name")
+    return self.parseLeverageTiers(response, symbols = symbols, marketIdKey = "name")
 
 end
-function fetchMarketLeverageTiers(self::Gate, symbol, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+see: https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+see: https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+function fetchMarketLeverageTiers(self::Gate, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    (type_var, query) = self.handleMarketTypeAndParams("fetchMarketLeverageTiers", market, params);
-    (request, requestParams) = self.prepareRequest(market, type_var, query);
+    (type_var, query) = self.handleMarketTypeAndParams("fetchMarketLeverageTiers", market = market, params = params);
+    (request, requestParams) = self.prepareRequest(market = market, type_var = type_var, params = query);
     if functions.ccxtruthy(@functions.ccxt_and(type_var != "future", type_var != "swap"))
         throw(BadRequest(string(self.id, " fetchMarketLeverageTiers only supports swap and future")));
     end
@@ -4740,10 +5382,10 @@ function fetchMarketLeverageTiers(self::Gate, symbol, params=Dict())
     else
         response = Base.fetch(self.publicDeliveryGetSettleRiskLimitTiers(extend(request, requestParams)));
     end
-    return self.parseMarketLeverageTiers(response, market)
+    return self.parseMarketLeverageTiers(response, market = market)
 
 end
-function parseEmulatedLeverageTiers(self::Gate, info, market=nothing)
+function parseEmulatedLeverageTiers(self::Gate, info; market=nothing)
     marketId = safeString(info, "name");
     maintenanceMarginUnit = safeString(info, "maintenance_rate");
     leverageMax = safeString(info, "leverage_max");
@@ -4758,7 +5400,7 @@ function parseEmulatedLeverageTiers(self::Gate, info, market=nothing)
         cap = stringAdd(floor_var, riskLimitStep);
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => self.parseNumber(stringDiv(cap, riskLimitStep)),
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("currency") => safeString(market, "settle"),
     Symbol("minNotional") => self.parseNumber(floor_var),
     Symbol("maxNotional") => self.parseNumber(cap),
@@ -4773,9 +5415,9 @@ function parseEmulatedLeverageTiers(self::Gate, info, market=nothing)
     return tiers
 
 end
-function parseMarketLeverageTiers(self::Gate, info, market=nothing)
+function parseMarketLeverageTiers(self::Gate, info; market=nothing)
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(info)))
-            return self.parseEmulatedLeverageTiers(info, market)
+            return self.parseEmulatedLeverageTiers(info, market = market)
     end
     minNotional = 0;
     tiers = [];
@@ -4799,7 +5441,22 @@ function parseMarketLeverageTiers(self::Gate, info, market=nothing)
     return tiers
 
 end
-function repayIsolatedMargin(self::Gate, symbol, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.mode`::string, optional: 'all' or 'partial' payment mode, extra parameter required for isolated margin
+- `params.id`::string, optional: '34267567' loan id, extra parameter required for isolated margin
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayIsolatedMargin(self::Gate, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4812,10 +5469,25 @@ function repayIsolatedMargin(self::Gate, symbol, code, amount, params=Dict())
     request[Symbol("currency_pair")] = get(market, Symbol("id"), nothing);
     request[Symbol("type")] = "repay";
     response = Base.fetch(self.privateMarginPostUniLoans(extend(request, params)));
-    return self.parseMarginLoan(response, currency)
+    return self.parseMarginLoan(response, currency = currency)
 
 end
-function repayCrossMargin(self::Gate, code, amount, params=Dict())
+"""
+repay cross margin borrowed margin and interest
+see: https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.mode`::string, optional: 'all' or 'partial' payment mode, extra parameter required for isolated margin
+- `params.id`::string, optional: '34267567' loan id, extra parameter required for isolated margin
+- `params.unifiedAccount`::bool, optional: set to true for repaying in the unified account
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayCrossMargin(self::Gate, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4834,10 +5506,24 @@ function repayCrossMargin(self::Gate, code, amount, params=Dict())
         response = Base.fetch(self.privateMarginPostCrossRepayments(extend(request, params)));
         response = self.safeDict(response, 0);
     end
-    return self.parseMarginLoan(response, currency)
+    return self.parseMarginLoan(response, currency = currency)
 
 end
-function borrowIsolatedMargin(self::Gate, symbol, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
+
+# Arguments
+- `symbol`::string: unified market symbol, required for isolated margin
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.rate`::string, optional: '0.0002' or '0.002' extra parameter required for isolated margin
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowIsolatedMargin(self::Gate, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4850,10 +5536,24 @@ function borrowIsolatedMargin(self::Gate, symbol, code, amount, params=Dict())
     request[Symbol("currency_pair")] = get(market, Symbol("id"), nothing);
     request[Symbol("type")] = "borrow";
     response = Base.fetch(self.privateMarginPostUniLoans(extend(request, params)));
-    return self.parseMarginLoan(response, currency)
+    return self.parseMarginLoan(response, currency = currency)
 
 end
-function borrowCrossMargin(self::Gate, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.rate`::string, optional: '0.0002' or '0.002' extra parameter required for isolated margin
+- `params.unifiedAccount`::bool, optional: default true (set to false to use deprecated privateMarginPostCrossLoans method)
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowCrossMargin(self::Gate, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4871,10 +5571,10 @@ function borrowCrossMargin(self::Gate, code, amount, params=Dict())
     else
         response = Base.fetch(self.privateMarginPostCrossLoans(extend(request, params)));
     end
-    return self.parseMarginLoan(response, currency)
+    return self.parseMarginLoan(response, currency = currency)
 
 end
-function parseMarginLoan(self::Gate, info, currency=nothing)
+function parseMarginLoan(self::Gate, info; currency=nothing)
     marginMode = safeString2(self.options, "defaultMarginMode", "marginMode", "cross");
     timestamp = safeInteger(info, "create_time");
     if functions.ccxtruthy(marginMode == "isolated")
@@ -4884,16 +5584,32 @@ function parseMarginLoan(self::Gate, info, currency=nothing)
     marketId = safeString(info, "currency_pair");
     return Dict{Symbol, Any}(
     Symbol("id") => safeString(info, "id"),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(info, "amount"),
-    Symbol("symbol") => self.safeSymbol(marketId, nothing, "_", "margin"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = nothing, delimiter = "_", marketType = "margin"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => info
 )
 
 end
-function fetchBorrowInterest(self::Gate, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://www.gate.com/docs/developers/apiv4/en/#query-interest-deduction-records
+see: https://www.gate.com/docs/developers/apiv4/en/#query-interest-deduction-records-2
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `symbol`::string, optional: unified market symbol when fetching interest in isolated markets
+- `since`::int, optional: the earliest time in ms to fetch borrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unifiedAccount`::bool, optional: set to true for fetching borrow interest in the unified account
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+function fetchBorrowInterest(self::Gate; code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4919,7 +5635,7 @@ function fetchBorrowInterest(self::Gate, code=nothing, symbol=nothing, since=not
     end
     response = nothing;
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBorrowInterest", params, "cross");
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBorrowInterest", params = params, defaultValue = "cross");
     if functions.ccxtruthy(isUnifiedAccount)
         response = Base.fetch(self.privateUnifiedGetInterestRecords(extend(request, params)));
     elseif functions.ccxtruthy(marginMode == "isolated")
@@ -4933,13 +5649,13 @@ function fetchBorrowInterest(self::Gate, code=nothing, symbol=nothing, since=not
         end
 
     end
-    interest = self.parseBorrowInterests(response, market);
-    return self.filterByCurrencySinceLimit(interest, code, since, limit)
+    interest = self.parseBorrowInterests(response, market = market);
+    return self.filterByCurrencySinceLimit(interest, code = code, since = since, limit = limit)
 
 end
-function parseBorrowInterest(self::Gate, info, market=nothing)
+function parseBorrowInterest(self::Gate, info; market=nothing)
     marketId = safeString(info, "currency_pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     marginMode = functions.ccxtruthy((marketId != nothing)) ? "isolated" : "cross";
     timestamp = safeInteger(info, "create_time");
     return Dict{Symbol, Any}(
@@ -4959,7 +5675,7 @@ function nonce(self::Gate, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function sign(self::Gate, path, api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Gate, path; api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
     authentication = get(api, 1, nothing);
     type_var = get(api, 2, nothing);
     query = omit(params, self.extractParams(path));
@@ -5052,12 +5768,12 @@ function sign(self::Gate, path, api=[], method="GET", params=Dict(), headers=not
 )
 
 end
-function modifyMarginHelper(self::Gate, symbol, amount, params=Dict())
+function modifyMarginHelper(self::Gate, symbol, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    (request, query) = self.prepareRequest(market, nothing, params);
+    (request, query) = self.prepareRequest(market = market, type_var = nothing, params = params);
     request[Symbol("change")] = numberToString(amount);
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         response = Base.fetch(self.privateFuturesPostSettlePositionsContractMargin(extend(request, query)));
@@ -5066,12 +5782,12 @@ function modifyMarginHelper(self::Gate, symbol, amount, params=Dict())
     else
         throw(NotSupported(string(self.id, " modifyMarginHelper() not support this market type")));
     end
-    return self.parseMarginModification(response, market)
+    return self.parseMarginModification(response, market = market)
 
 end
-function parseMarginModification(self::Gate, data, market=nothing)
+function parseMarginModification(self::Gate, data; market=nothing)
     contract = safeString(data, "contract");
-    market = self.safeMarket(contract, market, "_", "contract");
+    market = self.safeMarket(marketId = contract, market = market, delimiter = "_", marketType = "contract");
     total = self.safeNumber(data, "margin");
     return Dict{Symbol, Any}(
     Symbol("info") => data,
@@ -5087,22 +5803,63 @@ function parseMarginModification(self::Gate, data, market=nothing)
 )
 
 end
-function reduceMargin(self::Gate, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, -amount, params))
+"""
+remove margin from a position
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-margin
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-margin-2
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Gate, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, -amount, params = params))
 
 end
-function addMargin(self::Gate, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, params))
+"""
+add margin
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-margin
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-margin-2
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Gate, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, params = params))
 
 end
-function fetchOpenInterestHistory(self::Gate, symbol, timeframe="5m", since=nothing, limit=nothing, params=Dict())
+"""
+Retrieves the open interest of a currency
+see: https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `timeframe`::string: "5m", "15m", "30m", "1h", "4h", "1d"
+- `since`::int, optional: the time(ms) of the earliest record to retrieve as a unix timestamp
+- `limit`::int, optional: default 30
+- `params`::object, optional: exchange specific parameters
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterestHistory(self::Gate, symbol; timeframe="5m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 100))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 100))
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
@@ -5120,10 +5877,10 @@ function fetchOpenInterestHistory(self::Gate, symbol, timeframe="5m", since=noth
         request[Symbol("from")] = since;
     end
     response = Base.fetch(self.publicFuturesGetSettleContractStats(extend(request, params)));
-    return self.parseOpenInterestsHistory(response, market, since, limit)
+    return self.parseOpenInterestsHistory(response, market = market, since = since, limit = limit)
 
 end
-function parseOpenInterest(self::Gate, interest, market=nothing)
+function parseOpenInterest(self::Gate, interest; market=nothing)
     timestamp = safeTimestamp(interest, "time");
     return Dict{Symbol, Any}(
     Symbol("symbol") => safeString(market, "symbol"),
@@ -5135,7 +5892,20 @@ function parseOpenInterest(self::Gate, interest, market=nothing)
 )
 
 end
-function fetchSettlementHistory(self::Gate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records
+see: https://www.gate.com/docs/developers/apiv4/en/#list-settlement-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history, required on gate
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+function fetchSettlementHistory(self::Gate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchSettlementHistory() requires a symbol argument")));
     end
@@ -5144,7 +5914,7 @@ function fetchSettlementHistory(self::Gate, symbol=nothing, since=nothing, limit
     end
     market = self.market(symbol);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchSettlementHistory", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchSettlementHistory", market = market, params = params);
     if functions.ccxtruthy(type_var != "option")
         throw(NotSupported(string(self.id, " fetchSettlementHistory() supports option markets only")));
     end
@@ -5162,10 +5932,24 @@ function fetchSettlementHistory(self::Gate, symbol=nothing, since=nothing, limit
     response = Base.fetch(self.publicOptionsGetSettlements(extend(request, params)));
     settlements = self.parseSettlements(response, market);
     sorted = sortBy(settlements, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchMySettlementHistory(self::Gate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records of the user
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+see: https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]
+"""
+function fetchMySettlementHistory(self::Gate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5175,13 +5959,13 @@ function fetchMySettlementHistory(self::Gate, symbol=nothing, since=nothing, lim
         symbol = get(market, Symbol("symbol"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMySettlementHistory", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMySettlementHistory", market = market, params = params);
     isOption = type_var == "option";
     isFuture = type_var == "future";
     if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(isOption), !functions.ccxtruthy(isFuture)))
         throw(NotSupported(string(self.id, " fetchMySettlementHistory() supports option and future markets only")));
     end
-    (request, query) = self.prepareRequest(market, type_var, params);
+    (request, query) = self.prepareRequest(market = market, type_var = type_var, params = params);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
@@ -5207,7 +5991,7 @@ function fetchMySettlementHistory(self::Gate, symbol=nothing, since=nothing, lim
     data = safeValue(result, "list", []);
     settlements = self.parseSettlements(data, market);
     sorted = sortBy(settlements, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
 function parseSettlement(self::Gate, settlement, market)
@@ -5215,7 +5999,7 @@ function parseSettlement(self::Gate, settlement, market)
     marketId = safeString(settlement, "contract");
     return Dict{Symbol, Any}(
     Symbol("info") => settlement,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("price") => self.safeNumber(settlement, "settle_price"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
@@ -5232,20 +6016,39 @@ function parseSettlements(self::Gate, settlements, market)
     return result
 
 end
-function fetchLedger(self::Gate, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.gate.com/docs/developers/apiv4/en/#query-spot-account-transaction-history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-margin-account-balance-change-history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-account-change-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Gate; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", symbol = code, since = since, limit = limit, params = params))
     end
     type_var = nothing;
     currency = nothing;
     response = nothing;
     request = Dict{Symbol, Any}();
-    (type_var, params) = self.handleMarketTypeAndParams("fetchLedger", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchLedger", market = nothing, params = params);
     if functions.ccxtruthy(@functions.ccxt_or((type_var == "spot"), (type_var == "margin")))
         if functions.ccxtruthy(code != nothing)
             currency = self.currency(code);
@@ -5282,10 +6085,10 @@ function fetchLedger(self::Gate, code=nothing, since=nothing, limit=nothing, par
         end
 
     end
-    return self.parseLedger(response, currency, since, limit)
+    return self.parseLedger(response, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Gate, item, currency=nothing)
+function parseLedgerEntry(self::Gate, item; currency=nothing)
     direction = nothing;
     amount = safeString(item, "change");
     if functions.ccxtruthy(stringLt(amount, "0"))
@@ -5295,7 +6098,7 @@ function parseLedgerEntry(self::Gate, item, currency=nothing)
         direction = "in";
     end
     currencyId = safeString(item, "currency");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     type_var = safeString(item, "type");
     rawTimestamp = safeString(item, "time");
     timestamp = nothing;
@@ -5315,7 +6118,7 @@ function parseLedgerEntry(self::Gate, item, currency=nothing)
     Symbol("referenceAccount") => nothing,
     Symbol("referenceId") => nothing,
     Symbol("type") => self.parseLedgerEntryType(type_var),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.parseNumber(amount),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -5323,7 +6126,7 @@ function parseLedgerEntry(self::Gate, item, currency=nothing)
     Symbol("after") => self.safeNumber(item, "balance"),
     Symbol("status") => nothing,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Gate, type_var)
@@ -5370,19 +6173,43 @@ function parseLedgerEntryType(self::Gate, type_var)
     return safeString(ledgerType, type_var, type_var)
 
 end
-function setPositionMode(self::Gate, hedged, symbol=nothing, params=Dict())
+"""
+set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
+see: https://www.gate.com/docs/developers/apiv4/en/#set-position-mode
+
+# Arguments
+- `hedged`::bool: set to true to enable dual mode
+- `symbol`::any: if passed, dual mode is set for all markets with the same settle currency
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.settle`::string: settle currency
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Gate, hedged; symbol=nothing, params=Dict())
     market = functions.ccxtruthy((symbol != nothing)) ? self.market(symbol) : nothing;
-    (request, query) = self.prepareRequest(market, "swap", params);
+    (request, query) = self.prepareRequest(market = market, type_var = "swap", params = params);
     request[Symbol("dual_mode")] = hedged;
     return Base.fetch(self.privateFuturesPostSettleDualMode(extend(request, query)))
 
 end
-function fetchUnderlyingAssets(self::Gate, params=Dict())
+"""
+fetches the market ids of underlying assets for a specific contract market type
+see: https://www.gate.com/docs/developers/apiv4/en/#list-all-underlying-assets
+
+# Arguments
+- `params`::object, optional: exchange specific params
+- `params.type`::string, optional: the contract market type, 'option', 'swap' or 'future', the default is 'option'
+
+# Returns
+- a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
+"""
+function fetchUnderlyingAssets(self::Gate; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchUnderlyingAssets", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchUnderlyingAssets", market = nothing, params = params);
     if functions.ccxtruthy(@functions.ccxt_or((marketType == nothing), (marketType == "spot")))
         marketType = "option";
     end
@@ -5393,7 +6220,7 @@ function fetchUnderlyingAssets(self::Gate, params=Dict())
     underlyings = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        underlying = self.safeDict(response, i, Dict{Symbol, Any}());
+        underlying = self.safeDict(response, i, defaultValue = Dict{Symbol, Any}());
         name = safeString(underlying, "name");
         if functions.ccxtruthy(name != nothing)
                         push!(underlyings, name);
@@ -5403,7 +6230,21 @@ function fetchUnderlyingAssets(self::Gate, params=Dict())
     return underlyings
 
 end
-function fetchLiquidations(self::Gate, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the public liquidations of a trading pair
+see: https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-order-history
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchLiquidations(self::Gate, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5423,10 +6264,25 @@ function fetchLiquidations(self::Gate, symbol, since=nothing, limit=nothing, par
     end
     (request, params) = self.handleUntilOption("to", request, params);
     response = Base.fetch(self.publicFuturesGetSettleLiqOrders(extend(request, params)));
-    return self.parseLiquidations(toArray(response), market, since, limit)
+    return self.parseLiquidations(toArray(response), market = market, since = since, limit = limit)
 
 end
-function fetchMyLiquidations(self::Gate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the users liquidated positions
+see: https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-history-2
+see: https://www.gate.com/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the exchange API endpoint
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchMyLiquidations(self::Gate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyLiquidations() requires a symbol argument")));
     end
@@ -5459,10 +6315,10 @@ function fetchMyLiquidations(self::Gate, symbol=nothing, since=nothing, limit=no
         end
 
     end
-    return self.parseLiquidations(toArray(response), market, since, limit)
+    return self.parseLiquidations(toArray(response), market = market, since = since, limit = limit)
 
 end
-function parseLiquidation(self::Gate, liquidation, market=nothing)
+function parseLiquidation(self::Gate, liquidation; market=nothing)
     marketId = safeString(liquidation, "contract");
     timestamp = safeTimestamp(liquidation, "time");
     size_var = safeString2(liquidation, "size", "settle_size");
@@ -5492,7 +6348,7 @@ function parseLiquidation(self::Gate, liquidation, market=nothing)
     end
     return self.safeLiquidation(Dict{Symbol, Any}(
     Symbol("info") => liquidation,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("contracts") => self.parseNumber(contractsString),
     Symbol("contractSize") => self.parseNumber(contractSizeString),
     Symbol("price") => self.parseNumber(priceString),
@@ -5504,7 +6360,18 @@ function parseLiquidation(self::Gate, liquidation, market=nothing)
 ))
 
 end
-function fetchGreeks(self::Gate, symbol, params=Dict())
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchGreeks(self::Gate, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5516,19 +6383,19 @@ function fetchGreeks(self::Gate, symbol, params=Dict())
     marketId = get(market, Symbol("id"), nothing);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        entry = self.safeDict(response, i, Dict{Symbol, Any}());
+        entry = self.safeDict(response, i, defaultValue = Dict{Symbol, Any}());
         entryMarketId = safeString(entry, "name");
         if functions.ccxtruthy(entryMarketId == marketId)
-                return self.parseGreeks(entry, market)
+                return self.parseGreeks(entry, market = market)
         end
         i += 1
     end
     throw(NullResponse(string(self.id, " fetchGreeks() could not find greeks for ", symbol)));
 
 end
-function parseGreeks(self::Gate, greeks, market=nothing)
+function parseGreeks(self::Gate, greeks; market=nothing)
     marketId = safeString(greeks, "name");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     if functions.ccxtruthy(market == nothing)
         throw(ExchangeError(string(self.id, " parseGreeks() could not resolve market")));
     end
@@ -5555,7 +6422,21 @@ function parseGreeks(self::Gate, greeks, market=nothing)
 )
 
 end
-function closePosition(self::Gate, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a market
+see: https://www.gate.com/docs/developers/apiv4/en/#place-futures-order
+see: https://www.gate.com/docs/developers/apiv4/en/#place-futures-order-2
+see: https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string: 'buy' or 'sell'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closePosition(self::Gate, symbol; side=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("close") => true
     );
@@ -5563,10 +6444,23 @@ function closePosition(self::Gate, symbol, side=nothing, params=Dict())
     if functions.ccxtruthy(side == nothing)
         side = "";
     end
-    return Base.fetch(self.createOrder(symbol, "market", side, 0, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", side, 0, price = nothing, params = params))
 
 end
-function fetchLeverage(self::Gate, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+see: https://www.gate.com/docs/developers/apiv4/en/#get-lending-market-details
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unified`::bool, optional: default false, set to true for fetching the unified accounts leverage
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Gate, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5589,14 +6483,26 @@ function fetchLeverage(self::Gate, symbol, params=Dict())
     else
         throw(NotSupported(string(self.id, " fetchLeverage() does not support ", safeString(market, "type"), " markets")));
     end
-    return self.parseLeverage(response, market)
+    return self.parseLeverage(response, market = market)
 
 end
-function fetchLeverages(self::Gate, symbols=nothing, params=Dict())
+"""
+fetch the set leverage for all leverage markets, only spot margin is supported on gate
+see: https://www.gate.com/docs/developers/apiv4/en/#list-lending-markets
+
+# Arguments
+- `symbols`::array: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unified`::bool, optional: default false, set to true for fetching unified account leverages
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverages(self::Gate; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     isUnified = self.safeBool(params, "unified");
     params = omit(params, "unified");
     marketIdRequest = "id";
@@ -5606,22 +6512,33 @@ function fetchLeverages(self::Gate, symbols=nothing, params=Dict())
     else
         response = Base.fetch(self.publicMarginGetCurrencyPairs(params));
     end
-    return self.parseLeverages(toArray(response), symbols, marketIdRequest, "spot")
+    return self.parseLeverages(toArray(response), symbols = symbols, symbolKey = marketIdRequest, marketType = "spot")
 
 end
-function parseLeverage(self::Gate, leverage, market=nothing)
+function parseLeverage(self::Gate, leverage; market=nothing)
     marketId = safeString2(leverage, "currency_pair", "id");
     leverageValue = safeInteger(leverage, "leverage");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market, "_", "spot"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = "_", marketType = "spot"),
     Symbol("marginMode") => nothing,
     Symbol("longLeverage") => leverageValue,
     Symbol("shortLeverage") => leverageValue
 )
 
 end
-function fetchOption(self::Gate, symbol, params=Dict())
+"""
+fetches option data that is commonly found in an option chain
+see: https://www.gate.com/docs/developers/apiv4/en/#query-specified-contract-details
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+function fetchOption(self::Gate, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5630,10 +6547,23 @@ function fetchOption(self::Gate, symbol, params=Dict())
         Symbol("contract") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicOptionsGetContractsContract(extend(request, params)));
-    return self.parseOption(response, nothing, market)
+    return self.parseOption(response, currency = nothing, market = market)
 
 end
-function fetchOptionChain(self::Gate, code, params=Dict())
+"""
+fetches data for an underlying asset that is commonly found in an option chain
+see: https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date
+
+# Arguments
+- `code`::string: base currency to fetch an option chain for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.underlying`::string, optional: the underlying asset, can be obtained from fetchUnderlyingAssets ()
+- `params.expiration`::int, optional: unix timestamp of the expiration time
+
+# Returns
+- a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+function fetchOptionChain(self::Gate, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5642,12 +6572,12 @@ function fetchOptionChain(self::Gate, code, params=Dict())
         Symbol("underlying") => string(get(currency, Symbol("code"), nothing), "_USDT")
     );
     response = Base.fetch(self.publicOptionsGetContracts(extend(request, params)));
-    return self.parseOptionChain(toArray(response), nothing, "name")
+    return self.parseOptionChain(toArray(response), currencyKey = nothing, symbolKey = "name")
 
 end
-function parseOption(self::Gate, chain, currency=nothing, market=nothing)
+function parseOption(self::Gate, chain; currency=nothing, market=nothing)
     marketId = safeString(chain, "name");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeTimestamp(chain, "create_time");
     return Dict{Symbol, Any}(
     Symbol("info") => chain,
@@ -5670,7 +6600,25 @@ function parseOption(self::Gate, chain, currency=nothing, market=nothing)
 )
 
 end
-function fetchPositionsHistory(self::Gate, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://www.gate.com/docs/developers/apiv4/#query-position-close-history
+see: https://www.gate.com/docs/developers/apiv4/#query-position-close-history-2
+
+# Arguments
+- `symbols`::array: unified conract symbols, must all have the same settle currency and the same market type
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum amount of records to fetch, default=1000
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch positions for EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: list offset, starting from 0
+- `params.side`::string, optional: long or short
+- `params.pnl`::string, optional: query profit or loss
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsHistory(self::Gate; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5682,11 +6630,11 @@ function fetchPositionsHistory(self::Gate, symbols=nothing, since=nothing, limit
         end
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchPositionsHistory", market, params, "swap");
+    (marketType, params) = self.handleMarketTypeAndParams("fetchPositionsHistory", market = market, params = params, defaultValue = "swap");
     until = safeInteger(params, "until");
     params = omit(params, "until");
     request = Dict{Symbol, Any}();
-    (request, params) = self.prepareRequest(market, marketType, params);
+    (request, params) = self.prepareRequest(market = market, type_var = marketType, params = params);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
@@ -5707,7 +6655,7 @@ function fetchPositionsHistory(self::Gate, symbols=nothing, since=nothing, limit
     if functions.ccxtruthy(response != nothing)
         responseList = toArray(response);
     end
-    return self.parsePositions(responseList, symbols, params)
+    return self.parsePositions(responseList, symbols = symbols, params = params)
 
 end
 function handleErrors(self::Gate, code, reason, url, method, headers, body, response, requestHeaders, requestBody)
@@ -5789,3 +6737,1145 @@ function Gate(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Gate_loadUnifiedStatus() end
+"""
+returns unifiedAccount so the user can check if the unified account is enabled
+see: https://www.gate.com/docs/developers/apiv4/#retrieve-user-account-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
+"""
+__ccxt_doc_Gate_loadUnifiedStatus
+
+function __ccxt_doc_Gate_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.gate.com/docs/developers/apiv4/#get-server-current-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Gate_fetchTime
+
+function __ccxt_doc_Gate_fetchMarkets() end
+"""
+retrieves data on all markets for gate
+see: https://www.gate.com/docs/developers/apiv4/#query-all-supported-currency-pairs                                       // spot
+see: https://www.gate.com/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts                                           // swap
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2                                         // future
+see: https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date       // option
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Gate_fetchMarkets
+
+function __ccxt_doc_Gate_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-currency-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Gate_fetchCurrencies
+
+function __ccxt_doc_Gate_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-contract-information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Gate_fetchFundingRate
+
+function __ccxt_doc_Gate_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Gate_fetchFundingRates
+
+function __ccxt_doc_Gate_fetchDepositAddressesByNetwork() end
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the api endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+__ccxt_doc_Gate_fetchDepositAddressesByNetwork
+
+function __ccxt_doc_Gate_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: unified network code (not used directly by gate.com but used by ccxt to filter the response)
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Gate_fetchDepositAddress
+
+function __ccxt_doc_Gate_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Gate_fetchTradingFee
+
+function __ccxt_doc_Gate_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Gate_fetchTradingFees
+
+function __ccxt_doc_Gate_fetchTransactionFees() end
+"""
+please use fetchDepositWithdrawFees instead
+see: https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Gate_fetchTransactionFees
+
+function __ccxt_doc_Gate_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Gate_fetchDepositWithdrawFees
+
+function __ccxt_doc_Gate_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history-2
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Gate_fetchFundingHistory
+
+function __ccxt_doc_Gate_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.gate.com/docs/developers/apiv4/en/#get-market-depth-information
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-market-depth-information
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-market-depth-information-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-options-contract-order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Gate_fetchOrderBook
+
+function __ccxt_doc_Gate_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
+see: https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+see: https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Gate_fetchTicker
+
+function __ccxt_doc_Gate_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
+see: https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+see: https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Gate_fetchTickers
+
+function __ccxt_doc_Gate_fetchBalance() end
+"""
+see: https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+see: https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+see: https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+see: https://www.gate.com/docs/developers/apiv4/en/#funding-account-list
+see: https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+see: https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-account-information
+
+# Arguments
+- `params`::object, optional: exchange specific parameters
+- `params.type`::string, optional: spot, margin, swap or future, if not provided this.options['defaultType'] is used
+- `params.settle`::string, optional: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+- `params.symbol`::string, optional: margin only - unified ccxt symbol
+- `params.unifiedAccount`::bool, optional: default false, set to true for fetching the unified account balance
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Gate_fetchBalance
+
+function __ccxt_doc_Gate_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
+see: https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
+see: https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart-2             // future
+see: https://www.gate.com/docs/developers/apiv4/en/#options-contract-market-candlestick-chart // option
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
+"""
+__ccxt_doc_Gate_fetchOHLCV
+
+function __ccxt_doc_Gate_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Gate_fetchFundingRateHistory
+
+function __ccxt_doc_Gate_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.gate.com/docs/developers/apiv4/en/#query-market-transaction-records
+see: https://www.gate.com/docs/developers/apiv4/en/#futures-market-transaction-records
+see: https://www.gate.com/docs/developers/apiv4/en/#futures-market-transaction-records-2
+see: https://www.gate.com/docs/developers/apiv4/en/#market-trade-records
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Gate_fetchTrades
+
+function __ccxt_doc_Gate_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Gate_fetchOrderTrades
+
+function __ccxt_doc_Gate_fetchMyTrades() end
+"""
+Fetch personal trading history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+- `params.type`::string, optional: 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+- `params.until`::int, optional: The latest timestamp, in ms, that fetched trades were made
+- `params.page`::int, optional: *spot only* Page number
+- `params.order_id`::string, optional: *spot only* Filter trades with specified order ID. symbol is also required if this field is present
+- `params.order`::string, optional: *contract only* Futures order ID, return related data only if specified
+- `params.offset`::int, optional: *contract only* list offset, starting from 0
+- `params.last_id`::string, optional: *contract only* specify list staring point using the id of last record in previous list-query results
+- `params.count_total`::int, optional: *contract only* whether to return total number matched, default to 0(no return)
+- `params.unifiedAccount`::bool, optional: set to true for fetching trades in a unified account
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Gate_fetchMyTrades
+
+function __ccxt_doc_Gate_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://www.gate.com/docs/developers/apiv4/en/#get-deposit-records
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Gate_fetchDeposits
+
+function __ccxt_doc_Gate_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://www.gate.com/docs/developers/apiv4/en/#get-withdrawal-records
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Gate_fetchWithdrawals
+
+function __ccxt_doc_Gate_withdraw() end
+"""
+make a withdrawal
+see: https://www.gate.com/docs/developers/apiv4/en/#withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Gate_withdraw
+
+function __ccxt_doc_Gate_createOrder() end
+"""
+Create an order on the exchange
+see: https://www.gate.com/docs/developers/apiv4/en/#create-an-order
+see: https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order
+see: https://www.gate.com/docs/developers/apiv4/en/#place-futures-order
+see: https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order-2
+see: https://www.gate.com/docs/developers/apiv4/en/#place-futures-order-2
+see: https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order-3
+see: https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market' *"market" is contract only*
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "PO"
+- `params.stopLossPrice`::float, optional: The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price at which a take profit order is triggered at
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+- `params.iceberg`::int, optional: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+- `params.text`::string, optional: User defined information
+- `params.account`::string, optional: *spot and margin only* "spot", "margin" or "cross_margin"
+- `params.auto_borrow`::bool, optional: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+- `params.settle`::string, optional: *contract only* Unified Currency Code for settle currency
+- `params.reduceOnly`::bool, optional: *contract only* Indicates if this order is to reduce the size of a position
+- `params.close`::bool, optional: *contract only* Set as true to close the position, with size set to 0
+- `params.auto_size`::bool, optional: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+- `params.price_type`::int, optional: *contract only* 0 latest deal price, 1 mark price, 2 index price
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.unifiedAccount`::bool, optional: set to true for creating an order in the unified account
+- `params.clientOrderId`::string, optional: the clientOrderId of the order
+
+# Returns
+- [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_createOrder
+
+function __ccxt_doc_Gate_createOrders() end
+"""
+create a list of trade orders
+see: https://www.gate.com/docs/developers/apiv4/en/#batch-place-orders
+see: https://www.gate.com/docs/developers/apiv4/en/#place-batch-futures-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_createOrders
+
+function __ccxt_doc_Gate_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.gate.com/docs/developers/apiv4/en/#create-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unifiedAccount`::bool, optional: set to true for creating a unified account order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Gate_editOrder() end
+"""
+edit a trade order, gate currently only supports the modification of the price or amount fields
+see: https://www.gate.com/docs/developers/apiv4/en/#amend-single-order
+see: https://www.gate.com/docs/developers/apiv4/en/#amend-single-order-2
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unifiedAccount`::bool, optional: set to true for editing an order in a unified account
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_editOrder
+
+function __ccxt_doc_Gate_fetchOrder() end
+"""
+Retrieves information on an order
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-3
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-3
+see: https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-4
+
+# Arguments
+- `id`::string: Order id
+- `symbol`::string: Unified market symbol, *required for spot and margin*
+- `params`::object, optional: Parameters specified by the exchange api
+- `params.trigger`::bool, optional: True if the order being fetched is a trigger order
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+- `params.type`::string, optional: 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+- `params.settle`::string, optional: 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
+- `params.unifiedAccount`::bool, optional: set to true for fetching a unified account order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_fetchOrder
+
+function __ccxt_doc_Gate_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.gate.com/docs/developers/apiv4/en/#list-all-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true for fetching trigger orders
+- `params.type`::string, optional: spot, margin, swap or future, if not provided this.options['defaultType'] is used
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
+- `params.unifiedAccount`::bool, optional: set to true for fetching unified account orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_fetchOpenOrders
+
+function __ccxt_doc_Gate_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.gate.com/en-eu/docs/developers/apiv4/#list-orders
+see: https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list
+see: https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list-2
+see: https://www.gate.com/docs/developers/apiv4/en/#list-options-orders
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-by-time-range
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true for fetching trigger orders
+- `params.type`::string, optional: spot, swap or future, if not provided this.options['defaultType'] is used
+- `params.marginMode`::string, optional: 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+- `params.historical`::bool, optional: *swap only* true for using historical endpoint
+- `params.unifiedAccount`::bool, optional: set to true for fetching unified account orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_fetchClosedOrders
+
+function __ccxt_doc_Gate_cancelOrder() end
+"""
+Cancels an open order
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-2
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-2
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-3
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-3
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-4
+
+# Arguments
+- `id`::string: Order id
+- `symbol`::string: Unified market symbol
+- `params`::object, optional: Parameters specified by the exchange api
+- `params.trigger`::bool, optional: True if the order to be cancelled is a trigger order
+- `params.unifiedAccount`::bool, optional: set to true for canceling unified account orders
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_cancelOrder
+
+function __ccxt_doc_Gate_cancelOrders() end
+"""
+cancel multiple orders
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list-2
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unifiedAccount`::bool, optional: set to true for canceling unified account orders
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_cancelOrders
+
+function __ccxt_doc_Gate_cancelOrdersForSymbols() end
+"""
+cancel multiple orders for multiple symbols
+see: https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list
+
+# Arguments
+- `orders`::array: list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+- `params.unifiedAccount`::bool, optional: set to true for canceling unified account orders
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_cancelOrdersForSymbols
+
+function __ccxt_doc_Gate_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-2
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-2
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-3
+see: https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-3
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unifiedAccount`::bool, optional: set to true for canceling unified account orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Gate_cancelAllOrders
+
+function __ccxt_doc_Gate_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://www.gate.com/docs/developers/apiv4/en/#transfer-between-trading-accounts
+
+# Arguments
+- `code`::string: unified currency code for currency being transferred
+- `amount`::float: the amount of currency to transfer
+- `fromAccount`::string: the account to transfer currency from
+- `toAccount`::string: the account to transfer currency to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: Unified market symbol *required for type == margin*
+
+# Returns
+- A [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Gate_transfer
+
+function __ccxt_doc_Gate_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-leverage
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-leverage-2
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Gate_setLeverage
+
+function __ccxt_doc_Gate_fetchPosition() end
+"""
+fetch data on an open contract position
+see: https://www.gate.com/docs/developers/apiv4/en/#get-single-position-information
+see: https://www.gate.com/docs/developers/apiv4/en/#get-single-position-information-2
+see: https://www.gate.com/docs/developers/apiv4/en/#get-specified-contract-position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Gate_fetchPosition
+
+function __ccxt_doc_Gate_fetchPositions() end
+"""
+fetch all open positions
+see: https://www.gate.com/docs/developers/apiv4/en/#get-user-position-list
+see: https://www.gate.com/docs/developers/apiv4/en/#get-user-position-list-2
+see: https://www.gate.com/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
+
+# Arguments
+- `symbols`::any: Not used by gate, but parsed internally by CCXT
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.settle`::string, optional: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+- `params.type`::string, optional: swap, future or option, if not provided this.options['defaultType'] is used
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Gate_fetchPositions
+
+function __ccxt_doc_Gate_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
+see: https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Gate_fetchLeverageTiers
+
+function __ccxt_doc_Gate_fetchMarketLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+see: https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+see: https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+__ccxt_doc_Gate_fetchMarketLeverageTiers
+
+function __ccxt_doc_Gate_repayIsolatedMargin() end
+"""
+repay borrowed margin and interest
+see: https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.mode`::string, optional: 'all' or 'partial' payment mode, extra parameter required for isolated margin
+- `params.id`::string, optional: '34267567' loan id, extra parameter required for isolated margin
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Gate_repayIsolatedMargin
+
+function __ccxt_doc_Gate_repayCrossMargin() end
+"""
+repay cross margin borrowed margin and interest
+see: https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.mode`::string, optional: 'all' or 'partial' payment mode, extra parameter required for isolated margin
+- `params.id`::string, optional: '34267567' loan id, extra parameter required for isolated margin
+- `params.unifiedAccount`::bool, optional: set to true for repaying in the unified account
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Gate_repayCrossMargin
+
+function __ccxt_doc_Gate_borrowIsolatedMargin() end
+"""
+create a loan to borrow margin
+see: https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
+
+# Arguments
+- `symbol`::string: unified market symbol, required for isolated margin
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.rate`::string, optional: '0.0002' or '0.002' extra parameter required for isolated margin
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Gate_borrowIsolatedMargin
+
+function __ccxt_doc_Gate_borrowCrossMargin() end
+"""
+create a loan to borrow margin
+see: https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.rate`::string, optional: '0.0002' or '0.002' extra parameter required for isolated margin
+- `params.unifiedAccount`::bool, optional: default true (set to false to use deprecated privateMarginPostCrossLoans method)
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Gate_borrowCrossMargin
+
+function __ccxt_doc_Gate_fetchBorrowInterest() end
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://www.gate.com/docs/developers/apiv4/en/#query-interest-deduction-records
+see: https://www.gate.com/docs/developers/apiv4/en/#query-interest-deduction-records-2
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `symbol`::string, optional: unified market symbol when fetching interest in isolated markets
+- `since`::int, optional: the earliest time in ms to fetch borrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unifiedAccount`::bool, optional: set to true for fetching borrow interest in the unified account
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+__ccxt_doc_Gate_fetchBorrowInterest
+
+function __ccxt_doc_Gate_reduceMargin() end
+"""
+remove margin from a position
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-margin
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-margin-2
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Gate_reduceMargin
+
+function __ccxt_doc_Gate_addMargin() end
+"""
+add margin
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-margin
+see: https://www.gate.com/docs/developers/apiv4/en/#update-position-margin-2
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Gate_addMargin
+
+function __ccxt_doc_Gate_fetchOpenInterestHistory() end
+"""
+Retrieves the open interest of a currency
+see: https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `timeframe`::string: "5m", "15m", "30m", "1h", "4h", "1d"
+- `since`::int, optional: the time(ms) of the earliest record to retrieve as a unix timestamp
+- `limit`::int, optional: default 30
+- `params`::object, optional: exchange specific parameters
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Gate_fetchOpenInterestHistory
+
+function __ccxt_doc_Gate_fetchSettlementHistory() end
+"""
+fetches historical settlement records
+see: https://www.gate.com/docs/developers/apiv4/en/#list-settlement-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history, required on gate
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+__ccxt_doc_Gate_fetchSettlementHistory
+
+function __ccxt_doc_Gate_fetchMySettlementHistory() end
+"""
+fetches historical settlement records of the user
+see: https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+see: https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]
+"""
+__ccxt_doc_Gate_fetchMySettlementHistory
+
+function __ccxt_doc_Gate_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.gate.com/docs/developers/apiv4/en/#query-spot-account-transaction-history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-margin-account-balance-change-history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history-2
+see: https://www.gate.com/docs/developers/apiv4/en/#query-account-change-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Gate_fetchLedger
+
+function __ccxt_doc_Gate_setPositionMode() end
+"""
+set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
+see: https://www.gate.com/docs/developers/apiv4/en/#set-position-mode
+
+# Arguments
+- `hedged`::bool: set to true to enable dual mode
+- `symbol`::any: if passed, dual mode is set for all markets with the same settle currency
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.settle`::string: settle currency
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Gate_setPositionMode
+
+function __ccxt_doc_Gate_fetchUnderlyingAssets() end
+"""
+fetches the market ids of underlying assets for a specific contract market type
+see: https://www.gate.com/docs/developers/apiv4/en/#list-all-underlying-assets
+
+# Arguments
+- `params`::object, optional: exchange specific params
+- `params.type`::string, optional: the contract market type, 'option', 'swap' or 'future', the default is 'option'
+
+# Returns
+- a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
+"""
+__ccxt_doc_Gate_fetchUnderlyingAssets
+
+function __ccxt_doc_Gate_fetchLiquidations() end
+"""
+retrieves the public liquidations of a trading pair
+see: https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-order-history
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Gate_fetchLiquidations
+
+function __ccxt_doc_Gate_fetchMyLiquidations() end
+"""
+retrieves the users liquidated positions
+see: https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-history
+see: https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-history-2
+see: https://www.gate.com/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the exchange API endpoint
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Gate_fetchMyLiquidations
+
+function __ccxt_doc_Gate_fetchGreeks() end
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Gate_fetchGreeks
+
+function __ccxt_doc_Gate_closePosition() end
+"""
+closes open positions for a market
+see: https://www.gate.com/docs/developers/apiv4/en/#place-futures-order
+see: https://www.gate.com/docs/developers/apiv4/en/#place-futures-order-2
+see: https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string: 'buy' or 'sell'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Gate_closePosition
+
+function __ccxt_doc_Gate_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+see: https://www.gate.com/docs/developers/apiv4/en/#get-lending-market-details
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unified`::bool, optional: default false, set to true for fetching the unified accounts leverage
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Gate_fetchLeverage
+
+function __ccxt_doc_Gate_fetchLeverages() end
+"""
+fetch the set leverage for all leverage markets, only spot margin is supported on gate
+see: https://www.gate.com/docs/developers/apiv4/en/#list-lending-markets
+
+# Arguments
+- `symbols`::array: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.unified`::bool, optional: default false, set to true for fetching unified account leverages
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Gate_fetchLeverages
+
+function __ccxt_doc_Gate_fetchOption() end
+"""
+fetches option data that is commonly found in an option chain
+see: https://www.gate.com/docs/developers/apiv4/en/#query-specified-contract-details
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+__ccxt_doc_Gate_fetchOption
+
+function __ccxt_doc_Gate_fetchOptionChain() end
+"""
+fetches data for an underlying asset that is commonly found in an option chain
+see: https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date
+
+# Arguments
+- `code`::string: base currency to fetch an option chain for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.underlying`::string, optional: the underlying asset, can be obtained from fetchUnderlyingAssets ()
+- `params.expiration`::int, optional: unix timestamp of the expiration time
+
+# Returns
+- a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+__ccxt_doc_Gate_fetchOptionChain
+
+function __ccxt_doc_Gate_fetchPositionsHistory() end
+"""
+fetches historical positions
+see: https://www.gate.com/docs/developers/apiv4/#query-position-close-history
+see: https://www.gate.com/docs/developers/apiv4/#query-position-close-history-2
+
+# Arguments
+- `symbols`::array: unified conract symbols, must all have the same settle currency and the same market type
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum amount of records to fetch, default=1000
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch positions for EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: list offset, starting from 0
+- `params.side`::string, optional: long or short
+- `params.pnl`::string, optional: query profit or loss
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Gate_fetchPositionsHistory

@@ -769,12 +769,21 @@ function describe(self::Bittrade, )
 ))
 
 end
-function fetchTime(self::Bittrade, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Bittrade; params=Dict())
     response = Base.fetch(self.publicGetCommonTimestamp(params));
     return safeInteger(response, "data")
 
 end
-function fetchTradingLimits(self::Bittrade, symbols=nothing, params=Dict())
+function fetchTradingLimits(self::Bittrade; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -788,13 +797,13 @@ function fetchTradingLimits(self::Bittrade, symbols=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
         symbol = get(symbols, i + 1, nothing);
-        result[Symbol(symbol)] = Base.fetch(self.fetchTradingLimitsById(self.marketId(symbol), params));
+        result[Symbol(symbol)] = Base.fetch(self.fetchTradingLimitsById(self.marketId(symbol), params = params));
         i += 1
     end
     return result
 
 end
-function fetchTradingLimitsById(self::Bittrade, id, params=Dict())
+function fetchTradingLimitsById(self::Bittrade, id; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("symbol") => id
     );
@@ -802,7 +811,7 @@ function fetchTradingLimitsById(self::Bittrade, id, params=Dict())
     return self.parseTradingLimits(safeValue(response, "data", Dict{Symbol, Any}()))
 
 end
-function parseTradingLimits(self::Bittrade, limits, symbol=nothing, params=Dict())
+function parseTradingLimits(self::Bittrade, limits; symbol=nothing, params=Dict())
     return Dict{Symbol, Any}(
     Symbol("info") => limits,
     Symbol("limits") => Dict{Symbol, Any}(
@@ -818,8 +827,17 @@ function costToPrecision(self::Bittrade, symbol, cost)
     return decimalToPrecision(cost, TRUNCATE, get(get(self.market(symbol), Symbol("precision"), nothing), Symbol("cost"), nothing), self.precisionMode)
 
 end
-function fetchMarkets(self::Bittrade, params=Dict())
-    method = self.handleOption("fetchMarkets", "method", "publicGetCommonSymbols");
+"""
+retrieves data on all markets for huobijp
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bittrade; params=Dict())
+    method = self.handleOption("fetchMarkets", "method", defaultValue = "publicGetCommonSymbols");
     response = Base.fetch(getproperty(self, Symbol(method))(params));
     markets = safeValue(response, "data", []);
     numMarkets = length(markets);
@@ -872,9 +890,9 @@ function fetchMarkets(self::Bittrade, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "price-precision"))),
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "amount-precision"))),
-        Symbol("cost") => self.parseNumber(self.parsePrecision(safeString(market, "value-precision")))
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "price-precision"))),
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "amount-precision"))),
+        Symbol("cost") => self.parseNumber(self.parsePrecision(precision = safeString(market, "value-precision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -903,8 +921,8 @@ function fetchMarkets(self::Bittrade, params=Dict())
     return result
 
 end
-function parseTicker(self::Bittrade, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Bittrade, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     timestamp = safeInteger(ticker, "ts");
     bid = nothing;
     bidVolume = nothing;
@@ -953,10 +971,21 @@ function parseTicker(self::Bittrade, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchOrderBook(self::Bittrade, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bittrade, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -972,14 +1001,24 @@ function fetchOrderBook(self::Bittrade, symbol, limit=nothing, params=Dict())
         end
         tick = safeValue(response, "tick");
         timestamp = safeInteger(tick, "ts", safeInteger(response, "ts"));
-        result = self.parseOrderBook(tick, symbol, timestamp);
+        result = self.parseOrderBook(tick, symbol, timestamp = timestamp);
         result[Symbol("nonce")] = safeInteger(tick, "version");
             return result
     end
     throw(ExchangeError(string(self.id, " fetchOrderBook() returned unrecognized response: ", json(response))));
 
 end
-function fetchTicker(self::Bittrade, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bittrade, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -988,19 +1027,29 @@ function fetchTicker(self::Bittrade, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.marketGetDetailMerged(extend(request, params)));
-    tick = self.safeDict(response, "tick", Dict{Symbol, Any}());
-    ticker = self.parseTicker(tick, market);
+    tick = self.safeDict(response, "tick", defaultValue = Dict{Symbol, Any}());
+    ticker = self.parseTicker(tick, market = market);
     timestamp = safeInteger(response, "ts");
     ticker[Symbol("timestamp")] = timestamp;
     ticker[Symbol("datetime")] = self.iso8601(timestamp);
     return ticker
 
 end
-function fetchTickers(self::Bittrade, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bittrade; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.marketGetTickers(params));
     tickers = safeValue(response, "data", []);
     timestamp = safeInteger(response, "ts");
@@ -1008,20 +1057,20 @@ function fetchTickers(self::Bittrade, symbols=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
         marketId = safeString(get(tickers, i + 1, nothing), "symbol");
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
         symbol = get(market, Symbol("symbol"), nothing);
-        ticker = self.parseTicker(get(tickers, i + 1, nothing), market);
+        ticker = self.parseTicker(get(tickers, i + 1, nothing), market = market);
         ticker[Symbol("timestamp")] = timestamp;
         ticker[Symbol("datetime")] = self.iso8601(timestamp);
         result[Symbol(symbol)] = ticker;
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function parseTrade(self::Bittrade, trade, market=nothing)
+function parseTrade(self::Bittrade, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     timestamp = safeInteger2(trade, "ts", "created-at");
     order = safeString(trade, "order-id");
     side = safeString(trade, "direction");
@@ -1070,7 +1119,20 @@ function parseTrade(self::Bittrade, trade, market=nothing)
 ))
 
 end
-function fetchOrderTrades(self::Bittrade, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Bittrade, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1078,11 +1140,23 @@ function fetchOrderTrades(self::Bittrade, id, symbol=nothing, since=nothing, lim
         Symbol("id") => id
     );
     response = Base.fetch(self.privateGetOrderOrdersIdMatchresults(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, nothing, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = nothing, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Bittrade, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bittrade; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1099,11 +1173,23 @@ function fetchMyTrades(self::Bittrade, symbol=nothing, since=nothing, limit=noth
         request[Symbol("start-time")] = since;
     end
     response = Base.fetch(self.privateGetOrderMatchresults(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchTrades(self::Bittrade, symbol, since=nothing, limit=1000, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bittrade, symbol; since=nothing, limit=1000, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1122,21 +1208,34 @@ function fetchTrades(self::Bittrade, symbol, since=nothing, limit=1000, params=D
         trades = safeValue(get(data, i + 1, nothing), "data", []);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(trades)))
-            trade = self.parseTrade(get(trades, j + 1, nothing), market);
+            trade = self.parseTrade(get(trades, j + 1, nothing), market = market);
             push!(result, trade);
             j += 1
         end
         i += 1
     end
     result = sortBy(result, "timestamp");
-    return self.filterBySymbolSinceLimit(result, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(result, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function parseOHLCV(self::Bittrade, ohlcv, market=nothing)
+function parseOHLCV(self::Bittrade, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, "id"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "amount")]
 
 end
-function fetchOHLCV(self::Bittrade, symbol, timeframe="1m", since=nothing, limit=1000, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bittrade, symbol; timeframe="1m", since=nothing, limit=1000, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1149,21 +1248,39 @@ function fetchOHLCV(self::Bittrade, symbol, timeframe="1m", since=nothing, limit
         request[Symbol("size")] = min(limit, 2000);
     end
     response = Base.fetch(self.marketGetHistoryKline(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchAccounts(self::Bittrade, params=Dict())
+"""
+fetch all the accounts associated with a profile
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Bittrade; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetAccountAccounts(params));
-    return self.safeList(response, "data", [])
+    return self.safeList(response, "data", defaultValue = [])
 
 end
-function fetchCurrencies(self::Bittrade, params=Dict())
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bittrade; params=Dict())
     request = Dict{Symbol, Any}(
-        Symbol("language") => self.handleOption("fetchCurrencies", "language", "en-US")
+        Symbol("language") => self.handleOption("fetchCurrencies", "language", defaultValue = "en-US")
     );
     response = Base.fetch(self.publicGetSettingsCurrencys(extend(request, params)));
     currencies = safeValue(response, "data", []);
@@ -1176,11 +1293,11 @@ function parseCurrency(self::Bittrade, currency)
     depositEnabled = safeValue(currency, "deposit-enabled");
     withdrawEnabled = safeValue(currency, "withdraw-enabled");
     countryDisabled = safeValue(currency, "country-disabled");
-    visible = self.safeBool(currency, "visible", false);
+    visible = self.safeBool(currency, "visible", defaultValue = false);
     state = safeString(currency, "state");
     active = @functions.ccxt_and(@functions.ccxt_and(@functions.ccxt_and(@functions.ccxt_and(visible, depositEnabled), withdrawEnabled), (state == "online")), !functions.ccxtruthy(countryDisabled));
     name = safeString(currency, "display-name");
-    precision = self.parseNumber(self.parsePrecision(safeString(currency, "withdraw-precision")));
+    precision = self.parseNumber(self.parsePrecision(precision = safeString(currency, "withdraw-precision")));
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("code") => code,
@@ -1246,12 +1363,21 @@ function parseBalance(self::Bittrade, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bittrade, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bittrade; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.loadAccounts());
-    method = self.handleOption("fetchBalance", "method", "privateGetAccountAccountsIdBalance");
+    method = self.handleOption("fetchBalance", "method", defaultValue = "privateGetAccountAccountsIdBalance");
     request = Dict{Symbol, Any}(
         Symbol("id") => get(get(self.accounts, 1, nothing), Symbol("id"), nothing)
     );
@@ -1259,7 +1385,7 @@ function fetchBalance(self::Bittrade, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrdersByStates(self::Bittrade, states, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrdersByStates(self::Bittrade, states; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1271,12 +1397,23 @@ function fetchOrdersByStates(self::Bittrade, states, symbol=nothing, since=nothi
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
-    method = self.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
+    method = self.handleOption("fetchOrdersByStates", "method", defaultValue = "private_get_order_orders");
     response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
-    return self.parseOrders(get(response, Symbol("data"), nothing), market, since, limit)
+    return self.parseOrders(get(response, Symbol("data"), nothing), market = market, since = since, limit = limit)
 
 end
-function fetchOrder(self::Bittrade, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bittrade, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1284,31 +1421,67 @@ function fetchOrder(self::Bittrade, id, symbol=nothing, params=Dict())
         Symbol("id") => id
     );
     response = Base.fetch(self.privateGetOrderOrdersId(extend(request, params)));
-    order = self.safeDict(response, "data", Dict{Symbol, Any}());
+    order = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(order)
 
 end
-function fetchOrders(self::Bittrade, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))
+"""
+fetches information on multiple orders made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Bittrade; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOpenOrders(self::Bittrade, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    method = self.handleOption("fetchOpenOrders", "method", "fetch_open_orders_v1");
+"""
+fetch all unfilled currently open orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bittrade; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    method = self.handleOption("fetchOpenOrders", "method", defaultValue = "fetch_open_orders_v1");
     return Base.fetch(getproperty(self, Symbol(method))(symbol, since, limit, params))
 
 end
-function fetchOpenOrdersV1(self::Bittrade, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOpenOrdersV1(self::Bittrade; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrdersV1() requires a symbol argument")));
     end
-    return Base.fetch(self.fetchOrdersByStates("pre-submitted,submitted,partial-filled", symbol, since, limit, params))
+    return Base.fetch(self.fetchOrdersByStates("pre-submitted,submitted,partial-filled", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchClosedOrders(self::Bittrade, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStates("filled,partial-canceled,canceled", symbol, since, limit, params))
+"""
+fetches information on multiple closed orders made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Bittrade; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStates("filled,partial-canceled,canceled", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOpenOrdersV2(self::Bittrade, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOpenOrdersV2(self::Bittrade; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1340,8 +1513,8 @@ function fetchOpenOrdersV2(self::Bittrade, symbol=nothing, since=nothing, limit=
     end
     omitted = omit(params, "account-id");
     response = Base.fetch(self.privateGetOrderOpenOrders(extend(request, omitted)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Bittrade, status)
@@ -1355,7 +1528,7 @@ function parseOrderStatus(self::Bittrade, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Bittrade, order, market=nothing)
+function parseOrder(self::Bittrade, order; market=nothing)
     id = safeString(order, "id");
     side = nothing;
     type_var = nothing;
@@ -1367,7 +1540,7 @@ function parseOrder(self::Bittrade, order, market=nothing)
         status = self.parseOrderStatus(safeString(order, "state"));
     end
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(order, "created-at");
     clientOrderId = safeString(order, "client-order-id");
     amount = safeString(order, "amount");
@@ -1405,10 +1578,21 @@ function parseOrder(self::Bittrade, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => fee,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function createMarketBuyOrderWithCost(self::Bittrade, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Bittrade, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1417,10 +1601,24 @@ function createMarketBuyOrderWithCost(self::Bittrade, symbol, cost, params=Dict(
         throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
     end
     params[Symbol("createMarketBuyOrderRequiresPrice")] = false;
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = params))
 
 end
-function createOrder(self::Bittrade, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bittrade, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1443,7 +1641,7 @@ function createOrder(self::Bittrade, symbol, type_var, side, amount, price=nothi
     if functions.ccxtruthy(@functions.ccxt_and((type_var == "market"), (side == "buy")))
         quoteAmount = nothing;
         createMarketBuyOrderRequiresPrice = true;
-        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
         cost = self.safeNumber(params, "cost");
         params = omit(params, "cost");
         if functions.ccxtruthy(cost != nothing)
@@ -1488,10 +1686,21 @@ function createOrder(self::Bittrade, symbol, type_var, side, amount, price=nothi
     Symbol("fee") => nothing,
     Symbol("clientOrderId") => nothing,
     Symbol("average") => nothing
-), market)
+), market = market)
 
 end
-function cancelOrder(self::Bittrade, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bittrade, id; symbol=nothing, params=Dict())
     response = Base.fetch(self.privatePostOrderOrdersIdSubmitcancel(Dict{Symbol, Any}(
         Symbol("id") => id
     )));
@@ -1501,7 +1710,18 @@ function cancelOrder(self::Bittrade, id, symbol=nothing, params=Dict())
 ))
 
 end
-function cancelOrders(self::Bittrade, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: not used by cancelOrders ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Bittrade, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1523,9 +1743,9 @@ function parseCancelOrders(self::Bittrade, orders)
     if functions.ccxtruthy(successes != nothing)
         success = split(successes, ",");
     else
-        success = self.safeList(orders, "success", []);
+        success = self.safeList(orders, "success", defaultValue = []);
     end
-    failed = self.safeList2(orders, "errors", "failed", []);
+    failed = self.safeList2(orders, "errors", "failed", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(success)))
@@ -1551,7 +1771,17 @@ function parseCancelOrders(self::Bittrade, orders)
     return result
 
 end
-function cancelAllOrders(self::Bittrade, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bittrade; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1562,24 +1792,24 @@ function cancelAllOrders(self::Bittrade, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostOrderOrdersBatchCancelOpenOrders(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return [self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => data
 ))]
 
 end
-function parseDepositAddress(self::Bittrade, depositAddress, currency=nothing)
+function parseDepositAddress(self::Bittrade, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
     tag = safeString(depositAddress, "addressTag");
     currencyId = safeString(depositAddress, "currency");
-    currency = self.safeCurrency(currencyId, currency);
-    code = self.safeCurrencyCode(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     networkId = safeString(depositAddress, "chain");
     networks = safeValue(currency, "networks", Dict{Symbol, Any}());
     networksById = indexBy(networks, "id");
     networkValue = safeValue(networksById, networkId, networkId);
     network = safeString(networkValue, "network");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("currency") => code,
     Symbol("address") => address,
@@ -1589,7 +1819,19 @@ function parseDepositAddress(self::Bittrade, depositAddress, currency=nothing)
 )
 
 end
-function fetchDeposits(self::Bittrade, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bittrade; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(@functions.ccxt_or(limit == nothing, functions.ccxt_gt(limit, 100)))
         limit = 100;
     end
@@ -1611,11 +1853,23 @@ function fetchDeposits(self::Bittrade, code=nothing, since=nothing, limit=nothin
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.privateGetQueryDepositWithdraw(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Bittrade, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bittrade; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(@functions.ccxt_or(limit == nothing, functions.ccxt_gt(limit, 100)))
         limit = 100;
     end
@@ -1637,11 +1891,11 @@ function fetchWithdrawals(self::Bittrade, code=nothing, since=nothing, limit=not
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.privateGetQueryDepositWithdraw(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Bittrade, transaction, currency=nothing)
+function parseTransaction(self::Bittrade, transaction; currency=nothing)
     timestamp = safeInteger(transaction, "created-at");
     code = self.safeCurrencyCode(safeString(transaction, "currency"));
     type_var = safeString(transaction, "type");
@@ -1701,12 +1955,25 @@ function parseTransactionStatus(self::Bittrade, status)
     return safeString(statuses, status, status)
 
 end
-function withdraw(self::Bittrade, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bittrade, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("address") => address,
@@ -1728,10 +1995,10 @@ function withdraw(self::Bittrade, code, amount, address, tag=nothing, params=Dic
         params = omit(params, "network");
     end
     response = Base.fetch(self.privatePostDwWithdrawApiCreate(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function sign(self::Bittrade, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bittrade, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = "/";
     if functions.ccxtruthy(api == "market")
         url += api;
@@ -1818,443 +2085,443 @@ Base.getproperty(self::Bittrade, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v2PublicGetReferenceCurrencies(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "reference/currencies", "v2Public", "GET", params, nothing, nothing, Dict())
+    return request(self, "reference/currencies"; api="v2Public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetMarketStatus(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "market-status", "v2Public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market-status"; api="v2Public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountLedger(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/ledger", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/ledger"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountWithdrawQuota(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/withdraw/quota", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/withdraw/quota"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountWithdrawAddress(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/withdraw/address", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/withdraw/address"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountDepositAddress(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/deposit/address", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/deposit/address"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountRepayment(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/repayment", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/repayment"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetReferenceTransactFeeRate(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "reference/transact-fee-rate", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "reference/transact-fee-rate"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountAssetValuation(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/asset-valuation", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/asset-valuation"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetPointAccount(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "point/account", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "point/account"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSubUserUserList(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/user-list", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-user/user-list"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSubUserUserState(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/user-state", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-user/user-state"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSubUserAccountList(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/account-list", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-user/account-list"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSubUserDepositAddress(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/deposit-address", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-user/deposit-address"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSubUserQueryDeposit(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/query-deposit", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-user/query-deposit"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetUserApiKey(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "user/api-key", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/api-key"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetUserUid(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "user/uid", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/uid"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAlgoOrdersOpening(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders/opening", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo-orders/opening"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAlgoOrdersHistory(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders/history", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo-orders/history"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAlgoOrdersSpecific(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders/specific", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo-orders/specific"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetC2cOffers(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/offers", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/offers"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetC2cOffer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/offer", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/offer"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetC2cTransactions(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/transactions", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/transactions"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetC2cRepayment(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/repayment", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/repayment"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetC2cAccount(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/account", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/account"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetEtpReference(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/reference", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp/reference"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetEtpTransactions(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/transactions", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp/transactions"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetEtpTransaction(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/transaction", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp/transaction"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetEtpRebalance(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/rebalance", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp/rebalance"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetEtpLimit(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/limit", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp/limit"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/transfer"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountRepayment(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/repayment", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/repayment"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPointTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "point/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "point/transfer"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserManagement(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/management", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/management"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserCreation(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/creation", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/creation"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserTradableMarket(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/tradable-market", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/tradable-market"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserTransferability(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/transferability", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/transferability"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserApiKeyGeneration(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-generation", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/api-key-generation"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserApiKeyModification(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-modification", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/api-key-modification"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserApiKeyDeletion(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-deletion", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/api-key-deletion"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserDeductMode(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/deduct-mode", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/deduct-mode"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAlgoOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo-orders"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAlgoOrdersCancelAllAfter(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders/cancel-all-after", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo-orders/cancel-all-after"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAlgoOrdersCancellation(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders/cancellation", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo-orders/cancellation"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostC2cOffer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/offer", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "c2c/offer"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostC2cCancellation(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/cancellation", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "c2c/cancellation"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostC2cCancelAll(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/cancel-all", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "c2c/cancel-all"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostC2cRepayment(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/repayment", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "c2c/repayment"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostC2cTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "c2c/transfer"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostEtpCreation(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/creation", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "etp/creation"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostEtpRedemption(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/redemption", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "etp/redemption"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostEtpTransactIdCancel(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/{transactId}/cancel", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "etp/{transactId}/cancel"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostEtpBatchCancel(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/batch-cancel", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "etp/batch-cancel"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketGetHistoryKline(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "history/kline", "market", "GET", params, nothing, nothing, Dict())
+    return request(self, "history/kline"; api="market", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketGetDetailMerged(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "detail/merged", "market", "GET", params, nothing, nothing, Dict())
+    return request(self, "detail/merged"; api="market", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketGetDepth(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "depth", "market", "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api="market", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketGetTrade(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "trade", "market", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade"; api="market", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketGetHistoryTrade(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "history/trade", "market", "GET", params, nothing, nothing, Dict())
+    return request(self, "history/trade"; api="market", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketGetDetail(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "detail", "market", "GET", params, nothing, nothing, Dict())
+    return request(self, "detail"; api="market", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketGetTickers(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "tickers", "market", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="market", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketGetEtp(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp", "market", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp"; api="market", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCommonSymbols(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "common/symbols", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "common/symbols"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCommonCurrencys(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "common/currencys", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "common/currencys"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCommonTimestamp(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "common/timestamp", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "common/timestamp"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCommonExchange(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "common/exchange", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "common/exchange"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSettingsCurrencys(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "settings/currencys", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "settings/currencys"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountAccounts(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountAccountsIdBalance(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/accounts/{id}/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/accounts/{id}/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountAccountsSubUid(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/accounts/{sub-uid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/accounts/{sub-uid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountHistory(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCrossMarginLoanInfo(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/loan-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/loan-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginLoanInfo(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "margin/loan-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/loan-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFeeFeeRateGet(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "fee/fee-rate/get", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fee/fee-rate/get"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOpenOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOrdersId(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/orders/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOrdersIdMatchresults(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}/matchresults", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/orders/{id}/matchresults"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOrdersGetClientOrder(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/getClientOrder", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/orders/getClientOrder"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderHistory(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderMatchresults(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/matchresults", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/matchresults"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetQueryDepositWithdraw(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "query/deposit-withdraw", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "query/deposit-withdraw"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginLoanOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "margin/loan-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/loan-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginAccountsBalance(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/accounts/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCrossMarginLoanOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/loan-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/loan-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCrossMarginAccountsBalance(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/accounts/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPointsActions(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "points/actions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "points/actions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPointsOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "points/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "points/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubuserAggregateBalance(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "subuser/aggregate-balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subuser/aggregate-balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStableCoinExchangeRate(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "stable-coin/exchange_rate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "stable-coin/exchange_rate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStableCoinQuote(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "stable-coin/quote", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "stable-coin/quote"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFuturesTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "futures/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderBatchOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/batch-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/batch-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOrdersPlace(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/place", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/orders/place"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOrdersSubmitCancelClientOrder(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/submitCancelClientOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/orders/submitCancelClientOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOrdersBatchCancelOpenOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/batchCancelOpenOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/orders/batchCancelOpenOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOrdersIdSubmitcancel(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}/submitcancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/orders/{id}/submitcancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOrdersBatchcancel(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/batchcancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/orders/batchcancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDwWithdrawApiCreate(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "dw/withdraw/api/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dw/withdraw/api/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDwWithdrawVirtualIdCancel(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "dw/withdraw-virtual/{id}/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dw/withdraw-virtual/{id}/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDwTransferInMargin(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "dw/transfer-in/margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dw/transfer-in/margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDwTransferOutMargin(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "dw/transfer-out/margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dw/transfer-out/margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "margin/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginOrdersIdRepay(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/orders/{id}/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCrossMarginTransferIn(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/transfer-in", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/transfer-in"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCrossMarginTransferOut(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/transfer-out", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/transfer-out"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCrossMarginOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCrossMarginOrdersIdRepay(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/orders/{id}/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostStableCoinExchange(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "stable-coin/exchange", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "stable-coin/exchange"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubuserTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "subuser/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "subuser/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bittrade(; kwargs...)
@@ -2318,3 +2585,344 @@ function Bittrade(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bittrade_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Bittrade_fetchTime
+
+function __ccxt_doc_Bittrade_fetchMarkets() end
+"""
+retrieves data on all markets for huobijp
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bittrade_fetchMarkets
+
+function __ccxt_doc_Bittrade_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bittrade_fetchOrderBook
+
+function __ccxt_doc_Bittrade_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bittrade_fetchTicker
+
+function __ccxt_doc_Bittrade_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bittrade_fetchTickers
+
+function __ccxt_doc_Bittrade_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bittrade_fetchOrderTrades
+
+function __ccxt_doc_Bittrade_fetchMyTrades() end
+"""
+fetch all trades made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bittrade_fetchMyTrades
+
+function __ccxt_doc_Bittrade_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bittrade_fetchTrades
+
+function __ccxt_doc_Bittrade_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bittrade_fetchOHLCV
+
+function __ccxt_doc_Bittrade_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Bittrade_fetchAccounts
+
+function __ccxt_doc_Bittrade_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bittrade_fetchCurrencies
+
+function __ccxt_doc_Bittrade_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bittrade_fetchBalance
+
+function __ccxt_doc_Bittrade_fetchOrder() end
+"""
+fetches information on an order made by the user
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bittrade_fetchOrder
+
+function __ccxt_doc_Bittrade_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bittrade_fetchOrders
+
+function __ccxt_doc_Bittrade_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bittrade_fetchOpenOrders
+
+function __ccxt_doc_Bittrade_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bittrade_fetchClosedOrders
+
+function __ccxt_doc_Bittrade_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bittrade_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Bittrade_createOrder() end
+"""
+create a trade order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bittrade_createOrder
+
+function __ccxt_doc_Bittrade_cancelOrder() end
+"""
+cancels an open order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bittrade_cancelOrder
+
+function __ccxt_doc_Bittrade_cancelOrders() end
+"""
+cancel multiple orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: not used by cancelOrders ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bittrade_cancelOrders
+
+function __ccxt_doc_Bittrade_cancelAllOrders() end
+"""
+cancel all open orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bittrade_cancelAllOrders
+
+function __ccxt_doc_Bittrade_fetchDeposits() end
+"""
+fetch all deposits made to an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bittrade_fetchDeposits
+
+function __ccxt_doc_Bittrade_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bittrade_fetchWithdrawals
+
+function __ccxt_doc_Bittrade_withdraw() end
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bittrade_withdraw

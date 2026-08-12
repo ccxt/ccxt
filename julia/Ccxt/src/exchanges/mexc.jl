@@ -1427,8 +1427,19 @@ function describe(self::Mexc, )
 ))
 
 end
-function fetchStatus(self::Mexc, params=Dict())
-    (marketType, query) = self.handleMarketTypeAndParams("fetchStatus", nothing, params);
+"""
+the latest known information on the availability of the exchange API
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/test-connectivity // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Mexc; params=Dict())
+    (marketType, query) = self.handleMarketTypeAndParams("fetchStatus", market = nothing, params = params);
     response = Dict{Symbol, Any}();
     status = nothing;
     updated = nothing;
@@ -1451,8 +1462,19 @@ function fetchStatus(self::Mexc, params=Dict())
 )
 
 end
-function fetchTime(self::Mexc, params=Dict())
-    (marketType, query) = self.handleMarketTypeAndParams("fetchTime", nothing, params);
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/check-server-time // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Mexc; params=Dict())
+    (marketType, query) = self.handleMarketTypeAndParams("fetchTime", market = nothing, params = params);
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.spotPublicGetTime(query));
             return safeInteger(response, "serverTime")
@@ -1463,8 +1485,18 @@ function fetchTime(self::Mexc, params=Dict())
     return nothing
 
 end
-function fetchCurrencies(self::Mexc, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(false)))
+"""
+fetches all available currencies on an exchange
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Mexc; params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(error = false)))
             return Dict{Symbol, Any}()
     end
     response = Base.fetch(self.spotPrivateGetCapitalConfigGetall(params));
@@ -1480,15 +1512,15 @@ function parseCurrency(self::Mexc, rawCurrency)
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = get(chains, j + 1, nothing);
         networkId = safeString2(chain, "netWork", "network");
-        network = self.networkIdToCode(networkId, code);
+        network = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(network != nothing)
             networks[Symbol(network)] = Dict{Symbol, Any}(
                 Symbol("info") => chain,
                 Symbol("id") => networkId,
                 Symbol("network") => network,
                 Symbol("active") => nothing,
-                Symbol("deposit") => self.safeBool(chain, "depositEnable", false),
-                Symbol("withdraw") => self.safeBool(chain, "withdrawEnable", false),
+                Symbol("deposit") => self.safeBool(chain, "depositEnable", defaultValue = false),
+                Symbol("withdraw") => self.safeBool(chain, "withdrawEnable", defaultValue = false),
                 Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
                 Symbol("precision") => nothing,
                 Symbol("limits") => Dict{Symbol, Any}(
@@ -1523,17 +1555,38 @@ function parseCurrency(self::Mexc, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Mexc, params=Dict())
+"""
+retrieves data on all markets for mexc
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info // swap
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Mexc; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
-    spotMarketPromise = self.fetchSpotMarkets(params);
-    swapMarketPromise = self.fetchSwapMarkets(params);
+    spotMarketPromise = self.fetchSpotMarkets(params = params);
+    swapMarketPromise = self.fetchSwapMarkets(params = params);
     (spotMarket, swapMarket) = (Base.fetch(asyncmap(Base.fetch, [spotMarketPromise, swapMarketPromise])));
     return arrayConcat(spotMarket, swapMarket)
 
 end
-function fetchSpotMarkets(self::Mexc, params=Dict())
+"""
+retrieves data on all spot markets for mexc
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchSpotMarkets(self::Mexc; params=Dict())
     response = Base.fetch(self.spotPublicGetExchangeInfo(params));
     data = safeValue(response, "symbols", []);
     result = [];
@@ -1582,8 +1635,8 @@ function fetchSpotMarkets(self::Mexc, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "baseAssetPrecision"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "quoteAssetPrecision")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "baseAssetPrecision"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quoteAssetPrecision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -1611,11 +1664,21 @@ function fetchSpotMarkets(self::Mexc, params=Dict())
     return result
 
 end
-function fetchSwapMarkets(self::Mexc, params=Dict())
+"""
+retrieves data on all swap markets for mexc
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchSwapMarkets(self::Mexc; params=Dict())
     currentRl = self.rateLimit;
-    self.setProperty(self, "rateLimit", 10);
+    self.setProperty(self, "rateLimit", defaultValue = 10);
     response = Base.fetch(self.contractPublicGetDetail(params));
-    self.setProperty(self, "rateLimit", currentRl);
+    self.setProperty(self, "rateLimit", defaultValue = currentRl);
     data = safeValue(response, "data", []);
     result = [];
     i = 0
@@ -1686,7 +1749,20 @@ function fetchSwapMarkets(self::Mexc, params=Dict())
     return result
 
 end
-function fetchOrderBook(self::Mexc, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/order-book // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-order-book-depth // swap
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Mexc, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1701,19 +1777,19 @@ function fetchOrderBook(self::Mexc, symbol, limit=nothing, params=Dict())
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         response = Base.fetch(self.spotPublicGetDepth(extend(request, params)));
         spotTimestamp = safeInteger(response, "timestamp");
-        orderbook = self.parseOrderBook(response, symbol, spotTimestamp);
+        orderbook = self.parseOrderBook(response, symbol, timestamp = spotTimestamp);
         orderbook[Symbol("nonce")] = safeInteger(response, "lastUpdateId");
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         response = Base.fetch(self.contractPublicGetDepthSymbol(extend(request, params)));
         data = safeValue(response, "data");
         timestamp = safeInteger(data, "timestamp");
-        orderbook = self.parseOrderBook(data, symbol, timestamp);
+        orderbook = self.parseOrderBook(data, symbol, timestamp = timestamp);
         orderbook[Symbol("nonce")] = safeInteger(data, "version");
     end
     return orderbook
 
 end
-function parseOrderBookBidAsk(self::Mexc, bidask, priceKey=0, amountKey=1, countOrIdKey=2)
+function parseOrderBookBidAsk(self::Mexc, bidask; priceKey=0, amountKey=1, countOrIdKey=2)
     countKey = 2;
     price = self.safeNumber(bidask, priceKey);
     amount = self.safeNumber(bidask, amountKey);
@@ -1724,7 +1800,23 @@ function parseOrderBookBidAsk(self::Mexc, bidask, priceKey=0, amountKey=1, count
     return [price, amount]
 
 end
-function fetchTrades(self::Mexc, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/recent-trades-list // spot
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/compressedaggregate-trades-list // spot aggregated
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-recent-trades // swap
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: *spot only* *since must be defined* the latest time in ms to fetch entries for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Mexc, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1767,12 +1859,12 @@ function fetchTrades(self::Mexc, symbol, since=nothing, limit=nothing, params=Di
         end
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         response = Base.fetch(self.contractPublicGetDealsSymbol(extend(request, params)));
-        trades = self.safeList(response, "data", []);
+        trades = self.safeList(response, "data", defaultValue = []);
     end
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Mexc, trade, market=nothing)
+function parseTrade(self::Mexc, trade; market=nothing)
     id = nothing;
     timestamp = nothing;
     orderId = nothing;
@@ -1786,7 +1878,7 @@ function parseTrade(self::Mexc, trade, market=nothing)
     costString = nothing;
     if functions.ccxtruthy(ccxt_in("v", trade))
         timestamp = safeInteger(trade, "t");
-        market = self.safeMarket(nothing, market);
+        market = self.safeMarket(marketId = nothing, market = market);
         symbol = get(market, Symbol("symbol"), nothing);
         priceString = safeString(trade, "p");
         amountString = safeString(trade, "v");
@@ -1794,7 +1886,7 @@ function parseTrade(self::Mexc, trade, market=nothing)
         takerOrMaker = "taker";
     else
         marketId = safeString(trade, "symbol");
-        market = self.safeMarket(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = market);
         symbol = get(market, Symbol("symbol"), nothing);
         id = safeString2(trade, "id", "a");
         priceString = safeString2(trade, "price", "p");
@@ -1834,8 +1926,8 @@ function parseTrade(self::Mexc, trade, market=nothing)
             end
         end
     end
-    if functions.ccxtruthy(@functions.ccxt_and(id == nothing, self.safeBool(self.options, "useCcxtTradeId", true)))
-        id = self.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
+    if functions.ccxtruthy(@functions.ccxt_and(id == nothing, self.safeBool(self.options, "useCcxtTradeId", defaultValue = true)))
+        id = self.createCcxtTradeId(timestamp = timestamp, side = side, amount = amountString, price = priceString, takerOrMaker = takerOrMaker);
     end
     return self.safeTrade(Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -1851,19 +1943,38 @@ function parseTrade(self::Mexc, trade, market=nothing)
     Symbol("cost") => costString,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchOHLCV(self::Mexc, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/klinecandlestick-data // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-candlestick-data // swap
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-index-price-candles // index
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-fair-price-candles // mark
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Mexc, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     maxLimit = functions.ccxtruthy((get(market, Symbol("spot"), nothing))) ? 500 : 2000;
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxLimit))
     end
     options = safeValue(self.options, "timeframes", Dict{Symbol, Any}());
     timeframes = safeValue(options, get(market, Symbol("type"), nothing), Dict{Symbol, Any}());
@@ -1923,16 +2034,28 @@ function fetchOHLCV(self::Mexc, symbol, timeframe="1m", since=nothing, limit=not
 
         end
         data = safeValue(response, "data");
-        candles = self.convertTradingViewToOHLCV(data, "time", "open", "high", "low", "close", "vol");
+        candles = self.convertTradingViewToOHLCV(data, timestamp = "time", open = "open", high = "high", low = "low", close = "close", volume = "vol");
     end
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Mexc, ohlcv, market=nothing)
+function parseOHLCV(self::Mexc, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchTickers(self::Mexc, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Mexc; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1945,7 +2068,7 @@ function fetchTickers(self::Mexc, symbols=nothing, params=Dict())
         firstSymbol = safeString(symbols, 0);
         market = self.market(firstSymbol);
     end
-    (marketType, query) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (marketType, query) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     tickers = nothing;
     if functions.ccxtruthy(isSingularMarket)
         request[Symbol("symbol")] = safeString(market, "id");
@@ -1959,15 +2082,27 @@ function fetchTickers(self::Mexc, symbols=nothing, params=Dict())
     if functions.ccxtruthy(isSingularMarket)
         tickers = [tickers];
     end
-    return self.parseTickers(tickers, symbols)
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function fetchTicker(self::Mexc, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Mexc, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    (marketType, query) = self.handleMarketTypeAndParams("fetchTicker", market, params);
+    (marketType, query) = self.handleMarketTypeAndParams("fetchTicker", market = market, params = params);
     ticker = nothing;
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
@@ -1978,12 +2113,12 @@ function fetchTicker(self::Mexc, symbol, params=Dict())
         response = Base.fetch(self.contractPublicGetTicker(extend(request, query)));
         ticker = safeValue(response, "data", Dict{Symbol, Any}());
     end
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
-function parseTicker(self::Mexc, ticker, market=nothing)
+function parseTicker(self::Mexc, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = nothing;
     bid = nothing;
     ask = nothing;
@@ -2051,10 +2186,21 @@ function parseTicker(self::Mexc, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchBidsAsks(self::Mexc, symbols=nothing, params=Dict())
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/symbol-order-book-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchBidsAsks(self::Mexc; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2065,7 +2211,7 @@ function fetchBidsAsks(self::Mexc, symbols=nothing, params=Dict())
         isSingularMarket = len == 1;
         market = self.market(get(symbols, 1, nothing));
     end
-    (marketType, query) = self.handleMarketTypeAndParams("fetchBidsAsks", market, params);
+    (marketType, query) = self.handleMarketTypeAndParams("fetchBidsAsks", market = market, params = params);
     tickers = nothing;
     if functions.ccxtruthy(marketType == "spot")
         tickers = Base.fetch(self.spotPublicGetTickerBookTicker(query));
@@ -2075,10 +2221,22 @@ function fetchBidsAsks(self::Mexc, symbols=nothing, params=Dict())
     if functions.ccxtruthy(isSingularMarket)
         tickers = [tickers];
     end
-    return self.parseTickers(tickers, symbols)
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function createMarketBuyOrderWithCost(self::Mexc, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Mexc, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2089,10 +2247,22 @@ function createMarketBuyOrderWithCost(self::Mexc, symbol, cost, params=Dict())
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return Base.fetch(self.createOrder(symbol, "market", "buy", 0, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", 0, price = nothing, params = extend(req, params)))
 
 end
-function createMarketSellOrderWithCost(self::Mexc, symbol, cost, params=Dict())
+"""
+create a market sell order by providing the symbol and cost
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketSellOrderWithCost(self::Mexc, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2103,23 +2273,51 @@ function createMarketSellOrderWithCost(self::Mexc, symbol, cost, params=Dict())
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return Base.fetch(self.createOrder(symbol, "market", "sell", 0, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", "sell", 0, price = nothing, params = extend(req, params)))
 
 end
-function createOrder(self::Mexc, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order // swap trigger
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: only 'isolated' is supported for spot-margin trading
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: if true, the order will only be posted if it will be a maker order
+- `params.reduceOnly`::bool, optional: *contract only* indicates if this order is to reduce the size of a position
+- `params.hedged`::bool, optional: *swap only* true for hedged mode, false for one way mode, default is false
+- `params.timeInForce`::string, optional: 'IOC' or 'FOK', default is 'GTC' EXCHANGE SPECIFIC PARAMETERS
+- `params.leverage`::int, optional: *contract only* leverage is necessary on isolated margin
+- `params.positionId`::long, optional: *contract only* it is recommended to fill in this parameter when closing a position
+- `params.externalOid`::string, optional: *contract only* external order ID
+- `params.positionMode`::int, optional: *contract only*  1:hedge, 2:one-way, default: the user's current config
+- `params.test`::bool, optional: *spot only* whether to use the test endpoint or not, default is false
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Mexc, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    (marginMode, query) = self.handleMarginModeAndParams("createOrder", params);
+    (marginMode, query) = self.handleMarginModeAndParams("createOrder", params = params);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            return Base.fetch(self.createSpotOrder(market, type_var, side, amount, price, marginMode, query))
+            return Base.fetch(self.createSpotOrder(market, type_var, side, amount, price = price, marginMode = marginMode, params = query))
     else
-        return Base.fetch(self.createSwapOrder(market, type_var, side, amount, price, marginMode, query))
+        return Base.fetch(self.createSwapOrder(market, type_var, side, amount, price = price, marginMode = marginMode, params = query))
     end
 
 end
-function createSpotOrderRequest(self::Mexc, market, type_var, side, amount, price=nothing, marginMode=nothing, params=Dict())
+function createSpotOrderRequest(self::Mexc, market, type_var, side, amount; price=nothing, marginMode=nothing, params=Dict())
     symbol = get(market, Symbol("symbol"), nothing);
     orderSide = uppercase(side);
     request = Dict{Symbol, Any}(
@@ -2161,7 +2359,7 @@ function createSpotOrderRequest(self::Mexc, market, type_var, side, amount, pric
         end
     end
     postOnly = nothing;
-    (postOnly, params) = self.handlePostOnly(type_var == "market", type_var == "LIMIT_MAKER", params);
+    (postOnly, params) = self.handlePostOnly(type_var == "market", type_var == "LIMIT_MAKER", params = params);
     if functions.ccxtruthy(postOnly)
         request[Symbol("type")] = "LIMIT_MAKER";
     end
@@ -2177,19 +2375,36 @@ function createSpotOrderRequest(self::Mexc, market, type_var, side, amount, pric
     return extend(request, params)
 
 end
-function createSpotOrder(self::Mexc, market, type_var, side, amount, price=nothing, marginMode=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
+
+# Arguments
+- `market`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `marginMode`::string, optional: only 'isolated' is supported for spot-margin trading
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.postOnly`::bool, optional: if true, the order will only be posted if it will be a maker order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createSpotOrder(self::Mexc, market, type_var, side, amount; price=nothing, marginMode=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    test = self.safeBool(params, "test", false);
+    test = self.safeBool(params, "test", defaultValue = false);
     params = omit(params, "test");
-    request = self.createSpotOrderRequest(market, type_var, side, amount, price, marginMode, params);
+    request = self.createSpotOrderRequest(market, type_var, side, amount, price = price, marginMode = marginMode, params = params);
     if functions.ccxtruthy(test)
         response = Base.fetch(self.spotPrivatePostOrderTest(request));
     else
         response = Base.fetch(self.spotPrivatePostOrder(request));
     end
-    order = self.parseOrder(response, market);
+    order = self.parseOrder(response, market = market);
     order[Symbol("side")] = side;
     order[Symbol("type")] = type_var;
     if functions.ccxtruthy(safeString(order, "price") == nothing)
@@ -2201,7 +2416,32 @@ function createSpotOrder(self::Mexc, market, type_var, side, amount, price=nothi
     return order
 
 end
-function createSwapOrder(self::Mexc, market, type_var, side, amount, price=nothing, marginMode=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order
+
+# Arguments
+- `market`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `marginMode`::string, optional: only 'isolated' is supported for spot-margin trading
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: if true, the order will only be posted if it will be a maker order
+- `params.reduceOnly`::bool, optional: indicates if this order is to reduce the size of a position
+- `params.hedged`::bool, optional: *swap only* true for hedged mode, false for one way mode, default is false EXCHANGE SPECIFIC PARAMETERS
+- `params.leverage`::int, optional: leverage is necessary on isolated margin
+- `params.positionId`::long, optional: it is recommended to fill in this parameter when closing a position
+- `params.externalOid`::string, optional: external order ID
+- `params.positionMode`::int, optional: 1:hedge, 2:one-way, default: the user's current config
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createSwapOrder(self::Mexc, market, type_var, side, amount; price=nothing, marginMode=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2222,7 +2462,7 @@ function createSwapOrder(self::Mexc, market, type_var, side, amount, price=nothi
         throw(InvalidOrder(string(self.id, " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")));
     end
     postOnly = nothing;
-    (postOnly, params) = self.handlePostOnly(type_var == "market", type_var == 2, params);
+    (postOnly, params) = self.handlePostOnly(type_var == "market", type_var == 2, params = params);
     if functions.ccxtruthy(postOnly)
         type_var = 2;
     elseif functions.ccxtruthy(type_var == "limit")
@@ -2256,8 +2496,8 @@ function createSwapOrder(self::Mexc, market, type_var, side, amount, price=nothi
             throw(ArgumentsRequired(string(self.id, " createSwapOrder() requires a leverage parameter for isolated margin orders")));
         end
     end
-    reduceOnly = self.safeBool(params, "reduceOnly", false);
-    hedged = self.safeBool(params, "hedged", false);
+    reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
+    hedged = self.safeBool(params, "hedged", defaultValue = false);
     sideInteger = nothing;
     if functions.ccxtruthy(hedged)
         if functions.ccxtruthy(reduceOnly)
@@ -2296,10 +2536,21 @@ function createSwapOrder(self::Mexc, market, type_var, side, amount, price=nothi
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("id") => safeString(data, "orderId"),
     Symbol("timestamp") => safeInteger(data, "ts")
-), market)
+), market = market)
 
 end
-function createOrders(self::Mexc, orders, params=Dict())
+"""
+*spot only*  *all orders must have the same symbol* create a list of trade orders
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/batch-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to api endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Mexc, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2326,8 +2577,8 @@ function createOrders(self::Mexc, orders, params=Dict())
         price = safeValue(rawOrder, "price");
         orderParams = safeValue(rawOrder, "params", Dict{Symbol, Any}());
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
-        orderRequest = self.createSpotOrderRequest(market, type_var, side, amount, price, marginMode, orderParams);
+        (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
+        orderRequest = self.createSpotOrderRequest(market, type_var, side, amount, price = price, marginMode = marginMode, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
@@ -2338,7 +2589,21 @@ function createOrders(self::Mexc, orders, params=Dict())
     return self.parseOrders(response)
 
 end
-function fetchOrder(self::Mexc, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-order // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-order-information-by-order-id // swap
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: only 'isolated' is supported, for spot-margin trading
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Mexc, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -2358,7 +2623,7 @@ function fetchOrder(self::Mexc, id, symbol=nothing, params=Dict())
         else
             request[Symbol("orderId")] = id;
         end
-        (marginMode, query) = self.handleMarginModeAndParams("fetchOrder", params);
+        (marginMode, query) = self.handleMarginModeAndParams("fetchOrder", params = params);
         if functions.ccxtruthy(marginMode != nothing)
             if functions.ccxtruthy(marginMode != "isolated")
                 throw(BadRequest(string(self.id, " fetchOrder() does not support marginMode ", marginMode, " for spot-margin trading")));
@@ -2372,10 +2637,27 @@ function fetchOrder(self::Mexc, id, symbol=nothing, params=Dict())
         response = Base.fetch(self.contractPrivateGetOrderGetOrderId(extend(request, params)));
         data = safeValue(response, "data");
     end
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function fetchOrders(self::Mexc, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.marginMode`::string, optional: only 'isolated' is supported, for spot-margin trading
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Mexc; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2387,12 +2669,12 @@ function fetchOrders(self::Mexc, symbol=nothing, since=nothing, limit=nothing, p
     end
     until = safeInteger(params, "until");
     params = omit(params, "until");
-    (marketType, query) = self.handleMarketTypeAndParams("fetchOrders", market, params);
+    (marketType, query) = self.handleMarketTypeAndParams("fetchOrders", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument for spot market")));
         end
-        (marginMode, queryInner) = self.handleMarginModeAndParams("fetchOrders", params);
+        (marginMode, queryInner) = self.handleMarginModeAndParams("fetchOrders", params = params);
         if functions.ccxtruthy(since != nothing)
             request[Symbol("startTime")] = since;
         end
@@ -2411,7 +2693,7 @@ function fetchOrders(self::Mexc, symbol=nothing, since=nothing, limit=nothing, p
         else
             response = Base.fetch(self.spotPrivateGetAllOrders(extend(request, queryInner)));
         end
-            return self.parseOrders(response, market, since, limit)
+            return self.parseOrders(response, market = market, since = since, limit = limit)
     else
         if functions.ccxtruthy(since != nothing)
             request[Symbol("start_time")] = since;
@@ -2444,11 +2726,11 @@ function fetchOrders(self::Mexc, symbol=nothing, since=nothing, limit=nothing, p
             ordersOfTrigger = safeValue(response, "data");
         end
         merged = arrayConcat(ordersOfTrigger, ordersOfRegular);
-        return self.parseOrders(merged, market, since, limit, params)
+        return self.parseOrders(merged, market = market, since = since, limit = limit, params = params)
     end
 
 end
-function fetchOrdersByIds(self::Mexc, ids, symbol=nothing, params=Dict())
+function fetchOrdersByIds(self::Mexc, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2458,18 +2740,34 @@ function fetchOrdersByIds(self::Mexc, ids, symbol=nothing, params=Dict())
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
-    (marketType, query) = self.handleMarketTypeAndParams("fetchOrdersByIds", market, params);
+    (marketType, query) = self.handleMarketTypeAndParams("fetchOrdersByIds", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         throw(BadRequest(string(self.id, " fetchOrdersByIds() is not supported for ", marketType)));
     else
         request[Symbol("order_ids")] =         join(ids, ",");
         response = Base.fetch(self.contractPrivateGetOrderBatchQuery(extend(request, query)));
         data = self.safeList(response, "data");
-        return self.parseOrders(data, market)
+        return self.parseOrders(data, market = market)
     end
 
 end
-function fetchOpenOrders(self::Mexc, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/current-open-orders // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-current-orders // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: only 'isolated' is supported, for spot-margin trading
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Mexc; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2479,12 +2777,12 @@ function fetchOpenOrders(self::Mexc, symbol=nothing, since=nothing, limit=nothin
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(symbol != nothing)
             request[Symbol("symbol")] = safeString(market, "id");
         end
-        (marginMode, query) = self.handleMarginModeAndParams("fetchOpenOrders", params);
+        (marginMode, query) = self.handleMarginModeAndParams("fetchOpenOrders", params = params);
 
         if functions.ccxtruthy(marginMode != nothing)
             if functions.ccxtruthy(marginMode != "isolated")
@@ -2494,26 +2792,56 @@ function fetchOpenOrders(self::Mexc, symbol=nothing, since=nothing, limit=nothin
         else
             response = Base.fetch(self.spotPrivateGetOpenOrders(extend(request, query)));
         end
-            return self.parseOrders(response, market, since, limit)
+            return self.parseOrders(response, market = market, since = since, limit = limit)
     else
         if functions.ccxtruthy(limit == nothing)
             request[Symbol("page_size")] = 100;
         end
         swapResponse = Base.fetch(self.contractPrivateGetOrderListOpenOrders(extend(request, params)));
-        data = self.safeList(swapResponse, "data", []);
-        return self.parseOrders(data, market, since, limit, params)
+        data = self.safeList(swapResponse, "data", defaultValue = []);
+        return self.parseOrders(data, market = market, since = since, limit = limit, params = params)
     end
 
 end
-function fetchClosedOrders(self::Mexc, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByState(3, symbol, since, limit, params))
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Mexc; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByState(3, symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchCanceledOrders(self::Mexc, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByState(4, symbol, since, limit, params))
+"""
+fetches information on multiple canceled orders made by the user
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Mexc; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByState(4, symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOrdersByState(self::Mexc, state, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrdersByState(self::Mexc, state; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2522,16 +2850,31 @@ function fetchOrdersByState(self::Mexc, state, symbol=nothing, since=nothing, li
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    (marketType) = self.handleMarketTypeAndParams("fetchOrdersByState", market, params);
+    (marketType) = self.handleMarketTypeAndParams("fetchOrdersByState", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         throw(NotSupported(string(self.id, " fetchOrdersByState() is not supported for ", marketType)));
     else
         request[Symbol("states")] = state;
-        return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+        return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
     end
 
 end
-function cancelOrder(self::Mexc, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-order // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-planned-orders // swap trigger
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: only 'isolated' is supported for spot-margin trading
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Mexc, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2542,8 +2885,8 @@ function cancelOrder(self::Mexc, id, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelOrder", market, params);
-    (marginMode, query) = self.handleMarginModeAndParams("cancelOrder", params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelOrder", market = market, params = params);
+    (marginMode, query) = self.handleMarginModeAndParams("cancelOrder", params = params);
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
@@ -2583,25 +2926,51 @@ function cancelOrder(self::Mexc, id, symbol=nothing, params=Dict())
             throw(InvalidOrder(string(self.id, " cancelOrder() the order with id ", id, " cannot be cancelled: ", errorMsg)));
         end
     end
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function cancelOrders(self::Mexc, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Mexc, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = functions.ccxtruthy((symbol != nothing)) ? self.market(symbol) : nothing;
-    (marketType) = self.handleMarketTypeAndParams("cancelOrders", market, params);
+    (marketType) = self.handleMarketTypeAndParams("cancelOrders", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         throw(BadRequest(string(self.id, " cancelOrders() is not supported for ", marketType)));
     else
         response = Base.fetch(self.contractPrivatePostOrderCancel(ids));
         data = self.safeList(response, "data");
-        return self.parseOrders(data, market)
+        return self.parseOrders(data, market = market)
     end
 
 end
-function cancelAllOrders(self::Mexc, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-open-orders-on-a-symbol // spot
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders // spot all symbols
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Mexc; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2611,7 +2980,7 @@ function cancelAllOrders(self::Mexc, symbol=nothing, params=Dict())
     end
     request = Dict{Symbol, Any}();
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(symbol == nothing)
             Base.fetch(self.spotPrivateDeleteOrderAll(params));
@@ -2619,7 +2988,7 @@ function cancelAllOrders(self::Mexc, symbol=nothing, params=Dict())
         end
         request[Symbol("symbol")] = safeString(market, "id");
         response = Base.fetch(self.spotPrivateDeleteOpenOrders(extend(request, params)));
-            return self.parseOrders(response, market)
+            return self.parseOrders(response, market = market)
     else
         if functions.ccxtruthy(symbol != nothing)
             request[Symbol("symbol")] = safeString(market, "id");
@@ -2632,12 +3001,12 @@ function cancelAllOrders(self::Mexc, symbol=nothing, params=Dict())
         elseif functions.ccxtruthy(method == "contractPrivatePostPlanorderCancelAll")
             response = Base.fetch(self.contractPrivatePostPlanorderCancelAll(extend(request, params)));
         end
-        data = self.safeList(response, "data", []);
-        return self.parseOrders(data, market)
+        data = self.safeList(response, "data", defaultValue = []);
+        return self.parseOrders(data, market = market)
     end
 
 end
-function parseOrder(self::Mexc, order, market=nothing)
+function parseOrder(self::Mexc, order; market=nothing)
     code = safeInteger(order, "code");
     if functions.ccxtruthy(code != nothing)
             return self.safeOrder(Dict{Symbol, Any}(
@@ -2655,10 +3024,10 @@ function parseOrder(self::Mexc, order, market=nothing)
     timeInForce = self.parseOrderTimeInForce(safeString(order, "timeInForce"));
     typeRaw = safeString(order, "type");
     if functions.ccxtruthy(timeInForce == nothing)
-        timeInForce = self.getTifFromRawOrderType(typeRaw);
+        timeInForce = self.getTifFromRawOrderType(orderType = typeRaw);
     end
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeIntegerN(order, ["time", "createTime", "transactTime"]);
     fee = nothing;
     feeCurrency = safeString(order, "feeCurrency");
@@ -2693,7 +3062,7 @@ function parseOrder(self::Mexc, order, market=nothing)
     Symbol("fee") => fee,
     Symbol("trades") => nothing,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseOrderSide(self::Mexc, status)
@@ -2740,7 +3109,7 @@ function parseOrderTimeInForce(self::Mexc, status)
     return safeString(statuses, status, status)
 
 end
-function getTifFromRawOrderType(self::Mexc, orderType=nothing)
+function getTifFromRawOrderType(self::Mexc; orderType=nothing)
     statuses = Dict{Symbol, Any}(
         Symbol("LIMIT") => "GTC",
         Symbol("LIMIT_MAKER") => "POST_ONLY",
@@ -2761,8 +3130,19 @@ function fetchAccountHelper(self::Mexc, type_var, params)
     return nothing
 
 end
-function fetchAccounts(self::Mexc, params=Dict())
-    (marketType, query) = self.handleMarketTypeAndParams("fetchAccounts", nothing, params);
+"""
+fetch all the accounts associated with a profile
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Mexc; params=Dict())
+    (marketType, query) = self.handleMarketTypeAndParams("fetchAccounts", market = nothing, params = params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2785,7 +3165,18 @@ function fetchAccounts(self::Mexc, params=Dict())
     return result
 
 end
-function fetchTradingFee(self::Mexc, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-symbol-commission
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Mexc, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2797,7 +3188,7 @@ function fetchTradingFee(self::Mexc, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.spotPrivateGetTradeFee(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return Dict{Symbol, Any}(
     Symbol("info") => data,
     Symbol("symbol") => symbol,
@@ -2885,15 +3276,28 @@ function parseBalanceHelper(self::Mexc, entry)
     return account
 
 end
-function fetchBalance(self::Mexc, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
+see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbols`::string, optional: // required for margin, market id's separated by commas
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Mexc; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marketType = nothing;
     request = Dict{Symbol, Any}();
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     marginMode = safeString(params, "marginMode");
-    isMargin = self.safeBool(params, "margin", false);
+    isMargin = self.safeBool(params, "margin", defaultValue = false);
     params = omit(params, ["margin", "marginMode"]);
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((marginMode != nothing), (isMargin)), (marketType == "margin")))
         parsedSymbols = nothing;
@@ -2901,7 +3305,7 @@ function fetchBalance(self::Mexc, params=Dict())
         if functions.ccxtruthy(symbol == nothing)
             symbols = safeValue(params, "symbols");
             if functions.ccxtruthy(symbols != nothing)
-                symbolIds = self.marketIds(symbols);
+                symbolIds = self.marketIds(symbols = symbols);
                 if functions.ccxtruthy(symbolIds != nothing)
                     parsedSymbols = join(symbolIds, ",");
                 end
@@ -2928,7 +3332,22 @@ function fetchBalance(self::Mexc, params=Dict())
     return self.customParseBalance(response, marketType)
 
 end
-function fetchMyTrades(self::Mexc, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order // swap legacy endpoint
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Mexc; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -2937,7 +3356,7 @@ function fetchMyTrades(self::Mexc, symbol=nothing, since=nothing, limit=nothing,
     end
     market = self.market(symbol);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
@@ -2967,12 +3386,27 @@ function fetchMyTrades(self::Mexc, symbol=nothing, since=nothing, limit=nothing,
             request[Symbol("page_size")] = limit;
         end
         response = Base.fetch(self.contractPrivateGetOrderListOrderDeals(extend(request, params)));
-        trades = self.safeList(response, "data", []);
+        trades = self.safeList(response, "data", defaultValue = []);
     end
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchOrderTrades(self::Mexc, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-trade-records-by-order-id // swap
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Mexc, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2981,7 +3415,7 @@ function fetchOrderTrades(self::Mexc, id, symbol=nothing, since=nothing, limit=n
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    (marketType, query) = self.handleMarketTypeAndParams("fetchOrderTrades", market, params);
+    (marketType, query) = self.handleMarketTypeAndParams("fetchOrderTrades", market = market, params = params);
     trades = [];
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(symbol == nothing)
@@ -2993,12 +3427,12 @@ function fetchOrderTrades(self::Mexc, id, symbol=nothing, since=nothing, limit=n
     else
         request[Symbol("order_id")] = id;
         response = Base.fetch(self.contractPrivateGetOrderDealDetailsOrderId(extend(request, query)));
-        trades = self.safeList(response, "data", []);
+        trades = self.safeList(response, "data", defaultValue = []);
     end
-    return self.parseTrades(trades, market, since, limit, query)
+    return self.parseTrades(trades, market = market, since = since, limit = limit, params = query)
 
 end
-function modifyMarginHelper(self::Mexc, symbol, amount, addOrReduce, params=Dict())
+function modifyMarginHelper(self::Mexc, symbol, amount, addOrReduce; params=Dict())
     positionId = safeInteger(params, "positionId");
     if functions.ccxtruthy(positionId == nothing)
         throw(ArgumentsRequired(string(self.id, " modifyMarginHelper() requires a positionId parameter")));
@@ -3015,15 +3449,51 @@ function modifyMarginHelper(self::Mexc, symbol, amount, addOrReduce, params=Dict
     return response
 
 end
-function reduceMargin(self::Mexc, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "SUB", params))
+"""
+remove margin from a position
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Mexc, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "SUB", params = params))
 
 end
-function addMargin(self::Mexc, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "ADD", params))
+"""
+add margin
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Mexc, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "ADD", params = params))
 
 end
-function setLeverage(self::Mexc, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Mexc, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3048,7 +3518,20 @@ function setLeverage(self::Mexc, leverage, symbol=nothing, params=Dict())
     return Base.fetch(self.contractPrivatePostPositionChangeLeverage(extend(request, params)))
 
 end
-function fetchFundingHistory(self::Mexc, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-funding-fee-details
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Mexc; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3083,11 +3566,11 @@ function fetchFundingHistory(self::Mexc, symbol=nothing, since=nothing, limit=no
     return result
 
 end
-function parseFundingRate(self::Mexc, contract, market=nothing)
+function parseFundingRate(self::Mexc, contract; market=nothing)
     nextFundingRate = self.safeNumber2(contract, "fundingRate", "rate");
     nextFundingTimestamp = safeInteger(contract, "nextSettleTime");
     marketId = safeString(contract, "symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, "contract");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract");
     timestamp = safeInteger(contract, "timestamp");
     interval = safeString(contract, "collectCycle");
     intervalString = nothing;
@@ -3116,11 +3599,33 @@ function parseFundingRate(self::Mexc, contract, market=nothing)
 )
 
 end
-function fetchFundingInterval(self::Mexc, symbol, params=Dict())
-    return Base.fetch(self.fetchFundingRate(symbol, params))
+"""
+fetch the current funding rate interval
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingInterval(self::Mexc, symbol; params=Dict())
+    return Base.fetch(self.fetchFundingRate(symbol, params = params))
 
 end
-function fetchFundingRate(self::Mexc, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Mexc, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3130,10 +3635,23 @@ function fetchFundingRate(self::Mexc, symbol, params=Dict())
     );
     response = Base.fetch(self.contractPublicGetFundingRateSymbol(extend(request, params)));
     result = safeValue(response, "data", Dict{Symbol, Any}());
-    return self.parseFundingRate(result, market)
+    return self.parseFundingRate(result, market = market)
 
 end
-function fetchFundingRateHistory(self::Mexc, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: not used by mexc, but filtered internally by ccxt
+- `limit`::int, optional: mexc limit is page_size default 20, maximum is 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Mexc; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -3167,20 +3685,31 @@ function fetchFundingRateHistory(self::Mexc, symbol=nothing, since=nothing, limi
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function fetchLeverageTiers(self::Mexc, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Mexc; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, "swap", true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = "swap", allowEmpty = true, sameTypeOnly = true);
     response = Base.fetch(self.contractPublicGetDetail(params));
     data = self.safeList(response, "data");
-    return self.parseLeverageTiers(data, symbols, "symbol")
+    return self.parseLeverageTiers(data, symbols = symbols, marketIdKey = "symbol")
 
 end
-function parseMarketLeverageTiers(self::Mexc, info, market=nothing)
+function parseMarketLeverageTiers(self::Mexc, info; market=nothing)
     marketId = safeString(info, "symbol");
     maintenanceMarginRate = safeString(info, "maintenanceMarginRate");
     initialMarginRate = safeString(info, "initialMarginRate");
@@ -3194,7 +3723,7 @@ function parseMarketLeverageTiers(self::Mexc, info, market=nothing)
     if functions.ccxtruthy(riskIncrVol == "0")
             return [Dict{Symbol, Any}(
     Symbol("tier") => 0,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("currency") => self.safeCurrencyCode(quoteId),
     Symbol("minNotional") => nothing,
     Symbol("maxNotional") => nothing,
@@ -3210,7 +3739,7 @@ function parseMarketLeverageTiers(self::Mexc, info, market=nothing)
         maxLev = self.parseNumber(stringDiv("1", initialMarginRate));
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => self.parseNumber(stringDiv(cap, riskIncrVol)),
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("currency") => self.safeCurrencyCode(quoteId),
     Symbol("minNotional") => minNotional,
     Symbol("maxNotional") => self.parseNumber(cap),
@@ -3225,21 +3754,32 @@ function parseMarketLeverageTiers(self::Mexc, info, market=nothing)
     return tiers
 
 end
-function parseDepositAddress(self::Mexc, depositAddress, currency=nothing)
+function parseDepositAddress(self::Mexc, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
     currencyId = safeString(depositAddress, "coin");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     networkId = safeString(depositAddress, "netWork");
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("address") => address,
     Symbol("tag") => safeString(depositAddress, "memo")
 )
 
 end
-function fetchDepositAddressesByNetwork(self::Mexc, code, params=Dict())
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+function fetchDepositAddressesByNetwork(self::Mexc, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3250,14 +3790,14 @@ function fetchDepositAddressesByNetwork(self::Mexc, code, params=Dict())
     networkCode = safeString(params, "network");
     networkId = nothing;
     if functions.ccxtruthy(networkCode != nothing)
-        networkUnified = self.networkIdToCode(networkCode, code);
-        networks = self.safeDict(currency, "networks", Dict{Symbol, Any}());
+        networkUnified = self.networkIdToCode(networkId = networkCode, currencyCode = code);
+        networks = self.safeDict(currency, "networks", defaultValue = Dict{Symbol, Any}());
         if functions.ccxtruthy(@functions.ccxt_and((networkUnified != nothing), (ccxt_in(networkUnified, networks))))
-            network = functions.ccxtruthy((networkUnified == nothing)) ? Dict{Symbol, Any}() : self.safeDict(networks, networkUnified, Dict{Symbol, Any}());
+            network = functions.ccxtruthy((networkUnified == nothing)) ? Dict{Symbol, Any}() : self.safeDict(networks, networkUnified, defaultValue = Dict{Symbol, Any}());
             networkInfo = safeValue(network, "info", Dict{Symbol, Any}());
             networkId = safeString(networkInfo, "network");
         else
-            networkId = self.networkCodeToId(networkCode, code);
+            networkId = self.networkCodeToId(networkCode, currencyCode = code);
         end
     end
     if functions.ccxtruthy(networkId != nothing)
@@ -3265,11 +3805,23 @@ function fetchDepositAddressesByNetwork(self::Mexc, code, params=Dict())
     end
     params = omit(params, "network");
     response = Base.fetch(self.spotPrivateGetCapitalDepositAddress(extend(request, params)));
-    addressStructures = self.parseDepositAddresses(response, nothing, false);
+    addressStructures = self.parseDepositAddresses(response, codes = nothing, indexed = false);
     return indexBy(addressStructures, "network")
 
 end
-function createDepositAddress(self::Mexc, code, params=Dict())
+"""
+create a currency deposit address
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/generate-deposit-address-supporting-network
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network name
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Mexc, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3282,28 +3834,40 @@ function createDepositAddress(self::Mexc, code, params=Dict())
         throw(ArgumentsRequired(string(self.id, " createDepositAddress requires a `network` parameter")));
     end
     networkId = nothing;
-    networkUnified = self.networkIdToCode(networkCode, code);
-    networks = self.safeDict(currency, "networks", Dict{Symbol, Any}());
+    networkUnified = self.networkIdToCode(networkId = networkCode, currencyCode = code);
+    networks = self.safeDict(currency, "networks", defaultValue = Dict{Symbol, Any}());
     if functions.ccxtruthy(@functions.ccxt_and((networkUnified != nothing), (ccxt_in(networkUnified, networks))))
-        network = functions.ccxtruthy((networkUnified == nothing)) ? Dict{Symbol, Any}() : self.safeDict(networks, networkUnified, Dict{Symbol, Any}());
+        network = functions.ccxtruthy((networkUnified == nothing)) ? Dict{Symbol, Any}() : self.safeDict(networks, networkUnified, defaultValue = Dict{Symbol, Any}());
         networkInfo = safeValue(network, "info", Dict{Symbol, Any}());
         networkId = safeString(networkInfo, "network");
     else
-        networkId = self.networkCodeToId(networkCode, code);
+        networkId = self.networkCodeToId(networkCode, currencyCode = code);
     end
     if functions.ccxtruthy(networkId != nothing)
         request[Symbol("network")] = networkId;
     end
     params = omit(params, "network");
     response = Base.fetch(self.spotPrivatePostCapitalDepositAddress(extend(request, params)));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function fetchDepositAddress(self::Mexc, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Mexc, code; params=Dict())
     network = safeString(params, "network");
-    addressStructures = Base.fetch(self.fetchDepositAddressesByNetwork(code, params));
+    addressStructures = Base.fetch(self.fetchDepositAddressesByNetwork(code, params = params));
     if functions.ccxtruthy(network != nothing)
-        netCode = self.networkIdToCode(network, code);
+        netCode = self.networkIdToCode(networkId = network, currencyCode = code);
         result = functions.ccxtruthy((netCode == nothing)) ? nothing : self.safeDict(addressStructures, netCode);
     else
         options = self.safeDict(self.options, "defaultNetworks");
@@ -3322,7 +3886,20 @@ function fetchDepositAddress(self::Mexc, code, params=Dict())
     return result
 
 end
-function fetchDeposits(self::Mexc, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-historysupporting-network
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Mexc; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3347,10 +3924,23 @@ function fetchDeposits(self::Mexc, code=nothing, since=nothing, limit=nothing, p
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.spotPrivateGetCapitalDepositHisrec(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Mexc, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdraw-history-supporting-network
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Mexc; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3370,10 +3960,10 @@ function fetchWithdrawals(self::Mexc, code=nothing, since=nothing, limit=nothing
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.spotPrivateGetCapitalWithdrawHistory(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Mexc, transaction, currency=nothing)
+function parseTransaction(self::Mexc, transaction; currency=nothing)
     id = safeString2(transaction, "id", "tranId");
     type_var = functions.ccxtruthy((id == nothing)) ? "deposit" : "withdrawal";
     timestamp = safeInteger2(transaction, "insertTime", "applyTime");
@@ -3383,13 +3973,13 @@ function parseTransaction(self::Mexc, transaction, currency=nothing)
     if functions.ccxtruthy(currencyWithNetwork != nothing)
         currencyId = get(split(currencyWithNetwork, "-"), 1, nothing);
     end
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     network = nothing;
     rawNetwork = safeString(transaction, "network");
     if functions.ccxtruthy(rawNetwork != nothing)
-        network = self.networkIdToCode(rawNetwork, code);
+        network = self.networkIdToCode(networkId = rawNetwork, currencyCode = code);
     end
-    status = self.parseTransactionStatusByType(safeString(transaction, "status"), type_var);
+    status = self.parseTransactionStatusByType(safeString(transaction, "status"), type_var = type_var);
     amountString = safeString(transaction, "amount");
     address = safeString(transaction, "address");
     txid = safeString2(transaction, "transHash", "txId");
@@ -3428,7 +4018,7 @@ function parseTransaction(self::Mexc, transaction, currency=nothing)
 )
 
 end
-function parseTransactionStatusByType(self::Mexc, status, type_var=nothing)
+function parseTransactionStatusByType(self::Mexc, status; type_var=nothing)
     statusesByType = Dict{Symbol, Any}(
         Symbol("deposit") => Dict{Symbol, Any}(
             Symbol("1") => "failed",
@@ -3456,16 +4046,37 @@ function parseTransactionStatusByType(self::Mexc, status, type_var=nothing)
     return safeString(statuses, status, status)
 
 end
-function closeAllPositions(self::Mexc, params=Dict())
+"""
+closes all open swap positions
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/close-all
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closeAllPositions(self::Mexc; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.contractPrivatePostPositionCloseAll(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parsePositions(data)
 
 end
-function fetchPosition(self::Mexc, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Mexc, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3473,21 +4084,32 @@ function fetchPosition(self::Mexc, symbol, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    response = Base.fetch(self.fetchPositions(nothing, extend(request, params)));
+    response = Base.fetch(self.fetchPositions(symbols = nothing, params = extend(request, params)));
     return safeValue(response, 0)
 
 end
-function fetchPositions(self::Mexc, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Mexc; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.contractPrivateGetPositionOpenPositions(params));
-    data = self.safeList(response, "data", []);
-    return self.parsePositions(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parsePositions(data, symbols = symbols)
 
 end
-function parsePosition(self::Mexc, position, market=nothing)
-    market = self.safeMarket(safeString(position, "symbol"), market, nothing, "swap");
+function parsePosition(self::Mexc, position; market=nothing)
+    market = self.safeMarket(marketId = safeString(position, "symbol"), market = market, delimiter = nothing, marketType = "swap");
     symbol = get(market, Symbol("symbol"), nothing);
     contracts = safeString(position, "holdVol");
     entryPrice = self.safeNumber(position, "openAvgPrice");
@@ -3530,8 +4152,20 @@ function parsePosition(self::Mexc, position, market=nothing)
 ))
 
 end
-function fetchTransfer(self::Mexc, id, code=nothing, params=Dict())
-    (marketType, query) = self.handleMarketTypeAndParams("fetchTransfer", nothing, params);
+"""
+fetches a transfer
+see: https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+
+# Arguments
+- `id`::string: transfer id
+- `code`::string, optional: not used by mexc fetchTransfer
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfer(self::Mexc, id; code=nothing, params=Dict())
+    (marketType, query) = self.handleMarketTypeAndParams("fetchTransfer", market = nothing, params = params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3540,7 +4174,7 @@ function fetchTransfer(self::Mexc, id, code=nothing, params=Dict())
             Symbol("transact_id") => id
         );
         response = Base.fetch(self.spotPrivateGetAssetInternalTransferRecord(extend(request, query)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
             return self.parseTransfer(data)
     elseif functions.ccxtruthy(marketType == "swap")
         throw(BadRequest(string(self.id, " fetchTransfer() is not supported for ", marketType)));
@@ -3548,9 +4182,25 @@ function fetchTransfer(self::Mexc, id, code=nothing, params=Dict())
     throw(BadRequest(string(self.id, " fetchTransfer() is not supported for ", marketType)));
 
 end
-function fetchTransfers(self::Mexc, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-user-universal-transfer-history // spot universal transfer
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-asset-transfer-records // swap
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fromAccountType`::string, optional: 'SPOT' for spot wallet, 'FUTURES' for contract wallet
+- `params.toAccountType`::string, optional: 'SPOT' for spot wallet, 'FUTURES' for contract wallet
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Mexc; code=nothing, since=nothing, limit=nothing, params=Dict())
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTransfers", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTransfers", market = nothing, params = params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3592,7 +4242,7 @@ function fetchTransfers(self::Mexc, code=nothing, since=nothing, limit=nothing, 
             request[Symbol("size")] = limit;
         end
         response = Base.fetch(self.spotPrivateGetCapitalTransfer(extend(request, params)));
-        resultList = self.safeList(response, "rows", []);
+        resultList = self.safeList(response, "rows", defaultValue = []);
     elseif functions.ccxtruthy(marketType == "swap")
         if functions.ccxtruthy(limit != nothing)
             request[Symbol("page_size")] = limit;
@@ -3601,10 +4251,25 @@ function fetchTransfers(self::Mexc, code=nothing, since=nothing, limit=nothing, 
         data = safeValue(response, "data");
         resultList = safeValue(data, "resultList");
     end
-    return self.parseTransfers(resultList, currency, since, limit)
+    return self.parseTransfers(resultList, currency = currency, since = since, limit = limit)
 
 end
-function transfer(self::Mexc, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/user-universal-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: market symbol required for margin account transfers eg:BTCUSDT
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Mexc, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3640,7 +4305,7 @@ function transfer(self::Mexc, code, amount, fromAccount, toAccount, params=Dict(
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.spotPrivatePostCapitalTransfer(extend(request, params)));
-    transaction = self.parseTransfer(response, currency);
+    transaction = self.parseTransfer(response, currency = currency);
     return extend(transaction, Dict{Symbol, Any}(
     Symbol("amount") => amount,
     Symbol("fromAccount") => fromAccount,
@@ -3648,7 +4313,7 @@ function transfer(self::Mexc, code, amount, fromAccount, toAccount, params=Dict(
 ))
 
 end
-function parseTransfer(self::Mexc, transfer, currency=nothing)
+function parseTransfer(self::Mexc, transfer; currency=nothing)
     currencyId = safeString2(transfer, "currency", "asset");
     id = safeStringN(transfer, ["transact_id", "txid", "tranId"]);
     timestamp = safeInteger2(transfer, "createTime", "timestamp");
@@ -3673,7 +4338,7 @@ function parseTransfer(self::Mexc, transfer, currency=nothing)
     Symbol("id") => id,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => datetime,
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(transfer, "amount"),
     Symbol("fromAccount") => self.parseAccountId(accountFrom),
     Symbol("toAccount") => self.parseAccountId(accountTo),
@@ -3700,13 +4365,30 @@ function parseTransferStatus(self::Mexc, status)
     return safeString(statuses, status, status)
 
 end
-function withdraw(self::Mexc, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdrawnew // on-chain withdrawal
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/internal-transfer // internal transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.internal`::object, optional: false by default, set to true for an "internal transfer"
+- `params.toAccountType`::object, optional: skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Mexc, code, amount, address; tag=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    internal = self.safeBool(params, "internal", false);
+    internal = self.safeBool(params, "internal", defaultValue = false);
     if functions.ccxtruthy(internal)
         params = omit(params, "internal");
         requestForInternal = Dict{Symbol, Any}(
@@ -3719,13 +4401,13 @@ function withdraw(self::Mexc, code, amount, address, tag=nothing, params=Dict())
             throw(ArgumentsRequired(string(self.id, " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE")));
         end
         responseForInternal = Base.fetch(self.spotPrivatePostCapitalTransferInternal(extend(requestForInternal, params)));
-            return self.parseTransaction(responseForInternal, currency)
+            return self.parseTransaction(responseForInternal, currency = currency)
     end
-    networks = self.safeDict(self.options, "networks", Dict{Symbol, Any}());
+    networks = self.safeDict(self.options, "networks", defaultValue = Dict{Symbol, Any}());
     network = safeString2(params, "network", "netWork");
     network = safeString(networks, network, network);
-    network = self.networkCodeToId(network, get(currency, Symbol("code"), nothing));
-    self.checkAddress(address);
+    network = self.networkCodeToId(network, currencyCode = get(currency, Symbol("code"), nothing));
+    self.checkAddress(address = address);
     request = Dict{Symbol, Any}(
         Symbol("coin") => get(currency, Symbol("id"), nothing),
         Symbol("address") => address,
@@ -3739,10 +4421,22 @@ function withdraw(self::Mexc, code, amount, address, tag=nothing, params=Dict())
         params = omit(params, ["network", "netWork"]);
     end
     response = Base.fetch(self.spotPrivatePostCapitalWithdraw(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function setPositionMode(self::Mexc, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Mexc, hedged; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("positionMode") => functions.ccxtruthy(hedged) ? 1 : 2
     );
@@ -3750,7 +4444,18 @@ function setPositionMode(self::Mexc, hedged, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchPositionMode(self::Mexc, symbol=nothing, params=Dict())
+"""
+fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-user-position-mode
+
+# Arguments
+- `symbol`::string: not used by mexc fetchPositionMode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+function fetchPositionMode(self::Mexc; symbol=nothing, params=Dict())
     response = Base.fetch(self.contractPrivateGetPositionPositionMode(params));
     positionMode = safeInteger(response, "data");
     return Dict{Symbol, Any}(
@@ -3759,15 +4464,26 @@ function fetchPositionMode(self::Mexc, symbol=nothing, params=Dict())
 )
 
 end
-function fetchTransactionFees(self::Mexc, codes=nothing, params=Dict())
+"""
+fetch deposit and withdrawal fees
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
+
+# Arguments
+- `codes`::any: returns fees for all currencies if undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTransactionFees(self::Mexc; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.spotPrivateGetCapitalConfigGetall(params));
-    return self.parseTransactionFees(response, codes)
+    return self.parseTransactionFees(response, codes = codes)
 
 end
-function parseTransactionFees(self::Mexc, response, codes=nothing)
+function parseTransactionFees(self::Mexc, response; codes=nothing)
     withdrawFees = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
@@ -3776,7 +4492,7 @@ function parseTransactionFees(self::Mexc, response, codes=nothing)
         currency = self.safeCurrency(currencyId);
         code = safeString(currency, "code");
         if functions.ccxtruthy(@functions.ccxt_or((codes == nothing), (inArray(code, codes))))
-            withdrawFees[Symbol(code)] = self.parseTransactionFee(entry, currency);
+            withdrawFees[Symbol(code)] = self.parseTransactionFee(entry, currency = currency);
         end
         i += 1
     end
@@ -3787,7 +4503,7 @@ function parseTransactionFees(self::Mexc, response, codes=nothing)
 )
 
 end
-function parseTransactionFee(self::Mexc, transaction, currency=nothing)
+function parseTransactionFee(self::Mexc, transaction; currency=nothing)
     networkList = safeValue(transaction, "networkList", []);
     result = Dict{Symbol, Any}();
     j = 0
@@ -3802,22 +4518,33 @@ function parseTransactionFee(self::Mexc, transaction, currency=nothing)
     return result
 
 end
-function fetchDepositWithdrawFees(self::Mexc, codes=nothing, params=Dict())
+"""
+fetch deposit and withdrawal fees
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
+
+# Arguments
+- `codes`::any: returns fees for all currencies if undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Mexc; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.spotPrivateGetCapitalConfigGetall(params));
-    return self.parseDepositWithdrawFees(response, codes, "coin")
+    return self.parseDepositWithdrawFees(response, codes = codes, currencyIdKey = "coin")
 
 end
-function parseDepositWithdrawFee(self::Mexc, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Mexc, fee; currency=nothing)
     networkList = safeValue(fee, "networkList", []);
     result = self.depositWithdrawFee(fee);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkList)))
         networkEntry = get(networkList, j + 1, nothing);
         networkId = safeString(networkEntry, "network");
-        networkCode = self.networkIdToCode(networkId, safeString(currency, "code"));
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = safeString(currency, "code"));
         if functions.ccxtruthy(networkCode != nothing)
             result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("withdraw") => Dict{Symbol, Any}(
@@ -3835,7 +4562,18 @@ function parseDepositWithdrawFee(self::Mexc, fee, currency=nothing)
     return self.assignDefaultDepositWithdrawFees(result)
 
 end
-function fetchLeverage(self::Mexc, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-position-leverage-multipliers
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Mexc, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3844,11 +4582,11 @@ function fetchLeverage(self::Mexc, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.contractPrivateGetPositionLeverage(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseLeverage(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Mexc, leverage, market=nothing)
+function parseLeverage(self::Mexc, leverage; market=nothing)
     marginMode = nothing;
     longLeverage = nothing;
     shortLeverage = nothing;
@@ -3874,18 +4612,33 @@ function parseLeverage(self::Mexc, leverage, market=nothing)
 )
 
 end
-function handleMarginModeAndParams(self::Mexc, methodName, params=Dict(), defaultValue=nothing)
+function handleMarginModeAndParams(self::Mexc, methodName; params=Dict(), defaultValue=nothing)
     defaultType = safeString(self.options, "defaultType");
-    isMargin = self.safeBool(params, "margin", false);
+    isMargin = self.safeBool(params, "margin", defaultValue = false);
     marginMode = nothing;
-    (marginMode, params) = handleMarginModeAndParams(self.parent, methodName, params, defaultValue);
+    (marginMode, params) = handleMarginModeAndParams(self.parent, methodName, params = params, defaultValue = defaultValue);
     if functions.ccxtruthy(@functions.ccxt_or((defaultType == "margin"), (isMargin)))
         marginMode = "isolated";
     end
     return [marginMode, params]
 
 end
-function fetchPositionsHistory(self::Mexc, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-historical-positions
+
+# Arguments
+- `symbols`::array, optional: unified contract symbols
+- `since`::int, optional: not used by mexc fetchPositionsHistory
+- `limit`::int, optional: the maximum amount of candles to fetch, default=1000
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.type`::int, optional: position type，1: long, 2: short
+- `params.page_num`::int, optional: current page number, default is 1
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsHistory(self::Mexc; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3901,12 +4654,26 @@ function fetchPositionsHistory(self::Mexc, symbols=nothing, since=nothing, limit
         request[Symbol("page_size")] = limit;
     end
     response = Base.fetch(self.contractPrivateGetPositionListHistoryPositions(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    positions = self.parsePositions(data, symbols, params);
-    return self.filterBySinceLimit(positions, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    positions = self.parsePositions(data, symbols = symbols, params = params);
+    return self.filterBySinceLimit(positions, since = since, limit = limit)
 
 end
-function setMarginMode(self::Mexc, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string, optional: required when there is no position, else provide params["positionId"]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::string, optional: required when a position is set
+- `params.direction`::string, optional: "long" or "short" required when there is no position
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Mexc, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3935,14 +4702,14 @@ function setMarginMode(self::Mexc, marginMode, symbol=nothing, params=Dict())
     end
     params = omit(params, "direction");
     response = Base.fetch(self.contractPrivatePostPositionChangeLeverage(extend(request, params)));
-    return self.parseLeverage(response, market)
+    return self.parseLeverage(response, market = market)
 
 end
 function nonce(self::Mexc, )
     return milliseconds() - safeInteger(self.options, "timeDifference", 0)
 
 end
-function sign(self::Mexc, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Mexc, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     section = safeString(api, 0);
     access = safeString(api, 1);
     (path, params) = self.resolvePath(path, params);
@@ -4028,7 +4795,7 @@ function handleErrors(self::Mexc, code, reason, url, method, headers, body, resp
     if functions.ccxtruthy(response == nothing)
             return nothing
     end
-    success = self.safeBool(response, "success", false);
+    success = self.safeBool(response, "success", defaultValue = false);
     if functions.ccxtruthy(success)
             return nothing
     end
@@ -4108,3 +4875,946 @@ function Mexc(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Mexc_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/test-connectivity // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Mexc_fetchStatus
+
+function __ccxt_doc_Mexc_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/check-server-time // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Mexc_fetchTime
+
+function __ccxt_doc_Mexc_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Mexc_fetchCurrencies
+
+function __ccxt_doc_Mexc_fetchMarkets() end
+"""
+retrieves data on all markets for mexc
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info // swap
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Mexc_fetchMarkets
+
+function __ccxt_doc_Mexc_fetchSpotMarkets() end
+"""
+retrieves data on all spot markets for mexc
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Mexc_fetchSpotMarkets
+
+function __ccxt_doc_Mexc_fetchSwapMarkets() end
+"""
+retrieves data on all swap markets for mexc
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Mexc_fetchSwapMarkets
+
+function __ccxt_doc_Mexc_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/order-book // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-order-book-depth // swap
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Mexc_fetchOrderBook
+
+function __ccxt_doc_Mexc_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/recent-trades-list // spot
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/compressedaggregate-trades-list // spot aggregated
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-recent-trades // swap
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: *spot only* *since must be defined* the latest time in ms to fetch entries for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Mexc_fetchTrades
+
+function __ccxt_doc_Mexc_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/klinecandlestick-data // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-candlestick-data // swap
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-index-price-candles // index
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-fair-price-candles // mark
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Mexc_fetchOHLCV
+
+function __ccxt_doc_Mexc_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Mexc_fetchTickers
+
+function __ccxt_doc_Mexc_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Mexc_fetchTicker
+
+function __ccxt_doc_Mexc_fetchBidsAsks() end
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/symbol-order-book-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Mexc_fetchBidsAsks
+
+function __ccxt_doc_Mexc_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Mexc_createMarketSellOrderWithCost() end
+"""
+create a market sell order by providing the symbol and cost
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_createMarketSellOrderWithCost
+
+function __ccxt_doc_Mexc_createOrder() end
+"""
+create a trade order
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order // swap trigger
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: only 'isolated' is supported for spot-margin trading
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: if true, the order will only be posted if it will be a maker order
+- `params.reduceOnly`::bool, optional: *contract only* indicates if this order is to reduce the size of a position
+- `params.hedged`::bool, optional: *swap only* true for hedged mode, false for one way mode, default is false
+- `params.timeInForce`::string, optional: 'IOC' or 'FOK', default is 'GTC' EXCHANGE SPECIFIC PARAMETERS
+- `params.leverage`::int, optional: *contract only* leverage is necessary on isolated margin
+- `params.positionId`::long, optional: *contract only* it is recommended to fill in this parameter when closing a position
+- `params.externalOid`::string, optional: *contract only* external order ID
+- `params.positionMode`::int, optional: *contract only*  1:hedge, 2:one-way, default: the user's current config
+- `params.test`::bool, optional: *spot only* whether to use the test endpoint or not, default is false
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_createOrder
+
+function __ccxt_doc_Mexc_createSpotOrder() end
+"""
+create a trade order
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
+
+# Arguments
+- `market`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `marginMode`::string, optional: only 'isolated' is supported for spot-margin trading
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.postOnly`::bool, optional: if true, the order will only be posted if it will be a maker order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_createSpotOrder
+
+function __ccxt_doc_Mexc_createSwapOrder() end
+"""
+create a trade order
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order
+
+# Arguments
+- `market`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `marginMode`::string, optional: only 'isolated' is supported for spot-margin trading
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: if true, the order will only be posted if it will be a maker order
+- `params.reduceOnly`::bool, optional: indicates if this order is to reduce the size of a position
+- `params.hedged`::bool, optional: *swap only* true for hedged mode, false for one way mode, default is false EXCHANGE SPECIFIC PARAMETERS
+- `params.leverage`::int, optional: leverage is necessary on isolated margin
+- `params.positionId`::long, optional: it is recommended to fill in this parameter when closing a position
+- `params.externalOid`::string, optional: external order ID
+- `params.positionMode`::int, optional: 1:hedge, 2:one-way, default: the user's current config
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_createSwapOrder
+
+function __ccxt_doc_Mexc_createOrders() end
+"""
+*spot only*  *all orders must have the same symbol* create a list of trade orders
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/batch-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to api endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_createOrders
+
+function __ccxt_doc_Mexc_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-order // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-order-information-by-order-id // swap
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: only 'isolated' is supported, for spot-margin trading
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_fetchOrder
+
+function __ccxt_doc_Mexc_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.marginMode`::string, optional: only 'isolated' is supported, for spot-margin trading
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_fetchOrders
+
+function __ccxt_doc_Mexc_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/current-open-orders // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-current-orders // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: only 'isolated' is supported, for spot-margin trading
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_fetchOpenOrders
+
+function __ccxt_doc_Mexc_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_fetchClosedOrders
+
+function __ccxt_doc_Mexc_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_fetchCanceledOrders
+
+function __ccxt_doc_Mexc_cancelOrder() end
+"""
+cancels an open order
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-order // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-planned-orders // swap trigger
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: only 'isolated' is supported for spot-margin trading
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_cancelOrder
+
+function __ccxt_doc_Mexc_cancelOrders() end
+"""
+cancel multiple orders
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_cancelOrders
+
+function __ccxt_doc_Mexc_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-open-orders-on-a-symbol // spot
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders // spot all symbols
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mexc_cancelAllOrders
+
+function __ccxt_doc_Mexc_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Mexc_fetchAccounts
+
+function __ccxt_doc_Mexc_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-symbol-commission
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Mexc_fetchTradingFee
+
+function __ccxt_doc_Mexc_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
+see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbols`::string, optional: // required for margin, market id's separated by commas
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Mexc_fetchBalance
+
+function __ccxt_doc_Mexc_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order // swap legacy endpoint
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Mexc_fetchMyTrades
+
+function __ccxt_doc_Mexc_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-trade-records-by-order-id // swap
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Mexc_fetchOrderTrades
+
+function __ccxt_doc_Mexc_reduceMargin() end
+"""
+remove margin from a position
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Mexc_reduceMargin
+
+function __ccxt_doc_Mexc_addMargin() end
+"""
+add margin
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Mexc_addMargin
+
+function __ccxt_doc_Mexc_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Mexc_setLeverage
+
+function __ccxt_doc_Mexc_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-funding-fee-details
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Mexc_fetchFundingHistory
+
+function __ccxt_doc_Mexc_fetchFundingInterval() end
+"""
+fetch the current funding rate interval
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Mexc_fetchFundingInterval
+
+function __ccxt_doc_Mexc_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Mexc_fetchFundingRate
+
+function __ccxt_doc_Mexc_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: not used by mexc, but filtered internally by ccxt
+- `limit`::int, optional: mexc limit is page_size default 20, maximum is 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Mexc_fetchFundingRateHistory
+
+function __ccxt_doc_Mexc_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+see: https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Mexc_fetchLeverageTiers
+
+function __ccxt_doc_Mexc_fetchDepositAddressesByNetwork() end
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+__ccxt_doc_Mexc_fetchDepositAddressesByNetwork
+
+function __ccxt_doc_Mexc_createDepositAddress() end
+"""
+create a currency deposit address
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/generate-deposit-address-supporting-network
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network name
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Mexc_createDepositAddress
+
+function __ccxt_doc_Mexc_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Mexc_fetchDepositAddress
+
+function __ccxt_doc_Mexc_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-historysupporting-network
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Mexc_fetchDeposits
+
+function __ccxt_doc_Mexc_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdraw-history-supporting-network
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Mexc_fetchWithdrawals
+
+function __ccxt_doc_Mexc_closeAllPositions() end
+"""
+closes all open swap positions
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/close-all
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Mexc_closeAllPositions
+
+function __ccxt_doc_Mexc_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Mexc_fetchPosition
+
+function __ccxt_doc_Mexc_fetchPositions() end
+"""
+fetch all open positions
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Mexc_fetchPositions
+
+function __ccxt_doc_Mexc_fetchTransfer() end
+"""
+fetches a transfer
+see: https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+
+# Arguments
+- `id`::string: transfer id
+- `code`::string, optional: not used by mexc fetchTransfer
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Mexc_fetchTransfer
+
+function __ccxt_doc_Mexc_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-user-universal-transfer-history // spot universal transfer
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-asset-transfer-records // swap
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fromAccountType`::string, optional: 'SPOT' for spot wallet, 'FUTURES' for contract wallet
+- `params.toAccountType`::string, optional: 'SPOT' for spot wallet, 'FUTURES' for contract wallet
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Mexc_fetchTransfers
+
+function __ccxt_doc_Mexc_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/user-universal-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: market symbol required for margin account transfers eg:BTCUSDT
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Mexc_transfer
+
+function __ccxt_doc_Mexc_withdraw() end
+"""
+make a withdrawal
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdrawnew // on-chain withdrawal
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/internal-transfer // internal transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.internal`::object, optional: false by default, set to true for an "internal transfer"
+- `params.toAccountType`::object, optional: skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Mexc_withdraw
+
+function __ccxt_doc_Mexc_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Mexc_setPositionMode
+
+function __ccxt_doc_Mexc_fetchPositionMode() end
+"""
+fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-user-position-mode
+
+# Arguments
+- `symbol`::string: not used by mexc fetchPositionMode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+__ccxt_doc_Mexc_fetchPositionMode
+
+function __ccxt_doc_Mexc_fetchTransactionFees() end
+"""
+fetch deposit and withdrawal fees
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
+
+# Arguments
+- `codes`::any: returns fees for all currencies if undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Mexc_fetchTransactionFees
+
+function __ccxt_doc_Mexc_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdrawal fees
+see: https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
+
+# Arguments
+- `codes`::any: returns fees for all currencies if undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Mexc_fetchDepositWithdrawFees
+
+function __ccxt_doc_Mexc_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-position-leverage-multipliers
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Mexc_fetchLeverage
+
+function __ccxt_doc_Mexc_fetchPositionsHistory() end
+"""
+fetches historical positions
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-historical-positions
+
+# Arguments
+- `symbols`::array, optional: unified contract symbols
+- `since`::int, optional: not used by mexc fetchPositionsHistory
+- `limit`::int, optional: the maximum amount of candles to fetch, default=1000
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.type`::int, optional: position type，1: long, 2: short
+- `params.page_num`::int, optional: current page number, default is 1
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Mexc_fetchPositionsHistory
+
+function __ccxt_doc_Mexc_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string, optional: required when there is no position, else provide params["positionId"]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::string, optional: required when a position is set
+- `params.direction`::string, optional: "long" or "short" required when there is no position
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Mexc_setMarginMode

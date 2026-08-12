@@ -41,11 +41,11 @@ function describe(self::Binanceusdm, )
 ))
 
 end
-function transferIn(self::Binanceusdm, code, amount, params=Dict())
+function transferIn(self::Binanceusdm, code, amount; params=Dict())
     return Base.fetch(self.futuresTransfer(code, amount, 1, params))
 
 end
-function transferOut(self::Binanceusdm, code, amount, params=Dict())
+function transferOut(self::Binanceusdm, code, amount; params=Dict())
     return Base.fetch(self.futuresTransfer(code, amount, 2, params))
 
 end

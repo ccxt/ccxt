@@ -499,7 +499,7 @@ function describe(self::Exmo, )
 ))
 
 end
-function modifyMarginHelper(self::Exmo, symbol, amount, type_var, params=Dict())
+function modifyMarginHelper(self::Exmo, symbol, amount, type_var; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -514,9 +514,9 @@ function modifyMarginHelper(self::Exmo, symbol, amount, type_var, params=Dict())
     elseif functions.ccxtruthy(type_var == "reduce")
         response = Base.fetch(self.privatePostMarginUserPositionMarginRemove(extend(request, params)));
     end
-    margin = self.parseMarginModification(response, market);
+    margin = self.parseMarginModification(response, market = market);
     options = safeValue(self.options, "margin", Dict{Symbol, Any}());
-    fillResponseFromRequest = self.safeBool(options, "fillResponseFromRequest", true);
+    fillResponseFromRequest = self.safeBool(options, "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         margin[Symbol("type")] = type_var;
         margin[Symbol("amount")] = amount;
@@ -524,10 +524,10 @@ function modifyMarginHelper(self::Exmo, symbol, amount, type_var, params=Dict())
     return margin
 
 end
-function parseMarginModification(self::Exmo, data, market=nothing)
+function parseMarginModification(self::Exmo, data; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => data,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("type") => nothing,
     Symbol("marginMode") => "isolated",
     Symbol("amount") => nothing,
@@ -539,26 +539,61 @@ function parseMarginModification(self::Exmo, data, market=nothing)
 )
 
 end
-function reduceMargin(self::Exmo, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params))
+"""
+remove margin from a position
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Exmo, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params = params))
 
 end
-function addMargin(self::Exmo, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params))
+"""
+add margin
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Exmo, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params = params))
 
 end
-function fetchTradingFees(self::Exmo, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#90927062-256c-4b03-900f-2b99131f9a54
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Exmo; params=Dict())
     options = safeValue(self.options, "fetchTradingFees", Dict{Symbol, Any}());
     defaultMethod = safeString(options, "method", "fetchPrivateTradingFees");
     method = safeString(params, "method", defaultMethod);
     params = omit(params, "method");
     if functions.ccxtruthy(method == "fetchPrivateTradingFees")
-            return Base.fetch(self.fetchPrivateTradingFees(params))
+            return Base.fetch(self.fetchPrivateTradingFees(params = params))
     end
-    return Base.fetch(self.fetchPublicTradingFees(params))
+    return Base.fetch(self.fetchPublicTradingFees(params = params))
 
 end
-function fetchPrivateTradingFees(self::Exmo, params=Dict())
+function fetchPrivateTradingFees(self::Exmo; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -569,7 +604,7 @@ function fetchPrivateTradingFees(self::Exmo, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(pairs_var)))
         pair = get(pairs_var, i + 1, nothing);
         marketId = safeString(pair, "name");
-        symbol = self.safeSymbol(marketId, nothing, "_");
+        symbol = self.safeSymbol(marketId, market = nothing, delimiter = "_");
         makerString = safeString(pair, "trade_maker_fee");
         takerString = safeString(pair, "trade_taker_fee");
         maker = self.parseNumber(stringDiv(makerString, "100"));
@@ -587,7 +622,7 @@ function fetchPrivateTradingFees(self::Exmo, params=Dict())
     return result
 
 end
-function fetchPublicTradingFees(self::Exmo, params=Dict())
+function fetchPublicTradingFees(self::Exmo; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -633,7 +668,18 @@ function parseFixedFloatValue(self::Exmo, input)
     return result
 
 end
-function fetchTransactionFees(self::Exmo, codes=nothing, params=Dict())
+"""
+please use fetchDepositWithdrawFees instead
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction fees structures]{@link https://docs.ccxt.com/?id=fees-structure}
+"""
+function fetchTransactionFees(self::Exmo; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -671,17 +717,28 @@ function fetchTransactionFees(self::Exmo, codes=nothing, params=Dict())
     return result
 
 end
-function fetchDepositWithdrawFees(self::Exmo, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction fees structures]{@link https://docs.ccxt.com/?id=fees-structure}
+"""
+function fetchDepositWithdrawFees(self::Exmo; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetPaymentsProvidersCryptoList(params));
-    result = self.parseDepositWithdrawFees(response, codes);
+    result = self.parseDepositWithdrawFees(response, codes = codes);
     self.options[Symbol("transactionFees")] = result;
     return result
 
 end
-function parseDepositWithdrawFee(self::Exmo, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Exmo, fee; currency=nothing)
     result = self.depositWithdrawFee(fee);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fee)))
@@ -689,9 +746,9 @@ function parseDepositWithdrawFee(self::Exmo, fee, currency=nothing)
         type_var = safeString(provider, "type");
         networkId = safeString(provider, "name");
         currencyId = safeString(provider, "currency_name");
-        currency = self.safeCurrency(currencyId, currency);
+        currency = self.safeCurrency(currencyId, currency = currency);
         code = safeString(currency, "code");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         commissionDesc = safeString(provider, "commission_desc");
         splitCommissionDesc = [];
         percentage = nothing;
@@ -726,7 +783,18 @@ function parseDepositWithdrawFee(self::Exmo, fee, currency=nothing)
     return self.assignDefaultDepositWithdrawFees(result)
 
 end
-function fetchCurrencies(self::Exmo, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#7cdf0ca8-9ff6-4cf3-aa33-bcec83155c49
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Exmo; params=Dict())
     promises = [];
     push!(promises, self.publicGetCurrencyListExtended(params));
     push!(promises, self.publicGetPaymentsProvidersCryptoList(params));
@@ -749,8 +817,8 @@ function fetchCurrencies(self::Exmo, params=Dict())
 
 end
 function parseCurrency(self::Exmo, rawCurrency)
-    currency = self.safeDict(rawCurrency, "currency", Dict{Symbol, Any}());
-    providers = self.safeList(rawCurrency, "providers", []);
+    currency = self.safeDict(rawCurrency, "currency", defaultValue = Dict{Symbol, Any}());
+    providers = self.safeList(rawCurrency, "providers", defaultValue = []);
     currencyId = safeString(currency, "name");
     code = self.safeCurrencyCode(currencyId);
     type_var = "crypto";
@@ -769,7 +837,7 @@ function parseCurrency(self::Exmo, rawCurrency)
             networkId = replace(networkId, "(" => "");
             replaceChar = ")";
             networkId = replace(networkId, replaceChar => "");
-            networkCode = self.networkIdToCode(networkId, code);
+            networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
             if functions.ccxtruthy(@functions.ccxt_or((networkCode == nothing), !functions.ccxtruthy((ccxt_in(networkCode, networks)))))
                 if functions.ccxtruthy(networkCode != nothing)
                     networks[Symbol(networkCode)] = Dict{Symbol, Any}(
@@ -807,7 +875,7 @@ function parseCurrency(self::Exmo, rawCurrency)
                 networkEntry[Symbol("limits")][Symbol("withdraw")][Symbol("min")] = minValue;
                 networkEntry[Symbol("limits")][Symbol("withdraw")][Symbol("max")] = maxValue;
             end
-            info = self.safeList(networkEntry, "info", []);
+            info = self.safeList(networkEntry, "info", defaultValue = []);
             push!(info, provider);
             networkEntry[Symbol("info")] = info;
             if functions.ccxtruthy(networkCode != nothing)
@@ -844,11 +912,21 @@ function parseCurrency(self::Exmo, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Exmo, params=Dict())
+"""
+retrieves data on all markets for exmo
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Exmo; params=Dict())
     promises = [];
     push!(promises, self.publicGetPairSettings(params));
     marginPairsDict = Dict{Symbol, Any}();
-    fetchMargin = self.checkRequiredCredentials(false);
+    fetchMargin = self.checkRequiredCredentials(error = false);
     if functions.ccxtruthy(fetchMargin)
                 push!(promises, self.privatePostMarginPairList(params));
     end
@@ -902,7 +980,7 @@ function fetchMarkets(self::Exmo, params=Dict())
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
         Symbol("amount") => self.parseNumber("1e-8"),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "price_precision")))
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "price_precision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -930,7 +1008,22 @@ function fetchMarkets(self::Exmo, params=Dict())
     return result
 
 end
-function fetchOHLCV(self::Exmo, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#65eeb949-74e5-4631-9184-c38387fe53e8
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Exmo, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -969,11 +1062,11 @@ function fetchOHLCV(self::Exmo, symbol, timeframe="1m", since=nothing, limit=not
     end
     params = omit(params, "until");
     response = Base.fetch(self.publicGetCandlesHistory(extend(request, params)));
-    candles = self.safeList(response, "candles", []);
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    candles = self.safeList(response, "candles", defaultValue = []);
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Exmo, ohlcv, market=nothing)
+function parseOHLCV(self::Exmo, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "t"), self.safeNumber(ohlcv, "o"), self.safeNumber(ohlcv, "h"), self.safeNumber(ohlcv, "l"), self.safeNumber(ohlcv, "c"), self.safeNumber(ohlcv, "v")]
 
 end
@@ -1023,12 +1116,24 @@ function parseBalance(self::Exmo, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Exmo, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#59c5160f-27a1-4d9a-8cfb-7979c7ffaac6
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8388df7-1f9f-4d41-81c4-5a387d171dc6
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: *isolated* fetches the isolated margin balance
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Exmo; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params = params);
     if functions.ccxtruthy(marginMode == "cross")
         throw(BadRequest(string(self.id, " does not support cross margin")));
     end
@@ -1040,7 +1145,19 @@ function fetchBalance(self::Exmo, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Exmo, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Exmo, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1053,10 +1170,22 @@ function fetchOrderBook(self::Exmo, symbol, limit=nothing, params=Dict())
     end
     response = Base.fetch(self.publicGetOrderBook(extend(request, params)));
     result = self.safeDict(response, get(market, Symbol("id"), nothing));
-    return self.parseOrderBook(result, get(market, Symbol("symbol"), nothing), nothing, "bid", "ask")
+    return self.parseOrderBook(result, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "bid", asksKey = "ask")
 
 end
-function fetchOrderBooks(self::Exmo, symbols=nothing, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871
+
+# Arguments
+- `symbols`::any: list of unified market symbols, all symbols fetched if undefined, default is undefined
+- `limit`::int, optional: max number of entries per orderbook to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
+"""
+function fetchOrderBooks(self::Exmo; symbols=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1071,7 +1200,7 @@ function fetchOrderBooks(self::Exmo, symbols=nothing, limit=nothing, params=Dict
             end
         end
     else
-        requestedIds = self.marketIds(symbols);
+        requestedIds = self.marketIds(symbols = symbols);
         ids = join(requestedIds, ",");
     end
     request = Dict{Symbol, Any}(
@@ -1087,16 +1216,16 @@ function fetchOrderBooks(self::Exmo, symbols=nothing, limit=nothing, params=Dict
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
         symbol = self.safeSymbol(marketId);
-        rawOrderBook = self.safeDict(response, marketId, Dict{Symbol, Any}());
-        result[Symbol(symbol)] = self.parseOrderBook(rawOrderBook, symbol, nothing, "bid", "ask");
+        rawOrderBook = self.safeDict(response, marketId, defaultValue = Dict{Symbol, Any}());
+        result[Symbol(symbol)] = self.parseOrderBook(rawOrderBook, symbol, timestamp = nothing, bidsKey = "bid", asksKey = "ask");
         i += 1
     end
     return result
 
 end
-function parseTicker(self::Exmo, ticker, market=nothing)
+function parseTicker(self::Exmo, ticker; market=nothing)
     timestamp = safeTimestamp(ticker, "updated");
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     last_var = safeString(ticker, "last_trade");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -1119,39 +1248,61 @@ function parseTicker(self::Exmo, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "vol"),
     Symbol("quoteVolume") => safeString(ticker, "vol_curr"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Exmo, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Exmo; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetTicker(params));
     result = Dict{Symbol, Any}();
     marketIds = objectKeys(response);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
-        market = self.safeMarket(marketId, nothing, "_");
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = "_");
         symbol = get(market, Symbol("symbol"), nothing);
         ticker = safeValue(response, marketId);
-        result[Symbol(symbol)] = self.parseTicker(ticker, market);
+        result[Symbol(symbol)] = self.parseTicker(ticker, market = market);
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchTicker(self::Exmo, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Exmo, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetTicker(params));
     market = self.market(symbol);
-    return self.parseTicker(safeValue(response, get(market, Symbol("id"), nothing)), market)
+    return self.parseTicker(safeValue(response, get(market, Symbol("id"), nothing)), market = market)
 
 end
-function parseTrade(self::Exmo, trade, market=nothing)
+function parseTrade(self::Exmo, trade; market=nothing)
     timestamp = safeTimestamp(trade, "date");
     id = safeString(trade, "trade_id");
     orderId = safeString(trade, "order_id");
@@ -1161,7 +1312,7 @@ function parseTrade(self::Exmo, trade, market=nothing)
     side = safeString2(trade, "type", "trade_type");
     type_var = nothing;
     marketId = safeString(trade, "pair");
-    market = self.safeMarket(marketId, market, "_");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
     symbol = get(market, Symbol("symbol"), nothing);
     isMaker = safeValue(trade, "is_maker");
     takerOrMakerDefault = nothing;
@@ -1198,10 +1349,23 @@ function parseTrade(self::Exmo, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Exmo, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#5a5a9c0d-cf17-47f6-9d62-6d4404ebd5ac
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Exmo, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1210,16 +1374,31 @@ function fetchTrades(self::Exmo, symbol, since=nothing, limit=nothing, params=Di
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTrades(extend(request, params)));
-    data = self.safeList(response, get(market, Symbol("id"), nothing), []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, get(market, Symbol("id"), nothing), defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Exmo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#b8d8d9af-4f46-46a1-939b-ad261d79f452  // spot
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#f4b1aaf8-399f-403b-ab5e-4926d967a106  // margin
+
+# Arguments
+- `symbol`::string: a symbol is required but it can be a single string, or a non-empty array
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: *required for margin orders* the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: last deal offset, default = 0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Exmo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params = params);
     if functions.ccxtruthy(marginMode == "cross")
         throw(BadRequest(string(self.id, " only isolated margin is supported")));
     end
@@ -1254,53 +1433,111 @@ function fetchMyTrades(self::Exmo, symbol=nothing, since=nothing, limit=nothing,
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIdsInner)))
         marketId = get(marketIdsInner, i + 1, nothing);
-        resultMarket = self.safeMarket(marketId, nothing, "_");
+        resultMarket = self.safeMarket(marketId = marketId, market = nothing, delimiter = "_");
         items = get(response, Symbol(marketId), nothing);
-        trades = self.parseTrades(items, resultMarket, since, limit);
+        trades = self.parseTrades(items, market = resultMarket, since = since, limit = limit);
         result = arrayConcat(result, trades);
         i += 1
     end
-    return self.filterBySinceLimit(result, since, limit)
+    return self.filterBySinceLimit(result, since = since, limit = limit)
 
 end
-function createMarketOrderWithCost(self::Exmo, symbol, side, cost, params=Dict())
+"""
+create a market order by providing the symbol, side and cost
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketOrderWithCost(self::Exmo, symbol, side, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     params = extend(params, Dict{Symbol, Any}(
     Symbol("cost") => cost
 ));
-    return Base.fetch(self.createOrder(symbol, "market", side, cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", side, cost, price = nothing, params = params))
 
 end
-function createMarketBuyOrderWithCost(self::Exmo, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Exmo, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     params = extend(params, Dict{Symbol, Any}(
     Symbol("cost") => cost
 ));
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = params))
 
 end
-function createMarketSellOrderWithCost(self::Exmo, symbol, cost, params=Dict())
+"""
+create a market sell order by providing the symbol and cost
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketSellOrderWithCost(self::Exmo, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     params = extend(params, Dict{Symbol, Any}(
     Symbol("cost") => cost
 ));
-    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, price = nothing, params = params))
 
 end
-function createOrder(self::Exmo, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#de6f4321-eeac-468c-87f7-c4ad7062e265  // stop market
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#3561b86c-9ff1-436e-8e68-ac926b7eb523  // margin
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+- `params.timeInForce`::string, optional: *spot only* 'fok', 'ioc' or 'post_only'
+- `params.postOnly`::bool, optional: *spot only* true for post only orders
+- `params.cost`::float, optional: *spot only* *market orders only* the cost of the order in the quote currency for market orders
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Exmo, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     isMarket = @functions.ccxt_and((type_var == "market"), (price == nothing));
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
     if functions.ccxtruthy(marginMode == "cross")
         throw(BadRequest(string(self.id, " only supports isolated margin")));
     end
@@ -1344,7 +1581,7 @@ function createOrder(self::Exmo, symbol, type_var, side, amount, price=nothing, 
         else
             execType = safeString(params, "exec_type");
             isPostOnly = nothing;
-            (isPostOnly, params) = self.handlePostOnly(type_var == "market", execType == "post_only", params);
+            (isPostOnly, params) = self.handlePostOnly(type_var == "market", execType == "post_only", params = params);
             timeInForce = safeString(params, "timeInForce");
             request[Symbol("price")] = functions.ccxtruthy(isMarket) ? 0 : self.priceToPrecision(get(market, Symbol("symbol"), nothing), price);
             if functions.ccxtruthy(type_var == "limit")
@@ -1379,10 +1616,26 @@ function createOrder(self::Exmo, symbol, type_var, side, amount, price=nothing, 
         end
         response = Base.fetch(self.privatePostMarginUserOrderCreate(extend(request, params)));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Exmo, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#1f710d4b-75bc-4b65-ad68-006f863a3f26
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // stop market
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true to cancel a trigger order
+- `params.marginMode`::string, optional: set to 'cross' or 'isolated' to cancel a margin order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Exmo, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1390,7 +1643,7 @@ function cancelOrder(self::Exmo, id, symbol=nothing, params=Dict())
     trigger = safeValue2(params, "trigger", "stop");
     params = omit(params, ["trigger", "stop"]);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params = params);
     if functions.ccxtruthy(marginMode == "cross")
         throw(BadRequest(string(self.id, " only supports isolated margin")));
     end
@@ -1409,7 +1662,19 @@ function cancelOrder(self::Exmo, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOrder(self::Exmo, id, symbol=nothing, params=Dict())
+"""
+*spot only* fetches information on an order made by the user
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by exmo fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Exmo, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1422,9 +1687,25 @@ function fetchOrder(self::Exmo, id, symbol=nothing, params=Dict())
     return order
 
 end
-function fetchOrderTrades(self::Exmo, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#00810661-9119-46c5-aec5-55abe9cb42c7  // margin
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: set to "isolated" to fetch trades for a margin order
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Exmo, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchOrderTrades", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchOrderTrades", params = params);
     if functions.ccxtruthy(marginMode == "cross")
         throw(BadRequest(string(self.id, " only supports isolated margin")));
     end
@@ -1445,10 +1726,25 @@ function fetchOrderTrades(self::Exmo, id, symbol=nothing, since=nothing, limit=n
     if functions.ccxtruthy(trades != nothing)
         tradesList = trades;
     end
-    return self.parseTrades(tradesList, market, since, limit)
+    return self.parseTrades(tradesList, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Exmo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#0e135370-daa4-4689-8acd-b6876dee9ba1  // spot open orders
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#a7cfd4f0-476e-4675-b33f-22a46902f245  // margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: set to "isolated" for margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Exmo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1458,7 +1754,7 @@ function fetchOpenOrders(self::Exmo, symbol=nothing, since=nothing, limit=nothin
         symbol = get(market, Symbol("symbol"), nothing);
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchOpenOrders", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchOpenOrders", params = params);
     isMargin = (@functions.ccxt_or((marginMode == "cross"), (marginMode == "isolated")));
     orders = [];
     if functions.ccxtruthy(isMargin)
@@ -1467,18 +1763,18 @@ function fetchOpenOrders(self::Exmo, symbol=nothing, since=nothing, limit=nothin
     Symbol("status") => "open"
 ));
         responseOrders = safeValue(response, "orders");
-        orders = self.parseOrders(responseOrders, market, since, limit, params);
+        orders = self.parseOrders(responseOrders, market = market, since = since, limit = limit, params = params);
     else
         response = Base.fetch(self.privatePostUserOpenOrders(params));
         marketIds = objectKeys(response);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
             marketId = get(marketIds, i + 1, nothing);
-            marketInner = self.safeMarket(marketId);
+            marketInner = self.safeMarket(marketId = marketId);
             params = extend(params, Dict{Symbol, Any}(
     Symbol("status") => "open"
 ));
-            parsedOrders = self.parseOrders(get(response, Symbol(marketId), nothing), marketInner, since, limit, params);
+            parsedOrders = self.parseOrders(get(response, Symbol(marketId), nothing), market = marketInner, since = since, limit = limit, params = params);
             orders = arrayConcat(orders, parsedOrders);
             i += 1
         end
@@ -1519,7 +1815,7 @@ function parseSide(self::Exmo, orderType)
     return safeString(side, orderType, orderType)
 
 end
-function parseOrder(self::Exmo, order, market=nothing)
+function parseOrder(self::Exmo, order; market=nothing)
     id = safeString2(order, "order_id", "parent_order_id");
     eventTime = safeIntegerProduct2(order, "event_time", "created", 0.000001);
     timestamp = safeTimestamp(order, "created", eventTime);
@@ -1535,7 +1831,7 @@ function parseOrder(self::Exmo, order, market=nothing)
             marketId = string(get(order, Symbol("out_currency"), nothing), "_", get(order, Symbol("in_currency"), nothing));
         end
     end
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     amount = safeString(order, "quantity");
     if functions.ccxtruthy(amount == nothing)
@@ -1576,15 +1872,30 @@ function parseOrder(self::Exmo, order, market=nothing)
     Symbol("trades") => transactions,
     Symbol("fee") => nothing,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
-function fetchCanceledOrders(self::Exmo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#1d2524dd-ae6d-403a-a067-77b50d13fbe5  // margin
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#a51be1d0-af5f-44e4-99d7-f7b04c6067d0  // spot canceled orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: set to "isolated" for margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Exmo; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchCanceledOrders", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchCanceledOrders", params = params);
     if functions.ccxtruthy(marginMode == "cross")
         throw(BadRequest(string(self.id, " only supports isolated margin")));
     end
@@ -1610,11 +1921,11 @@ function fetchCanceledOrders(self::Exmo, symbol=nothing, since=nothing, limit=no
         params = extend(params, Dict{Symbol, Any}(
     Symbol("status") => "canceled"
 ));
-            return self.parseOrders(response, market, since, limit, params)
+            return self.parseOrders(response, market = market, since = since, limit = limit, params = params)
     end
     responseSwap = Base.fetch(self.privatePostMarginUserOrderHistory(extend(request, params)));
     items = safeValue(responseSwap, "items");
-    orders = self.parseOrders(items, market, since, limit, params);
+    orders = self.parseOrders(items, market = market, since = since, limit = limit, params = params);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
@@ -1627,13 +1938,34 @@ function fetchCanceledOrders(self::Exmo, symbol=nothing, since=nothing, limit=no
     return result
 
 end
-function editOrder(self::Exmo, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+*margin only* edit a trade order
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#f27ee040-c75f-4b59-b608-d05bd45b7899  // margin
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified CCXT market symbol
+- `type`::string: not used by exmo editOrder
+- `side`::string: not used by exmo editOrder
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: stop price for stop-market and stop-limit orders
+- `params.marginMode`::string: must be set to isolated EXCHANGE SPECIFIC PARAMETERS
+- `params.distance`::int, optional: distance for trailing stop orders
+- `params.expire`::int, optional: expiration timestamp in UTC timezone for the order. order will not be expired if expire is 0
+- `params.comment`::string, optional: optional comment for order. up to 50 latin symbols, whitespaces, underscores
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Exmo, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("editOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("editOrder", params = params);
     if functions.ccxtruthy(marginMode != "isolated")
         throw(BadRequest(string(self.id, " editOrder() can only be used for isolated margin orders")));
     end
@@ -1655,7 +1987,18 @@ function editOrder(self::Exmo, id, symbol, type_var, side, amount=nothing, price
     return self.parseOrder(response)
 
 end
-function fetchDepositAddress(self::Exmo, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8f9ced9-7ab6-4383-a6a4-bc54469ba60e
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Exmo, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1671,7 +2014,7 @@ function fetchDepositAddress(self::Exmo, code, params=Dict())
             tag = get(addressAndTag, 2, nothing);
         end
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
@@ -1691,7 +2034,21 @@ function getMarketFromTrades(self::Exmo, trades)
     return nothing
 
 end
-function withdraw(self::Exmo, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Exmo, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1713,7 +2070,7 @@ function withdraw(self::Exmo, code, amount, address, tag=nothing, params=Dict())
         params = omit(params, "network");
     end
     response = Base.fetch(self.privatePostWithdrawCrypt(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
 function parseTransactionStatus(self::Exmo, status)
@@ -1727,7 +2084,7 @@ function parseTransactionStatus(self::Exmo, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Exmo, transaction, currency=nothing)
+function parseTransaction(self::Exmo, transaction; currency=nothing)
     timestamp = safeTimestamp2(transaction, "dt", "created");
     amountString = safeString(transaction, "amount");
     if functions.ccxtruthy(amountString != nothing)
@@ -1743,7 +2100,7 @@ function parseTransaction(self::Exmo, transaction, currency=nothing)
     end
     type_var = safeString(transaction, "type");
     currencyId = safeString2(transaction, "curr", "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     address = nothing;
     comment = nothing;
     account = safeString(transaction, "account");
@@ -1811,7 +2168,20 @@ function parseTransaction(self::Exmo, transaction, currency=nothing)
 )
 
 end
-function fetchDepositsWithdrawals(self::Exmo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#31e69a33-4849-4e6a-b4b4-6d574238f6a7
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Exmo; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1824,11 +2194,24 @@ function fetchDepositsWithdrawals(self::Exmo, code=nothing, since=nothing, limit
         currency = self.currency(code);
     end
     response = Base.fetch(self.privatePostWalletHistory(extend(request, params)));
-    history = self.safeList(response, "history", []);
-    return self.parseTransactions(history, currency, since, limit)
+    history = self.safeList(response, "history", defaultValue = []);
+    return self.parseTransactions(history, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Exmo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Exmo; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1844,11 +2227,23 @@ function fetchWithdrawals(self::Exmo, code=nothing, since=nothing, limit=nothing
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostWalletOperations(extend(request, params)));
-    items = self.safeList(response, "items", []);
-    return self.parseTransactions(items, currency, since, limit)
+    items = self.safeList(response, "items", defaultValue = []);
+    return self.parseTransactions(items, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawal(self::Exmo, id, code=nothing, params=Dict())
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
+
+# Arguments
+- `id`::string: withdrawal id
+- `code`::string: unified currency code of the currency withdrawn, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawal(self::Exmo, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1863,11 +2258,23 @@ function fetchWithdrawal(self::Exmo, id, code=nothing, params=Dict())
     end
     response = Base.fetch(self.privatePostWalletOperations(extend(request, params)));
     items = safeValue(response, "items", []);
-    first_var = self.safeDict(items, 0, Dict{Symbol, Any}());
-    return self.parseTransaction(first_var, currency)
+    first_var = self.safeDict(items, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(first_var, currency = currency)
 
 end
-function fetchDeposit(self::Exmo, id, code=nothing, params=Dict())
+"""
+fetch information on a deposit
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
+
+# Arguments
+- `id`::string: deposit id
+- `code`::string: unified currency code, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposit(self::Exmo, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1882,11 +2289,24 @@ function fetchDeposit(self::Exmo, id, code=nothing, params=Dict())
     end
     response = Base.fetch(self.privatePostWalletOperations(extend(request, params)));
     items = safeValue(response, "items", []);
-    first_var = self.safeDict(items, 0, Dict{Symbol, Any}());
-    return self.parseTransaction(first_var, currency)
+    first_var = self.safeDict(items, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(first_var, currency = currency)
 
 end
-function fetchDeposits(self::Exmo, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Exmo; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1902,11 +2322,11 @@ function fetchDeposits(self::Exmo, code=nothing, since=nothing, limit=nothing, p
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostWalletOperations(extend(request, params)));
-    items = self.safeList(response, "items", []);
-    return self.parseTransactions(items, currency, since, limit)
+    items = self.safeList(response, "items", defaultValue = []);
+    return self.parseTransactions(items, currency = currency, since = since, limit = limit)
 
 end
-function sign(self::Exmo, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Exmo, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/");
     if functions.ccxtruthy(api != "web")
         url += string(self.version, "/");
@@ -1954,7 +2374,7 @@ function handleErrors(self::Exmo, httpCode, reason, url, method, headers, body, 
         throw(ExchangeError(feedback));
     end
     if functions.ccxtruthy(@functions.ccxt_or((ccxt_in("result", response)), (ccxt_in("errmsg", response))))
-        success = self.safeBool(response, "result", false);
+        success = self.safeBool(response, "result", defaultValue = false);
         if functions.ccxtruthy(isa(success, AbstractString))
             if functions.ccxtruthy(@functions.ccxt_or((success == "true"), (success == "1")))
                 success = true;
@@ -1991,207 +2411,207 @@ Base.getproperty(self::Exmo, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function webGetCtrlFeesAndLimits(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "ctrl/feesAndLimits", "web", "GET", params, nothing, nothing, Dict())
+    return request(self, "ctrl/feesAndLimits"; api="web", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function webGetEnDocsFees(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "en/docs/fees", "web", "GET", params, nothing, nothing, Dict())
+    return request(self, "en/docs/fees"; api="web", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrency(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "currency", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currency"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrencyListExtended(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "currency/list/extended", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currency/list/extended"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderBook(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "order_book", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "order_book"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPairSettings(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "pair_settings", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "pair_settings"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrades(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesHistory(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "candles_history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles_history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetRequiredAmount(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "required_amount", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "required_amount"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPaymentsProvidersCryptoList(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "payments/providers/crypto/list", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "payments/providers/crypto/list"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserInfo(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "user_info", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user_info"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderCreate(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "order_create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order_create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderCancel(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "order_cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order_cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostStopMarketOrderCreate(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "stop_market_order_create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "stop_market_order_create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostStopMarketOrderCancel(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "stop_market_order_cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "stop_market_order_cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserOpenOrders(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "user_open_orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user_open_orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserTrades(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "user_trades", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user_trades"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserCancelledOrders(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "user_cancelled_orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user_cancelled_orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderTrades(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "order_trades", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order_trades"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDepositAddress(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "deposit_address", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deposit_address"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawCrypt(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "withdraw_crypt", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw_crypt"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawGetTxid(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "withdraw_get_txid", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw_get_txid"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExcodeCreate(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "excode_create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "excode_create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExcodeLoad(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "excode_load", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "excode_load"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCodeCheck(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "code_check", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "code_check"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWalletHistory(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "wallet_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wallet_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWalletOperations(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "wallet_operations", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wallet_operations"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserOrderCreate(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/order/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/order/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserOrderUpdate(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/order/update", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/order/update"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserOrderCancel(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/order/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/order/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserPositionClose(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/position/close", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/position/close"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserPositionMarginAdd(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/position/margin_add", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/position/margin_add"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserPositionMarginRemove(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/position/margin_remove", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/position/margin_remove"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginCurrencyList(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/currency/list", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/currency/list"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginPairList(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/pair/list", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/pair/list"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginSettings(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/settings", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/settings"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginFundingList(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/funding/list", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/funding/list"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserInfo(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/info", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/info"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserOrderList(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/order/list", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/order/list"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserOrderHistory(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/order/history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/order/history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserOrderTrades(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/order/trades", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/order/trades"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserOrderMaxQuantity(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/order/max_quantity", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/order/max_quantity"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserPositionList(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/position/list", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/position/list"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserPositionMarginRemoveInfo(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/position/margin_remove_info", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/position/margin_remove_info"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserPositionMarginAddInfo(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/position/margin_add_info", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/position/margin_add_info"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserWalletList(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/wallet/list", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/wallet/list"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserWalletHistory(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/wallet/history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/wallet/history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginUserTradeList(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/user/trade/list", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/user/trade/list"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginTrades(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/trades", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/trades"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginLiquidationFeed(self::Exmo, params=Dict(), context=Dict())
-    return request(self, "margin/liquidation/feed", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/liquidation/feed"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Exmo(; kwargs...)
@@ -2255,3 +2675,521 @@ function Exmo(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Exmo_reduceMargin() end
+"""
+remove margin from a position
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Exmo_reduceMargin
+
+function __ccxt_doc_Exmo_addMargin() end
+"""
+add margin
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Exmo_addMargin
+
+function __ccxt_doc_Exmo_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#90927062-256c-4b03-900f-2b99131f9a54
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Exmo_fetchTradingFees
+
+function __ccxt_doc_Exmo_fetchTransactionFees() end
+"""
+please use fetchDepositWithdrawFees instead
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction fees structures]{@link https://docs.ccxt.com/?id=fees-structure}
+"""
+__ccxt_doc_Exmo_fetchTransactionFees
+
+function __ccxt_doc_Exmo_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction fees structures]{@link https://docs.ccxt.com/?id=fees-structure}
+"""
+__ccxt_doc_Exmo_fetchDepositWithdrawFees
+
+function __ccxt_doc_Exmo_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#7cdf0ca8-9ff6-4cf3-aa33-bcec83155c49
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Exmo_fetchCurrencies
+
+function __ccxt_doc_Exmo_fetchMarkets() end
+"""
+retrieves data on all markets for exmo
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Exmo_fetchMarkets
+
+function __ccxt_doc_Exmo_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#65eeb949-74e5-4631-9184-c38387fe53e8
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Exmo_fetchOHLCV
+
+function __ccxt_doc_Exmo_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#59c5160f-27a1-4d9a-8cfb-7979c7ffaac6
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8388df7-1f9f-4d41-81c4-5a387d171dc6
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: *isolated* fetches the isolated margin balance
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Exmo_fetchBalance
+
+function __ccxt_doc_Exmo_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Exmo_fetchOrderBook
+
+function __ccxt_doc_Exmo_fetchOrderBooks() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871
+
+# Arguments
+- `symbols`::any: list of unified market symbols, all symbols fetched if undefined, default is undefined
+- `limit`::int, optional: max number of entries per orderbook to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
+"""
+__ccxt_doc_Exmo_fetchOrderBooks
+
+function __ccxt_doc_Exmo_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Exmo_fetchTickers
+
+function __ccxt_doc_Exmo_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Exmo_fetchTicker
+
+function __ccxt_doc_Exmo_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#5a5a9c0d-cf17-47f6-9d62-6d4404ebd5ac
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Exmo_fetchTrades
+
+function __ccxt_doc_Exmo_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#b8d8d9af-4f46-46a1-939b-ad261d79f452  // spot
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#f4b1aaf8-399f-403b-ab5e-4926d967a106  // margin
+
+# Arguments
+- `symbol`::string: a symbol is required but it can be a single string, or a non-empty array
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: *required for margin orders* the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: last deal offset, default = 0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Exmo_fetchMyTrades
+
+function __ccxt_doc_Exmo_createMarketOrderWithCost() end
+"""
+create a market order by providing the symbol, side and cost
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Exmo_createMarketOrderWithCost
+
+function __ccxt_doc_Exmo_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Exmo_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Exmo_createMarketSellOrderWithCost() end
+"""
+create a market sell order by providing the symbol and cost
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Exmo_createMarketSellOrderWithCost
+
+function __ccxt_doc_Exmo_createOrder() end
+"""
+create a trade order
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#de6f4321-eeac-468c-87f7-c4ad7062e265  // stop market
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#3561b86c-9ff1-436e-8e68-ac926b7eb523  // margin
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+- `params.timeInForce`::string, optional: *spot only* 'fok', 'ioc' or 'post_only'
+- `params.postOnly`::bool, optional: *spot only* true for post only orders
+- `params.cost`::float, optional: *spot only* *market orders only* the cost of the order in the quote currency for market orders
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Exmo_createOrder
+
+function __ccxt_doc_Exmo_cancelOrder() end
+"""
+cancels an open order
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#1f710d4b-75bc-4b65-ad68-006f863a3f26
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // stop market
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true to cancel a trigger order
+- `params.marginMode`::string, optional: set to 'cross' or 'isolated' to cancel a margin order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Exmo_cancelOrder
+
+function __ccxt_doc_Exmo_fetchOrder() end
+"""
+*spot only* fetches information on an order made by the user
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by exmo fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Exmo_fetchOrder
+
+function __ccxt_doc_Exmo_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#00810661-9119-46c5-aec5-55abe9cb42c7  // margin
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: set to "isolated" to fetch trades for a margin order
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Exmo_fetchOrderTrades
+
+function __ccxt_doc_Exmo_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#0e135370-daa4-4689-8acd-b6876dee9ba1  // spot open orders
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#a7cfd4f0-476e-4675-b33f-22a46902f245  // margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: set to "isolated" for margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Exmo_fetchOpenOrders
+
+function __ccxt_doc_Exmo_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#1d2524dd-ae6d-403a-a067-77b50d13fbe5  // margin
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#a51be1d0-af5f-44e4-99d7-f7b04c6067d0  // spot canceled orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: set to "isolated" for margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Exmo_fetchCanceledOrders
+
+function __ccxt_doc_Exmo_editOrder() end
+"""
+*margin only* edit a trade order
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#f27ee040-c75f-4b59-b608-d05bd45b7899  // margin
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified CCXT market symbol
+- `type`::string: not used by exmo editOrder
+- `side`::string: not used by exmo editOrder
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: stop price for stop-market and stop-limit orders
+- `params.marginMode`::string: must be set to isolated EXCHANGE SPECIFIC PARAMETERS
+- `params.distance`::int, optional: distance for trailing stop orders
+- `params.expire`::int, optional: expiration timestamp in UTC timezone for the order. order will not be expired if expire is 0
+- `params.comment`::string, optional: optional comment for order. up to 50 latin symbols, whitespaces, underscores
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Exmo_editOrder
+
+function __ccxt_doc_Exmo_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8f9ced9-7ab6-4383-a6a4-bc54469ba60e
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Exmo_fetchDepositAddress
+
+function __ccxt_doc_Exmo_withdraw() end
+"""
+make a withdrawal
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Exmo_withdraw
+
+function __ccxt_doc_Exmo_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#31e69a33-4849-4e6a-b4b4-6d574238f6a7
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Exmo_fetchDepositsWithdrawals
+
+function __ccxt_doc_Exmo_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Exmo_fetchWithdrawals
+
+function __ccxt_doc_Exmo_fetchWithdrawal() end
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
+
+# Arguments
+- `id`::string: withdrawal id
+- `code`::string: unified currency code of the currency withdrawn, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Exmo_fetchWithdrawal
+
+function __ccxt_doc_Exmo_fetchDeposit() end
+"""
+fetch information on a deposit
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
+
+# Arguments
+- `id`::string: deposit id
+- `code`::string: unified currency code, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Exmo_fetchDeposit
+
+function __ccxt_doc_Exmo_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Exmo_fetchDeposits

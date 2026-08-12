@@ -460,12 +460,32 @@ function describe(self::Onetrading, )
 ))
 
 end
-function fetchTime(self::Onetrading, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.onetrading.com/rest/public/time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Onetrading; params=Dict())
     response = Base.fetch(self.publicGetTime(params));
     return safeInteger(response, "epoch_millis")
 
 end
-function fetchCurrencies(self::Onetrading, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.onetrading.com/rest/public/currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Onetrading; params=Dict())
     response = Base.fetch(self.publicGetCurrencies(params));
     return self.parseCurrencies(response)
 
@@ -480,7 +500,7 @@ function parseCurrency(self::Onetrading, rawCurrency)
     Symbol("info") => rawCurrency,
     Symbol("active") => nothing,
     Symbol("fee") => nothing,
-    Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(rawCurrency, "precision"))),
+    Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(rawCurrency, "precision"))),
     Symbol("withdraw") => nothing,
     Symbol("deposit") => nothing,
     Symbol("limits") => Dict{Symbol, Any}(
@@ -497,14 +517,24 @@ function parseCurrency(self::Onetrading, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Onetrading, params=Dict())
+"""
+retrieves data on all markets for onetrading
+see: https://docs.onetrading.com/rest/public/instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Onetrading; params=Dict())
     response = Base.fetch(self.publicGetInstruments(params));
     return self.parseMarkets(response)
 
 end
 function parseMarket(self::Onetrading, market)
-    baseAsset = self.safeDict(market, "base", Dict{Symbol, Any}());
-    quoteAsset = self.safeDict(market, "quote", Dict{Symbol, Any}());
+    baseAsset = self.safeDict(market, "base", defaultValue = Dict{Symbol, Any}());
+    quoteAsset = self.safeDict(market, "quote", defaultValue = Dict{Symbol, Any}());
     baseId = safeString(baseAsset, "code");
     quoteId = safeString(quoteAsset, "code");
     id = safeString(market, "id");
@@ -517,7 +547,7 @@ function parseMarket(self::Onetrading, market)
     if functions.ccxtruthy(isPerp)
         symbol = string(symbol, ":", quote_var);
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -542,8 +572,8 @@ function parseMarket(self::Onetrading, market)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "amount_precision"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "market_precision")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "amount_precision"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "market_precision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -568,7 +598,19 @@ function parseMarket(self::Onetrading, market)
 ))
 
 end
-function fetchTradingFees(self::Onetrading, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://docs.onetrading.com/rest/public/fee-groups
+see: https://docs.onetrading.com/rest/trading/fees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: fetchPrivateTradingFees or fetchPublicTradingFees
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Onetrading; params=Dict())
     method = safeString(params, "method");
     params = omit(params, "method");
     if functions.ccxtruthy(method == nothing)
@@ -576,27 +618,27 @@ function fetchTradingFees(self::Onetrading, params=Dict())
         method = safeString(options, "method", "fetchPrivateTradingFees");
     end
     if functions.ccxtruthy(method == "fetchPrivateTradingFees")
-            return Base.fetch(self.fetchPrivateTradingFees(params))
+            return Base.fetch(self.fetchPrivateTradingFees(params = params))
     elseif functions.ccxtruthy(method == "fetchPublicTradingFees")
-        return Base.fetch(self.fetchPublicTradingFees(params))
+        return Base.fetch(self.fetchPublicTradingFees(params = params))
     else
         throw(NotSupported(string(self.id, " fetchTradingFees() does not support ", method, ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")));
     end
 
 end
-function fetchPublicTradingFees(self::Onetrading, params=Dict())
+function fetchPublicTradingFees(self::Onetrading; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetFees(params));
-    spotFees = self.safeDict(response, 0, Dict{Symbol, Any}());
-    futuresFees = self.safeDict(response, 1, Dict{Symbol, Any}());
-    spotFeeTiers = self.safeList(spotFees, "fee_tiers", []);
-    futuresFeeTiers = self.safeList(futuresFees, "fee_tiers", []);
+    spotFees = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    futuresFees = self.safeDict(response, 1, defaultValue = Dict{Symbol, Any}());
+    spotFeeTiers = self.safeList(spotFees, "fee_tiers", defaultValue = []);
+    futuresFeeTiers = self.safeList(futuresFees, "fee_tiers", defaultValue = []);
     spotTiers = self.parseFeeTiers(spotFeeTiers);
     futuresTiers = self.parseFeeTiers(futuresFeeTiers);
-    firstSpotTier = self.safeDict(spotTiers, 0, Dict{Symbol, Any}());
-    firstFuturesTier = self.safeDict(futuresTiers, 0, Dict{Symbol, Any}());
+    firstSpotTier = self.safeDict(spotTiers, 0, defaultValue = Dict{Symbol, Any}());
+    firstFuturesTier = self.safeDict(futuresTiers, 0, defaultValue = Dict{Symbol, Any}());
     result = Dict{Symbol, Any}();
     symbols = self.symbols;
     i = 0
@@ -618,14 +660,14 @@ function fetchPublicTradingFees(self::Onetrading, params=Dict())
     return result
 
 end
-function fetchPrivateTradingFees(self::Onetrading, params=Dict())
+function fetchPrivateTradingFees(self::Onetrading; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetAccountFees(params));
     activeFeeTier = self.safeList(response, "active_fee_tiers");
-    spotFees = self.safeDict(activeFeeTier, 0, Dict{Symbol, Any}());
-    futuresFees = self.safeDict(activeFeeTier, 1, Dict{Symbol, Any}());
+    spotFees = self.safeDict(activeFeeTier, 0, defaultValue = Dict{Symbol, Any}());
+    futuresFees = self.safeDict(activeFeeTier, 1, defaultValue = Dict{Symbol, Any}());
     spotMakerFee = safeString(spotFees, "maker_fee");
     spotTakerFee = safeString(spotFees, "taker_fee");
     spotMakerFee = stringDiv(spotMakerFee, "100");
@@ -656,7 +698,7 @@ function fetchPrivateTradingFees(self::Onetrading, params=Dict())
     return result
 
 end
-function parseFeeTiers(self::Onetrading, feeTiers, market=nothing)
+function parseFeeTiers(self::Onetrading, feeTiers; market=nothing)
     takerFees = [];
     makerFees = [];
     i = 0
@@ -677,10 +719,10 @@ function parseFeeTiers(self::Onetrading, feeTiers, market=nothing)
 )
 
 end
-function parseTicker(self::Onetrading, ticker, market=nothing)
+function parseTicker(self::Onetrading, ticker; market=nothing)
     timestamp = self.parse8601(safeString(ticker, "time"));
     marketId = safeString(ticker, "instrument_code");
-    symbol = self.safeSymbol(marketId, market, "_");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_");
     last_var = safeString(ticker, "last_price");
     percentage = safeString(ticker, "price_change_percentage");
     change = safeString(ticker, "price_change");
@@ -707,10 +749,21 @@ function parseTicker(self::Onetrading, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Onetrading, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.onetrading.com/rest/public/market-ticker-instrument
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Onetrading, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -719,14 +772,25 @@ function fetchTicker(self::Onetrading, symbol, params=Dict())
         Symbol("instrument_code") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketTickerInstrumentCode(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchTickers(self::Onetrading, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.onetrading.com/rest/public/market-ticker
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Onetrading; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetMarketTicker(params));
     result = Dict{Symbol, Any}();
     rawTickers = toArray(response);
@@ -739,10 +803,22 @@ function fetchTickers(self::Onetrading, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchOrderBook(self::Onetrading, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.onetrading.com/rest/public/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Onetrading, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -755,10 +831,10 @@ function fetchOrderBook(self::Onetrading, symbol, limit=nothing, params=Dict())
     end
     response = Base.fetch(self.publicGetOrderBookInstrumentCode(extend(request, params)));
     timestamp = self.parse8601(safeString(response, "time"));
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", "price", "amount")
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "amount")
 
 end
-function parseOHLCV(self::Onetrading, ohlcv, market=nothing)
+function parseOHLCV(self::Onetrading, ohlcv; market=nothing)
     granularity = safeValue(ohlcv, "granularity");
     unit = safeString(granularity, "unit");
     period = safeString(granularity, "period");
@@ -786,7 +862,21 @@ function parseOHLCV(self::Onetrading, ohlcv, market=nothing)
     return [alignedTimestamp, self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, volumeField)]
 
 end
-function fetchOHLCV(self::Onetrading, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.onetrading.com/rest/public/candlesticks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Onetrading, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -816,10 +906,10 @@ function fetchOHLCV(self::Onetrading, symbol, timeframe="1m", since=nothing, lim
     end
     response = Base.fetch(self.publicGetCandlesticksInstrumentCode(extend(request, params)));
     ohlcv = self.safeList(response, "candlesticks");
-    return self.parseOHLCVs(ohlcv, market, timeframe, since, limit)
+    return self.parseOHLCVs(ohlcv, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseTrade(self::Onetrading, trade, market=nothing)
+function parseTrade(self::Onetrading, trade; market=nothing)
     feeInfo = safeValue(trade, "fee", Dict{Symbol, Any}());
     trade = safeValue(trade, "trade", trade);
     timestamp = safeInteger(trade, "trade_timestamp");
@@ -831,7 +921,7 @@ function parseTrade(self::Onetrading, trade, market=nothing)
     amountString = safeString(trade, "amount");
     costString = safeString(trade, "volume");
     marketId = safeString(trade, "instrument_code");
-    symbol = self.safeSymbol(marketId, market, "_");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_");
     feeCostString = safeString(feeInfo, "fee_amount");
     takerOrMaker = nothing;
     fee = nothing;
@@ -860,7 +950,7 @@ function parseTrade(self::Onetrading, trade, market=nothing)
     Symbol("takerOrMaker") => takerOrMaker,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
 function parseBalance(self::Onetrading, response)
@@ -884,7 +974,17 @@ function parseBalance(self::Onetrading, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Onetrading, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.onetrading.com/rest/trading/balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Onetrading; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -908,7 +1008,7 @@ function parseOrderStatus(self::Onetrading, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Onetrading, order, market=nothing)
+function parseOrder(self::Onetrading, order; market=nothing)
     rawOrder = safeValue(order, "order", order);
     id = safeString(rawOrder, "order_id");
     clientOrderId = safeString(rawOrder, "client_id");
@@ -916,7 +1016,7 @@ function parseOrder(self::Onetrading, order, market=nothing)
     rawStatus = self.parseOrderStatus(safeString(rawOrder, "status"));
     status = self.parseOrderStatus(rawStatus);
     marketId = safeString(rawOrder, "instrument_code");
-    symbol = self.safeSymbol(marketId, market, "_");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_");
     price = safeString(rawOrder, "price");
     amount = safeString(rawOrder, "amount");
     filled = safeString(rawOrder, "filled_amount");
@@ -946,7 +1046,7 @@ function parseOrder(self::Onetrading, order, market=nothing)
     Symbol("remaining") => nothing,
     Symbol("status") => status,
     Symbol("trades") => rawTrades
-), market)
+), market = market)
 
 end
 function parseOrderType(self::Onetrading, type_var)
@@ -966,7 +1066,23 @@ function parseTimeInForce(self::Onetrading, timeInForce)
     return safeString(timeInForces, timeInForce, timeInForce)
 
 end
-function createOrder(self::Onetrading, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.onetrading.com/rest/trading/create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: onetrading only does stop limit orders and does not do stop market
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Onetrading, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1008,10 +1124,23 @@ function createOrder(self::Onetrading, symbol, type_var, side, amount, price=not
     params = omit(params, "timeInForce");
     request[Symbol("time_in_force")] = timeInForce;
     response = Base.fetch(self.privatePostAccountOrders(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Onetrading, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.onetrading.com/rest/trading/cancel-order-order-id
+see: https://docs.onetrading.com/rest/trading/cancel-order-client-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Onetrading, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1034,7 +1163,18 @@ function cancelOrder(self::Onetrading, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelAllOrders(self::Onetrading, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://docs.onetrading.com/rest/trading/cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Onetrading; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1049,7 +1189,19 @@ function cancelAllOrders(self::Onetrading, symbol=nothing, params=Dict())
 ))]
 
 end
-function cancelOrders(self::Onetrading, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://docs.onetrading.com/rest/trading/cancel-all-orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Onetrading, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1063,7 +1215,19 @@ function cancelOrders(self::Onetrading, ids, symbol=nothing, params=Dict())
     return [order]
 
 end
-function fetchOrder(self::Onetrading, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.onetrading.com/rest/trading/get-order-order-id
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by onetrading fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Onetrading, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1074,7 +1238,20 @@ function fetchOrder(self::Onetrading, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOpenOrders(self::Onetrading, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.onetrading.com/rest/trading/get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Onetrading; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1095,18 +1272,45 @@ function fetchOpenOrders(self::Onetrading, symbol=nothing, since=nothing, limit=
         request[Symbol("max_page_size")] = limit;
     end
     response = Base.fetch(self.privateGetAccountOrders(extend(request, params)));
-    orderHistory = self.safeList(response, "order_history", []);
-    return self.parseOrders(orderHistory, market, since, limit)
+    orderHistory = self.safeList(response, "order_history", defaultValue = []);
+    return self.parseOrders(orderHistory, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Onetrading, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.onetrading.com/rest/trading/get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Onetrading; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("with_cancelled_and_rejected") => true
     );
-    return Base.fetch(self.fetchOpenOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOpenOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchOrderTrades(self::Onetrading, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://docs.onetrading.com/rest/trading/get-trades-for-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Onetrading, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1122,10 +1326,23 @@ function fetchOrderTrades(self::Onetrading, id, symbol=nothing, since=nothing, l
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    return self.parseTrades(tradeHistory, market, since, limit)
+    return self.parseTrades(tradeHistory, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Onetrading, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.onetrading.com/rest/trading/get-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Onetrading; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1146,11 +1363,11 @@ function fetchMyTrades(self::Onetrading, symbol=nothing, since=nothing, limit=no
         request[Symbol("max_page_size")] = limit;
     end
     response = Base.fetch(self.privateGetAccountTrades(extend(request, params)));
-    tradeHistory = self.safeList(response, "trade_history", []);
-    return self.parseTrades(tradeHistory, market, since, limit)
+    tradeHistory = self.safeList(response, "trade_history", defaultValue = []);
+    return self.parseTrades(tradeHistory, market = market, since = since, limit = limit)
 
 end
-function sign(self::Onetrading, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Onetrading, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", self.version, "/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
     if functions.ccxtruthy(api == "public")
@@ -1201,83 +1418,83 @@ Base.getproperty(self::Onetrading, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetCurrencies(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesticksInstrumentCode(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "candlesticks/{instrument_code}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candlesticks/{instrument_code}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFees(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "fees", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "fees"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInstruments(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "instruments", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "instruments"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderBookInstrumentCode(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "order-book/{instrument_code}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "order-book/{instrument_code}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketTicker(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "market-ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market-ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketTickerInstrumentCode(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "market-ticker/{instrument_code}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market-ticker/{instrument_code}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTime(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountBalances(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountFees(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountOrders(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountOrdersOrderId(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/orders/{order_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/orders/{order_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountOrdersClientClientId(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/orders/client/{client_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/orders/client/{client_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountOrdersOrderIdTrades(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/orders/{order_id}/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/orders/{order_id}/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountTrades(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountTradeTradeId(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/trade/{trade_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/trade/{trade_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountOrders(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteAccountOrders(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "account/orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteAccountOrdersOrderId(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/orders/{order_id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "account/orders/{order_id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteAccountOrdersClientClientId(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/orders/client/{client_id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "account/orders/client/{client_id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Onetrading(; kwargs...)
@@ -1341,3 +1558,276 @@ function Onetrading(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Onetrading_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.onetrading.com/rest/public/time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Onetrading_fetchTime
+
+function __ccxt_doc_Onetrading_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.onetrading.com/rest/public/currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Onetrading_fetchCurrencies
+
+function __ccxt_doc_Onetrading_fetchMarkets() end
+"""
+retrieves data on all markets for onetrading
+see: https://docs.onetrading.com/rest/public/instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Onetrading_fetchMarkets
+
+function __ccxt_doc_Onetrading_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://docs.onetrading.com/rest/public/fee-groups
+see: https://docs.onetrading.com/rest/trading/fees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: fetchPrivateTradingFees or fetchPublicTradingFees
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Onetrading_fetchTradingFees
+
+function __ccxt_doc_Onetrading_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.onetrading.com/rest/public/market-ticker-instrument
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Onetrading_fetchTicker
+
+function __ccxt_doc_Onetrading_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.onetrading.com/rest/public/market-ticker
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Onetrading_fetchTickers
+
+function __ccxt_doc_Onetrading_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.onetrading.com/rest/public/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Onetrading_fetchOrderBook
+
+function __ccxt_doc_Onetrading_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.onetrading.com/rest/public/candlesticks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Onetrading_fetchOHLCV
+
+function __ccxt_doc_Onetrading_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.onetrading.com/rest/trading/balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Onetrading_fetchBalance
+
+function __ccxt_doc_Onetrading_createOrder() end
+"""
+create a trade order
+see: https://docs.onetrading.com/rest/trading/create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: onetrading only does stop limit orders and does not do stop market
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Onetrading_createOrder
+
+function __ccxt_doc_Onetrading_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.onetrading.com/rest/trading/cancel-order-order-id
+see: https://docs.onetrading.com/rest/trading/cancel-order-client-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Onetrading_cancelOrder
+
+function __ccxt_doc_Onetrading_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://docs.onetrading.com/rest/trading/cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Onetrading_cancelAllOrders
+
+function __ccxt_doc_Onetrading_cancelOrders() end
+"""
+cancel multiple orders
+see: https://docs.onetrading.com/rest/trading/cancel-all-orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Onetrading_cancelOrders
+
+function __ccxt_doc_Onetrading_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.onetrading.com/rest/trading/get-order-order-id
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by onetrading fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Onetrading_fetchOrder
+
+function __ccxt_doc_Onetrading_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.onetrading.com/rest/trading/get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Onetrading_fetchOpenOrders
+
+function __ccxt_doc_Onetrading_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.onetrading.com/rest/trading/get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Onetrading_fetchClosedOrders
+
+function __ccxt_doc_Onetrading_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://docs.onetrading.com/rest/trading/get-trades-for-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Onetrading_fetchOrderTrades
+
+function __ccxt_doc_Onetrading_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.onetrading.com/rest/trading/get-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Onetrading_fetchMyTrades

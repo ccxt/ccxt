@@ -1411,8 +1411,18 @@ function describe(self::Bitstamp, )
 ))
 
 end
-function fetchMarkets(self::Bitstamp, params=Dict())
-    response = Base.fetch(self.fetchMarketsFromCache(params));
+"""
+retrieves data on all markets for bitstamp
+see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitstamp; params=Dict())
+    response = Base.fetch(self.fetchMarketsFromCache(params = params));
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
@@ -1466,8 +1476,8 @@ function fetchMarkets(self::Bitstamp, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "base_decimals"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "counter_decimals")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "base_decimals"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "counter_decimals")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -1501,7 +1511,7 @@ function constructCurrencyObject(self::Bitstamp, id, code, name, precision, minC
     if functions.ccxtruthy(self.isFiat(code))
         currencyType = "fiat";
     end
-    tickSize = self.parseNumber(self.parsePrecision(numberToString(precision)));
+    tickSize = self.parseNumber(self.parsePrecision(precision = numberToString(precision)));
     return Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("code") => code,
@@ -1535,7 +1545,7 @@ function constructCurrencyObject(self::Bitstamp, id, code, name, precision, minC
 )
 
 end
-function fetchMarketsFromCache(self::Bitstamp, params=Dict())
+function fetchMarketsFromCache(self::Bitstamp; params=Dict())
     options = safeValue(self.options, "fetchMarkets", Dict{Symbol, Any}());
     timestamp = safeInteger(options, "timestamp");
     expires = safeInteger(options, "expires", 1000);
@@ -1550,8 +1560,18 @@ function fetchMarketsFromCache(self::Bitstamp, params=Dict())
     return safeValue(get(self.options, Symbol("fetchMarkets"), nothing), "response")
 
 end
-function fetchCurrencies(self::Bitstamp, params=Dict())
-    response = Base.fetch(self.fetchMarketsFromCache(params));
+"""
+fetches all available currencies on an exchange
+see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bitstamp; params=Dict())
+    response = Base.fetch(self.fetchMarketsFromCache(params = params));
     self.options[Symbol("_temp_currencies_result")] = Dict{Symbol, Any}();
     result = self.parseCurrencies(response);
     finalResult = deepExtend(result, get(self.options, Symbol("_temp_currencies_result"), nothing));
@@ -1561,7 +1581,7 @@ function fetchCurrencies(self::Bitstamp, params=Dict())
 end
 function parseCurrency(self::Bitstamp, rawCurrency)
     market = rawCurrency;
-    existing = self.safeDict(self.options, "_temp_currencies_result", Dict{Symbol, Any}());
+    existing = self.safeDict(self.options, "_temp_currencies_result", defaultValue = Dict{Symbol, Any}());
     (baseId, quoteId) = (safeString(market, "base_currency"), safeString(market, "counter_currency"));
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
@@ -1591,7 +1611,19 @@ function parseCurrency(self::Bitstamp, rawCurrency)
     return safeValue(get(self.options, Symbol("_temp_currencies_result"), nothing), quote_var)
 
 end
-function fetchOrderBook(self::Bitstamp, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitstamp, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1605,14 +1637,14 @@ function fetchOrderBook(self::Bitstamp, symbol, limit=nothing, params=Dict())
         throw(ExchangeError(string(self.id, " fetchOrderBook() missing microtimestamp")));
     end
     timestamp = self.parseToInt(microtimestamp / 1000);
-    orderbook = self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp);
+    orderbook = self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = timestamp);
     orderbook[Symbol("nonce")] = microtimestamp;
     return orderbook
 
 end
-function parseTicker(self::Bitstamp, ticker, market=nothing)
+function parseTicker(self::Bitstamp, ticker; market=nothing)
     marketId = safeString(ticker, "pair");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     timestamp = safeTimestamp(ticker, "timestamp");
     vwap = safeString(ticker, "vwap");
     baseVolume = safeString(ticker, "volume");
@@ -1639,10 +1671,21 @@ function parseTicker(self::Bitstamp, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bitstamp, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.bitstamp.net/api/#tag/Tickers/operation/GetMarketTicker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bitstamp, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1651,15 +1694,26 @@ function fetchTicker(self::Bitstamp, symbol, params=Dict())
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     ticker = Base.fetch(self.publicGetTickerPair(extend(request, params)));
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
-function fetchTickers(self::Bitstamp, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.bitstamp.net/api/#tag/Tickers/operation/GetCurrencyPairTickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bitstamp; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetTicker(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
 function getCurrencyIdFromTransaction(self::Bitstamp, transaction)
@@ -1693,17 +1747,17 @@ function getMarketFromTrade(self::Bitstamp, trade)
     if functions.ccxtruthy(numCurrencyIds == 2)
         marketId = string(get(currencyIds, 1, nothing), get(currencyIds, 2, nothing));
         if functions.ccxtruthy(@functions.ccxt_and((self.markets_by_id != nothing), (ccxt_in(marketId, self.markets_by_id))))
-                return self.safeMarket(marketId)
+                return self.safeMarket(marketId = marketId)
         end
         marketId = string(get(currencyIds, 2, nothing), get(currencyIds, 1, nothing));
         if functions.ccxtruthy(@functions.ccxt_and((self.markets_by_id != nothing), (ccxt_in(marketId, self.markets_by_id))))
-                return self.safeMarket(marketId)
+                return self.safeMarket(marketId = marketId)
         end
     end
     return nothing
 
 end
-function parseTrade(self::Bitstamp, trade, market=nothing)
+function parseTrade(self::Bitstamp, trade; market=nothing)
     id = safeString2(trade, "id", "tid");
     symbol = nothing;
     side = nothing;
@@ -1720,7 +1774,7 @@ function parseTrade(self::Bitstamp, trade, market=nothing)
             currentKey = get(keys_var, i + 1, nothing);
             if functions.ccxtruthy(@functions.ccxt_and(currentKey != "order_id", findfirst("_", currentKey) !== nothing))
                 rawMarketId = currentKey;
-                market = self.safeMarket(rawMarketId, market, "_");
+                market = self.safeMarket(marketId = rawMarketId, market = market, delimiter = "_");
             end
             i += 1
         end
@@ -1802,10 +1856,23 @@ function parseTrade(self::Bitstamp, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bitstamp, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.bitstamp.net/api/#tag/Transactions-public/operation/GetTransactions
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bitstamp, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1815,14 +1882,28 @@ function fetchTrades(self::Bitstamp, symbol, since=nothing, limit=nothing, param
         Symbol("time") => "hour"
     );
     response = Base.fetch(self.publicGetTransactionsPair(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Bitstamp, ohlcv, market=nothing)
+function parseOHLCV(self::Bitstamp, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, "timestamp"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchOHLCV(self::Bitstamp, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bitstamp, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1852,8 +1933,8 @@ function fetchOHLCV(self::Bitstamp, symbol, timeframe="1m", since=nothing, limit
     end
     response = Base.fetch(self.publicGetOhlcPair(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    ohlc = self.safeList(data, "ohlc", []);
-    return self.parseOHLCVs(ohlc, market, timeframe, since, limit)
+    ohlc = self.safeList(data, "ohlc", defaultValue = []);
+    return self.parseOHLCVs(ohlc, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
 function parseBalance(self::Bitstamp, response)
@@ -1883,7 +1964,17 @@ function parseBalance(self::Bitstamp, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bitstamp, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.bitstamp.net/api/#tag/Account-balances/operation/GetAccountBalances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bitstamp; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1891,7 +1982,18 @@ function fetchBalance(self::Bitstamp, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchTradingFee(self::Bitstamp, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Bitstamp, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1905,15 +2007,15 @@ function fetchTradingFee(self::Bitstamp, symbol, params=Dict())
     if functions.ccxtruthy(tradingFee == nothing)
         tradingFee = Dict{Symbol, Any}();
     end
-    return self.parseTradingFee(tradingFee, market)
+    return self.parseTradingFee(tradingFee, market = market)
 
 end
-function parseTradingFee(self::Bitstamp, fee, market=nothing)
+function parseTradingFee(self::Bitstamp, fee; market=nothing)
     marketId = safeString(fee, "market");
-    fees = self.safeDict(fee, "fees", Dict{Symbol, Any}());
+    fees = self.safeDict(fee, "fees", defaultValue = Dict{Symbol, Any}());
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("maker") => self.safeNumber(fees, "maker"),
     Symbol("taker") => self.safeNumber(fees, "taker"),
     Symbol("percentage") => nothing,
@@ -1937,7 +2039,17 @@ function parseTradingFees(self::Bitstamp, fees)
     return result
 
 end
-function fetchTradingFees(self::Bitstamp, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Bitstamp; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1945,7 +2057,18 @@ function fetchTradingFees(self::Bitstamp, params=Dict())
     return self.parseTradingFees(response)
 
 end
-function fetchTransactionFees(self::Bitstamp, codes=nothing, params=Dict())
+"""
+please use fetchDepositWithdrawFees instead
+see: https://www.bitstamp.net/api/#tag/Fees
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTransactionFees(self::Bitstamp; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1953,7 +2076,7 @@ function fetchTransactionFees(self::Bitstamp, codes=nothing, params=Dict())
     return self.parseTransactionFees(response)
 
 end
-function parseTransactionFees(self::Bitstamp, response, codes=nothing)
+function parseTransactionFees(self::Bitstamp, response; codes=nothing)
     result = Dict{Symbol, Any}();
     currencies = indexBy(response, "currency");
     ids = objectKeys(currencies);
@@ -1977,23 +2100,34 @@ function parseTransactionFees(self::Bitstamp, response, codes=nothing)
     return result
 
 end
-function fetchDepositWithdrawFees(self::Bitstamp, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllWithdrawalFees
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Bitstamp; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privatePostFeesWithdrawal(params));
     responseByCurrencyId = groupBy(response, "currency");
-    return self.parseDepositWithdrawFees(responseByCurrencyId, codes)
+    return self.parseDepositWithdrawFees(responseByCurrencyId, codes = codes)
 
 end
-function parseDepositWithdrawFee(self::Bitstamp, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Bitstamp, fee; currency=nothing)
     result = self.depositWithdrawFee(fee);
     code = safeString(currency, "code");
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(fee)))
         networkEntry = get(fee, j + 1, nothing);
         networkId = safeString(networkEntry, "network");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         withdrawFee = self.safeNumber(networkEntry, "fee");
         result[Symbol("withdraw")] = Dict{Symbol, Any}(
             Symbol("fee") => withdrawFee,
@@ -2016,7 +2150,27 @@ function parseDepositWithdrawFee(self::Bitstamp, fee, currency=nothing)
     return result
 
 end
-function createOrder(self::Bitstamp, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bitstamp, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2053,12 +2207,31 @@ function createOrder(self::Bitstamp, symbol, type_var, side, amount, price=nothi
         end
     end
     orderResponse = functions.ccxtruthy((response == nothing)) ? Dict{Symbol, Any}() : response;
-    order = self.parseOrder(orderResponse, market);
+    order = self.parseOrder(orderResponse, market = market);
     order[Symbol("type")] = type_var;
     return order
 
 end
-function editOrder(self::Bitstamp, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://www.bitstamp.net/api/#tag/Orders/operation/ReplaceOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market to create an order in
+- `type`::string, optional: 'market', 'limit' or 'stop_limit'
+- `side`::string, optional: 'buy' or 'sell'
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price for the order, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::string, optional: the price to trigger a stop order
+- `params.timeInForce`::string, optional: for crypto trading either 'gtc' or 'ioc' can be used
+- `params.clientOrderId`::string, optional: a unique identifier for the order, automatically generated if not sent
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Bitstamp, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2075,12 +2248,24 @@ function editOrder(self::Bitstamp, id, symbol, type_var, side, amount=nothing, p
         request[Symbol("id")] = id;
     end
     response = Base.fetch(self.privatePostReplaceOrder(extend(request, params)));
-    order = self.parseOrder(response, market);
+    order = self.parseOrder(response, market = market);
     order[Symbol("type")] = type_var;
     return order
 
 end
-function cancelOrder(self::Bitstamp, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bitstamp, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2091,7 +2276,19 @@ function cancelOrder(self::Bitstamp, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelAllOrders(self::Bitstamp, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
+see: https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bitstamp; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2120,7 +2317,7 @@ function parseOrderStatus(self::Bitstamp, status)
     return safeString(statuses, status, status)
 
 end
-function fetchOrderStatus(self::Bitstamp, id, symbol=nothing, params=Dict())
+function fetchOrderStatus(self::Bitstamp, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2136,7 +2333,19 @@ function fetchOrderStatus(self::Bitstamp, id, symbol=nothing, params=Dict())
     return self.parseOrderStatus(safeString(response, "status"))
 
 end
-function fetchOrder(self::Bitstamp, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bitstamp, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2153,10 +2362,24 @@ function fetchOrder(self::Bitstamp, id, symbol=nothing, params=Dict())
         request[Symbol("id")] = id;
     end
     response = Base.fetch(self.privatePostOrderStatus(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchMyTrades(self::Bitstamp, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactionsForMarket
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bitstamp; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2173,14 +2396,30 @@ function fetchMyTrades(self::Bitstamp, symbol=nothing, since=nothing, limit=noth
     end
     response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     result = filterBy(response, "type", "2");
-    return self.parseTrades(result, market, since, limit)
+    return self.parseTrades(result, market = market, since = since, limit = limit)
 
 end
-function fetchFundingRateHistory(self::Bitstamp, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRateHistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Bitstamp; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params))
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2194,16 +2433,16 @@ function fetchFundingRateHistory(self::Bitstamp, symbol=nothing, since=nothing, 
     if functions.ccxtruthy(since != nothing)
         request[Symbol("since_timestamp")] = round(since / 1000);
     end
-    (request, params) = self.handleUntilOption("until_timestamp", request, params, 0.001);
+    (request, params) = self.handleUntilOption("until_timestamp", request, params, multiplier = 0.001);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetFundingRateHistoryPair(extend(request, params)));
     values_var = safeValue(response, "funding_rate_history", []);
-    return self.parseFundingRateHistories(values_var, market, since, limit)
+    return self.parseFundingRateHistories(values_var, market = market, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Bitstamp, contract, market=nothing)
+function parseFundingRateHistory(self::Bitstamp, contract; market=nothing)
     timestamp = safeIntegerProduct(contract, "timestamp", 0.001);
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
@@ -2214,7 +2453,20 @@ function parseFundingRateHistory(self::Bitstamp, contract, market=nothing)
 )
 
 end
-function fetchDepositsWithdrawals(self::Bitstamp, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Bitstamp; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2227,11 +2479,24 @@ function fetchDepositsWithdrawals(self::Bitstamp, code=nothing, since=nothing, l
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    transactions = self.filterByArray(response, "type", ["0", "1"], false);
-    return self.parseTransactions(transactions, currency, since, limit)
+    transactions = self.filterByArray(response, "type", values = ["0", "1"], indexed = false);
+    return self.parseTransactions(transactions, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Bitstamp, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/GetWithdrawalRequests
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bitstamp; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2242,13 +2507,13 @@ function fetchWithdrawals(self::Bitstamp, code=nothing, since=nothing, limit=not
         request[Symbol("timedelta")] = 50000000;
     end
     response = Base.fetch(self.privatePostWithdrawalRequests(extend(request, params)));
-    return self.parseTransactions(response, nothing, since, limit)
+    return self.parseTransactions(response, currency = nothing, since = since, limit = limit)
 
 end
-function parseTransaction(self::Bitstamp, transaction, currency=nothing)
+function parseTransaction(self::Bitstamp, transaction; currency=nothing)
     timestamp = self.parse8601(safeString(transaction, "datetime"));
     currencyId = self.getCurrencyIdFromTransaction(transaction);
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     feeCost = safeString(transaction, "fee");
     feeCurrency = nothing;
     amount = nothing;
@@ -2339,7 +2604,7 @@ function parseTransactionStatus(self::Bitstamp, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Bitstamp, order, market=nothing)
+function parseOrder(self::Bitstamp, order; market=nothing)
     id = safeString(order, "id");
     clientOrderId = safeString(order, "client_order_id");
     side = safeString(order, "type");
@@ -2348,7 +2613,7 @@ function parseOrder(self::Bitstamp, order, market=nothing)
     end
     timestamp = self.parse8601(safeString(order, "datetime"));
     marketId = safeStringLower(order, "currency_pair");
-    symbol = self.safeSymbol(marketId, market, "/");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "/");
     status = self.parseOrderStatus(safeString(order, "status"));
     amount = safeString(order, "amount");
     transactions = safeValue(order, "transactions", []);
@@ -2375,7 +2640,7 @@ function parseOrder(self::Bitstamp, order, market=nothing)
     Symbol("fee") => nothing,
     Symbol("info") => order,
     Symbol("average") => nothing
-), market)
+), market = market)
 
 end
 function parseLedgerEntryType(self::Bitstamp, type_var)
@@ -2388,7 +2653,7 @@ function parseLedgerEntryType(self::Bitstamp, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Bitstamp, item, currency=nothing)
+function parseLedgerEntry(self::Bitstamp, item; currency=nothing)
     type_var = self.parseLedgerEntryType(safeString(item, "type"));
     if functions.ccxtruthy(type_var == "trade")
         parsedTrade = self.parseTrade(item);
@@ -2398,7 +2663,7 @@ function parseLedgerEntry(self::Bitstamp, item, currency=nothing)
         while functions.ccxtruthy(functions.ccxt_lt(i, length(keys_var)))
             if functions.ccxtruthy(findfirst("_", get(keys_var, i + 1, nothing)) !== nothing)
                 marketId = replace(get(keys_var, i + 1, nothing), "_" => "");
-                market = self.safeMarket(marketId, market);
+                market = self.safeMarket(marketId = marketId, market = market);
             end
             i += 1
         end
@@ -2423,9 +2688,9 @@ function parseLedgerEntry(self::Bitstamp, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => "ok",
     Symbol("fee") => get(parsedTrade, Symbol("fee"), nothing)
-), currency)
+), currency = currency)
     else
-        parsedTransaction = self.parseTransaction(item, currency);
+        parsedTransaction = self.parseTransaction(item, currency = currency);
         direction = nothing;
         if functions.ccxtruthy(ccxt_in("amount", item))
             amount = safeString(item, "amount");
@@ -2452,11 +2717,24 @@ function parseLedgerEntry(self::Bitstamp, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => get(parsedTransaction, Symbol("status"), nothing),
     Symbol("fee") => get(parsedTransaction, Symbol("fee"), nothing)
-), currency)
+), currency = currency)
     end
 
 end
-function fetchLedger(self::Bitstamp, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Bitstamp; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2469,10 +2747,21 @@ function fetchLedger(self::Bitstamp, code=nothing, since=nothing, limit=nothing,
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    return self.parseLedger(response, currency, since, limit)
+    return self.parseLedger(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchFundingRate(self::Bitstamp, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Bitstamp, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2481,16 +2770,16 @@ function fetchFundingRate(self::Bitstamp, symbol, params=Dict())
         Symbol("market_symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetFundingRateMarketSymbol(extend(request, params)));
-    return self.parseFundingRate(response, market)
+    return self.parseFundingRate(response, market = market)
 
 end
-function parseFundingRate(self::Bitstamp, fundingRate, market=nothing)
+function parseFundingRate(self::Bitstamp, fundingRate; market=nothing)
     currentTime = safeIntegerProduct(fundingRate, "timestamp", 1000);
     nextFundingRateTimestamp = safeIntegerProduct(fundingRate, "next_funding_time", 1000);
     marketId = safeString(fundingRate, "market");
     return Dict{Symbol, Any}(
     Symbol("info") => fundingRate,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("markPrice") => nothing,
     Symbol("indexPrice") => nothing,
     Symbol("interestRate") => nothing,
@@ -2510,7 +2799,21 @@ function parseFundingRate(self::Bitstamp, fundingRate, market=nothing)
 )
 
 end
-function fetchOpenOrders(self::Bitstamp, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders
+see: https://www.bitstamp.net/api/#tag/Orders/operation/GetOpenOrdersForMarket
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bitstamp; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     market = nothing;
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2519,7 +2822,7 @@ function fetchOpenOrders(self::Bitstamp, symbol=nothing, since=nothing, limit=no
         market = self.market(symbol);
     end
     response = Base.fetch(self.privatePostOpenOrdersAll(params));
-    return self.parseOrders(response, market, since, limit, Dict{Symbol, Any}(
+    return self.parseOrders(response, market = market, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("status") => "open",
     Symbol("type") => "limit"
 ))
@@ -2533,7 +2836,18 @@ function isFiat(self::Bitstamp, code)
     return @functions.ccxt_or(@functions.ccxt_or(code == "USD", code == "EUR"), code == "GBP")
 
 end
-function fetchDepositAddress(self::Bitstamp, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.bitstamp.net/api/#tag/Deposits/operation/GetCryptoDepositAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bitstamp, code; params=Dict())
     if functions.ccxtruthy(self.isFiat(code))
         throw(NotSupported(string(self.id, " fiat fetchDepositAddress() for ", code, " is not supported!")));
     end
@@ -2542,7 +2856,7 @@ function fetchDepositAddress(self::Bitstamp, code, params=Dict())
     response = Base.fetch(getproperty(self, Symbol(method))(params));
     address = safeString(response, "address");
     tag = safeString2(response, "memo_id", "destination_tag");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
@@ -2552,12 +2866,27 @@ function fetchDepositAddress(self::Bitstamp, code, params=Dict())
 )
 
 end
-function withdraw(self::Bitstamp, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal
+see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestCryptoWithdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bitstamp, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     request = Dict{Symbol, Any}(
         Symbol("amount") => amount
     );
@@ -2583,10 +2912,25 @@ function withdraw(self::Bitstamp, code, amount, address, tag=nothing, params=Dic
         request[Symbol("account_currency")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function transfer(self::Bitstamp, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub
+see: https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Bitstamp, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2605,14 +2949,14 @@ function transfer(self::Bitstamp, code, amount, fromAccount, toAccount, params=D
     else
         throw(BadRequest(string(self.id, " Ccxt.transfer() only supports from or to main")));
     end
-    transfer = self.parseTransfer(response, currency);
+    transfer = self.parseTransfer(response, currency = currency);
     transfer[Symbol("amount")] = amount;
     transfer[Symbol("fromAccount")] = fromAccount;
     transfer[Symbol("toAccount")] = toAccount;
     return transfer
 
 end
-function parseTransfer(self::Bitstamp, transfer, currency=nothing)
+function parseTransfer(self::Bitstamp, transfer; currency=nothing)
     status = safeString(transfer, "status");
     if functions.ccxtruthy(currency == nothing)
         throw(ExchangeError(string(self.id, " parseTransfer() could not resolve currency")));
@@ -2643,7 +2987,7 @@ function nonce(self::Bitstamp, )
     return milliseconds()
 
 end
-function sign(self::Bitstamp, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitstamp, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/");
     url += string(self.version, "/");
     url += self.implodeParams(path, params);
@@ -2751,1055 +3095,1055 @@ Base.getproperty(self::Bitstamp, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetOhlcPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ohlc/{pair}/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ohlc/{pair}/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderBookPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "order_book/{pair}/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "order_book/{pair}/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ticker/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerHourPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ticker_hour/{pair}/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker_hour/{pair}/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ticker/{pair}/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/{pair}/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTransactionsPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "transactions/{pair}/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "transactions/{pair}/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradingPairsInfo(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "trading-pairs-info/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trading-pairs-info/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarkets(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "markets/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrencies(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "currencies/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetEurUsd(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eur_usd/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "eur_usd/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTravelRuleVasps(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "travel_rule/vasps/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "travel_rule/vasps/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFundingRateMarketSymbol(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "funding_rate/{market_symbol}/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding_rate/{market_symbol}/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFundingRateHistoryPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "funding_rate_history/{pair}/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding_rate_history/{pair}/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTravelRuleContacts(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "travel_rule/contacts/", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "travel_rule/contacts/"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContactsContactUuid(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "contacts/{contact_uuid}/", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contacts/{contact_uuid}/"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetEarnSubscriptions(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "earn/subscriptions/", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "earn/subscriptions/"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetEarnTransactions(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "earn/transactions/", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "earn/transactions/"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeHistory(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "trade_history/", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade_history/"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradeHistoryPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "trade_history/{pair}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade_history/{pair}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountBalances(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "account_balances/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account_balances/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountBalancesCurrency(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "account_balances/{currency}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account_balances/{currency}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBalance(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "balance/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "balance/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBalancePair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "balance/{pair}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "balance/{pair}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBchWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "bch_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bch_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBchAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "bch_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bch_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserTransactions(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "user_transactions/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user_transactions/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserTransactionsPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "user_transactions/{pair}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user_transactions/{pair}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCryptoTransactions(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "crypto-transactions/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "crypto-transactions/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenOrder(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "open_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "open_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenOrdersAll(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "open_orders/all/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "open_orders/all/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenOrdersPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "open_orders/{pair}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "open_orders/{pair}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostReplaceOrder(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "replace_order/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "replace_order/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderStatus(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "order_status/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order_status/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelOrder(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cancel_order/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_order/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelAllOrders(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cancel_all_orders/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_all_orders/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelAllOrdersPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cancel_all_orders/{pair}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_all_orders/{pair}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBuyPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "buy/{pair}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "buy/{pair}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBuyMarketPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "buy/market/{pair}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "buy/market/{pair}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBuyInstantPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "buy/instant/{pair}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "buy/instant/{pair}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSellPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sell/{pair}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sell/{pair}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSellMarketPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sell/market/{pair}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sell/market/{pair}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSellInstantPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sell/instant/{pair}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sell/instant/{pair}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransferToMain(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "transfer-to-main/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer-to-main/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransferFromMain(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "transfer-from-main/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer-from-main/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMyTradingPairs(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "my_trading_pairs/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "my_trading_pairs/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFeesTrading(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fees/trading/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "fees/trading/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFeesTradingMarketSymbol(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fees/trading/{market_symbol}", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "fees/trading/{market_symbol}"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFeesWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fees/withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "fees/withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFeesWithdrawalCurrency(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fees/withdrawal/{currency}/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "fees/withdrawal/{currency}/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawalRequests(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "withdrawal-requests/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawal-requests/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawalOpen(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "withdrawal/open/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawal/open/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawalStatus(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "withdrawal/status/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawal/status/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawalCancel(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "withdrawal/cancel/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawal/cancel/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLiquidationAddressNew(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "liquidation_address/new/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "liquidation_address/new/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLiquidationAddressInfo(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "liquidation_address/info/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "liquidation_address/info/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBtcUnconfirmed(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "btc_unconfirmed/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "btc_unconfirmed/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWebsocketsToken(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "websockets_token/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "websockets_token/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRevokeAllApiKeys(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "revoke_all_api_keys/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "revoke_all_api_keys/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetMaxOrderAmount(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "get_max_order_amount/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_max_order_amount/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBtcWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "btc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "btc_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBtcAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "btc_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "btc_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRippleWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ripple_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ripple_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRippleAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ripple_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ripple_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLtcWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ltc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ltc_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLtcAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ltc_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ltc_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEthWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eth_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "eth_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEthAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eth_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "eth_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostXrpWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "xrp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "xrp_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostXrpAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "xrp_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "xrp_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostXlmWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "xlm_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "xlm_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostXlmAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "xlm_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "xlm_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPaxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pax_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "pax_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPaxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pax_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "pax_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLinkWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "link_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "link_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLinkAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "link_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "link_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsdcWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "usdc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "usdc_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsdcAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "usdc_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "usdc_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOmgWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "omg_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "omg_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOmgAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "omg_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "omg_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDaiWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dai_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dai_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDaiAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dai_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dai_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostKncWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "knc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "knc_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostKncAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "knc_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "knc_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMkrWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mkr_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "mkr_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMkrAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mkr_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "mkr_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostZrxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "zrx_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "zrx_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostZrxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "zrx_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "zrx_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGusdWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gusd_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "gusd_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGusdAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gusd_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "gusd_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAaveWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "aave_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "aave_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAaveAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "aave_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "aave_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBatWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "bat_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bat_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBatAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "bat_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bat_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUmaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "uma_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "uma_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUmaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "uma_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "uma_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSnxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "snx_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "snx_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSnxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "snx_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "snx_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUniWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "uni_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "uni_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUniAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "uni_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "uni_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostYfiWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "yfi_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "yfi_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostYfiAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "yfi_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "yfi_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAudioWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "audio_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "audio_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAudioAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "audio_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "audio_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCrvWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "crv_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "crv_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCrvAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "crv_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "crv_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAlgoWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "algo_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAlgoAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "algo_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCompWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "comp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "comp_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCompAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "comp_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "comp_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGrtWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "grt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "grt_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGrtAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "grt_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "grt_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsdtWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "usdt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "usdt_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsdtAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "usdt_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "usdt_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEurtWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eurt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "eurt_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEurtAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eurt_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "eurt_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMaticWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "matic_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "matic_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMaticAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "matic_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "matic_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSushiWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sushi_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sushi_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSushiAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sushi_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sushi_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostChzWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "chz_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "chz_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostChzAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "chz_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "chz_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEnjWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "enj_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "enj_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEnjAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "enj_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "enj_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAlphaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "alpha_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "alpha_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAlphaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "alpha_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "alpha_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFttWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ftt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ftt_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFttAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ftt_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ftt_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostStorjWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "storj_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "storj_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostStorjAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "storj_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "storj_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAxsWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "axs_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "axs_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAxsAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "axs_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "axs_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSandWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sand_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sand_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSandAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sand_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sand_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHbarWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "hbar_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hbar_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHbarAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "hbar_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "hbar_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRgtWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rgt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rgt_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRgtAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rgt_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rgt_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFetWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fet_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "fet_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFetAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fet_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "fet_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSklWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "skl_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "skl_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSklAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "skl_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "skl_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCelWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cel_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cel_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCelAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cel_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cel_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSxpWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sxp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sxp_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSxpAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sxp_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sxp_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAdaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ada_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ada_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAdaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ada_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ada_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSlpWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "slp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "slp_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSlpAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "slp_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "slp_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFtmWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ftm_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ftm_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFtmAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ftm_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ftm_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPerpWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "perp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "perp_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPerpAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "perp_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "perp_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDydxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dydx_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dydx_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDydxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dydx_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dydx_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGalaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gala_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "gala_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGalaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gala_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "gala_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostShibWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "shib_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "shib_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostShibAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "shib_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "shib_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAmpWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "amp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "amp_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAmpAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "amp_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "amp_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSgbWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sgb_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sgb_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSgbAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sgb_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sgb_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAvaxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "avax_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "avax_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAvaxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "avax_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "avax_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWbtcWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wbtc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wbtc_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWbtcAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wbtc_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wbtc_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCtsiWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ctsi_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ctsi_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCtsiAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ctsi_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ctsi_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCvxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cvx_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cvx_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCvxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cvx_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cvx_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostImxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "imx_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "imx_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostImxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "imx_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "imx_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostNexoWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "nexo_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "nexo_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostNexoAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "nexo_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "nexo_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUstWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ust_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ust_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUstAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ust_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ust_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAntWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ant_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ant_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAntAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ant_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ant_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGodsWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gods_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "gods_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGodsAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gods_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "gods_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRadWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rad_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rad_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRadAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rad_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rad_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBandWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "band_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "band_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBandAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "band_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "band_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostInjWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "inj_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "inj_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostInjAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "inj_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "inj_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRlyWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rly_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rly_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRlyAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rly_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rly_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRndrWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rndr_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rndr_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRndrAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rndr_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rndr_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostVegaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vega_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "vega_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostVegaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vega_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "vega_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePost1inchWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "1inch_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "1inch_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePost1inchAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "1inch_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "1inch_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEnsWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ens_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ens_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEnsAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ens_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ens_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostManaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mana_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "mana_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostManaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mana_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "mana_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLrcWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "lrc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lrc_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLrcAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "lrc_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lrc_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApeWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ape_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ape_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApeAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ape_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ape_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMplWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mpl_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "mpl_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMplAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mpl_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "mpl_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEurocWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "euroc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "euroc_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEurocAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "euroc_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "euroc_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSolWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sol_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sol_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSolAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sol_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sol_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDotWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dot_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dot_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDotAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dot_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dot_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostNearWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "near_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "near_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostNearAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "near_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "near_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDogeWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "doge_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "doge_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDogeAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "doge_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "doge_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFlrWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "flr_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "flr_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFlrAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "flr_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "flr_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDgldWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dgld_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dgld_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDgldAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dgld_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dgld_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLdoWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ldo_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ldo_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLdoAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ldo_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ldo_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTravelRuleContacts(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "travel_rule/contacts/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "travel_rule/contacts/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEarnSubscribe(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "earn/subscribe/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "earn/subscribe/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEarnSubscriptionsSetting(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "earn/subscriptions/setting/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "earn/subscriptions/setting/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEarnUnsubscribe(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "earn/unsubscribe", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "earn/unsubscribe"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWecanWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wecan_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wecan_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWecanAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wecan_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wecan_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTracWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "trac_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trac_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTracAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "trac_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trac_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEurcvWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eurcv_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "eurcv_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEurcvAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eurcv_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "eurcv_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPyusdWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pyusd_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "pyusd_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPyusdAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pyusd_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "pyusd_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLmwrWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "lmwr_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lmwr_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLmwrAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "lmwr_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lmwr_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPepeWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pepe_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "pepe_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPepeAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pepe_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "pepe_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBlurWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "blur_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "blur_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBlurAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "blur_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "blur_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostVextWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vext_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "vext_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostVextAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vext_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "vext_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCsprWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cspr_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cspr_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCsprAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cspr_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cspr_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostVchfWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vchf_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "vchf_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostVchfAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vchf_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "vchf_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostVeurWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "veur_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "veur_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostVeurAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "veur_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "veur_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTrufWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "truf_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "truf_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTrufAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "truf_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "truf_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWifWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wif_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wif_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWifAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wif_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wif_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSmtWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "smt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "smt_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSmtAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "smt_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "smt_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSuiWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sui_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sui_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSuiAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sui_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sui_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostJupWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "jup_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "jup_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostJupAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "jup_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "jup_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOndoWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ondo_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ondo_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOndoAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ondo_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ondo_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBobaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "boba_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "boba_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBobaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "boba_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "boba_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPythWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pyth_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "pyth_withdrawal/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPythAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pyth_address/", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "pyth_address/"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitstamp(; kwargs...)
@@ -3863,3 +4207,430 @@ function Bitstamp(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitstamp_fetchMarkets() end
+"""
+retrieves data on all markets for bitstamp
+see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitstamp_fetchMarkets
+
+function __ccxt_doc_Bitstamp_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bitstamp_fetchCurrencies
+
+function __ccxt_doc_Bitstamp_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitstamp_fetchOrderBook
+
+function __ccxt_doc_Bitstamp_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.bitstamp.net/api/#tag/Tickers/operation/GetMarketTicker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitstamp_fetchTicker
+
+function __ccxt_doc_Bitstamp_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.bitstamp.net/api/#tag/Tickers/operation/GetCurrencyPairTickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitstamp_fetchTickers
+
+function __ccxt_doc_Bitstamp_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.bitstamp.net/api/#tag/Transactions-public/operation/GetTransactions
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bitstamp_fetchTrades
+
+function __ccxt_doc_Bitstamp_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bitstamp_fetchOHLCV
+
+function __ccxt_doc_Bitstamp_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.bitstamp.net/api/#tag/Account-balances/operation/GetAccountBalances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bitstamp_fetchBalance
+
+function __ccxt_doc_Bitstamp_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitstamp_fetchTradingFee
+
+function __ccxt_doc_Bitstamp_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Bitstamp_fetchTradingFees
+
+function __ccxt_doc_Bitstamp_fetchTransactionFees() end
+"""
+please use fetchDepositWithdrawFees instead
+see: https://www.bitstamp.net/api/#tag/Fees
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitstamp_fetchTransactionFees
+
+function __ccxt_doc_Bitstamp_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllWithdrawalFees
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitstamp_fetchDepositWithdrawFees
+
+function __ccxt_doc_Bitstamp_createOrder() end
+"""
+create a trade order
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitstamp_createOrder
+
+function __ccxt_doc_Bitstamp_editOrder() end
+"""
+edit a trade order
+see: https://www.bitstamp.net/api/#tag/Orders/operation/ReplaceOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market to create an order in
+- `type`::string, optional: 'market', 'limit' or 'stop_limit'
+- `side`::string, optional: 'buy' or 'sell'
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price for the order, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::string, optional: the price to trigger a stop order
+- `params.timeInForce`::string, optional: for crypto trading either 'gtc' or 'ioc' can be used
+- `params.clientOrderId`::string, optional: a unique identifier for the order, automatically generated if not sent
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitstamp_editOrder
+
+function __ccxt_doc_Bitstamp_cancelOrder() end
+"""
+cancels an open order
+see: https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitstamp_cancelOrder
+
+function __ccxt_doc_Bitstamp_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
+see: https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitstamp_cancelAllOrders
+
+function __ccxt_doc_Bitstamp_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitstamp_fetchOrder
+
+function __ccxt_doc_Bitstamp_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactionsForMarket
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitstamp_fetchMyTrades
+
+function __ccxt_doc_Bitstamp_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRateHistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Bitstamp_fetchFundingRateHistory
+
+function __ccxt_doc_Bitstamp_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitstamp_fetchDepositsWithdrawals
+
+function __ccxt_doc_Bitstamp_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/GetWithdrawalRequests
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitstamp_fetchWithdrawals
+
+function __ccxt_doc_Bitstamp_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Bitstamp_fetchLedger
+
+function __ccxt_doc_Bitstamp_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Bitstamp_fetchFundingRate
+
+function __ccxt_doc_Bitstamp_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders
+see: https://www.bitstamp.net/api/#tag/Orders/operation/GetOpenOrdersForMarket
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitstamp_fetchOpenOrders
+
+function __ccxt_doc_Bitstamp_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.bitstamp.net/api/#tag/Deposits/operation/GetCryptoDepositAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bitstamp_fetchDepositAddress
+
+function __ccxt_doc_Bitstamp_withdraw() end
+"""
+make a withdrawal
+see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal
+see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestCryptoWithdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitstamp_withdraw
+
+function __ccxt_doc_Bitstamp_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub
+see: https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bitstamp_transfer

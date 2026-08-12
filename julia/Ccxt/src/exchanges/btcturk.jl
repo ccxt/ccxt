@@ -310,10 +310,20 @@ function describe(self::Btcturk, )
 ))
 
 end
-function fetchMarkets(self::Btcturk, params=Dict())
+"""
+retrieves data on all markets for btcturk
+see: https://docs.btcturk.com/public-endpoints/exchange-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Btcturk; params=Dict())
     response = Base.fetch(self.publicGetServerExchangeinfo(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    markets = self.safeList(data, "symbols", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    markets = self.safeList(data, "symbols", defaultValue = []);
     return self.parseMarkets(markets)
 
 end
@@ -323,7 +333,7 @@ function parseMarket(self::Btcturk, entry)
     quoteId = safeString(entry, "denominator");
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
-    filters = self.safeList(entry, "filters", []);
+    filters = self.safeList(entry, "filters", defaultValue = []);
     minPrice = nothing;
     maxPrice = nothing;
     minAmount = nothing;
@@ -343,7 +353,7 @@ function parseMarket(self::Btcturk, entry)
         j += 1
     end
     status = safeString(entry, "status");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -368,8 +378,8 @@ function parseMarket(self::Btcturk, entry)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(entry, "numeratorScale"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(entry, "denominatorScale")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(entry, "numeratorScale"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(entry, "denominatorScale")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -395,7 +405,7 @@ function parseMarket(self::Btcturk, entry)
 
 end
 function parseBalance(self::Btcturk, response)
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = Dict{Symbol, Any}(
         Symbol("info") => response,
         Symbol("timestamp") => nothing,
@@ -418,7 +428,17 @@ function parseBalance(self::Btcturk, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Btcturk, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.btcturk.com/private-endpoints/account-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Btcturk; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -426,7 +446,19 @@ function fetchBalance(self::Btcturk, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Btcturk, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.btcturk.com/public-endpoints/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Btcturk, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -435,14 +467,14 @@ function fetchOrderBook(self::Btcturk, symbol, limit=nothing, params=Dict())
         Symbol("pairSymbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetOrderbook(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(data, "timestamp");
-    return self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", 0, 1)
+    return self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = 0, amountKey = 1)
 
 end
-function parseTicker(self::Btcturk, ticker, market=nothing)
+function parseTicker(self::Btcturk, ticker; market=nothing)
     marketId = safeString(ticker, "pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger(ticker, "timestamp");
     last_var = safeString(ticker, "last");
@@ -467,34 +499,56 @@ function parseTicker(self::Btcturk, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "volume"),
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Btcturk, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.btcturk.com/public-endpoints/ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Btcturk; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetTicker(params));
     tickers = self.safeList(response, "data");
-    return self.parseTickers(tickers, symbols)
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function fetchTicker(self::Btcturk, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.btcturk.com/public-endpoints/ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Btcturk, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    tickers = Base.fetch(self.fetchTickers([symbol], params));
+    tickers = Base.fetch(self.fetchTickers(symbols = [symbol], params = params));
     return safeValue(tickers, symbol)
 
 end
-function parseTrade(self::Btcturk, trade, market=nothing)
+function parseTrade(self::Btcturk, trade; market=nothing)
     timestamp = safeInteger2(trade, "date", "timestamp");
     id = safeString2(trade, "tid", "id");
     order = safeString(trade, "orderId");
     priceString = safeString(trade, "price");
     amountString = stringAbs(safeString(trade, "amount"));
     marketId = safeString(trade, "pair");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     side = safeString2(trade, "side", "orderType");
     fee = nothing;
     feeAmountString = safeString(trade, "fee");
@@ -519,10 +573,23 @@ function parseTrade(self::Btcturk, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Btcturk, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.btcturk.com/public-endpoints/trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Btcturk, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -539,14 +606,29 @@ function fetchTrades(self::Btcturk, symbol, since=nothing, limit=nothing, params
     if functions.ccxtruthy(data != nothing)
         dataList = data;
     end
-    return self.parseTrades(dataList, market, since, limit)
+    return self.parseTrades(dataList, market = market, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Btcturk, ohlcv, market=nothing)
+function parseOHLCV(self::Btcturk, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, "timestamp"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchOHLCV(self::Btcturk, symbol, timeframe="1h", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.btcturk.com/public-endpoints/get-kline-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Btcturk, symbol; timeframe="1h", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -577,17 +659,17 @@ function fetchOHLCV(self::Btcturk, symbol, timeframe="1h", since=nothing, limit=
         end
     end
     response = Base.fetch(self.graphGetKlinesHistory(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(response, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCVs(self::Btcturk, ohlcvs, market=nothing, timeframe="1m", since=nothing, limit=nothing, tail=false)
+function parseOHLCVs(self::Btcturk, ohlcvs; market=nothing, timeframe="1m", since=nothing, limit=nothing, tail=false)
     results = [];
-    timestamp = self.safeList(ohlcvs, "t", []);
-    high = self.safeList(ohlcvs, "h", []);
-    open = self.safeList(ohlcvs, "o", []);
-    low = self.safeList(ohlcvs, "l", []);
-    close = self.safeList(ohlcvs, "c", []);
-    volume = self.safeList(ohlcvs, "v", []);
+    timestamp = self.safeList(ohlcvs, "t", defaultValue = []);
+    high = self.safeList(ohlcvs, "h", defaultValue = []);
+    open = self.safeList(ohlcvs, "o", defaultValue = []);
+    low = self.safeList(ohlcvs, "l", defaultValue = []);
+    close = self.safeList(ohlcvs, "c", defaultValue = []);
+    volume = self.safeList(ohlcvs, "v", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(timestamp)))
         ohlcv = Dict{Symbol, Any}(
@@ -598,14 +680,29 @@ function parseOHLCVs(self::Btcturk, ohlcvs, market=nothing, timeframe="1m", sinc
             Symbol("close") => self.safeNumber(close, i),
             Symbol("volume") => self.safeNumber(volume, i)
         );
-        push!(results, self.parseOHLCV(ohlcv, market));
+        push!(results, self.parseOHLCV(ohlcv, market = market));
         i += 1
     end
     sorted = sortBy(results, 0);
-    return self.filterBySinceLimit(sorted, since, limit, 0, tail)
+    return self.filterBySinceLimit(sorted, since = since, limit = limit, key = 0, tail = tail)
 
 end
-function createOrder(self::Btcturk, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.btcturk.com/private-endpoints/submit-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Btcturk, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -625,11 +722,23 @@ function createOrder(self::Btcturk, symbol, type_var, side, amount, price=nothin
         request[Symbol("newClientOrderId")] = uuid();
     end
     response = Base.fetch(self.privatePostOrder(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function cancelOrder(self::Btcturk, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.btcturk.com/private-endpoints/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Btcturk, id; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("id") => id
     );
@@ -639,7 +748,20 @@ function cancelOrder(self::Btcturk, id, symbol=nothing, params=Dict())
 ))
 
 end
-function fetchOpenOrders(self::Btcturk, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.btcturk.com/private-endpoints/open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Btcturk; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -650,13 +772,26 @@ function fetchOpenOrders(self::Btcturk, symbol=nothing, since=nothing, limit=not
         request[Symbol("pairSymbol")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetOpenOrders(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    bids = self.safeList(data, "bids", []);
-    asks = self.safeList(data, "asks", []);
-    return self.parseOrders(arrayConcat(bids, asks), market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    bids = self.safeList(data, "bids", defaultValue = []);
+    asks = self.safeList(data, "asks", defaultValue = []);
+    return self.parseOrders(arrayConcat(bids, asks), market = market, since = since, limit = limit)
 
 end
-function fetchOrders(self::Btcturk, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.btcturk.com/private-endpoints/all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Btcturk; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -672,7 +807,7 @@ function fetchOrders(self::Btcturk, symbol=nothing, since=nothing, limit=nothing
     end
     response = Base.fetch(self.privateGetAllOrders(extend(request, params)));
     data = self.safeList(response, "data");
-    return self.parseOrders(data, market, since, limit)
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Btcturk, status)
@@ -685,14 +820,14 @@ function parseOrderStatus(self::Btcturk, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Btcturk, order, market=nothing)
+function parseOrder(self::Btcturk, order; market=nothing)
     id = safeString(order, "id");
     price = safeString(order, "price");
     amountString = safeString2(order, "amount", "quantity");
     amount = stringAbs(amountString);
     remaining = safeString(order, "leftAmount");
     marketId = safeString(order, "pairSymbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     side = safeString(order, "type");
     type_var = safeString(order, "method");
     clientOrderId = safeString(order, "orderClientId");
@@ -716,10 +851,23 @@ function parseOrder(self::Btcturk, order, market=nothing)
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("symbol") => symbol,
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function fetchMyTrades(self::Btcturk, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.btcturk.com/private-endpoints/user-transactions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Btcturk; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -733,14 +881,14 @@ function fetchMyTrades(self::Btcturk, symbol=nothing, since=nothing, limit=nothi
     if functions.ccxtruthy(data != nothing)
         dataList = data;
     end
-    return self.parseTrades(dataList, market, since, limit)
+    return self.parseTrades(dataList, market = market, since = since, limit = limit)
 
 end
 function nonce(self::Btcturk, )
     return milliseconds()
 
 end
-function sign(self::Btcturk, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Btcturk, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     if functions.ccxtruthy(self.id == "btctrader")
         throw(ExchangeError(string(self.id, " is an abstract base API for BTCExchange, BTCTurk")));
     end
@@ -790,67 +938,67 @@ Base.getproperty(self::Btcturk, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetOrderbook(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrades(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOhlc(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "ohlc", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ohlc"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetServerExchangeinfo(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "server/exchangeinfo", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "server/exchangeinfo"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersBalances(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "users/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenOrders(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAllOrders(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "allOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "allOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersTransactionsTrade(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "users/transactions/trade", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/transactions/trade"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsersTransactionsCrypto(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "users/transactions/crypto", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "users/transactions/crypto"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUsersTransactionsFiat(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "users/transactions/fiat", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "users/transactions/fiat"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrder(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelOrder(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "cancelOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrder(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function graphGetOhlcs(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "ohlcs", "graph", "GET", params, nothing, nothing, Dict())
+    return request(self, "ohlcs"; api="graph", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function graphGetKlinesHistory(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "klines/history", "graph", "GET", params, nothing, nothing, Dict())
+    return request(self, "klines/history"; api="graph", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Btcturk(; kwargs...)
@@ -914,3 +1062,189 @@ function Btcturk(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Btcturk_fetchMarkets() end
+"""
+retrieves data on all markets for btcturk
+see: https://docs.btcturk.com/public-endpoints/exchange-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Btcturk_fetchMarkets
+
+function __ccxt_doc_Btcturk_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.btcturk.com/private-endpoints/account-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Btcturk_fetchBalance
+
+function __ccxt_doc_Btcturk_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.btcturk.com/public-endpoints/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Btcturk_fetchOrderBook
+
+function __ccxt_doc_Btcturk_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.btcturk.com/public-endpoints/ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Btcturk_fetchTickers
+
+function __ccxt_doc_Btcturk_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.btcturk.com/public-endpoints/ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Btcturk_fetchTicker
+
+function __ccxt_doc_Btcturk_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.btcturk.com/public-endpoints/trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Btcturk_fetchTrades
+
+function __ccxt_doc_Btcturk_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.btcturk.com/public-endpoints/get-kline-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Btcturk_fetchOHLCV
+
+function __ccxt_doc_Btcturk_createOrder() end
+"""
+create a trade order
+see: https://docs.btcturk.com/private-endpoints/submit-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcturk_createOrder
+
+function __ccxt_doc_Btcturk_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.btcturk.com/private-endpoints/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcturk_cancelOrder
+
+function __ccxt_doc_Btcturk_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.btcturk.com/private-endpoints/open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcturk_fetchOpenOrders
+
+function __ccxt_doc_Btcturk_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.btcturk.com/private-endpoints/all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Btcturk_fetchOrders
+
+function __ccxt_doc_Btcturk_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.btcturk.com/private-endpoints/user-transactions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Btcturk_fetchMyTrades

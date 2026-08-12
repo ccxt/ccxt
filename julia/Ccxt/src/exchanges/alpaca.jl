@@ -638,7 +638,16 @@ function describe(self::Alpaca, )
 ))
 
 end
-function fetchTime(self::Alpaca, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Alpaca; params=Dict())
     response = self.traderPrivateGetV2Clock(params);
     timestamp = safeString(response, "timestamp");
     if functions.ccxtruthy(timestamp == nothing)
@@ -661,7 +670,17 @@ function fetchTime(self::Alpaca, params=Dict())
     return iso
 
 end
-function fetchMarkets(self::Alpaca, params=Dict())
+"""
+retrieves data on all markets for alpaca
+see: https://docs.alpaca.markets/reference/get-v2-assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Alpaca; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("asset_class") => "crypto",
         Symbol("status") => "active"
@@ -690,7 +709,7 @@ function parseMarket(self::Alpaca, asset)
     minAmount = self.safeNumber(asset, "min_order_size");
     amount = self.safeNumber(asset, "min_trade_increment");
     price = self.safeNumber(asset, "price_increment");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -741,7 +760,23 @@ function parseMarket(self::Alpaca, asset)
 ))
 
 end
-function fetchTrades(self::Alpaca, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.alpaca.markets/reference/cryptotrades
+see: https://docs.alpaca.markets/reference/cryptolatesttrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+- `params.method`::string, optional: method, default: marketPublicGetV1beta3CryptoLocTrades
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Alpaca, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -763,12 +798,12 @@ function fetchTrades(self::Alpaca, symbol, since=nothing, limit=nothing, params=
             request[Symbol("limit")] = limit;
         end
         response = self.marketPublicGetV1beta3CryptoLocTrades(extend(request, params));
-        trades = self.safeDict(response, "trades", Dict{Symbol, Any}());
-        symbolTrades = self.safeList(trades, marketId, []);
+        trades = self.safeDict(response, "trades", defaultValue = Dict{Symbol, Any}());
+        symbolTrades = self.safeList(trades, marketId, defaultValue = []);
     elseif functions.ccxtruthy(method == "marketPublicGetV1beta3CryptoLocLatestTrades")
         response = self.marketPublicGetV1beta3CryptoLocLatestTrades(extend(request, params));
-        trades = self.safeDict(response, "trades", Dict{Symbol, Any}());
-        symbolTrade = self.safeDict(trades, marketId, Dict{Symbol, Any}());
+        trades = self.safeDict(response, "trades", defaultValue = Dict{Symbol, Any}());
+        symbolTrade = self.safeDict(trades, marketId, defaultValue = Dict{Symbol, Any}());
         symbolTrades = [symbolTrade];
     else
         throw(NotSupported(string(self.id, " fetchTrades() does not support ", method, ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")));
@@ -777,10 +812,23 @@ function fetchTrades(self::Alpaca, symbol, since=nothing, limit=nothing, params=
     if functions.ccxtruthy(symbolTrades != nothing)
         symbolTradesList = symbolTrades;
     end
-    return self.parseTrades(symbolTradesList, market, since, limit)
+    return self.parseTrades(symbolTradesList, market = market, since = since, limit = limit)
 
 end
-function fetchOrderBook(self::Alpaca, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.alpaca.markets/reference/cryptolatestorderbooks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Alpaca, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -792,13 +840,30 @@ function fetchOrderBook(self::Alpaca, symbol, limit=nothing, params=Dict())
         Symbol("loc") => loc
     );
     response = self.marketPublicGetV1beta3CryptoLocLatestOrderbooks(extend(request, params));
-    orderbooks = self.safeDict(response, "orderbooks", Dict{Symbol, Any}());
-    rawOrderbook = self.safeDict(orderbooks, id, Dict{Symbol, Any}());
+    orderbooks = self.safeDict(response, "orderbooks", defaultValue = Dict{Symbol, Any}());
+    rawOrderbook = self.safeDict(orderbooks, id, defaultValue = Dict{Symbol, Any}());
     timestamp = self.parse8601(safeString(rawOrderbook, "t"));
-    return self.parseOrderBook(rawOrderbook, get(market, Symbol("symbol"), nothing), timestamp, "b", "a", "p", "s")
+    return self.parseOrderBook(rawOrderbook, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "b", asksKey = "a", priceKey = "p", amountKey = "s")
 
 end
-function fetchOHLCV(self::Alpaca, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.alpaca.markets/reference/cryptobars
+see: https://docs.alpaca.markets/reference/cryptolatestbars
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+- `params.method`::string, optional: method, default: marketPublicGetV1beta3CryptoLocBars
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Alpaca, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -821,44 +886,68 @@ function fetchOHLCV(self::Alpaca, symbol, timeframe="1m", since=nothing, limit=n
         end
         request[Symbol("timeframe")] = safeString(self.timeframes, timeframe, timeframe);
         response = self.marketPublicGetV1beta3CryptoLocBars(extend(request, params));
-        bars = self.safeDict(response, "bars", Dict{Symbol, Any}());
-        ohlcvs = self.safeList(bars, marketId, []);
+        bars = self.safeDict(response, "bars", defaultValue = Dict{Symbol, Any}());
+        ohlcvs = self.safeList(bars, marketId, defaultValue = []);
     elseif functions.ccxtruthy(method == "marketPublicGetV1beta3CryptoLocLatestBars")
         response = self.marketPublicGetV1beta3CryptoLocLatestBars(extend(request, params));
-        bars = self.safeDict(response, "bars", Dict{Symbol, Any}());
-        bar = self.safeDict(bars, marketId, Dict{Symbol, Any}());
+        bars = self.safeDict(response, "bars", defaultValue = Dict{Symbol, Any}());
+        bar = self.safeDict(bars, marketId, defaultValue = Dict{Symbol, Any}());
         ohlcvs = [bar];
     else
         throw(NotSupported(string(self.id, " fetchOHLCV() does not support ", method, ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")));
     end
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Alpaca, ohlcv, market=nothing)
+function parseOHLCV(self::Alpaca, ohlcv; market=nothing)
     datetime = safeString(ohlcv, "t");
     timestamp = self.parse8601(datetime);
     return [timestamp, self.safeNumber(ohlcv, "o"), self.safeNumber(ohlcv, "h"), self.safeNumber(ohlcv, "l"), self.safeNumber(ohlcv, "c"), self.safeNumber(ohlcv, "v")]
 
 end
-function fetchTicker(self::Alpaca, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.alpaca.markets/reference/cryptosnapshots-1
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Alpaca, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
     symbol = self.symbol(symbol);
-    tickers = self.fetchTickers([symbol], params);
+    tickers = self.fetchTickers(symbols = [symbol], params = params);
     return self.safeDict(tickers, symbol)
 
 end
-function fetchTickers(self::Alpaca, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.alpaca.markets/reference/cryptosnapshots-1
+
+# Arguments
+- `symbols`::array: unified symbols of the markets to fetch tickers for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Alpaca; symbols=nothing, params=Dict())
     if functions.ccxtruthy(symbols == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchTickers() requires a symbols argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     loc = safeString(params, "loc", "us");
-    ids = self.marketIds(symbols);
+    ids = self.marketIds(symbols = symbols);
     request = Dict{Symbol, Any}(
         Symbol("symbols") => join(ids, ","),
         Symbol("loc") => loc
@@ -866,17 +955,17 @@ function fetchTickers(self::Alpaca, symbols=nothing, params=Dict())
     params = omit(params, "loc");
     response = self.marketPublicGetV1beta3CryptoLocSnapshots(extend(request, params));
     results = [];
-    snapshots = self.safeDict(response, "snapshots", Dict{Symbol, Any}());
+    snapshots = self.safeDict(response, "snapshots", defaultValue = Dict{Symbol, Any}());
     marketIds = objectKeys(snapshots);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
         entry = self.safeDict(snapshots, marketId);
-        dailyBar = self.safeDict(entry, "dailyBar", Dict{Symbol, Any}());
-        prevDailyBar = self.safeDict(entry, "prevDailyBar", Dict{Symbol, Any}());
-        latestQuote = self.safeDict(entry, "latestQuote", Dict{Symbol, Any}());
-        latestTrade = self.safeDict(entry, "latestTrade", Dict{Symbol, Any}());
+        dailyBar = self.safeDict(entry, "dailyBar", defaultValue = Dict{Symbol, Any}());
+        prevDailyBar = self.safeDict(entry, "prevDailyBar", defaultValue = Dict{Symbol, Any}());
+        latestQuote = self.safeDict(entry, "latestQuote", defaultValue = Dict{Symbol, Any}());
+        latestTrade = self.safeDict(entry, "latestTrade", defaultValue = Dict{Symbol, Any}());
         datetime = safeString(latestQuote, "t");
         ticker = self.safeTicker(Dict{Symbol, Any}(
             Symbol("info") => entry,
@@ -899,11 +988,11 @@ function fetchTickers(self::Alpaca, symbols=nothing, params=Dict())
             Symbol("average") => nothing,
             Symbol("baseVolume") => safeString(dailyBar, "v"),
             Symbol("quoteVolume") => safeString(dailyBar, "n")
-        ), market);
+        ), market = market);
         push!(results, ticker);
         i += 1
     end
-    return self.filterByArray(results, "symbol", symbols)
+    return self.filterByArray(results, "symbol", values = symbols)
 
 end
 function generateClientOrderId(self::Alpaca, params)
@@ -918,37 +1007,91 @@ function generateClientOrderId(self::Alpaca, params)
     return clientOrderId
 
 end
-function createMarketOrderWithCost(self::Alpaca, symbol, side, cost, params=Dict())
+"""
+create a market order by providing the symbol, side and cost
+see: https://docs.alpaca.markets/reference/postorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketOrderWithCost(self::Alpaca, symbol, side, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return self.createOrder(symbol, "market", side, 0, nothing, extend(req, params))
+    return self.createOrder(symbol, "market", side, 0, price = nothing, params = extend(req, params))
 
 end
-function createMarketBuyOrderWithCost(self::Alpaca, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://docs.alpaca.markets/reference/postorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Alpaca, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return self.createOrder(symbol, "market", "buy", 0, nothing, extend(req, params))
+    return self.createOrder(symbol, "market", "buy", 0, price = nothing, params = extend(req, params))
 
 end
-function createMarketSellOrderWithCost(self::Alpaca, symbol, cost, params=Dict())
+"""
+create a market sell order by providing the symbol and cost
+see: https://docs.alpaca.markets/reference/postorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketSellOrderWithCost(self::Alpaca, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return self.createOrder(symbol, "market", "sell", cost, nothing, extend(req, params))
+    return self.createOrder(symbol, "market", "sell", cost, price = nothing, params = extend(req, params))
 
 end
-function createOrder(self::Alpaca, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.alpaca.markets/reference/postorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market', 'limit' or 'stop_limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.cost`::float, optional: *market orders only* the cost of the order in units of the quote currency
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Alpaca, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -987,10 +1130,22 @@ function createOrder(self::Alpaca, symbol, type_var, side, amount, price=nothing
     request[Symbol("client_order_id")] = self.generateClientOrderId(params);
     params = omit(params, ["clientOrderId"]);
     order = self.traderPrivatePostV2Orders(extend(request, params));
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function cancelOrder(self::Alpaca, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.alpaca.markets/reference/deleteorderbyorderid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Alpaca, id; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("order_id") => id
     );
@@ -998,7 +1153,18 @@ function cancelOrder(self::Alpaca, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelAllOrders(self::Alpaca, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://docs.alpaca.markets/reference/deleteallorders
+
+# Arguments
+- `symbol`::string, optional: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Alpaca; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -1012,7 +1178,19 @@ function cancelAllOrders(self::Alpaca, symbol=nothing, params=Dict())
     end
 
 end
-function fetchOrder(self::Alpaca, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.alpaca.markets/reference/getorderbyorderid
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Alpaca, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -1021,11 +1199,25 @@ function fetchOrder(self::Alpaca, id, symbol=nothing, params=Dict())
     );
     order = self.traderPrivateGetV2OrdersOrderId(extend(request, params));
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId);
-    return self.parseOrder(order, market)
+    market = self.safeMarket(marketId = marketId);
+    return self.parseOrder(order, market = market)
 
 end
-function fetchOrders(self::Alpaca, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.alpaca.markets/reference/getallorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Alpaca; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -1049,24 +1241,71 @@ function fetchOrders(self::Alpaca, symbol=nothing, since=nothing, limit=nothing,
         request[Symbol("limit")] = limit;
     end
     response = self.traderPrivateGetV2Orders(extend(request, params));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Alpaca, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.alpaca.markets/reference/getallorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Alpaca; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "open"
     );
-    return self.fetchOrders(symbol, since, limit, extend(request, params))
+    return self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params))
 
 end
-function fetchClosedOrders(self::Alpaca, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.alpaca.markets/reference/getallorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Alpaca; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "closed"
     );
-    return self.fetchOrders(symbol, since, limit, extend(request, params))
+    return self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params))
 
 end
-function editOrder(self::Alpaca, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://docs.alpaca.markets/reference/patchorderbyorderid-1
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market to create an order in
+- `type`::string, optional: 'market', 'limit' or 'stop_limit'
+- `side`::string, optional: 'buy' or 'sell'
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price for the order, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::string, optional: the price to trigger a stop order
+- `params.timeInForce`::string, optional: for crypto trading either 'gtc' or 'ioc' can be used
+- `params.clientOrderId`::string, optional: a unique identifier for the order, automatically generated if not sent
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Alpaca, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -1089,19 +1328,19 @@ function editOrder(self::Alpaca, id, symbol, type_var, side, amount=nothing, pri
         request[Symbol("limit_price")] = self.priceToPrecision(symbol, price);
     end
     timeInForce = nothing;
-    (timeInForce, params) = self.handleOptionAndParams(params, "editOrder", "timeInForce", "gtc");
+    (timeInForce, params) = self.handleOptionAndParams(params, "editOrder", "timeInForce", defaultValue = "gtc");
     if functions.ccxtruthy(timeInForce != nothing)
         request[Symbol("time_in_force")] = timeInForce;
     end
     request[Symbol("client_order_id")] = self.generateClientOrderId(params);
     params = omit(params, ["clientOrderId"]);
     response = self.traderPrivatePatchV2OrdersOrderId(extend(request, params));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function parseOrder(self::Alpaca, order, market=nothing)
+function parseOrder(self::Alpaca, order; market=nothing)
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     alpacaStatus = safeString(order, "status");
     status = self.parseOrderStatus(alpacaStatus);
@@ -1143,7 +1382,7 @@ function parseOrder(self::Alpaca, order, market=nothing)
     Symbol("trades") => nothing,
     Symbol("fee") => fee,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Alpaca, status)
@@ -1165,7 +1404,22 @@ function parseTimeInForce(self::Alpaca, timeInForce)
     return safeString(timeInForces, timeInForce, timeInForce)
 
 end
-function fetchMyTrades(self::Alpaca, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.page_token`::string, optional: page_token - used for paging
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Alpaca; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -1189,12 +1443,12 @@ function fetchMyTrades(self::Alpaca, symbol=nothing, since=nothing, limit=nothin
     end
     (request, params) = self.handleUntilOption("until", request, params);
     response = self.traderPrivateGetV2AccountActivitiesActivityType(extend(request, params));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Alpaca, trade, market=nothing)
+function parseTrade(self::Alpaca, trade; market=nothing)
     marketId = safeString2(trade, "S", "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     datetime = safeString2(trade, "t", "transaction_time");
     timestamp = self.parse8601(datetime);
     alpacaSide = safeString(trade, "tks");
@@ -1220,10 +1474,21 @@ function parseTrade(self::Alpaca, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => nothing,
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function fetchDepositAddress(self::Alpaca, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.alpaca.markets/reference/listcryptofundingwallets
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Alpaca, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -1232,10 +1497,10 @@ function fetchDepositAddress(self::Alpaca, code, params=Dict())
         Symbol("asset") => get(currency, Symbol("id"), nothing)
     );
     response = self.traderPrivateGetV2Wallets(extend(request, params));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function parseDepositAddress(self::Alpaca, depositAddress, currency=nothing)
+function parseDepositAddress(self::Alpaca, depositAddress; currency=nothing)
     parsedCurrency = nothing;
     if functions.ccxtruthy(currency != nothing)
         parsedCurrency = get(currency, Symbol("id"), nothing);
@@ -1249,9 +1514,23 @@ function parseDepositAddress(self::Alpaca, depositAddress, currency=nothing)
 )
 
 end
-function withdraw(self::Alpaca, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://docs.alpaca.markets/reference/createcryptotransferforaccount
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string: a memo for the transaction
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Alpaca, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -1265,7 +1544,7 @@ function withdraw(self::Alpaca, code, amount, address, tag=nothing, params=Dict(
         Symbol("amount") => numberToString(amount)
     );
     response = self.traderPrivatePostV2WalletsTransfers(extend(request, params));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
 function setSandboxMode(self::Alpaca, enable)
@@ -1281,7 +1560,7 @@ function fetchTransactionsHelper(self::Alpaca, type_var, code, since, limit, par
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    sandboxMode = @functions.ccxt_or(self.isSandboxModeEnabled, self.safeBool(self.options, "sandboxMode", false));
+    sandboxMode = @functions.ccxt_or(self.isSandboxModeEnabled, self.safeBool(self.options, "sandboxMode", defaultValue = false));
     if functions.ccxtruthy(sandboxMode)
         request = Dict{Symbol, Any}(
             Symbol("activity_types") => "CSD,CSW,TRANS"
@@ -1305,7 +1584,7 @@ function fetchTransactionsHelper(self::Alpaca, type_var, code, since, limit, par
             i += 1
         end
 
-            return self.parseTransactions(filtered, currency, since, limit, params)
+            return self.parseTransactions(filtered, currency = currency, since = since, limit = limit, params = params)
     end
     response = self.traderPrivateGetV2WalletsTransfers(params);
     results = [];
@@ -1324,22 +1603,61 @@ function fetchTransactionsHelper(self::Alpaca, type_var, code, since, limit, par
         end
         i += 1
     end
-    return self.parseTransactions(results, currency, since, limit, params)
+    return self.parseTransactions(results, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchDepositsWithdrawals(self::Alpaca, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Alpaca; code=nothing, since=nothing, limit=nothing, params=Dict())
     return self.fetchTransactionsHelper("BOTH", code, since, limit, params)
 
 end
-function fetchDeposits(self::Alpaca, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposit structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Alpaca; code=nothing, since=nothing, limit=nothing, params=Dict())
     return self.fetchTransactionsHelper("INCOMING", code, since, limit, params)
 
 end
-function fetchWithdrawals(self::Alpaca, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Alpaca; code=nothing, since=nothing, limit=nothing, params=Dict())
     return self.fetchTransactionsHelper("OUTGOING", code, since, limit, params)
 
 end
-function parseTransaction(self::Alpaca, transaction, currency=nothing)
+function parseTransaction(self::Alpaca, transaction; currency=nothing)
     activityType = safeString(transaction, "activity_type");
     txid = nothing;
     timestamp = nothing;
@@ -1368,7 +1686,7 @@ function parseTransaction(self::Alpaca, transaction, currency=nothing)
         elseif functions.ccxtruthy(@functions.ccxt_or((activityType == "CSD"), (activityType == "CSW")))
             code = "USD";
         else
-            code = self.safeCurrencyCode(nothing, currency);
+            code = self.safeCurrencyCode(nothing, currency = currency);
         end
         status = self.parseTransactionStatus(safeString(transaction, "status"));
         comment = activityType;
@@ -1384,7 +1702,7 @@ function parseTransaction(self::Alpaca, transaction, currency=nothing)
         type_var = self.parseTransactionType(safeString(transaction, "direction"));
         amount = self.safeNumber(transaction, "amount");
         currencyId = safeString(transaction, "asset");
-        code = self.safeCurrencyCode(currencyId, currency);
+        code = self.safeCurrencyCode(currencyId, currency = currency);
         status = self.parseTransactionStatus(safeString(transaction, "status"));
         fees = safeString(transaction, "fees");
         networkFee = safeString(transaction, "network_fee");
@@ -1438,7 +1756,17 @@ function parseTransactionType(self::Alpaca, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function fetchBalance(self::Alpaca, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.alpaca.markets/reference/getaccount-1
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Alpaca; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
     end
@@ -1461,7 +1789,7 @@ function parseBalance(self::Alpaca, response)
     return self.safeBalance(result)
 
 end
-function sign(self::Alpaca, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Alpaca, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     endpoint = string("/", self.implodeParams(path, params));
     url = self.implodeHostname(get(get(self.urls, Symbol("api"), nothing), Symbol(get(api, 1, nothing)), nothing));
     headers = functions.ccxtruthy((headers != nothing)) ? headers : Dict{Symbol, Any}();
@@ -1513,283 +1841,283 @@ Base.getproperty(self::Alpaca, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function traderPrivateGetV2Account(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/account", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2Orders(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/orders", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/orders"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2OrdersOrderId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/orders/{order_id}", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/orders/{order_id}"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2Positions(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/positions", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/positions"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2PositionsSymbolOrAssetId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/positions/{symbol_or_asset_id}", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/positions/{symbol_or_asset_id}"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2AccountPortfolioHistory(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/account/portfolio/history", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/portfolio/history"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2Watchlists(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2WatchlistsWatchlistId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists/{watchlist_id}", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists/{watchlist_id}"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2WatchlistsByName(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists:by_name", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists:by_name"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2AccountConfigurations(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/account/configurations", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/configurations"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2AccountActivities(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/account/activities", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/activities"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2AccountActivitiesActivityType(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/account/activities/{activity_type}", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/activities/{activity_type}"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2Calendar(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/calendar", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/calendar"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2Clock(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/clock", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/clock"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2Assets(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/assets", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/assets"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2AssetsSymbolOrAssetId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/assets/{symbol_or_asset_id}", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/assets/{symbol_or_asset_id}"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2CorporateActionsAnnouncementsId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/corporate_actions/announcements/{id}", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/corporate_actions/announcements/{id}"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2CorporateActionsAnnouncements(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/corporate_actions/announcements", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/corporate_actions/announcements"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2Wallets(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/wallets", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/wallets"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateGetV2WalletsTransfers(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/wallets/transfers", ["trader", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/wallets/transfers"; api=["trader", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivatePostV2Orders(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/orders", ["trader", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/orders"; api=["trader", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivatePostV2Watchlists(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists", ["trader", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists"; api=["trader", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivatePostV2WatchlistsWatchlistId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists/{watchlist_id}", ["trader", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists/{watchlist_id}"; api=["trader", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivatePostV2WatchlistsByName(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists:by_name", ["trader", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists:by_name"; api=["trader", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivatePostV2WalletsTransfers(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/wallets/transfers", ["trader", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/wallets/transfers"; api=["trader", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivatePutV2OrdersOrderId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/orders/{order_id}", ["trader", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "v2/orders/{order_id}"; api=["trader", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivatePutV2WatchlistsWatchlistId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists/{watchlist_id}", ["trader", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists/{watchlist_id}"; api=["trader", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivatePutV2WatchlistsByName(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists:by_name", ["trader", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists:by_name"; api=["trader", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivatePatchV2OrdersOrderId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/orders/{order_id}", ["trader", "private"], "PATCH", params, nothing, nothing, Dict())
+    return request(self, "v2/orders/{order_id}"; api=["trader", "private"], method="PATCH", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivatePatchV2AccountConfigurations(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/account/configurations", ["trader", "private"], "PATCH", params, nothing, nothing, Dict())
+    return request(self, "v2/account/configurations"; api=["trader", "private"], method="PATCH", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateDeleteV2Orders(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/orders", ["trader", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/orders"; api=["trader", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateDeleteV2OrdersOrderId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/orders/{order_id}", ["trader", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/orders/{order_id}"; api=["trader", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateDeleteV2Positions(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/positions", ["trader", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/positions"; api=["trader", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateDeleteV2PositionsSymbolOrAssetId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/positions/{symbol_or_asset_id}", ["trader", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/positions/{symbol_or_asset_id}"; api=["trader", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateDeleteV2WatchlistsWatchlistId(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists/{watchlist_id}", ["trader", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists/{watchlist_id}"; api=["trader", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateDeleteV2WatchlistsByName(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists:by_name", ["trader", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists:by_name"; api=["trader", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function traderPrivateDeleteV2WatchlistsWatchlistIdSymbol(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/watchlists/{watchlist_id}/{symbol}", ["trader", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/watchlists/{watchlist_id}/{symbol}"; api=["trader", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPublicGetV1beta3CryptoLocBars(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta3/crypto/{loc}/bars", ["market", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta3/crypto/{loc}/bars"; api=["market", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPublicGetV1beta3CryptoLocLatestBars(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta3/crypto/{loc}/latest/bars", ["market", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta3/crypto/{loc}/latest/bars"; api=["market", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPublicGetV1beta3CryptoLocLatestOrderbooks(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta3/crypto/{loc}/latest/orderbooks", ["market", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta3/crypto/{loc}/latest/orderbooks"; api=["market", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPublicGetV1beta3CryptoLocLatestQuotes(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta3/crypto/{loc}/latest/quotes", ["market", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta3/crypto/{loc}/latest/quotes"; api=["market", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPublicGetV1beta3CryptoLocLatestTrades(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta3/crypto/{loc}/latest/trades", ["market", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta3/crypto/{loc}/latest/trades"; api=["market", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPublicGetV1beta3CryptoLocQuotes(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta3/crypto/{loc}/quotes", ["market", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta3/crypto/{loc}/quotes"; api=["market", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPublicGetV1beta3CryptoLocSnapshots(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta3/crypto/{loc}/snapshots", ["market", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta3/crypto/{loc}/snapshots"; api=["market", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPublicGetV1beta3CryptoLocTrades(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta3/crypto/{loc}/trades", ["market", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta3/crypto/{loc}/trades"; api=["market", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV1beta1CorporateActions(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta1/corporate-actions", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta1/corporate-actions"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV1beta1ForexLatestRates(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta1/forex/latest/rates", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta1/forex/latest/rates"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV1beta1ForexRates(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta1/forex/rates", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta1/forex/rates"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV1beta1LogosSymbol(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta1/logos/{symbol}", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta1/logos/{symbol}"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV1beta1News(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta1/news", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta1/news"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV1beta1ScreenerStocksMostActives(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta1/screener/stocks/most-actives", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta1/screener/stocks/most-actives"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV1beta1ScreenerMarketTypeMovers(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v1beta1/screener/{market_type}/movers", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1beta1/screener/{market_type}/movers"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksAuctions(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/auctions", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/auctions"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksBars(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/bars", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/bars"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksBarsLatest(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/bars/latest", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/bars/latest"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksMetaConditionsTicktype(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/meta/conditions/{ticktype}", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/meta/conditions/{ticktype}"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksMetaExchanges(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/meta/exchanges", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/meta/exchanges"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksQuotes(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/quotes", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/quotes"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksQuotesLatest(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/quotes/latest", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/quotes/latest"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksSnapshots(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/snapshots", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/snapshots"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksTrades(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/trades", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/trades"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksTradesLatest(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/trades/latest", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/trades/latest"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksSymbolAuctions(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/{symbol}/auctions", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/{symbol}/auctions"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksSymbolBars(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/{symbol}/bars", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/{symbol}/bars"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksSymbolBarsLatest(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/{symbol}/bars/latest", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/{symbol}/bars/latest"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksSymbolQuotes(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/{symbol}/quotes", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/{symbol}/quotes"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksSymbolQuotesLatest(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/{symbol}/quotes/latest", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/{symbol}/quotes/latest"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksSymbolSnapshot(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/{symbol}/snapshot", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/{symbol}/snapshot"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksSymbolTrades(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/{symbol}/trades", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/{symbol}/trades"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketPrivateGetV2StocksSymbolTradesLatest(self::Alpaca, params=Dict(), context=Dict())
-    return request(self, "v2/stocks/{symbol}/trades/latest", ["market", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/stocks/{symbol}/trades/latest"; api=["market", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Alpaca(; kwargs...)
@@ -1853,3 +2181,408 @@ function Alpaca(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Alpaca_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Alpaca_fetchTime
+
+function __ccxt_doc_Alpaca_fetchMarkets() end
+"""
+retrieves data on all markets for alpaca
+see: https://docs.alpaca.markets/reference/get-v2-assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Alpaca_fetchMarkets
+
+function __ccxt_doc_Alpaca_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.alpaca.markets/reference/cryptotrades
+see: https://docs.alpaca.markets/reference/cryptolatesttrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+- `params.method`::string, optional: method, default: marketPublicGetV1beta3CryptoLocTrades
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Alpaca_fetchTrades
+
+function __ccxt_doc_Alpaca_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.alpaca.markets/reference/cryptolatestorderbooks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Alpaca_fetchOrderBook
+
+function __ccxt_doc_Alpaca_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.alpaca.markets/reference/cryptobars
+see: https://docs.alpaca.markets/reference/cryptolatestbars
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+- `params.method`::string, optional: method, default: marketPublicGetV1beta3CryptoLocBars
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Alpaca_fetchOHLCV
+
+function __ccxt_doc_Alpaca_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.alpaca.markets/reference/cryptosnapshots-1
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Alpaca_fetchTicker
+
+function __ccxt_doc_Alpaca_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.alpaca.markets/reference/cryptosnapshots-1
+
+# Arguments
+- `symbols`::array: unified symbols of the markets to fetch tickers for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Alpaca_fetchTickers
+
+function __ccxt_doc_Alpaca_createMarketOrderWithCost() end
+"""
+create a market order by providing the symbol, side and cost
+see: https://docs.alpaca.markets/reference/postorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_createMarketOrderWithCost
+
+function __ccxt_doc_Alpaca_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://docs.alpaca.markets/reference/postorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Alpaca_createMarketSellOrderWithCost() end
+"""
+create a market sell order by providing the symbol and cost
+see: https://docs.alpaca.markets/reference/postorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_createMarketSellOrderWithCost
+
+function __ccxt_doc_Alpaca_createOrder() end
+"""
+create a trade order
+see: https://docs.alpaca.markets/reference/postorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market', 'limit' or 'stop_limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.cost`::float, optional: *market orders only* the cost of the order in units of the quote currency
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_createOrder
+
+function __ccxt_doc_Alpaca_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.alpaca.markets/reference/deleteorderbyorderid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_cancelOrder
+
+function __ccxt_doc_Alpaca_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://docs.alpaca.markets/reference/deleteallorders
+
+# Arguments
+- `symbol`::string, optional: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_cancelAllOrders
+
+function __ccxt_doc_Alpaca_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.alpaca.markets/reference/getorderbyorderid
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_fetchOrder
+
+function __ccxt_doc_Alpaca_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.alpaca.markets/reference/getallorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_fetchOrders
+
+function __ccxt_doc_Alpaca_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.alpaca.markets/reference/getallorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_fetchOpenOrders
+
+function __ccxt_doc_Alpaca_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.alpaca.markets/reference/getallorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_fetchClosedOrders
+
+function __ccxt_doc_Alpaca_editOrder() end
+"""
+edit a trade order
+see: https://docs.alpaca.markets/reference/patchorderbyorderid-1
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market to create an order in
+- `type`::string, optional: 'market', 'limit' or 'stop_limit'
+- `side`::string, optional: 'buy' or 'sell'
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price for the order, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::string, optional: the price to trigger a stop order
+- `params.timeInForce`::string, optional: for crypto trading either 'gtc' or 'ioc' can be used
+- `params.clientOrderId`::string, optional: a unique identifier for the order, automatically generated if not sent
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Alpaca_editOrder
+
+function __ccxt_doc_Alpaca_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.page_token`::string, optional: page_token - used for paging
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Alpaca_fetchMyTrades
+
+function __ccxt_doc_Alpaca_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.alpaca.markets/reference/listcryptofundingwallets
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Alpaca_fetchDepositAddress
+
+function __ccxt_doc_Alpaca_withdraw() end
+"""
+make a withdrawal
+see: https://docs.alpaca.markets/reference/createcryptotransferforaccount
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string: a memo for the transaction
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Alpaca_withdraw
+
+function __ccxt_doc_Alpaca_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Alpaca_fetchDepositsWithdrawals
+
+function __ccxt_doc_Alpaca_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposit structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Alpaca_fetchDeposits
+
+function __ccxt_doc_Alpaca_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Alpaca_fetchWithdrawals
+
+function __ccxt_doc_Alpaca_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.alpaca.markets/reference/getaccount-1
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Alpaca_fetchBalance

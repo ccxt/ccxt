@@ -425,9 +425,9 @@ function describe(self::Foxbit, )
 ))
 
 end
-function fetchCurrencies(self::Foxbit, params=Dict())
+function fetchCurrencies(self::Foxbit; params=Dict())
     response = Base.fetch(self.v3PublicGetCurrencies(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseCurrencies(data)
 
 end
@@ -438,14 +438,14 @@ function parseCurrency(self::Foxbit, rawCurrency)
     code = self.safeCurrencyCode(currencyId);
     depositInfo = self.safeDict(rawCurrency, "deposit_info");
     withdrawInfo = self.safeDict(rawCurrency, "withdraw_info");
-    networks = self.safeList(rawCurrency, "networks", []);
+    networks = self.safeList(rawCurrency, "networks", defaultValue = []);
     type_var = safeStringLower(rawCurrency, "type");
     parsedNetworks = Dict{Symbol, Any}();
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networks)))
         network = get(networks, j + 1, nothing);
         networkId = safeString(network, "code");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         networkWithdrawInfo = self.safeDict(network, "withdraw_info");
         networkDepositInfo = self.safeDict(network, "deposit_info");
         isWithdrawEnabled = safeString(networkWithdrawInfo, "status") == "ENABLED";
@@ -486,8 +486,8 @@ function parseCurrency(self::Foxbit, rawCurrency)
     Symbol("name") => name,
     Symbol("active") => true,
     Symbol("type") => type_var,
-    Symbol("deposit") => self.safeBool(depositInfo, "enabled", false),
-    Symbol("withdraw") => self.safeBool(withdrawInfo, "enabled", false),
+    Symbol("deposit") => self.safeBool(depositInfo, "enabled", defaultValue = false),
+    Symbol("withdraw") => self.safeBool(withdrawInfo, "enabled", defaultValue = false),
     Symbol("fee") => self.safeNumber(withdrawInfo, "fee"),
     Symbol("precision") => precision,
     Symbol("limits") => Dict{Symbol, Any}(
@@ -508,13 +508,34 @@ function parseCurrency(self::Foxbit, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Foxbit, params=Dict())
+"""
+Retrieves data on all markets for foxbit.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_index
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Foxbit; params=Dict())
     response = Base.fetch(self.v3PublicGetMarkets(params));
-    markets = self.safeList(response, "data", []);
+    markets = self.safeList(response, "data", defaultValue = []);
     return self.parseMarkets(markets)
 
 end
-function fetchTicker(self::Foxbit, symbol, params=Dict())
+"""
+Get last 24 hours ticker information, in real-time, for given market.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Foxbit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -523,41 +544,74 @@ function fetchTicker(self::Foxbit, symbol, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v3PublicGetMarketsMarketTicker24hr(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    result = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTicker(result, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(result, market = market)
 
 end
-function fetchTickers(self::Foxbit, symbols=nothing, params=Dict())
+"""
+Retrieve the ticker data of all markets.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Foxbit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.v3PublicGetMarketsTicker24hr(params));
-    data = self.safeList(response, "data", []);
-    return self.parseTickers(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(data, symbols = symbols)
 
 end
-function fetchTradingFees(self::Foxbit, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://docs.foxbit.com.br/rest/v3/#tag/Member-Info/operation/MembersController_listTradingFees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Foxbit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v3PrivateGetMeFeesTrading(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
         marketId = safeString(entry, "market_symbol");
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
         symbol = get(market, Symbol("symbol"), nothing);
-        result[Symbol(symbol)] = self.parseTradingFee(entry, market);
+        result[Symbol(symbol)] = self.parseTradingFee(entry, market = market);
         i += 1
     end
     return result
 
 end
-function fetchOrderBook(self::Foxbit, symbol, limit=nothing, params=Dict())
+"""
+Exports a copy of the order book of a specific market.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findOrderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return, the maximum is 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Foxbit, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -569,10 +623,23 @@ function fetchOrderBook(self::Foxbit, symbol, limit=nothing, params=Dict())
     );
     response = Base.fetch(self.v3PublicGetMarketsMarketOrderbook(extend(request, params)));
     timestamp = safeInteger(response, "timestamp");
-    return self.parseOrderBook(response, symbol, timestamp)
+    return self.parseOrderBook(response, symbol, timestamp = timestamp)
 
 end
-function fetchTrades(self::Foxbit, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+Retrieve the trades of a specific market.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_publicTrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Foxbit, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -587,11 +654,25 @@ function fetchTrades(self::Foxbit, symbol, since=nothing, limit=nothing, params=
         end
     end
     response = Base.fetch(self.v3PublicGetMarketsMarketTradesHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchOHLCV(self::Foxbit, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a market.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findCandlesticks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Foxbit, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -611,15 +692,25 @@ function fetchOHLCV(self::Foxbit, symbol, timeframe="1m", since=nothing, limit=n
         end
     end
     response = Base.fetch(self.v3PublicGetMarketsMarketCandlesticks(extend(request, params)));
-    return self.parseOHLCVs(toArray(response), market, interval, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = interval, since = since, limit = limit)
 
 end
-function fetchBalance(self::Foxbit, params=Dict())
+"""
+Query for balance and get the amount of funds available for trading or funds locked in orders.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_all
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Foxbit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v3PrivateGetAccounts(params));
-    accounts = self.safeList(response, "data", []);
+    accounts = self.safeList(response, "data", defaultValue = []);
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
@@ -644,19 +735,45 @@ function fetchBalance(self::Foxbit, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchOpenOrders(self::Foxbit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStatus("ACTIVE", symbol, since, limit, params))
+"""
+Fetch all unfilled currently open orders.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Foxbit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStatus("ACTIVE", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchClosedOrders(self::Foxbit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStatus("FILLED", symbol, since, limit, params))
+"""
+Fetch all currently closed orders.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Foxbit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStatus("FILLED", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchCanceledOrders(self::Foxbit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStatus("CANCELED", symbol, since, limit, params))
+function fetchCanceledOrders(self::Foxbit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStatus("CANCELED", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOrdersByStatus(self::Foxbit, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrdersByStatus(self::Foxbit, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -678,11 +795,30 @@ function fetchOrdersByStatus(self::Foxbit, status, symbol=nothing, since=nothing
         end
     end
     response = Base.fetch(self.v3PrivateGetOrders(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseOrders(data)
 
 end
-function createOrder(self::Foxbit, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+Create an order with the specified characteristics
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_create
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market', 'limit', 'stop_market', 'stop_limit', 'instant'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: "GTC", "FOK", "IOC", "PO"
+- `params.triggerPrice`::float, optional: The time in force for the order. One of GTC, FOK, IOC, PO. See .features or foxbit's doc to see more details.
+- `params.postOnly`::bool, optional: true or false whether the order is post-only
+- `params.clientOrderId`::string, optional: a unique identifier for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Foxbit, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -692,7 +828,7 @@ function createOrder(self::Foxbit, symbol, type_var, side, amount, price=nothing
         throw(InvalidOrder(string("Invalid order type: ", type_var, ". Must be one of: limit, market, stop_market, stop_limit, instant.")));
     end
     timeInForce = safeStringUpper(params, "timeInForce");
-    postOnly = self.safeBool(params, "postOnly", false);
+    postOnly = self.safeBool(params, "postOnly", defaultValue = false);
     triggerPrice = self.safeNumber(params, "triggerPrice");
     if functions.ccxtruthy(side == nothing)
         throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
@@ -734,10 +870,21 @@ function createOrder(self::Foxbit, symbol, type_var, side, amount, price=nothing
     end
     params = omit(params, ["timeInForce", "postOnly", "triggerPrice", "clientOrderId"]);
     response = Base.fetch(self.v3PrivatePostOrders(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createOrders(self::Foxbit, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/createBatch
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Foxbit, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -748,12 +895,12 @@ function createOrders(self::Foxbit, orders, params=Dict())
         symbol = safeString(order, "symbol");
         market = self.market(symbol);
         type_var = safeStringUpper(order, "type");
-        orderParams = self.safeDict(order, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(order, "params", defaultValue = Dict{Symbol, Any}());
         if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(@functions.ccxt_and(@functions.ccxt_and(type_var != "LIMIT", type_var != "MARKET"), type_var != "STOP_MARKET"), type_var != "STOP_LIMIT"), type_var != "INSTANT"))
             throw(InvalidOrder(string("Invalid order type: ", type_var, ". Must be one of: limit, market, stop_market, stop_limit, instant.")));
         end
         timeInForce = safeStringUpper(orderParams, "timeInForce");
-        postOnly = self.safeBool(orderParams, "postOnly", false);
+        postOnly = self.safeBool(orderParams, "postOnly", defaultValue = false);
         triggerPrice = self.safeNumber(orderParams, "triggerPrice");
         request = Dict{Symbol, Any}(
             Symbol("market_symbol") => get(market, Symbol("id"), nothing),
@@ -796,11 +943,23 @@ function createOrders(self::Foxbit, orders, params=Dict())
         Symbol("data") => ordersRequests
     );
     response = Base.fetch(self.v3PrivatePostOrdersBatch(extend(createOrdersRequest, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseOrders(data)
 
 end
-function cancelOrder(self::Foxbit, id, symbol=nothing, params=Dict())
+"""
+Cancel open orders.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Foxbit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -809,12 +968,23 @@ function cancelOrder(self::Foxbit, id, symbol=nothing, params=Dict())
         Symbol("type") => "ID"
     );
     response = Base.fetch(self.v3PrivatePutOrdersCancel(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    result = self.safeDict(data, 0, Dict{Symbol, Any}());
+    data = self.safeList(response, "data", defaultValue = []);
+    result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(result)
 
 end
-function cancelAllOrders(self::Foxbit, symbol=nothing, params=Dict())
+"""
+Cancel all open orders or all open orders for a specific market.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Foxbit; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -832,7 +1002,18 @@ function cancelAllOrders(self::Foxbit, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchOrder(self::Foxbit, id, symbol=nothing, params=Dict())
+"""
+Get an order by ID.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_findByOrderId
+
+# Arguments
+- `symbol`::string: it is not used in the foxbit API
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Foxbit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -843,7 +1024,22 @@ function fetchOrder(self::Foxbit, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOrders(self::Foxbit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.state`::string, optional: Enum: ACTIVE, CANCELED, FILLED, PARTIALLY_CANCELED, PARTIALLY_FILLED
+- `params.side`::string, optional: Enum: BUY, SELL
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Foxbit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -863,11 +1059,24 @@ function fetchOrders(self::Foxbit, symbol=nothing, since=nothing, limit=nothing,
         end
     end
     response = Base.fetch(self.v3PrivateGetOrders(extend(request, params)));
-    list = self.safeList(response, "data", []);
-    return self.parseOrders(list, market, since, limit)
+    list = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(list, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Foxbit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Trade history queries will only have data available for the last 3 months, in descending order (most recents trades first).
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/TradesController_all
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Foxbit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -888,11 +1097,23 @@ function fetchMyTrades(self::Foxbit, symbol=nothing, since=nothing, limit=nothin
         end
     end
     response = Base.fetch(self.v3PrivateGetTrades(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchDepositAddress(self::Foxbit, code, params=Dict())
+"""
+Fetch the deposit address for a currency associated with this account.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_depositAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.networkCode`::string, optional: the blockchain network to create a deposit address on
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Foxbit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -902,13 +1123,26 @@ function fetchDepositAddress(self::Foxbit, code, params=Dict())
     );
     (networkCode, paramsOmited) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("network_code")] = self.networkCodeToId(networkCode, code);
+        request[Symbol("network_code")] = self.networkCodeToId(networkCode, currencyCode = code);
     end
     response = Base.fetch(self.v3PrivateGetDepositsAddress(extend(request, paramsOmited)));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function fetchDeposits(self::Foxbit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Fetch all deposits made to an account.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_listOrders
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposit structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Foxbit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -927,11 +1161,24 @@ function fetchDeposits(self::Foxbit, code=nothing, since=nothing, limit=nothing,
         request[Symbol("start_time")] = self.iso8601(since);
     end
     response = Base.fetch(self.v3PrivateGetDeposits(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Foxbit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Fetch all withdrawals made from an account.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Foxbit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -950,22 +1197,46 @@ function fetchWithdrawals(self::Foxbit, code=nothing, since=nothing, limit=nothi
         request[Symbol("start_time")] = self.iso8601(since);
     end
     response = Base.fetch(self.v3PrivateGetWithdrawals(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchTransactions(self::Foxbit, code=nothing, since=nothing, limit=nothing, params=Dict())
-    withdrawals = Base.fetch(self.fetchWithdrawals(code, since, limit, params));
-    deposits = Base.fetch(self.fetchDeposits(code, since, limit, params));
+"""
+Fetch all transactions (deposits and withdrawals) made from an account.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals
+see: https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_listOrders
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchTransactions(self::Foxbit; code=nothing, since=nothing, limit=nothing, params=Dict())
+    withdrawals = Base.fetch(self.fetchWithdrawals(code = code, since = since, limit = limit, params = params));
+    deposits = Base.fetch(self.fetchDeposits(code = code, since = since, limit = limit, params = params));
     allTransactions = arrayConcat(withdrawals, deposits);
     result = sortBy(allTransactions, "timestamp");
     return result
 
 end
-function fetchStatus(self::Foxbit, params=Dict())
+"""
+The latest known information on the availability of the exchange API.
+see: https://status.foxbit.com/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Foxbit; params=Dict())
     response = Base.fetch(self.statusPublicGetStatus(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    attributes = self.safeDict(data, "attributes", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    attributes = self.safeDict(data, "attributes", defaultValue = Dict{Symbol, Any}());
     statusRaw = safeString(attributes, "status");
     statusMap = Dict{Symbol, Any}(
         Symbol("NORMAL") => "ok",
@@ -980,7 +1251,23 @@ function fetchStatus(self::Foxbit, params=Dict())
 )
 
 end
-function editOrder(self::Foxbit, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+Simultaneously cancel an existing order and create a new one.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancelReplace
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, used as stop_price on stop market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Foxbit, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " editOrder() requires a symbol argument")));
     end
@@ -1021,11 +1308,25 @@ function editOrder(self::Foxbit, id, symbol, type_var, side, amount=nothing, pri
         request[Symbol("create")][Symbol("amount")] = self.priceToPrecision(symbol, amount);
     end
     response = Base.fetch(self.v3PrivatePostOrdersCancelReplace(extend(request, params)));
-    created = self.safeDict(response, "create", Dict{Symbol, Any}());
-    return self.parseOrder(created, market)
+    created = self.safeDict(response, "create", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(created, market = market)
 
 end
-function withdraw(self::Foxbit, code, amount, address, tag=nothing, params=Dict())
+"""
+Make a withdrawal.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_createWithdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Foxbit, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1042,13 +1343,26 @@ function withdraw(self::Foxbit, code, amount, address, tag=nothing, params=Dict(
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("network_code")] = self.networkCodeToId(networkCode, code);
+        request[Symbol("network_code")] = self.networkCodeToId(networkCode, currencyCode = code);
     end
     response = Base.fetch(self.v3PrivatePostWithdrawals(extend(request, params)));
     return self.parseTransaction(response)
 
 end
-function fetchLedger(self::Foxbit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered balance of the user
+see: https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_getTransactions
+
+# Arguments
+- `code`::string: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entrys to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-structure}
+"""
+function fetchLedger(self::Foxbit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1068,8 +1382,8 @@ function fetchLedger(self::Foxbit, code=nothing, since=nothing, limit=nothing, p
     currency = self.currency(code);
     request[Symbol("symbol")] = get(currency, Symbol("id"), nothing);
     response = Base.fetch(self.v3PrivateGetAccountsSymbolTransactions(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseLedger(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLedger(data, currency = currency, since = since, limit = limit)
 
 end
 function parseMarket(self::Foxbit, market)
@@ -1082,7 +1396,7 @@ function parseMarket(self::Foxbit, market)
     quote_var = self.safeCurrencyCode(quoteId);
     symbol = string(base, "/", quote_var);
     fees = self.safeDict(market, "default_fees");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -1138,7 +1452,7 @@ function parseMarket(self::Foxbit, market)
 ))
 
 end
-function parseTradingFee(self::Foxbit, entry, market=nothing)
+function parseTradingFee(self::Foxbit, entry; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => entry,
     Symbol("symbol") => safeString(market, "symbol"),
@@ -1149,9 +1463,9 @@ function parseTradingFee(self::Foxbit, entry, market=nothing)
 )
 
 end
-function parseTicker(self::Foxbit, ticker, market=nothing)
+function parseTicker(self::Foxbit, ticker; market=nothing)
     marketId = safeString(ticker, "market_symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, "spot");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "spot");
     rolling_24h = get(ticker, Symbol("rolling_24h"), nothing);
     best = self.safeDict(ticker, "best");
     bestAsk = self.safeDict(best, "ask");
@@ -1179,14 +1493,14 @@ function parseTicker(self::Foxbit, ticker, market=nothing)
     Symbol("baseVolume") => safeString(rolling_24h, "volume"),
     Symbol("quoteVolume") => safeString(rolling_24h, "quote_volume"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function parseOHLCV(self::Foxbit, ohlcv, market=nothing)
+function parseOHLCV(self::Foxbit, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 6)]
 
 end
-function parseTrade(self::Foxbit, trade, market=nothing)
+function parseTrade(self::Foxbit, trade; market=nothing)
     timestamp = self.parseDate(safeString(trade, "created_at"));
     price = safeString(trade, "price");
     amount = safeString(trade, "volume", safeString(trade, "quantity"));
@@ -1212,7 +1526,7 @@ function parseTrade(self::Foxbit, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => cost,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Foxbit, status)
@@ -1227,7 +1541,7 @@ function parseOrderStatus(self::Foxbit, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Foxbit, order, market=nothing)
+function parseOrder(self::Foxbit, order; market=nothing)
     symbol = safeString(order, "market_symbol");
     if functions.ccxtruthy(@functions.ccxt_and(market == nothing, symbol != nothing))
         market = self.market(symbol);
@@ -1285,11 +1599,11 @@ function parseOrder(self::Foxbit, order, market=nothing)
 ))
 
 end
-function parseDepositAddress(self::Foxbit, depositAddress, currency=nothing)
+function parseDepositAddress(self::Foxbit, depositAddress; currency=nothing)
     network = self.safeDict(depositAddress, "network");
     networkId = safeString(network, "code");
-    currencyCode = self.safeCurrencyCode(nothing, currency);
-    unifiedNetwork = self.networkIdToCode(networkId, currencyCode);
+    currencyCode = self.safeCurrencyCode(nothing, currency = currency);
+    unifiedNetwork = self.networkIdToCode(networkId = networkId, currencyCode = currencyCode);
     return Dict{Symbol, Any}(
     Symbol("address") => safeString(depositAddress, "address"),
     Symbol("tag") => safeString(depositAddress, "tag"),
@@ -1317,7 +1631,7 @@ function parseTransactionStatus(self::Foxbit, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Foxbit, transaction, currency=nothing, since=nothing, limit=nothing)
+function parseTransaction(self::Foxbit, transaction; currency=nothing, since=nothing, limit=nothing)
     cryptoDetails = self.safeDict(transaction, "details_crypto");
     address = safeString2(cryptoDetails, "receiving_address", "destination_address");
     sn = safeString(transaction, "sn");
@@ -1378,7 +1692,7 @@ function parseLedgerEntryType(self::Foxbit, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Foxbit, item, currency=nothing)
+function parseLedgerEntry(self::Foxbit, item; currency=nothing)
     id = safeString(item, "uuid");
     createdAt = safeString(item, "created_at");
     timestamp = self.parse8601(createdAt);
@@ -1429,7 +1743,7 @@ function parseLedgerEntry(self::Foxbit, item, currency=nothing)
 )
 
 end
-function sign(self::Foxbit, path, api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Foxbit, path; api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
     version = get(api, 1, nothing);
     urlPath = get(api, 2, nothing);
     fullPath = string("/rest/", version, "/", self.implodeParams(path, params));
@@ -1525,91 +1839,91 @@ Base.getproperty(self::Foxbit, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v3PublicGetCurrencies(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "currencies", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetMarkets(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "markets"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetMarketsTicker24hr(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets/ticker/24hr", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/ticker/24hr"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetMarketsMarketOrderbook(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets/{market}/orderbook", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{market}/orderbook"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetMarketsMarketCandlesticks(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets/{market}/candlesticks", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{market}/candlesticks"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetMarketsMarketTradesHistory(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets/{market}/trades/history", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{market}/trades/history"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PublicGetMarketsMarketTicker24hr(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets/{market}/ticker/24hr", ["v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/{market}/ticker/24hr"; api=["v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAccounts(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "accounts", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetAccountsSymbolTransactions(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "accounts/{symbol}/transactions", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/{symbol}/transactions"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetOrders(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetOrdersByOrderIdId(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders/by-order-id/{id}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/by-order-id/{id}"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetTrades(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "trades", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetDepositsAddress(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "deposits/address", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits/address"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetDeposits(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "deposits", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetWithdrawals(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "withdrawals", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivateGetMeFeesTrading(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "me/fees/trading", ["v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "me/fees/trading"; api=["v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostOrders(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostOrdersBatch(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders/batch", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostOrdersCancelReplace(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders/cancel-replace", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/cancel-replace"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePostWithdrawals(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "withdrawals", ["v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api=["v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v3PrivatePutOrdersCancel(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders/cancel", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "orders/cancel"; api=["v3", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function statusPublicGetStatus(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "status", ["status", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "status"; api=["status", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Foxbit(; kwargs...)
@@ -1673,3 +1987,394 @@ function Foxbit(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Foxbit_fetchMarkets() end
+"""
+Retrieves data on all markets for foxbit.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_index
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Foxbit_fetchMarkets
+
+function __ccxt_doc_Foxbit_fetchTicker() end
+"""
+Get last 24 hours ticker information, in real-time, for given market.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Foxbit_fetchTicker
+
+function __ccxt_doc_Foxbit_fetchTickers() end
+"""
+Retrieve the ticker data of all markets.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Foxbit_fetchTickers
+
+function __ccxt_doc_Foxbit_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://docs.foxbit.com.br/rest/v3/#tag/Member-Info/operation/MembersController_listTradingFees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Foxbit_fetchTradingFees
+
+function __ccxt_doc_Foxbit_fetchOrderBook() end
+"""
+Exports a copy of the order book of a specific market.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findOrderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return, the maximum is 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Foxbit_fetchOrderBook
+
+function __ccxt_doc_Foxbit_fetchTrades() end
+"""
+Retrieve the trades of a specific market.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_publicTrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Foxbit_fetchTrades
+
+function __ccxt_doc_Foxbit_fetchOHLCV() end
+"""
+Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a market.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findCandlesticks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Foxbit_fetchOHLCV
+
+function __ccxt_doc_Foxbit_fetchBalance() end
+"""
+Query for balance and get the amount of funds available for trading or funds locked in orders.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_all
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Foxbit_fetchBalance
+
+function __ccxt_doc_Foxbit_fetchOpenOrders() end
+"""
+Fetch all unfilled currently open orders.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Foxbit_fetchOpenOrders
+
+function __ccxt_doc_Foxbit_fetchClosedOrders() end
+"""
+Fetch all currently closed orders.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Foxbit_fetchClosedOrders
+
+function __ccxt_doc_Foxbit_createOrder() end
+"""
+Create an order with the specified characteristics
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_create
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market', 'limit', 'stop_market', 'stop_limit', 'instant'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: "GTC", "FOK", "IOC", "PO"
+- `params.triggerPrice`::float, optional: The time in force for the order. One of GTC, FOK, IOC, PO. See .features or foxbit's doc to see more details.
+- `params.postOnly`::bool, optional: true or false whether the order is post-only
+- `params.clientOrderId`::string, optional: a unique identifier for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Foxbit_createOrder
+
+function __ccxt_doc_Foxbit_createOrders() end
+"""
+create a list of trade orders
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/createBatch
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Foxbit_createOrders
+
+function __ccxt_doc_Foxbit_cancelOrder() end
+"""
+Cancel open orders.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Foxbit_cancelOrder
+
+function __ccxt_doc_Foxbit_cancelAllOrders() end
+"""
+Cancel all open orders or all open orders for a specific market.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Foxbit_cancelAllOrders
+
+function __ccxt_doc_Foxbit_fetchOrder() end
+"""
+Get an order by ID.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_findByOrderId
+
+# Arguments
+- `symbol`::string: it is not used in the foxbit API
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Foxbit_fetchOrder
+
+function __ccxt_doc_Foxbit_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.state`::string, optional: Enum: ACTIVE, CANCELED, FILLED, PARTIALLY_CANCELED, PARTIALLY_FILLED
+- `params.side`::string, optional: Enum: BUY, SELL
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Foxbit_fetchOrders
+
+function __ccxt_doc_Foxbit_fetchMyTrades() end
+"""
+Trade history queries will only have data available for the last 3 months, in descending order (most recents trades first).
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/TradesController_all
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Foxbit_fetchMyTrades
+
+function __ccxt_doc_Foxbit_fetchDepositAddress() end
+"""
+Fetch the deposit address for a currency associated with this account.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_depositAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.networkCode`::string, optional: the blockchain network to create a deposit address on
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Foxbit_fetchDepositAddress
+
+function __ccxt_doc_Foxbit_fetchDeposits() end
+"""
+Fetch all deposits made to an account.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_listOrders
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposit structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Foxbit_fetchDeposits
+
+function __ccxt_doc_Foxbit_fetchWithdrawals() end
+"""
+Fetch all withdrawals made from an account.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Foxbit_fetchWithdrawals
+
+function __ccxt_doc_Foxbit_fetchTransactions() end
+"""
+Fetch all transactions (deposits and withdrawals) made from an account.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals
+see: https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_listOrders
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Foxbit_fetchTransactions
+
+function __ccxt_doc_Foxbit_fetchStatus() end
+"""
+The latest known information on the availability of the exchange API.
+see: https://status.foxbit.com/
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Foxbit_fetchStatus
+
+function __ccxt_doc_Foxbit_editOrder() end
+"""
+Simultaneously cancel an existing order and create a new one.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancelReplace
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, used as stop_price on stop market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Foxbit_editOrder
+
+function __ccxt_doc_Foxbit_withdraw() end
+"""
+Make a withdrawal.
+see: https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_createWithdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Foxbit_withdraw
+
+function __ccxt_doc_Foxbit_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered balance of the user
+see: https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_getTransactions
+
+# Arguments
+- `code`::string: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entrys to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-structure}
+"""
+__ccxt_doc_Foxbit_fetchLedger

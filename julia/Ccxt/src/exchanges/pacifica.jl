@@ -819,11 +819,11 @@ function handleBuilderFeeApproval(self::Pacifica, )
     if functions.ccxtruthy(self.isSandboxModeEnabled)
             return false
     end
-    buildFee = self.safeBool(self.options, "builderFee", true);
+    buildFee = self.safeBool(self.options, "builderFee", defaultValue = true);
     if functions.ccxtruthy(!functions.ccxtruthy(buildFee))
             return false
     end
-    approvedBuilderFee = self.safeBool(self.options, "approvedBuilderFee", false);
+    approvedBuilderFee = self.safeBool(self.options, "approvedBuilderFee", defaultValue = false);
     if functions.ccxtruthy(approvedBuilderFee)
             return true
     end
@@ -839,14 +839,34 @@ function handleBuilderFeeApproval(self::Pacifica, )
     return true
 
 end
-function fetchMarkets(self::Pacifica, params=Dict())
+"""
+retrieves data on all markets for pacifica
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
+"""
+function fetchMarkets(self::Pacifica; params=Dict())
     response = Base.fetch(self.publicGetInfo(params));
-    markets = self.safeList(response, "data", []);
+    markets = self.safeList(response, "data", defaultValue = []);
     return self.parseMarkets(markets)
 
 end
-function fetchSwapMarkets(self::Pacifica, params=Dict())
-    markets = Base.fetch(self.fetchMarkets(params));
+"""
+retrieves data on all swap markets for pacifica
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchSwapMarkets(self::Pacifica; params=Dict())
+    markets = Base.fetch(self.fetchMarkets(params = params));
     return filterBy(markets, "type", "swap")
 
 end
@@ -873,7 +893,7 @@ function parseMarket(self::Pacifica, market)
         idParts = split(id, "-");
         quoteId = safeString(idParts, 1, quoteId);
     end
-    isolatedOnly = self.safeBool(market, "isolated_only", false);
+    isolatedOnly = self.safeBool(market, "isolated_only", defaultValue = false);
     if functions.ccxtruthy(isSwap)
         settleId = quoteId;
         type_var = "swap";
@@ -892,13 +912,13 @@ function parseMarket(self::Pacifica, market)
     if functions.ccxtruthy(isSwap)
         symbol = string(symbol, ":", settle);
     end
-    fees = self.safeDict(self.fees, type_var, Dict{Symbol, Any}());
+    fees = self.safeDict(self.fees, type_var, defaultValue = Dict{Symbol, Any}());
     taker = self.safeNumber(fees, "taker");
     maker = self.safeNumber(fees, "maker");
     amountPrecision = self.safeNumber(market, "lot_size");
     pricePrecision = self.safeNumber(market, "tick_size");
     active = true;
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -955,14 +975,25 @@ function parseMarket(self::Pacifica, market)
 ))
 
 end
-function fetchBalance(self::Pacifica, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Pacifica; params=Dict())
     userAccount = nothing;
     (userAccount, params) = self.handleOriginAndSingleAddress("fetchBalance", params);
     request = Dict{Symbol, Any}(
         Symbol("account") => userAccount
     );
     response = Base.fetch(self.publicGetAccount(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     result = Dict{Symbol, Any}(
         Symbol("info") => data
     );
@@ -981,7 +1012,19 @@ function fetchBalance(self::Pacifica, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchLeverage(self::Pacifica, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+
+# Arguments
+- `symbol`::string: unified symbol of the market
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Pacifica, symbol; params=Dict())
     Base.fetch(self.loadAccountSettings());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -997,7 +1040,7 @@ function fetchLeverage(self::Pacifica, symbol, params=Dict())
         request = Dict{Symbol, Any}(
             Symbol("account") => userAccount
         );
-        settings = Base.fetch(self.fetchAccountSettings(extend(request, params)));
+        settings = Base.fetch(self.fetchAccountSettings(params = extend(request, params)));
     end
     setting = self.safeDict(settings, symbol);
     if functions.ccxtruthy(setting == nothing)
@@ -1008,7 +1051,7 @@ function fetchLeverage(self::Pacifica, symbol, params=Dict())
 
 end
 function parseLeverageFromSetting(self::Pacifica, symbol, setting)
-    isIsolated = self.safeBool(setting, "isolated", false);
+    isIsolated = self.safeBool(setting, "isolated", defaultValue = false);
     leverage = safeInteger(setting, "leverage");
     marginMode = functions.ccxtruthy(isIsolated) ? "isolated" : "cross";
     return Dict{Symbol, Any}(
@@ -1021,32 +1064,43 @@ function parseLeverageFromSetting(self::Pacifica, symbol, setting)
 
 end
 function parseLeverageFromMarket(self::Pacifica, market)
-    marketLimits = self.safeDict(market, "limits", Dict{Symbol, Any}());
-    leverageLimits = self.safeDict(marketLimits, "leverage", Dict{Symbol, Any}());
+    marketLimits = self.safeDict(market, "limits", defaultValue = Dict{Symbol, Any}());
+    leverageLimits = self.safeDict(marketLimits, "leverage", defaultValue = Dict{Symbol, Any}());
     return Dict{Symbol, Any}(
     Symbol("info") => market,
     Symbol("symbol") => safeString(market, "symbol"),
-    Symbol("marginMode") => self.handleOption("fetchLeverage", "defaultMarginMode", "cross"),
+    Symbol("marginMode") => self.handleOption("fetchLeverage", "defaultMarginMode", defaultValue = "cross"),
     Symbol("longLeverage") => safeInteger(leverageLimits, "max"),
     Symbol("shortLeverage") => safeInteger(leverageLimits, "max")
 )
 
 end
-function fetchAccountSettings(self::Pacifica, params=Dict())
+"""
+fetch account's market settings. Settings are cached for walletAddress. To refresh the cache, call loadAccountSettings with refresh=true
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- Dict repacked from list by symbol key
+"""
+function fetchAccountSettings(self::Pacifica; params=Dict())
     userAccount = nothing;
     (userAccount, params) = self.handleOriginAndSingleAddress("fetchAccountSettings", params);
     request = Dict{Symbol, Any}(
         Symbol("account") => userAccount
     );
     response = Base.fetch(self.publicGetAccountSettings(extend(request, params)));
-    return self.parseAccountSettings(self.safeList(response, "data", []))
+    return self.parseAccountSettings(self.safeList(response, "data", defaultValue = []))
 
 end
-function loadAccountSettings(self::Pacifica, refresh=false, params=Dict())
+function loadAccountSettings(self::Pacifica; refresh=false, params=Dict())
     settings = self.handleOption("loadAccountSettings", "settings");
     if functions.ccxtruthy(@functions.ccxt_or((settings == nothing), (refresh)))
         self.options[Symbol("settings")] = self.createSafeDictionary();
-        settings = Base.fetch(self.fetchAccountSettings(params));
+        settings = Base.fetch(self.fetchAccountSettings(params = params));
         self.options[Symbol("settings")] = settings;
     end
 
@@ -1060,7 +1114,7 @@ function parseAccountSettings(self::Pacifica, settings)
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(settings)))
         marketId = get(get(settings, i + 1, nothing), Symbol("symbol"), nothing);
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
         symbol = get(market, Symbol("symbol"), nothing);
         settingsBySymbol[Symbol(symbol)] = get(settings, i + 1, nothing);
         i += 1
@@ -1068,7 +1122,19 @@ function parseAccountSettings(self::Pacifica, settings)
     return settingsBySymbol
 
 end
-function fetchMarginMode(self::Pacifica, symbol, params=Dict())
+"""
+fetches the margin mode of the trading pair
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Pacifica, symbol; params=Dict())
     Base.fetch(self.loadAccountSettings());
     userAccount = nothing;
     (userAccount, params) = self.handleOriginAndSingleAddress("fetchMarginMode", params);
@@ -1080,13 +1146,13 @@ function fetchMarginMode(self::Pacifica, symbol, params=Dict())
         request = Dict{Symbol, Any}(
             Symbol("account") => userAccount
         );
-        settings = Base.fetch(self.fetchAccountSettings(extend(request, params)));
+        settings = Base.fetch(self.fetchAccountSettings(params = extend(request, params)));
     end
     setting = self.safeDict(settings, symbol);
     if functions.ccxtruthy(setting == nothing)
             return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
-    Symbol("marginMode") => self.handleOption("fetchMarginMode", "defaultMarginMode", "cross")
+    Symbol("marginMode") => self.handleOption("fetchMarginMode", "defaultMarginMode", defaultValue = "cross")
 )
     else
         return self.parseMarginModeFromSetting(symbol, setting)
@@ -1094,7 +1160,7 @@ function fetchMarginMode(self::Pacifica, symbol, params=Dict())
 
 end
 function parseMarginModeFromSetting(self::Pacifica, symbol, setting)
-    isIsolated = self.safeBool(setting, "isolated", false);
+    isIsolated = self.safeBool(setting, "isolated", defaultValue = false);
     marginMode = functions.ccxtruthy(isIsolated) ? "isolated" : "cross";
     return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -1103,37 +1169,61 @@ function parseMarginModeFromSetting(self::Pacifica, symbol, setting)
 )
 
 end
-function fetchOrderBook(self::Pacifica, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.aggLevel`::int, optional: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Pacifica, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     aggLevel = nothing;
-    (aggLevel, params) = self.handleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1);
+    (aggLevel, params) = self.handleOptionAndParams(params, "fetchOrderBook", "aggLevel", defaultValue = 1);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("agg_level") => aggLevel
     );
     response = Base.fetch(self.publicGetBook(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    levels = self.safeList(data, "l", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    levels = self.safeList(data, "l", defaultValue = []);
     result = Dict{Symbol, Any}(
-        Symbol("bids") => self.safeList(levels, 0, []),
-        Symbol("asks") => self.safeList(levels, 1, [])
+        Symbol("bids") => self.safeList(levels, 0, defaultValue = []),
+        Symbol("asks") => self.safeList(levels, 1, defaultValue = [])
     );
     timestamp = safeInteger(data, "t");
-    return self.parseOrderBook(result, self.safeSymbol(nothing, market), timestamp, "bids", "asks", "p", "a")
+    return self.parseOrderBook(result, self.safeSymbol(nothing, market = market), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "p", amountKey = "a")
 
 end
-function fetchFundingRates(self::Pacifica, symbols=nothing, params=Dict())
+"""
+retrieves data on all swap markets for pacifica
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchFundingRates(self::Pacifica; symbols=nothing, params=Dict())
     response = Base.fetch(self.publicGetInfoPrices(params));
-    result = self.safeList(response, "data", []);
-    return self.parseFundingRates(result, symbols)
+    result = self.safeList(response, "data", defaultValue = []);
+    return self.parseFundingRates(result, symbols = symbols)
 
 end
-function parseFundingRate(self::Pacifica, info, market=nothing)
+function parseFundingRate(self::Pacifica, info; market=nothing)
     marketId = safeString(info, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     funding = self.safeNumber(info, "funding");
     markPx = self.safeNumber(info, "mark");
@@ -1163,7 +1253,23 @@ function parseFundingRate(self::Pacifica, info, market=nothing)
 )
 
 end
-function fetchOHLCV(self::Pacifica, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-candle-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M'
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch. 'limit' is priority
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Pacifica, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(since == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOHLCV() requires a \"since\" argument")));
     end
@@ -1176,9 +1282,9 @@ function fetchOHLCV(self::Pacifica, symbol, timeframe="1m", since=nothing, limit
     end
     market = self.market(symbol);
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = defaultMaxLimit))
     end
     tf = safeString(self.timeframes, timeframe, timeframe);
     request = Dict{Symbol, Any}(
@@ -1202,15 +1308,28 @@ function fetchOHLCV(self::Pacifica, symbol, timeframe="1m", since=nothing, limit
         request[Symbol("end_time")] = until;
     end
     response = Base.fetch(self.publicGetKline(extend(request, params)));
-    candles = self.safeList(response, "data", []);
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    candles = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Pacifica, ohlcv, market=nothing)
+function parseOHLCV(self::Pacifica, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "t"), self.safeNumber(ohlcv, "o"), self.safeNumber(ohlcv, "h"), self.safeNumber(ohlcv, "l"), self.safeNumber(ohlcv, "c"), self.safeNumber(ohlcv, "v")]
 
 end
-function fetchTrades(self::Pacifica, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-recent-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchTrades(self::Pacifica, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1219,11 +1338,28 @@ function fetchTrades(self::Pacifica, symbol, since=nothing, limit=nothing, param
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTrades(extend(request, params)));
-    recentTrades = self.safeList(response, "data", []);
-    return self.parseTrades(recentTrades, market, since, limit)
+    recentTrades = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(recentTrades, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Pacifica, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-trade-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade
+- `params.account`::string, optional: will default to walletAddress if not provided
+- `params.cursor`::string, optional: pagination cursor from prev request (manual use)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Pacifica; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1232,12 +1368,12 @@ function fetchMyTrades(self::Pacifica, symbol=nothing, since=nothing, limit=noth
         market = self.market(symbol);
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate", defaultValue = false);
     userAddress = nothing;
     (userAddress, params) = self.handleOriginAndSingleAddress("fetchMyTrades", params);
     defaultLimit = 100;
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nothing, defaultLimit))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "next_cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = defaultLimit))
     end
     request = Dict{Symbol, Any}();
     (request, params) = self.handleUntilOption("end_time", request, params);
@@ -1253,15 +1389,15 @@ function fetchMyTrades(self::Pacifica, symbol=nothing, since=nothing, limit=noth
     end
     response = Base.fetch(self.publicGetTradesHistory(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
-    return self.parseTrades(data, market, since, limit)
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Pacifica, trade, market=nothing)
+function parseTrade(self::Pacifica, trade; market=nothing)
     eventType = safeString(trade, "event_type");
     timestamp = safeInteger(trade, "created_at");
     price = safeString(trade, "price");
     amount = safeString(trade, "amount");
-    symbol = self.safeSymbol(nothing, market);
+    symbol = self.safeSymbol(nothing, market = market);
     id = safeString(trade, "history_id");
     side = safeString(trade, "side");
     if functions.ccxtruthy(side == "open_long")
@@ -1303,15 +1439,40 @@ function parseTrade(self::Pacifica, trade, market=nothing)
         Symbol("currency") => "USDC",
         Symbol("rate") => nothing
     )
-), market)
+), market = market)
 
 end
-function createOrder(self::Pacifica, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency. Not used for set tpsl order!
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at (optional provide stopLossCloid)
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at (optional provide takeProfitCloid)
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
+- `params.reduceOnly`::bool, optional: Ensures that the executed order does not flip the opened position.
+- `params.clientOrderId`::string, optional: client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Pacifica, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.initializeClient());
-    (request, operationType) = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    (request, operationType) = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     params = omit(params, ["reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow"]);
     response = nothing;
     if functions.ccxtruthy(operationType == "create_market_order")
@@ -1326,14 +1487,14 @@ function createOrder(self::Pacifica, symbol, type_var, side, amount, price=nothi
         end
 
     end
-    success = self.safeBool(response, "success", false);
+    success = self.safeBool(response, "success", defaultValue = false);
     status = nothing;
     if functions.ccxtruthy(!functions.ccxtruthy(success))
         status = "rejected";
     else
         status = "open";
     end
-    order = self.safeDict(response, "data", Dict{Symbol, Any}());
+    order = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     orderId = safeString(order, "order_id");
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("id") => orderId,
@@ -1343,7 +1504,7 @@ function createOrder(self::Pacifica, symbol, type_var, side, amount, price=nothi
 ))
 
 end
-function createOrderRequest(self::Pacifica, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Pacifica, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1356,7 +1517,7 @@ function createOrderRequest(self::Pacifica, symbol, type_var, side, amount, pric
         Symbol("side") => self.mapSide(side)
     );
     operationType = nothing;
-    reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", false);
+    reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", defaultValue = false);
     orderType = uppercase(type_var);
     triggerPrice = safeString(params, "triggerPrice");
     stopLossPrice = safeString(params, "stopLossPrice");
@@ -1370,7 +1531,7 @@ function createOrderRequest(self::Pacifica, symbol, type_var, side, amount, pric
     if functions.ccxtruthy(isMarket)
         operationType = "create_market_order";
         sigPayload[Symbol("reduce_only")] = reduceOnly;
-        defaultSlippage = self.handleOption("createOrder", "defaultSlippage", "0.5");
+        defaultSlippage = self.handleOption("createOrder", "defaultSlippage", defaultValue = "0.5");
         slippage = safeString2(params, "slippage", "slippage_percent", defaultSlippage);
         sigPayload[Symbol("slippage_percent")] = slippage;
     elseif functions.ccxtruthy(@functions.ccxt_and((@functions.ccxt_or(isTakeProfitOrder, isStopLossOrder)), (price == nothing)))
@@ -1448,7 +1609,7 @@ function batchOrdersRequest(self::Pacifica, actions)
 )
 
 end
-function createOrdersRequest(self::Pacifica, orders, params=Dict())
+function createOrdersRequest(self::Pacifica, orders; params=Dict())
     actions = [];
     timestamp = milliseconds();
     i = 0
@@ -1458,7 +1619,7 @@ function createOrdersRequest(self::Pacifica, orders, params=Dict())
         side = safeString(order, "side");
         price = safeString(order, "price");
         type_var = safeString(order, "type", "limit");
-        orderParams = self.safeDict(order, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(order, "params", defaultValue = Dict{Symbol, Any}());
         orderParams[Symbol("timestamp")] = timestamp;
         amount = safeString(order, "amount");
         amountNumber = self.parseNumber(amount);
@@ -1466,7 +1627,7 @@ function createOrdersRequest(self::Pacifica, orders, params=Dict())
         if functions.ccxtruthy(type_var != "limit")
             throw(NotSupported(string(self.id, " createOrders() supports only type = \"limit\"! Your value type=", type_var)));
         end
-        requestList = self.createOrderRequest(symbol, type_var, side, amountNumber, priceNumber, orderParams);
+        requestList = self.createOrderRequest(symbol, type_var, side, amountNumber, price = priceNumber, params = orderParams);
         action = Dict{Symbol, Any}(
             Symbol("type") => "Create",
             Symbol("data") => get(requestList, 1, nothing)
@@ -1477,21 +1638,32 @@ function createOrdersRequest(self::Pacifica, orders, params=Dict())
     return self.batchOrdersRequest(actions)
 
 end
-function createOrders(self::Pacifica, orders, params=Dict())
+"""
+create a list of trade orders. It is supports only limit orders and have a random jitter ~100-300ms!
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/batch-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type (optional or 'limit'), side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Pacifica, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.initializeClient());
     request = self.createOrdersRequest(orders);
     response = Base.fetch(self.privatePostOrdersBatch(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    results = self.safeList(data, "results", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    results = self.safeList(data, "results", defaultValue = []);
     ordersToReturn = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(results)))
         order = get(results, i + 1, nothing);
         error = safeString(order, "error");
-        success = self.safeBool(order, "success", false);
+        success = self.safeBool(order, "success", defaultValue = false);
         status = nothing;
         if functions.ccxtruthy(@functions.ccxt_or((error != nothing), (!functions.ccxtruthy(success))))
             status = "rejected";
@@ -1509,7 +1681,21 @@ function createOrders(self::Pacifica, orders, params=Dict())
     return ordersToReturn
 
 end
-function cancelOrders(self::Pacifica, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/batch-order
+
+# Arguments
+- `ids`::array: order ids. An ids list is always required (can be empty). Both ids and clientOrderIds can be passed simultaneously.
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Pacifica, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1517,17 +1703,17 @@ function cancelOrders(self::Pacifica, ids, symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a \"symbol\" argument!")));
     end
-    request = self.cancelOrdersRequest(ids, symbol, params);
+    request = self.cancelOrdersRequest(ids, symbol = symbol, params = params);
     params = omit(params, ["expiryWindow", "clientOrderIds"]);
     response = Base.fetch(self.privatePostOrdersBatch(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    results = self.safeList(data, "results", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    results = self.safeList(data, "results", defaultValue = []);
     ordersToReturn = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(results)))
         order = get(results, i + 1, nothing);
         error = safeString(order, "error");
-        success = self.safeBool(order, "success", false);
+        success = self.safeBool(order, "success", defaultValue = false);
         status = nothing;
         if functions.ccxtruthy(@functions.ccxt_or((error != nothing), (!functions.ccxtruthy(success))))
             status = "closed";
@@ -1544,12 +1730,12 @@ function cancelOrders(self::Pacifica, ids, symbol=nothing, params=Dict())
     return ordersToReturn
 
 end
-function cancelOrdersRequest(self::Pacifica, ids, symbol=nothing, params=Dict())
+function cancelOrdersRequest(self::Pacifica, ids; symbol=nothing, params=Dict())
     actions = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(ids)))
         id = get(ids, i + 1, nothing);
-        request = self.cancelOrderRequest(id, symbol, params);
+        request = self.cancelOrderRequest(id, symbol = symbol, params = params);
         action = Dict{Symbol, Any}(
             Symbol("type") => "Cancel",
             Symbol("data") => request
@@ -1557,7 +1743,7 @@ function cancelOrdersRequest(self::Pacifica, ids, symbol=nothing, params=Dict())
         push!(actions, action);
         i += 1
     end
-    clientOrderIds = self.safeList(params, "clientOrderIds", []);
+    clientOrderIds = self.safeList(params, "clientOrderIds", defaultValue = []);
     params = omit(params, "clientOrderIds");
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(clientOrderIds)))
@@ -1565,7 +1751,7 @@ function cancelOrdersRequest(self::Pacifica, ids, symbol=nothing, params=Dict())
         cloidParams = Dict{Symbol, Any}(
             Symbol("clientOrderId") => cloid
         );
-        request = self.cancelOrderRequest(cloid, symbol, extend(cloidParams, params));
+        request = self.cancelOrderRequest(cloid, symbol = symbol, params = extend(cloidParams, params));
         action = Dict{Symbol, Any}(
             Symbol("type") => "Cancel",
             Symbol("data") => request
@@ -1576,12 +1762,25 @@ function cancelOrdersRequest(self::Pacifica, ids, symbol=nothing, params=Dict())
     return self.batchOrdersRequest(actions)
 
 end
-function cancelAllOrders(self::Pacifica, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: (optional) unified market symbol of the market to cancel orders in.
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.excludeReduceOnly`::bool, optional: whether to exclude reduce-only orders
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Pacifica; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.initializeClient());
-    request = self.cancelAllOrdersRequest(symbol, params);
+    request = self.cancelAllOrdersRequest(symbol, params = params);
     params = omit(params, ["excludeReduceOnly", "expiryWindow"]);
     response = Base.fetch(self.privatePostOrdersCancelAll(extend(request, params)));
     return [self.safeOrder(Dict{Symbol, Any}(
@@ -1589,10 +1788,10 @@ function cancelAllOrders(self::Pacifica, symbol=nothing, params=Dict())
 ))]
 
 end
-function cancelAllOrdersRequest(self::Pacifica, symbol, params=Dict())
+function cancelAllOrdersRequest(self::Pacifica, symbol; params=Dict())
     operationType = "cancel_all_orders";
     sigPayload = Dict{Symbol, Any}();
-    excludeReduceOnly = self.safeBool(params, "excludeReduceOnly", false);
+    excludeReduceOnly = self.safeBool(params, "excludeReduceOnly", defaultValue = false);
     sigPayload[Symbol("exclude_reduce_only")] = excludeReduceOnly;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
@@ -1605,7 +1804,23 @@ function cancelAllOrdersRequest(self::Pacifica, symbol, params=Dict())
     return request
 
 end
-function cancelOrder(self::Pacifica, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-stop-order#response
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.stop`::bool, optional: necessary if this is to cancel a stop order.
+- `params.clientOrderId`::string, optional: client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Pacifica, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1613,8 +1828,8 @@ function cancelOrder(self::Pacifica, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
-    request = self.cancelOrderRequest(id, symbol, params);
-    isStopOrder = self.safeBool2(params, "trigger", "stop", false);
+    request = self.cancelOrderRequest(id, symbol = symbol, params = params);
+    isStopOrder = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     params = omit(params, ["expiryWindow", "trigger", "stop", "clientOrderId"]);
     response = nothing;
     if functions.ccxtruthy(isStopOrder)
@@ -1622,7 +1837,7 @@ function cancelOrder(self::Pacifica, id, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.privatePostOrdersCancel(extend(request, params)));
     end
-    success = self.safeBool(response, "success", false);
+    success = self.safeBool(response, "success", defaultValue = false);
     status = functions.ccxtruthy(success) ? "canceled" : "closed";
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -1632,9 +1847,9 @@ function cancelOrder(self::Pacifica, id, symbol=nothing, params=Dict())
 ))
 
 end
-function cancelOrderRequest(self::Pacifica, id, symbol=nothing, params=Dict())
+function cancelOrderRequest(self::Pacifica, id; symbol=nothing, params=Dict())
     market = self.market(symbol);
-    isStopOrder = self.safeBool2(params, "trigger", "stop", false);
+    isStopOrder = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     operationType = nothing;
     if functions.ccxtruthy(isStopOrder)
         operationType = "cancel_stop_order";
@@ -1654,16 +1869,34 @@ function cancelOrderRequest(self::Pacifica, id, symbol=nothing, params=Dict())
     return request
 
 end
-function editOrder(self::Pacifica, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/edit-order
+
+# Arguments
+- `id`::string: edit order id
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: 'market' or 'limit' WARN is not usable!
+- `side`::string: 'buy' or 'sell' WARN is not usable!
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Pacifica, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.initializeClient());
     market = self.market(symbol);
-    request = self.editOrderRequest(id, symbol, type_var, side, amount, price, market, params);
+    request = self.editOrderRequest(id, symbol, type_var, side, amount, price, market, params = params);
     params = omit(params, ["expiryWindow", "clientOrderId"]);
     response = Base.fetch(self.privatePostOrdersEdit(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     orderId = safeString(data, "order_id");
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("id") => orderId,
@@ -1672,7 +1905,7 @@ function editOrder(self::Pacifica, id, symbol, type_var, side, amount=nothing, p
 ))
 
 end
-function editOrderRequest(self::Pacifica, id, symbol, type_var, side, amount, price, market, params=Dict())
+function editOrderRequest(self::Pacifica, id, symbol, type_var, side, amount, price, market; params=Dict())
     if functions.ccxtruthy(side == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a side argument")));
     end
@@ -1703,7 +1936,22 @@ function editOrderRequest(self::Pacifica, id, symbol, type_var, side, amount, pr
     return request
 
 end
-function fetchFundingRateHistory(self::Pacifica, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-historical-funding
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cursor`::string, optional: pagination cursor from prev request (manual use)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Pacifica; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1712,10 +1960,10 @@ function fetchFundingRateHistory(self::Pacifica, symbol=nothing, since=nothing, 
     end
     market = self.market(symbol);
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate", defaultValue = false);
     defaultLimit = 100;
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nothing, defaultLimit))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "next_cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = defaultLimit))
     end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
@@ -1740,16 +1988,27 @@ function fetchFundingRateHistory(self::Pacifica, symbol=nothing, since=nothing, 
         i += 1
     end
     sorted = sortBy(result, "timestamp");
-    return self.filterBySinceLimit(sorted, since, limit, "timestamp")
+    return self.filterBySinceLimit(sorted, since = since, limit = limit, key = "timestamp")
 
 end
-function fetchTickers(self::Pacifica, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Pacifica; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetInfoPrices(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -1761,12 +2020,12 @@ function fetchTickers(self::Pacifica, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function parseTicker(self::Pacifica, ticker, market=nothing)
+function parseTicker(self::Pacifica, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger(ticker, "timestamp");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1779,37 +2038,93 @@ function parseTicker(self::Pacifica, ticker, market=nothing)
     Symbol("ask") => nothing,
     Symbol("quoteVolume") => self.safeNumber(ticker, "volume_24h"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchClosedOrders(self::Pacifica, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently closed orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Pacifica; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    orders = Base.fetch(self.fetchOrders(symbol, nothing, nothing, params));
-    closedOrders = self.filterByArray(orders, "status", ["closed"], false);
-    return self.filterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = nothing, limit = nothing, params = params));
+    closedOrders = self.filterByArray(orders, "status", values = ["closed"], indexed = false);
+    return self.filterBySymbolSinceLimit(closedOrders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchCanceledOrders(self::Pacifica, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all canceled orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Pacifica; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    orders = Base.fetch(self.fetchOrders(symbol, nothing, nothing, params));
-    closedOrders = self.filterByArray(orders, "status", ["canceled"], false);
-    return self.filterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = nothing, limit = nothing, params = params));
+    closedOrders = self.filterByArray(orders, "status", values = ["canceled"], indexed = false);
+    return self.filterBySymbolSinceLimit(closedOrders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchCanceledAndClosedOrders(self::Pacifica, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all closed and canceled orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Pacifica; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    orders = Base.fetch(self.fetchOrders(symbol, nothing, nothing, params));
-    closedOrders = self.filterByArray(orders, "status", ["canceled", "closed", "rejected"], false);
-    return self.filterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = nothing, limit = nothing, params = params));
+    closedOrders = self.filterByArray(orders, "status", values = ["canceled", "closed", "rejected"], indexed = false);
+    return self.filterBySymbolSinceLimit(closedOrders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Pacifica, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Pacifica; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1823,19 +2138,35 @@ function fetchOpenOrders(self::Pacifica, symbol=nothing, since=nothing, limit=no
         market = self.market(symbol);
     end
     response = Base.fetch(self.publicGetOrders(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchOrders(self::Pacifica, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+- `params.cursor`::string, optional: pagination cursor from prev request (manual use)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Pacifica; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate", defaultValue = false);
     defaultLimit = 100;
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nothing, defaultLimit))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOrders", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "next_cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = defaultLimit))
     end
     userAddress = nothing;
     (userAddress, params) = self.handleOriginAndSingleAddress("fetchOrders", params);
@@ -1851,14 +2182,14 @@ function fetchOrders(self::Pacifica, symbol=nothing, since=nothing, limit=nothin
     end
     response = Base.fetch(self.publicGetOrdersHistory(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
-    orders = self.parseOrders(data, market, since, limit);
+    orders = self.parseOrders(data, market = market, since = since, limit = limit);
     return orders
 
 end
 function addPaginationCursorToResult(self::Pacifica, response)
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     paginationCursor = safeString(response, "next_cursor");
-    hasMore = self.safeBool(response, "has_more", false);
+    hasMore = self.safeBool(response, "has_more", defaultValue = false);
     dataLength = length(data);
     if functions.ccxtruthy(hasMore)
         if functions.ccxtruthy(@functions.ccxt_and((paginationCursor != nothing), (functions.ccxt_gt(dataLength, 0))))
@@ -1871,7 +2202,19 @@ function addPaginationCursorToResult(self::Pacifica, response)
     return data
 
 end
-function fetchOrder(self::Pacifica, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history-by-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: (optional) unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Pacifica, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1883,14 +2226,14 @@ function fetchOrder(self::Pacifica, id, symbol=nothing, params=Dict())
         Symbol("order_id") => id
     );
     response = Base.fetch(self.publicGetOrdersHistoryById(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     sorted = sortBy(data, "created_at");
     lastIdx = length(sorted);
     lastInfo = Dict{Symbol, Any}();
     if functions.ccxtruthy(functions.ccxt_gt(lastIdx, 0))
         lastInfo = get(sorted, 1, nothing);
     end
-    return self.parseOrder(lastInfo, market)
+    return self.parseOrder(lastInfo, market = market)
 
 end
 function parseOrderStatus(self::Pacifica, status)
@@ -1941,11 +2284,11 @@ function parseOrderType(self::Pacifica, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Pacifica, order, market=nothing)
+function parseOrder(self::Pacifica, order; market=nothing)
     marketId = safeString2(order, "symbol", "s");
     symbol = nothing;
     if functions.ccxtruthy(symbol != nothing)
-        market = self.safeMarket(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = market);
         symbol = get(market, Symbol("symbol"), nothing);
     end
     timestamp = safeInteger2(order, "created_at", "ct");
@@ -1981,38 +2324,62 @@ function parseOrder(self::Pacifica, order, market=nothing)
     Symbol("status") => self.parseOrderStatus(status),
     Symbol("fee") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function fetchPosition(self::Pacifica, symbol, params=Dict())
-    positions = Base.fetch(self.fetchPositions([symbol], params));
-    return self.safeDict(positions, 0, Dict{Symbol, Any}())
+"""
+fetch data on an open position
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Pacifica, symbol; params=Dict())
+    positions = Base.fetch(self.fetchPositions(symbols = [symbol], params = params));
+    return self.safeDict(positions, 0, defaultValue = Dict{Symbol, Any}())
 
 end
-function fetchPositions(self::Pacifica, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Pacifica; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     userAddress = nothing;
     (userAddress, params) = self.handleOriginAndSingleAddress("fetchPositions", params);
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}(
         Symbol("account") => userAddress
     );
     response = Base.fetch(self.publicGetPositions(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
-        push!(result, self.parsePosition(get(data, i + 1, nothing), nothing));
+        push!(result, self.parsePosition(get(data, i + 1, nothing), market = nothing));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function parsePosition(self::Pacifica, position, market=nothing)
+function parsePosition(self::Pacifica, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     margin = safeString(position, "margin");
     marginMode = functions.ccxtruthy((@functions.ccxt_and(margin != nothing, margin != "0"))) ? "isolated" : "cross";
@@ -2049,7 +2416,20 @@ function parsePosition(self::Pacifica, position, market=nothing)
 ))
 
 end
-function setMarginMode(self::Pacifica, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode (symbol)
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/update-margin-mode
+
+# Arguments
+- `marginMode`::string: margin mode must be either [isolated, cross]
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Pacifica, marginMode; symbol=nothing, params=Dict())
     operationType = "update_margin_mode";
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
@@ -2069,7 +2449,20 @@ function setMarginMode(self::Pacifica, marginMode, symbol=nothing, params=Dict()
     return response
 
 end
-function setLeverage(self::Pacifica, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/update-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Pacifica, leverage; symbol=nothing, params=Dict())
     operationType = "update_leverage";
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
@@ -2088,12 +2481,27 @@ function setLeverage(self::Pacifica, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function withdraw(self::Pacifica, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal (only support native USDC)
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/request-withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Pacifica, code, amount, address; tag=nothing, params=Dict())
     operationType = "withdraw";
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     sigPayload = Dict{Symbol, Any}(
         Symbol("amount") => string(amount)
     );
@@ -2105,7 +2513,19 @@ function withdraw(self::Pacifica, code, amount, address, tag=nothing, params=Dic
 )
 
 end
-function fetchTradingFee(self::Pacifica, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Pacifica, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2116,12 +2536,12 @@ function fetchTradingFee(self::Pacifica, symbol, params=Dict())
         Symbol("account") => userAddress
     );
     response = Base.fetch(self.publicGetAccount(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTradingFee(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTradingFee(data, market = market)
 
 end
-function parseTradingFee(self::Pacifica, fee, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTradingFee(self::Pacifica, fee; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => symbol,
@@ -2132,29 +2552,51 @@ function parseTradingFee(self::Pacifica, fee, market=nothing)
 )
 
 end
-function fetchOpenInterests(self::Pacifica, symbols=nothing, params=Dict())
+"""
+Retrieves the open interest for a list of symbols
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
+# Arguments
+- `symbols`::array, optional: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterests(self::Pacifica; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     swapMarkets = Base.fetch(self.fetchSwapMarkets());
-    return self.parseOpenInterests(swapMarkets, symbols)
+    return self.parseOpenInterests(swapMarkets, symbols = symbols)
 
 end
-function fetchOpenInterest(self::Pacifica, symbol, params=Dict())
+"""
+retrieves the open interest of a contract trading pair
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Pacifica, symbol; params=Dict())
     symbol = self.symbol(symbol);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    ois = Base.fetch(self.fetchOpenInterests([symbol], params));
+    ois = Base.fetch(self.fetchOpenInterests(symbols = [symbol], params = params));
     return get(ois, Symbol(symbol), nothing)
 
 end
-function parseOpenInterest(self::Pacifica, interest, market=nothing)
+function parseOpenInterest(self::Pacifica, interest; market=nothing)
     marketId = safeString(interest, "symbol");
     symbol = nothing;
     if functions.ccxtruthy(marketId != nothing)
-        market = self.safeMarket(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = market);
         symbol = get(market, Symbol("symbol"), nothing);
     end
     interestValue = nothing;
@@ -2171,20 +2613,36 @@ function parseOpenInterest(self::Pacifica, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchLedger(self::Pacifica, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+- `params.cursor`::string, optional: pagination cursor from prev request (manual use)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Pacifica; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate", defaultValue = false);
     userAddress = nothing;
     (userAddress, params) = self.handleOriginAndSingleAddress("fetchLedger", params);
     defaultLimit = 100;
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nothing, defaultLimit))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchLedger", symbol = code, since = since, limit = limit, params = params, cursorReceived = "next_cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = defaultLimit))
     end
     request = Dict{Symbol, Any}(
         Symbol("account") => userAddress
@@ -2194,10 +2652,10 @@ function fetchLedger(self::Pacifica, code=nothing, since=nothing, limit=nothing,
     end
     response = Base.fetch(self.publicGetAccountBalanceHistory(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
-    return self.parseLedger(data, nothing, since, limit)
+    return self.parseLedger(data, currency = nothing, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Pacifica, item, currency=nothing)
+function parseLedgerEntry(self::Pacifica, item; currency=nothing)
     timestamp = safeInteger(item, "created_at");
     type_var = safeString(item, "event_type");
     amount = safeString(item, "amount");
@@ -2218,7 +2676,7 @@ function parseLedgerEntry(self::Pacifica, item, currency=nothing)
     Symbol("after") => self.parseNumber(balance),
     Symbol("status") => nothing,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Pacifica, type_var)
@@ -2242,7 +2700,23 @@ function parseLedgerEntryType(self::Pacifica, type_var)
     return safeString(ledgerType, type_var, type_var)
 
 end
-function fetchFundingHistory(self::Pacifica, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+- `params.cursor`::string, optional: pagination cursor from prev request
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Pacifica; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2251,7 +2725,7 @@ function fetchFundingHistory(self::Pacifica, symbol=nothing, since=nothing, limi
         market = self.market(symbol);
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate", defaultValue = false);
     userAddress = nothing;
     (userAddress, params) = self.handleOriginAndSingleAddress("fetchFundingHistory", params);
     request = Dict{Symbol, Any}(
@@ -2262,18 +2736,18 @@ function fetchFundingHistory(self::Pacifica, symbol=nothing, since=nothing, limi
     end
     defaultLimit = 100;
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nothing, defaultLimit))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "next_cursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = defaultLimit))
     end
     response = Base.fetch(self.publicGetFundingHistory(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
-    return self.parseIncomes(data, market, since, limit)
+    return self.parseIncomes(data, market = market, since = since, limit = limit)
 
 end
-function parseIncome(self::Pacifica, income, market=nothing)
+function parseIncome(self::Pacifica, income; market=nothing)
     id = safeString(income, "history_id");
     timestamp = safeInteger(income, "created_at");
     marketId = safeString(income, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     amount = safeString(income, "amount");
     code = self.safeCurrencyCode("USDC");
@@ -2290,7 +2764,22 @@ function parseIncome(self::Pacifica, income, market=nothing)
 )
 
 end
-function transfer(self::Pacifica, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from *spot, swap*
+- `toAccount`::string: account to transfer to *swap, spot or address*
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Pacifica, code, amount, fromAccount, toAccount; params=Dict())
     operationType = "transfer_funds";
     sigPayload = Dict{Symbol, Any}(
         Symbol("to_account") => toAccount,
@@ -2299,11 +2788,11 @@ function transfer(self::Pacifica, code, amount, fromAccount, toAccount, params=D
     request = self.postActionRequest(operationType, sigPayload, params);
     params = omit(params, ["expiryWindow"]);
     response = self.privatePostAccountSubaccountTransfer(extend(request, params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseTransfer(data)
 
 end
-function parseTransfer(self::Pacifica, transfer, currency=nothing)
+function parseTransfer(self::Pacifica, transfer; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
     Symbol("id") => nothing,
@@ -2317,7 +2806,21 @@ function parseTransfer(self::Pacifica, transfer, currency=nothing)
 )
 
 end
-function createSubAccount(self::Pacifica, name, params=Dict())
+"""
+creates a sub-account under the main account
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
+
+# Arguments
+- `name`::string: unused argument
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+- `params.subAccountAddress`::string, optional: - The public key (address) of the sub-account to use for creation
+- `params.subAccountPrivateKey`::string, optional: - The private key of the sub-account to use for creation
+
+# Returns
+- a response object
+"""
+function createSubAccount(self::Pacifica, name; params=Dict())
     finalHeaders = Dict{Symbol, Any}();
     agentAddress = nothing;
     (agentAddress, params) = self.handleOption("createSubAccount", "agentAddress");
@@ -2341,7 +2844,7 @@ function createSubAccount(self::Pacifica, name, params=Dict())
     end
     timestamp = milliseconds();
     expiryWindow = nothing;
-    (expiryWindow, params) = self.handleOptionAndParams2(params, "createSubAccount", "expiryWindow", "expiry_window", 5000);
+    (expiryWindow, params) = self.handleOptionAndParams2(params, "createSubAccount", "expiryWindow", "expiry_window", defaultValue = 5000);
     subaccountSignatureHeader = Dict{Symbol, Any}(
         Symbol("timestamp") => timestamp,
         Symbol("expiry_window") => expiryWindow,
@@ -2371,7 +2874,7 @@ function createSubAccount(self::Pacifica, name, params=Dict())
     return response
 
 end
-function bindAgentWallet(self::Pacifica, agentAddress, params=Dict())
+function bindAgentWallet(self::Pacifica, agentAddress; params=Dict())
     operationType = "bind_agent_wallet";
     sigPayload = Dict{Symbol, Any}(
         Symbol("agent_wallet") => agentAddress
@@ -2380,14 +2883,14 @@ function bindAgentWallet(self::Pacifica, agentAddress, params=Dict())
     return Base.fetch(self.privatePostAgentBind(extend(request, params)))
 
 end
-function createApiKey(self::Pacifica, params=Dict())
+function createApiKey(self::Pacifica; params=Dict())
     operationType = "create_api_key";
     sigPayload = Dict{Symbol, Any}();
     request = self.postActionRequest(operationType, sigPayload, params);
     return Base.fetch(self.privatePostAccountApiKeysCreate(extend(request, params)))
 
 end
-function revokeApiKey(self::Pacifica, apiKey, params=Dict())
+function revokeApiKey(self::Pacifica, apiKey; params=Dict())
     operationType = "revoke_api_key";
     sigPayload = Dict{Symbol, Any}(
         Symbol("api_key") => apiKey
@@ -2396,14 +2899,14 @@ function revokeApiKey(self::Pacifica, apiKey, params=Dict())
     return Base.fetch(self.privatePostAccountApiKeysRevoke(extend(request, params)))
 
 end
-function fetchApiKeys(self::Pacifica, params=Dict())
+function fetchApiKeys(self::Pacifica; params=Dict())
     operationType = "list_api_keys";
     sigPayload = Dict{Symbol, Any}();
     request = self.postActionRequest(operationType, sigPayload, params);
     return Base.fetch(self.privatePostAccountApiKeys(extend(request, params)))
 
 end
-function approveBuilderCode(self::Pacifica, builderCode, maxFeeRate, params=Dict())
+function approveBuilderCode(self::Pacifica, builderCode, maxFeeRate; params=Dict())
     operationType = "approve_builder_code";
     sigPayload = Dict{Symbol, Any}(
         Symbol("builder_code") => builderCode,
@@ -2420,7 +2923,7 @@ function fetchBuilderApprovals(self::Pacifica, address)
     return Base.fetch(self.publicGetAccountBuilderCodesApprovals(extend(request)))
 
 end
-function revokeBuilderCode(self::Pacifica, builderCode, params=Dict())
+function revokeBuilderCode(self::Pacifica, builderCode; params=Dict())
     operationType = "revoke_builder_code";
     sigPayload = Dict{Symbol, Any}(
         Symbol("builder_code") => builderCode
@@ -2431,7 +2934,7 @@ function revokeBuilderCode(self::Pacifica, builderCode, params=Dict())
 end
 function handleOriginAndSingleAddress(self::Pacifica, methodName, params)
     address = nothing;
-    (address, params) = self.handleParamString2(params, "account", "address", nothing);
+    (address, params) = self.handleParamString2(params, "account", "address", defaultValue = nothing);
     if functions.ccxtruthy(address != nothing)
             return [address, params]
     end
@@ -2465,7 +2968,7 @@ function handleErrors(self::Pacifica, code, reason, url, method, headers, body, 
     return nothing
 
 end
-function sign(self::Pacifica, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Pacifica, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     isTestnet = self.isSandboxModeEnabled;
     urlKey = functions.ccxtruthy((isTestnet)) ? "test" : "api";
     host = self.implodeHostname(get(get(self.urls, Symbol(urlKey), nothing), Symbol(api), nothing));
@@ -2493,12 +2996,12 @@ function sign(self::Pacifica, path, api="public", method="GET", params=Dict(), h
 )
 
 end
-function calculateRateLimiterCost(self::Pacifica, api, method, path, params, config=Dict())
+function calculateRateLimiterCost(self::Pacifica, api, method, path, params; config=Dict())
     cost = safeString(config, "cost", "1");
     costNumber = self.parseNumber(cost);
     if functions.ccxtruthy(functions.ccxt_gt(costNumber, 1))
         if functions.ccxtruthy(self.handleOption(method, "apiKey") != nothing)
-            costWithKey = self.handleOption(method, "maxCostHugeWithApiKey", 3);
+            costWithKey = self.handleOption(method, "maxCostHugeWithApiKey", defaultValue = 3);
                 return costWithKey
         end
     end
@@ -2546,7 +3049,7 @@ function signMessage(self::Pacifica, header, payload, privateKey)
     message = self.prepareMessage(header, payload);
     messageBytes = self.encode(message);
     secretBytes = self.base58ToBinary(privateKey);
-    seed = self.arraySlice(secretBytes, 0, 32);
+    seed = self.arraySlice(secretBytes, 0, second = 32);
     signatureBase64 = eddsa(messageBytes, seed, ed25519);
     signatureBinary = self.base64ToBinary(signatureBase64);
     signatureBase58 = self.binaryToBase58(signatureBinary);
@@ -2559,20 +3062,20 @@ function postActionRequest(self::Pacifica, operationType, sigPayload, params)
         throw(ArgumentsRequired(string(self.id, " action: ", operationType, " postActionRequest() requires \"operationType\"")));
     end
     if functions.ccxtruthy(!functions.ccxtruthy(self.isSandboxModeEnabled))
-        useBuilder = self.handleOption("postActionRequest", "builderFee", true);
+        useBuilder = self.handleOption("postActionRequest", "builderFee", defaultValue = true);
         builderCode = nothing;
         if functions.ccxtruthy(useBuilder)
             builderCode = self.handleOption("postActionRequest", "builderCode");
         end
         if functions.ccxtruthy(builderCode != nothing)
-            isOperationSupportBuilder = self.safeBool(get(self.options, Symbol("builderSupportOperations"), nothing), operationType, false);
+            isOperationSupportBuilder = self.safeBool(get(self.options, Symbol("builderSupportOperations"), nothing), operationType, defaultValue = false);
             if functions.ccxtruthy(isOperationSupportBuilder)
                 sigPayload[Symbol("builder_code")] = builderCode;
             end
         end
     end
     expiryWindow = nothing;
-    (expiryWindow, params) = self.handleOptionAndParams2(params, "postActionRequest", "expiryWindow", "expiry_window", 5000);
+    (expiryWindow, params) = self.handleOptionAndParams2(params, "postActionRequest", "expiryWindow", "expiry_window", defaultValue = 5000);
     timestamp = safeInteger(params, "timestamp", milliseconds());
     signatureHeader = Dict{Symbol, Any}(
         Symbol("timestamp") => timestamp,
@@ -2606,271 +3109,271 @@ Base.getproperty(self::Pacifica, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetInfo(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInfoFees(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "info/fees", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "info/fees"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInfoPrices(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "info/prices", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "info/prices"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetKline(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetKlineMark(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "kline/mark", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "kline/mark"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetBook(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "book", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "book"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrades(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFundingRateHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "funding_rate/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding_rate/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetLoanPool(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "loan_pool", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan_pool"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccount(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccountLoan(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/loan", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/loan"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccountSettings(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/settings", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/settings"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPositions(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "positions", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "positions"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradesHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "trades/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFundingHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "funding/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPortfolio(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "portfolio", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccountBalanceHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/balance/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/balance/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccountSpotBalanceHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/spot_balance/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/spot_balance/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccountSpotAssetDepositHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/spot_asset/deposit/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/spot_asset/deposit/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccountSpotAssetWithdrawHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/spot_asset/withdraw/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/spot_asset/withdraw/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccountSpotAssetWithdrawPending(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/spot_asset/withdraw/pending", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/spot_asset/withdraw/pending"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrders(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrdersHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrdersHistoryById(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/history_by_id", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/history_by_id"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotAssets(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "spot_assets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot_assets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotAssetsBridgeInfo(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "spot_assets/bridge/info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot_assets/bridge/info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotAssetsBridgeParametersSymbol(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "spot_assets/bridge/parameters/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot_assets/bridge/parameters/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetLakeList(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/list", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "lake/list"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAccountBuilderCodesApprovals(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/builder_codes/approvals", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/builder_codes/approvals"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountLeverage(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountMargin(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountWithdraw(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSettingsAutoLendDisabled(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/settings/auto_lend_disabled", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/settings/auto_lend_disabled"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSettingsSpot(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/settings/spot", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/settings/spot"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSpotAssetWithdraw(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/spot_asset/withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/spot_asset/withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSubaccountCreate(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subaccount/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSubaccountList(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/list", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subaccount/list"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSubaccountTransfer(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subaccount/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSubaccountSpotAssetTransfer(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/spot_asset/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subaccount/spot_asset/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionsAddIsolatedMargin(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "positions/add_isolated_margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "positions/add_isolated_margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersCreate(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersCreateMarket(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/create_market", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/create_market"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersStopCreate(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/stop/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/stop/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionsTpsl(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "positions/tpsl", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "positions/tpsl"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersCancel(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersCancelAll(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/cancel_all", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/cancel_all"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersStopCancel(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/stop/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/stop/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersEdit(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/edit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/edit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersBatch(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountBuilderCodesApprove(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/builder_codes/approve", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/builder_codes/approve"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountBuilderCodesRevoke(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/builder_codes/revoke", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/builder_codes/revoke"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAgentBind(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "agent/bind", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "agent/bind"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountApiKeysCreate(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/api_keys/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/api_keys/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountApiKeysRevoke(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/api_keys/revoke", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/api_keys/revoke"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountApiKeys(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/api_keys", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/api_keys"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeAddBlacklist(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/add_blacklist", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/add_blacklist"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeAddMaxLeverage(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/add_max_leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/add_max_leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeAddWhitelist(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/add_whitelist", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/add_whitelist"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeClaimManager(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/claim_manager", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/claim_manager"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeClaimReferralCode(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/claim_referral_code", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/claim_referral_code"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeCreate(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeDeposit(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/deposit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/deposit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeRemoveBlacklist(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/remove_blacklist", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/remove_blacklist"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeRemoveMaxLeverage(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/remove_max_leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/remove_max_leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeRemoveWhitelist(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/remove_whitelist", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/remove_whitelist"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeUpdateDepositCap(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/update_deposit_cap", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/update_deposit_cap"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLakeWithdraw(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "lake/withdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "lake/withdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Pacifica(; kwargs...)
@@ -2934,3 +3437,619 @@ function Pacifica(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Pacifica_fetchMarkets() end
+"""
+retrieves data on all markets for pacifica
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
+"""
+__ccxt_doc_Pacifica_fetchMarkets
+
+function __ccxt_doc_Pacifica_fetchSwapMarkets() end
+"""
+retrieves data on all swap markets for pacifica
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Pacifica_fetchSwapMarkets
+
+function __ccxt_doc_Pacifica_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Pacifica_fetchBalance
+
+function __ccxt_doc_Pacifica_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+
+# Arguments
+- `symbol`::string: unified symbol of the market
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Pacifica_fetchLeverage
+
+function __ccxt_doc_Pacifica_fetchAccountSettings() end
+"""
+fetch account's market settings. Settings are cached for walletAddress. To refresh the cache, call loadAccountSettings with refresh=true
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- Dict repacked from list by symbol key
+"""
+__ccxt_doc_Pacifica_fetchAccountSettings
+
+function __ccxt_doc_Pacifica_fetchMarginMode() end
+"""
+fetches the margin mode of the trading pair
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Pacifica_fetchMarginMode
+
+function __ccxt_doc_Pacifica_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.aggLevel`::int, optional: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Pacifica_fetchOrderBook
+
+function __ccxt_doc_Pacifica_fetchFundingRates() end
+"""
+retrieves data on all swap markets for pacifica
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Pacifica_fetchFundingRates
+
+function __ccxt_doc_Pacifica_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-candle-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M'
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch. 'limit' is priority
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Pacifica_fetchOHLCV
+
+function __ccxt_doc_Pacifica_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-recent-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Pacifica_fetchTrades
+
+function __ccxt_doc_Pacifica_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-trade-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade
+- `params.account`::string, optional: will default to walletAddress if not provided
+- `params.cursor`::string, optional: pagination cursor from prev request (manual use)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Pacifica_fetchMyTrades
+
+function __ccxt_doc_Pacifica_createOrder() end
+"""
+create a trade order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency. Not used for set tpsl order!
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at (optional provide stopLossCloid)
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at (optional provide takeProfitCloid)
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
+- `params.reduceOnly`::bool, optional: Ensures that the executed order does not flip the opened position.
+- `params.clientOrderId`::string, optional: client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_createOrder
+
+function __ccxt_doc_Pacifica_createOrders() end
+"""
+create a list of trade orders. It is supports only limit orders and have a random jitter ~100-300ms!
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/batch-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type (optional or 'limit'), side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_createOrders
+
+function __ccxt_doc_Pacifica_cancelOrders() end
+"""
+cancel multiple orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/batch-order
+
+# Arguments
+- `ids`::array: order ids. An ids list is always required (can be empty). Both ids and clientOrderIds can be passed simultaneously.
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_cancelOrders
+
+function __ccxt_doc_Pacifica_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: (optional) unified market symbol of the market to cancel orders in.
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.excludeReduceOnly`::bool, optional: whether to exclude reduce-only orders
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_cancelAllOrders
+
+function __ccxt_doc_Pacifica_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-stop-order#response
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.stop`::bool, optional: necessary if this is to cancel a stop order.
+- `params.clientOrderId`::string, optional: client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_cancelOrder
+
+function __ccxt_doc_Pacifica_editOrder() end
+"""
+edit a trade order
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/edit-order
+
+# Arguments
+- `id`::string: edit order id
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: 'market' or 'limit' WARN is not usable!
+- `side`::string: 'buy' or 'sell' WARN is not usable!
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_editOrder
+
+function __ccxt_doc_Pacifica_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-historical-funding
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cursor`::string, optional: pagination cursor from prev request (manual use)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Pacifica_fetchFundingRateHistory
+
+function __ccxt_doc_Pacifica_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Pacifica_fetchTickers
+
+function __ccxt_doc_Pacifica_fetchClosedOrders() end
+"""
+fetch all unfilled currently closed orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_fetchClosedOrders
+
+function __ccxt_doc_Pacifica_fetchCanceledOrders() end
+"""
+fetch all canceled orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_fetchCanceledOrders
+
+function __ccxt_doc_Pacifica_fetchCanceledAndClosedOrders() end
+"""
+fetch all closed and canceled orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Pacifica_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_fetchOpenOrders
+
+function __ccxt_doc_Pacifica_fetchOrders() end
+"""
+fetch all orders
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+- `params.cursor`::string, optional: pagination cursor from prev request (manual use)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_fetchOrders
+
+function __ccxt_doc_Pacifica_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history-by-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: (optional) unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Pacifica_fetchOrder
+
+function __ccxt_doc_Pacifica_fetchPosition() end
+"""
+fetch data on an open position
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Pacifica_fetchPosition
+
+function __ccxt_doc_Pacifica_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Pacifica_fetchPositions
+
+function __ccxt_doc_Pacifica_setMarginMode() end
+"""
+set margin mode (symbol)
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/update-margin-mode
+
+# Arguments
+- `marginMode`::string: margin mode must be either [isolated, cross]
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Pacifica_setMarginMode
+
+function __ccxt_doc_Pacifica_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/update-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Pacifica_setLeverage
+
+function __ccxt_doc_Pacifica_withdraw() end
+"""
+make a withdrawal (only support native USDC)
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/request-withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Pacifica_withdraw
+
+function __ccxt_doc_Pacifica_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Pacifica_fetchTradingFee
+
+function __ccxt_doc_Pacifica_fetchOpenInterests() end
+"""
+Retrieves the open interest for a list of symbols
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
+# Arguments
+- `symbols`::array, optional: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Pacifica_fetchOpenInterests
+
+function __ccxt_doc_Pacifica_fetchOpenInterest() end
+"""
+retrieves the open interest of a contract trading pair
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Pacifica_fetchOpenInterest
+
+function __ccxt_doc_Pacifica_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+- `params.cursor`::string, optional: pagination cursor from prev request (manual use)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Pacifica_fetchLedger
+
+function __ccxt_doc_Pacifica_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.account`::string, optional: will default to walletAddress if not provided
+- `params.cursor`::string, optional: pagination cursor from prev request
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Pacifica_fetchFundingHistory
+
+function __ccxt_doc_Pacifica_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from *spot, swap*
+- `toAccount`::string: account to transfer to *swap, spot or address*
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Pacifica_transfer
+
+function __ccxt_doc_Pacifica_createSubAccount() end
+"""
+creates a sub-account under the main account
+see: https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
+
+# Arguments
+- `name`::string: unused argument
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiryWindow`::int, optional: time to live in milliseconds
+- `params.subAccountAddress`::string, optional: - The public key (address) of the sub-account to use for creation
+- `params.subAccountPrivateKey`::string, optional: - The private key of the sub-account to use for creation
+
+# Returns
+- a response object
+"""
+__ccxt_doc_Pacifica_createSubAccount

@@ -371,7 +371,17 @@ function describe(self::P2b, )
 ))
 
 end
-function fetchMarkets(self::P2b, params=Dict())
+"""
+retrieves data on all markets for bigone
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::P2b; params=Dict())
     response = Base.fetch(self.publicGetMarkets(params));
     markets = safeValue(response, "result", []);
     return self.parseMarkets(markets)
@@ -437,16 +447,38 @@ function parseMarket(self::P2b, market)
 )
 
 end
-function fetchTickers(self::P2b, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::P2b; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetTickers(params));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    return self.parseTickers(result, symbols)
+    return self.parseTickers(result, symbols = symbols)
 
 end
-function fetchTicker(self::P2b, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::P2b, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -460,10 +492,10 @@ function fetchTicker(self::P2b, symbol, params=Dict())
     return extend(Dict{Symbol, Any}(
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
-), self.parseTicker(result, market))
+), self.parseTicker(result, market = market))
 
 end
-function parseTicker(self::P2b, ticker, market=nothing)
+function parseTicker(self::P2b, ticker; market=nothing)
     timestamp = safeIntegerProduct(ticker, "at", 1000);
     if functions.ccxtruthy(ccxt_in("ticker", ticker))
         ticker = safeValue(ticker, "ticker");
@@ -490,10 +522,23 @@ function parseTicker(self::P2b, ticker, market=nothing)
     Symbol("baseVolume") => safeString2(ticker, "vol", "volume"),
     Symbol("quoteVolume") => safeString(ticker, "deal"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchOrderBook(self::P2b, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.interval`::string, optional: 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::P2b, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -507,10 +552,24 @@ function fetchOrderBook(self::P2b, symbol, limit=nothing, params=Dict())
     response = Base.fetch(self.publicGetDepthResult(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     timestamp = safeIntegerProduct(response, "current_time", 1000);
-    return self.parseOrderBook(result, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", 0, 1)
+    return self.parseOrderBook(result, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = 0, amountKey = 1)
 
 end
-function fetchTrades(self::P2b, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: 1-100, default=50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.lastId`::int: order id
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::P2b, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -527,11 +586,11 @@ function fetchTrades(self::P2b, symbol, since=nothing, limit=nothing, params=Dic
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetHistory(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseTrades(result, market, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseTrades(result, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::P2b, trade, market=nothing)
+function parseTrade(self::P2b, trade; market=nothing)
     timestamp = safeIntegerProduct2(trade, "time", "deal_time", 1000);
     takerOrMaker = safeString(trade, "role");
     if functions.ccxtruthy(takerOrMaker == "1")
@@ -556,10 +615,25 @@ function parseTrade(self::P2b, trade, market=nothing)
         Symbol("currency") => safeString(market, "quote"),
         Symbol("cost") => safeString2(trade, "fee", "deal_fee")
     )
-), market)
+), market = market)
 
 end
-function fetchOHLCV(self::P2b, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: 1m, 1h, or 1d
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: 1-500, default=50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.offset`::int, optional: default=0, with this value the last candles are returned
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::P2b, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -572,15 +646,25 @@ function fetchOHLCV(self::P2b, symbol, timeframe="1m", since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetMarketKline(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseOHLCVs(result, market, timeframe, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOHLCVs(result, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::P2b, ohlcv, market=nothing)
+function parseOHLCV(self::P2b, ohlcv; market=nothing)
     return [safeIntegerProduct(ohlcv, 0, 1000), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchBalance(self::P2b, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::P2b; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -611,7 +695,22 @@ function parseBalance(self::P2b, response)
     return self.safeBalance(result)
 
 end
-function createOrder(self::P2b, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::P2b, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -627,10 +726,22 @@ function createOrder(self::P2b, symbol, type_var, side, amount, price=nothing, p
     );
     response = Base.fetch(self.privatePostOrderNew(extend(request, params)));
     result = self.safeDict(response, "result");
-    return self.parseOrder(result, market)
+    return self.parseOrder(result, market = market)
 
 end
-function cancelOrder(self::P2b, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::P2b, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -647,7 +758,21 @@ function cancelOrder(self::P2b, id, symbol=nothing, params=Dict())
     return self.parseOrder(result)
 
 end
-function fetchOpenOrders(self::P2b, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: 0-10000, default=0
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::P2b; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders () requires the symbol argument")));
     end
@@ -662,15 +787,30 @@ function fetchOpenOrders(self::P2b, symbol=nothing, since=nothing, limit=nothing
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privatePostOrders(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseOrders(result, market, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOrders(result, market = market, since = since, limit = limit)
 
 end
-function fetchOrderTrades(self::P2b, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: 1-100, default=50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: 0-10000, default=0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::P2b, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    market = self.safeMarket(symbol);
+    market = self.safeMarket(marketId = symbol);
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
@@ -679,11 +819,26 @@ function fetchOrderTrades(self::P2b, id, symbol=nothing, since=nothing, limit=no
     end
     response = Base.fetch(self.privatePostAccountOrder(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    records = self.safeList(result, "records", []);
-    return self.parseTrades(records, market, since, limit)
+    records = self.safeList(result, "records", defaultValue = []);
+    return self.parseTrades(records, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::P2b, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between since and params["until"] cannot be longer than 24 hours
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-history-by-market
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for, default = params["until"] - 86400000
+- `limit`::int, optional: 1-100, default=50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for, default = current timestamp or since + 86400000 EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: 0-10000, default=0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchMyTrades(self::P2b; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -718,11 +873,26 @@ function fetchMyTrades(self::P2b, symbol=nothing, since=nothing, limit=nothing, 
     end
     response = Base.fetch(self.privatePostAccountMarketDealHistory(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    deals = self.safeList(result, "deals", []);
-    return self.parseTrades(deals, market, since, limit)
+    deals = self.safeList(result, "deals", defaultValue = []);
+    return self.parseTrades(deals, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::P2b, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for, default = params["until"] - 86400000
+- `limit`::int, optional: 1-100, default=50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for, default = current timestamp or since + 86400000 EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: 0-10000, default=0
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::P2b; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -765,17 +935,17 @@ function fetchClosedOrders(self::P2b, symbol=nothing, since=nothing, limit=nothi
     while functions.ccxtruthy(functions.ccxt_lt(i, length(keys_var)))
         marketId = get(keys_var, i + 1, nothing);
         marketOrders = get(result, Symbol(marketId), nothing);
-        parsedOrders = self.parseOrders(marketOrders, market, since, limit);
+        parsedOrders = self.parseOrders(marketOrders, market = market, since = since, limit = limit);
         orders = arrayConcat(orders, parsedOrders);
         i += 1
     end
     return orders
 
 end
-function parseOrder(self::P2b, order, market=nothing)
+function parseOrder(self::P2b, order; market=nothing)
     timestamp = safeIntegerProduct2(order, "timestamp", "ctime", 1000);
     marketId = safeString(order, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => order,
     Symbol("id") => safeString2(order, "id", "orderId"),
@@ -801,10 +971,10 @@ function parseOrder(self::P2b, order, market=nothing)
         Symbol("cost") => safeString(order, "dealFee")
     ),
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function sign(self::P2b, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::P2b, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", self.implodeParams(path, params));
     params = omit(params, self.extractParams(path));
     if functions.ccxtruthy(method == "GET")
@@ -852,75 +1022,75 @@ Base.getproperty(self::P2b, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarkets(self::P2b, params=Dict(), context=Dict())
-    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarket(self::P2b, params=Dict(), context=Dict())
-    return request(self, "market", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickers(self::P2b, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::P2b, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetBook(self::P2b, params=Dict(), context=Dict())
-    return request(self, "book", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "book"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetHistory(self::P2b, params=Dict(), context=Dict())
-    return request(self, "history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDepthResult(self::P2b, params=Dict(), context=Dict())
-    return request(self, "depth/result", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "depth/result"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketKline(self::P2b, params=Dict(), context=Dict())
-    return request(self, "market/kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountBalances(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/balances", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/balances"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountBalance(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/balance", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/balance"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderNew(self::P2b, params=Dict(), context=Dict())
-    return request(self, "order/new", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/new"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderCancel(self::P2b, params=Dict(), context=Dict())
-    return request(self, "order/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::P2b, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountMarketOrderHistory(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/market_order_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/market_order_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountMarketDealHistory(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/market_deal_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/market_deal_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountOrder(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountOrderHistory(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/order_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/order_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountExecutedHistory(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/executed_history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/executed_history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function P2b(; kwargs...)
@@ -984,3 +1154,214 @@ function P2b(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_P2b_fetchMarkets() end
+"""
+retrieves data on all markets for bigone
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_P2b_fetchMarkets
+
+function __ccxt_doc_P2b_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_P2b_fetchTickers
+
+function __ccxt_doc_P2b_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_P2b_fetchTicker
+
+function __ccxt_doc_P2b_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.interval`::string, optional: 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_P2b_fetchOrderBook
+
+function __ccxt_doc_P2b_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: 1-100, default=50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.lastId`::int: order id
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_P2b_fetchTrades
+
+function __ccxt_doc_P2b_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: 1m, 1h, or 1d
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: 1-500, default=50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.offset`::int, optional: default=0, with this value the last candles are returned
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_P2b_fetchOHLCV
+
+function __ccxt_doc_P2b_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_P2b_fetchBalance
+
+function __ccxt_doc_P2b_createOrder() end
+"""
+create a trade order
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_P2b_createOrder
+
+function __ccxt_doc_P2b_cancelOrder() end
+"""
+cancels an open order
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_P2b_cancelOrder
+
+function __ccxt_doc_P2b_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: 0-10000, default=0
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_P2b_fetchOpenOrders
+
+function __ccxt_doc_P2b_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: 1-100, default=50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: 0-10000, default=0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_P2b_fetchOrderTrades
+
+function __ccxt_doc_P2b_fetchMyTrades() end
+"""
+fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between since and params["until"] cannot be longer than 24 hours
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-history-by-market
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for, default = params["until"] - 86400000
+- `limit`::int, optional: 1-100, default=50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for, default = current timestamp or since + 86400000 EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: 0-10000, default=0
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_P2b_fetchMyTrades
+
+function __ccxt_doc_P2b_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
+see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for, default = params["until"] - 86400000
+- `limit`::int, optional: 1-100, default=50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for, default = current timestamp or since + 86400000 EXCHANGE SPECIFIC PARAMETERS
+- `params.offset`::int, optional: 0-10000, default=0
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_P2b_fetchClosedOrders

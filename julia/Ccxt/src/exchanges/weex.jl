@@ -948,7 +948,17 @@ function nonce(self::Weex, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function fetchStatus(self::Weex, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://www.weex.com/api-doc/spot/ConfigAPI/Ping
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Weex; params=Dict())
     response = Base.fetch(self.publicGetApiV3Ping(params));
     return Dict{Symbol, Any}(
     Symbol("status") => "ok",
@@ -959,9 +969,21 @@ function fetchStatus(self::Weex, params=Dict())
 )
 
 end
-function fetchTime(self::Weex, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.weex.com/api-doc/spot/ConfigAPI/GetServerTime
+see: https://www.weex.com/api-doc/contract/Market_API/GetServerTime
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', default is 'spot'
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Weex; params=Dict())
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTime", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTime", market = nothing, params = params);
     response = nothing;
     if functions.ccxtruthy(type_var != "spot")
         response = Base.fetch(self.contractGetCapiV3MarketTime(params));
@@ -971,7 +993,17 @@ function fetchTime(self::Weex, params=Dict())
     return safeInteger(response, "serverTime")
 
 end
-function fetchCurrencies(self::Weex, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://www.weex.com/api-doc/spot/ConfigAPI/CurrencyInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Weex; params=Dict())
     response = Base.fetch(self.publicGetApiV3Coins(params));
     return self.parseCurrencies(response)
 
@@ -981,12 +1013,12 @@ function parseCurrency(self::Weex, rawCurrency)
     code = self.safeCurrencyCode(currencyId);
     name = safeString(rawCurrency, "name");
     networks = Dict{Symbol, Any}();
-    chains = self.safeList(rawCurrency, "networkList", []);
+    chains = self.safeList(rawCurrency, "networkList", defaultValue = []);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = self.safeDict(chains, j);
         networkId = safeString(chain, "network");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("info") => chain,
@@ -997,7 +1029,7 @@ function parseCurrency(self::Weex, rawCurrency)
                 Symbol("withdraw") => self.safeBool(chain, "withdrawEnable"),
                 Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
                 Symbol("precision") => self.safeNumber(chain, "withdrawIntegerMultiple"),
-                Symbol("isDefault") => self.safeBool(chain, "isDefault", false),
+                Symbol("isDefault") => self.safeBool(chain, "isDefault", defaultValue = false),
                 Symbol("limits") => Dict{Symbol, Any}(
                     Symbol("withdraw") => Dict{Symbol, Any}(
                         Symbol("min") => self.safeNumber(chain, "withdrawMin"),
@@ -1045,14 +1077,25 @@ function parseCurrency(self::Weex, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Weex, params=Dict())
+"""
+retrieves data on all markets for exchagne
+see: https://www.weex.com/api-doc/spot/ConfigAPI/GetProductInfo // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetContractInfo // contract
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Weex; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
     promises = [self.publicGetApiV3ExchangeInfo(params), self.contractGetCapiV3MarketExchangeInfo(params)];
     (spotResponse, contractResponse) = (Base.fetch(asyncmap(Base.fetch, promises)));
-    spotArray = self.safeList(spotResponse, "symbols", []);
-    contractArray = self.safeList(contractResponse, "symbols", []);
+    spotArray = self.safeList(spotResponse, "symbols", defaultValue = []);
+    contractArray = self.safeList(contractResponse, "symbols", defaultValue = []);
     result = arrayConcat(spotArray, contractArray);
     return self.parseMarkets(result)
 
@@ -1081,21 +1124,21 @@ function parseMarket(self::Weex, market)
             isInverse = true;
         end
     else
-        active = self.safeBool(market, "enableTrade", false);
+        active = self.safeBool(market, "enableTrade", defaultValue = false);
     end
     amountPrecision = self.safeNumber(market, "stepSize");
     pricePrecision = self.safeNumber(market, "tickSize");
     if functions.ccxtruthy(amountPrecision == nothing)
-        amountPrecisionString = self.parsePrecision(safeString(market, "quantityPrecision"));
-        pricePrecisionString = self.parsePrecision(safeString(market, "pricePrecision"));
+        amountPrecisionString = self.parsePrecision(precision = safeString(market, "quantityPrecision"));
+        pricePrecisionString = self.parsePrecision(precision = safeString(market, "pricePrecision"));
         amountPrecision = self.parseNumber(amountPrecisionString);
         pricePrecision = self.parseNumber(pricePrecisionString);
     end
-    fees = self.safeDict(self.fees, functions.ccxtruthy(isSpot) ? "spot" : "contract", Dict{Symbol, Any}());
+    fees = self.safeDict(self.fees, functions.ccxtruthy(isSpot) ? "spot" : "contract", defaultValue = Dict{Symbol, Any}());
     if functions.ccxtruthy(id == nothing)
         throw(ExchangeError(string(self.id, " method() missing id")));
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("lowercaseId") => lowercase(id),
     Symbol("numericId") => safeInteger(market, "contractId"),
@@ -1154,14 +1197,27 @@ function parseMarket(self::Weex, market)
 ))
 
 end
-function fetchTickers(self::Weex, symbols=nothing, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetAllTickerInfo // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetTicker24h // contract
+
+# Arguments
+- `symbols`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Weex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     symbolsLength = 0;
     if functions.ccxtruthy(symbols != nothing)
         symbolsLength = length(symbols);
@@ -1179,17 +1235,30 @@ function fetchTickers(self::Weex, symbols=nothing, params=Dict())
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(response)))
         response = [response];
     end
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function fetchBidsAsks(self::Weex, symbols=nothing, params=Dict())
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetBookTicker // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetBookTicker // contract
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchBidsAsks(self::Weex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBidsAsks", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBidsAsks", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.publicGetApiV3MarketTickerBookTicker(params));
@@ -1204,21 +1273,21 @@ function fetchBidsAsks(self::Weex, symbols=nothing, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         rawTicker = get(response, i + 1, nothing);
         marketId = safeString(rawTicker, "symbol");
-        tickerMarket = self.safeMarket(marketId, nothing, nothing, marketType);
-        push!(results, self.parseTicker(rawTicker, tickerMarket));
+        tickerMarket = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = marketType);
+        push!(results, self.parseTicker(rawTicker, market = tickerMarket));
         i += 1
     end
-    return self.filterByArrayTickers(results, "symbol", symbols)
+    return self.filterByArrayTickers(results, "symbol", values = symbols)
 
 end
-function parseTicker(self::Weex, ticker, market=nothing)
+function parseTicker(self::Weex, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
     markPrice = safeString(ticker, "markPrice");
     marketType = "spot";
     if functions.ccxtruthy(@functions.ccxt_or((markPrice != nothing), (@functions.ccxt_and((market != nothing), get(market, Symbol("contract"), nothing)))))
         marketType = "swap";
     end
-    market = self.safeMarket(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
     timestamp = safeInteger2(ticker, "closeTime", "time");
     percentage = stringMul(safeString(ticker, "priceChangePercent"), "100");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1244,27 +1313,38 @@ function parseTicker(self::Weex, ticker, market=nothing)
     Symbol("markPrice") => markPrice,
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchLastPrices(self::Weex, symbols=nothing, params=Dict())
+"""
+fetches the last price for multiple markets
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of lastprice structures
+"""
+function fetchLastPrices(self::Weex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchLastPrices", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchLastPrices", market = market, params = params);
     if functions.ccxtruthy(type_var != "spot")
         throw(NotSupported(string(self.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")));
     end
     response = Base.fetch(self.publicGetApiV3MarketTickerPrice(params));
-    return self.parseLastPrices(response, symbols)
+    return self.parseLastPrices(response, symbols = symbols)
 
 end
-function parseLastPrice(self::Weex, entry, market=nothing)
+function parseLastPrice(self::Weex, entry; market=nothing)
     marketId = safeString(entry, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "spot");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "spot");
     return Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
     Symbol("timestamp") => nothing,
@@ -1275,7 +1355,19 @@ function parseLastPrice(self::Weex, entry, market=nothing)
 )
 
 end
-function fetchMarkPrice(self::Weex, symbol, params=Dict())
+"""
+fetches mark price for the market
+see: https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the mark price for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.priceType`::string, optional: "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrice(self::Weex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1284,7 +1376,7 @@ function fetchMarkPrice(self::Weex, symbol, params=Dict())
         throw(NotSupported(string(self.id, " fetchMarkPrice() supports contract markets only")));
     end
     priceType = nothing;
-    (priceType, params) = self.handleOptionAndParams(params, "fetchMarkPrice", "priceType", "MARK");
+    (priceType, params) = self.handleOptionAndParams(params, "fetchMarkPrice", "priceType", defaultValue = "MARK");
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("priceType") => priceType
@@ -1296,19 +1388,43 @@ function fetchMarkPrice(self::Weex, symbol, params=Dict())
     else
         ticker[Symbol("markPrice")] = safeString(ticker, "price");
     end
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
-function fetchMarkPrices(self::Weex, symbols=nothing, params=Dict())
+"""
+fetches mark prices for multiple markets
+see: https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrices(self::Weex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, "swap");
+    symbols = self.marketSymbols(symbols = symbols, type_var = "swap");
     response = Base.fetch(self.contractGetCapiV3MarketPremiumIndex(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function fetchOrderBook(self::Weex, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetDepthData // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetDepthData // contract
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (default 15, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Weex, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1330,19 +1446,51 @@ function fetchOrderBook(self::Weex, symbol, limit=nothing, params=Dict())
     return orderbook
 
 end
-function fetchOHLCV(self::Weex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetKLineData // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
+see: https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
+see: https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
+see: https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract historical klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (default 100, max 300)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Weex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            return Base.fetch(self.fetchSpotOHLCV(symbol, timeframe, since, limit, params))
+            return Base.fetch(self.fetchSpotOHLCV(symbol, timeframe = timeframe, since = since, limit = limit, params = params))
     else
-        return Base.fetch(self.fetchContractOHLCV(symbol, timeframe, since, limit, params))
+        return Base.fetch(self.fetchContractOHLCV(symbol, timeframe = timeframe, since = since, limit = limit, params = params))
     end
 
 end
-function fetchSpotOHLCV(self::Weex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+helper method for fetchOHLCV
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetKLineData
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchSpotOHLCV(self::Weex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1352,10 +1500,30 @@ function fetchSpotOHLCV(self::Weex, symbol, timeframe="1m", since=nothing, limit
         Symbol("interval") => safeString(self.timeframes, timeframe, timeframe)
     );
     response = Base.fetch(self.publicGetApiV3MarketKlines(extend(request, params)));
-    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchContractOHLCV(self::Weex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+helper method for fetchOHLCV
+see: https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
+see: https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
+see: https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
+see: https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract historical klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (default 100, max 100 for historical klines, max 1000 for other contract klines)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: whether to automatically paginate requests until the required number of candles is returned
+- `params.historical`::bool, optional: whether to fetch historical klines (default is false). If false, will fetch last price klines
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchContractOHLCV(self::Weex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1366,13 +1534,13 @@ function fetchContractOHLCV(self::Weex, symbol, timeframe="1m", since=nothing, l
         params = extend(params, Dict{Symbol, Any}(
     Symbol("historical") => true
 ));
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxHistoricalLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxHistoricalLimit))
     end
     until = safeInteger(params, "until");
     historical = false;
     (historical, params) = self.handleOptionAndParams(params, "fetchOHLCV", "historical");
-    timeframeOption = self.safeDict(self.options, "timeframes", Dict{Symbol, Any}());
-    contractTimeframes = self.safeDict(timeframeOption, "contract", Dict{Symbol, Any}());
+    timeframeOption = self.safeDict(self.options, "timeframes", defaultValue = Dict{Symbol, Any}());
+    contractTimeframes = self.safeDict(timeframeOption, "contract", defaultValue = Dict{Symbol, Any}());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -1422,14 +1590,28 @@ function fetchContractOHLCV(self::Weex, symbol, timeframe="1m", since=nothing, l
             response = Base.fetch(self.contractGetCapiV3MarketKlines(extend(request, params)));
         end
     end
-    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Weex, ohlcv, market=nothing)
+function parseOHLCV(self::Weex, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchTrades(self::Weex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetTradeData // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetRecentTrades // contract
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (default 100, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Weex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1450,10 +1632,10 @@ function fetchTrades(self::Weex, symbol, since=nothing, limit=nothing, params=Di
     if functions.ccxtruthy(response != nothing)
         responseList = toArray(response);
     end
-    return self.parseTrades(responseList, market, since, limit)
+    return self.parseTrades(responseList, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Weex, trade, market=nothing)
+function parseTrade(self::Weex, trade; market=nothing)
     timestamp = safeInteger(trade, "time");
     isBuyer = self.safeBool(trade, "isBuyer");
     side = safeStringLower(trade, "side");
@@ -1468,7 +1650,7 @@ function parseTrade(self::Weex, trade, market=nothing)
         marketId = safeString(trade, "symbol");
         realizedPnl = safeString(trade, "realizedPnl");
         marketType = functions.ccxtruthy((realizedPnl != nothing)) ? "swap" : "spot";
-        market = self.safeMarket(marketId, nothing, nothing, marketType);
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = marketType);
         isSpot = marketType == "spot";
     else
         isSpot = get(market, Symbol("spot"), nothing);
@@ -1511,10 +1693,21 @@ function parseTrade(self::Weex, trade, market=nothing)
     Symbol("amount") => safeString(trade, "qty"),
     Symbol("cost") => safeString(trade, "quoteQty"),
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchOpenInterest(self::Weex, symbol, params=Dict())
+"""
+retrieves the open interest of a contract trading pair
+see: https://www.weex.com/api-doc/contract/Market_API/GetOpenInterest
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Weex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1523,12 +1716,12 @@ function fetchOpenInterest(self::Weex, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.contractGetCapiV3MarketOpenInterest(extend(request, params)));
-    return self.parseOpenInterest(response, market)
+    return self.parseOpenInterest(response, market = market)
 
 end
-function parseOpenInterest(self::Weex, interest, market=nothing)
+function parseOpenInterest(self::Weex, interest; market=nothing)
     marketId = safeString(interest, "symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, "swap");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap");
     timestamp = safeInteger(interest, "time");
     return self.safeOpenInterest(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -1537,30 +1730,42 @@ function parseOpenInterest(self::Weex, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchFundingRates(self::Weex, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Weex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     symbolsLength = 0;
     if functions.ccxtruthy(symbols != nothing)
         symbolsLength = length(symbols);
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbolsLength == 1)
-        market = self.getMarketFromSymbols(symbols);
+        market = self.getMarketFromSymbols(symbols = symbols);
         request[Symbol("symbol")] = safeString(market, "id");
     end
     response = Base.fetch(self.contractGetCapiV3MarketPremiumIndex(extend(request, params)));
-    return self.parseFundingRates(response, symbols)
+    return self.parseFundingRates(response, symbols = symbols)
 
 end
-function parseFundingRate(self::Weex, contract, market=nothing)
+function parseFundingRate(self::Weex, contract; market=nothing)
     marketId = safeString(contract, "symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, "swap");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap");
     timestamp = safeInteger(contract, "time");
     nextFundingTimestamp = safeInteger(contract, "nextFundingTime");
     interval = nothing;
@@ -1591,7 +1796,21 @@ function parseFundingRate(self::Weex, contract, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Weex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://www.weex.com/api-doc/contract/Market_API/GetFundingRateHistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of funding rate records to fetch (default 100, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Weex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -1610,12 +1829,12 @@ function fetchFundingRateHistory(self::Weex, symbol=nothing, since=nothing, limi
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.contractGetCapiV3MarketFundingRate(extend(request, params)));
-    return self.parseFundingRateHistories(response, market, since, limit)
+    return self.parseFundingRateHistories(response, market = market, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Weex, contract, market=nothing)
+function parseFundingRateHistory(self::Weex, contract; market=nothing)
     marketId = safeString(contract, "symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, "swap");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap");
     timestamp = safeInteger(contract, "fundingTime");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
@@ -1626,11 +1845,24 @@ function parseFundingRateHistory(self::Weex, contract, market=nothing)
 )
 
 end
-function fetchBalance(self::Weex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in positions
+see: https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
+see: https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+see: https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Weex; params=Dict())
     requestedType = safeString(params, "type");
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_and(sandboxMode, (requestedType == nothing)))
         type_var = "swap";
     end
@@ -1654,8 +1886,8 @@ function parseBalance(self::Weex, response)
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
-    balances = self.safeList(response, "balances", response);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
+    balances = self.safeList(response, "balances", defaultValue = response);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         entry = self.safeDict(balances, i);
@@ -1676,7 +1908,21 @@ function parseBalance(self::Weex, response)
     return self.safeBalance(result)
 
 end
-function fetchTransfers(self::Weex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://www.weex.com/api-doc/spot/AccountAPI/TransferRecords
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve (default 10, max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Weex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1687,9 +1933,9 @@ function fetchTransfers(self::Weex, code=nothing, since=nothing, limit=nothing, 
     end
     maxLimit = 100;
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", symbol = code, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     if functions.ccxtruthy(since != nothing)
         request[Symbol("after")] = since;
@@ -1699,13 +1945,13 @@ function fetchTransfers(self::Weex, code=nothing, since=nothing, limit=nothing, 
     end
     (request, params) = self.handleUntilOption("before", request, params);
     response = Base.fetch(self.privateGetApiV3AccountTransferRecords(extend(request, params)));
-    return self.parseTransfers(response, currency, since, limit)
+    return self.parseTransfers(response, currency = currency, since = since, limit = limit)
 
 end
-function parseTransfer(self::Weex, transfer, currency=nothing)
+function parseTransfer(self::Weex, transfer; currency=nothing)
     timestamp = safeInteger(transfer, "tradeTime");
     currencyId = safeString(transfer, "coinName");
-    currencyCode = self.safeCurrencyCode(currencyId, currency);
+    currencyCode = self.safeCurrencyCode(currencyId, currency = currency);
     status = safeString(transfer, "status");
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
@@ -1727,36 +1973,72 @@ function parseTransferStatus(self::Weex, status)
     return safeString(statuses, status, status)
 
 end
-function createOrder(self::Weex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+Create an order on the exchange
+see: https://www.weex.com/api-doc/spot/orderApi/PlaceOrder // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
+see: https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
+see: https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+see: https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Weex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
-            return Base.fetch(self.createContractOrder(symbol, type_var, side, amount, price, params))
+            return Base.fetch(self.createContractOrder(symbol, type_var, side, amount, price = price, params = params))
     else
-        sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+        sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
         if functions.ccxtruthy(sandboxMode)
             throw(NotSupported(string(self.id, " createOrder() only supports swap markets in sandbox mode")));
         end
-        return Base.fetch(self.createSpotOrder(symbol, type_var, side, amount, price, params))
+        return Base.fetch(self.createSpotOrder(symbol, type_var, side, amount, price = price, params = params))
     end
 
 end
-function createSpotOrder(self::Weex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+helper method for creating spot orders
+see: https://www.weex.com/api-doc/spot/orderApi/PlaceOrder
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', or 'FOK'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createSpotOrder(self::Weex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createSpotOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createSpotOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = Base.fetch(self.privatePostApiV3Order(request));
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createSpotOrderRequest(self::Weex, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createSpotOrderRequest(self::Weex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1786,14 +2068,44 @@ function createSpotOrderRequest(self::Weex, symbol, type_var, side, amount, pric
     return extend(request, params)
 
 end
-function createContractOrder(self::Weex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+helper method for creating contract orders
+see: https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
+see: https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+see: https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+- `params.takeProfit.triggerPrice`::float, optional: The price at which the take profit order will be triggered
+- `params.takeProfit.triggerPriceType`::string, optional: The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
+- `params.stopLoss.triggerPrice`::float, optional: The price at which the stop loss order will be triggered
+- `params.stopLoss.triggerPriceType`::string, optional: The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
+- `params.stopLossPrice`::float, optional: price to trigger stop-loss orders
+- `params.stopLossPriceType`::string, optional: The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
+- `params.takeProfitPrice`::float, optional: price to trigger take-profit orders
+- `params.takeProfitPriceType`::string, optional: The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+- `params.reduceOnly`::bool, optional: A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+- `params.timeInForce`::string, optional: GTC, IOC, or FOK (default is GTC for limit orders)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createContractOrder(self::Weex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createContractOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createContractOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     triggerPrice = safeString(request, "triggerPrice");
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     response = nothing;
     if functions.ccxtruthy(triggerPrice != nothing)
         if functions.ccxtruthy(sandboxMode)
@@ -1808,10 +2120,10 @@ function createContractOrder(self::Weex, symbol, type_var, side, amount, price=n
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " createOrder() returned empty response")));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createContractOrderRequest(self::Weex, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createContractOrderRequest(self::Weex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1936,7 +2248,23 @@ function encodeTriggerPriceType(self::Weex, triggerPriceType)
     return safeString(types, triggerPriceType, triggerPriceType)
 
 end
-function cancelOrder(self::Weex, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.weex.com/api-doc/spot/orderApi/CancelOrder // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/CancelOrder // contract
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' (default is 'spot')
+- `params.trigger`::bool, optional: *contract orders only* whether the order to cancel is a trigger order
+- `params.clientOrderId`::string, optional: *non-trigger orders only* a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Weex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1945,8 +2273,8 @@ function cancelOrder(self::Weex, id, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("cancelOrder", market, params);
-    trigger = self.safeBool(params, "trigger", false);
+    (type_var, params) = self.handleMarketTypeAndParams("cancelOrder", market = market, params = params);
+    trigger = self.safeBool(params, "trigger", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_and(trigger, id == nothing))
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires an id argument for trigger orders")));
     end
@@ -1971,12 +2299,27 @@ function cancelOrder(self::Weex, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    order = self.parseOrder(response, market);
+    order = self.parseOrder(response, market = market);
     order[Symbol("status")] = "canceled";
     return order
 
 end
-function cancelAllOrders(self::Weex, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://www.weex.com/api-doc/spot/orderApi/Cancel-Symbol-Orders // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/CancelAllOrders // contract
+see: https://www.weex.com/api-doc/contract/Transaction_API/CancelAllPendingOrders // contract trigger
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.trigger`::bool, optional: *swap only* true for cancelling trigger orders (default is false)
+
+# Returns
+- Response from the exchange
+"""
+function cancelAllOrders(self::Weex; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1987,8 +2330,8 @@ function cancelAllOrders(self::Weex, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market, params);
-    trigger = self.safeBool(params, "trigger", false);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market = market, params = params);
+    trigger = self.safeBool(params, "trigger", defaultValue = false);
     params = omit(params, "trigger");
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
@@ -2004,10 +2347,25 @@ function cancelAllOrders(self::Weex, symbol=nothing, params=Dict())
     extendedParams = Dict{Symbol, Any}(
         Symbol("status") => "canceled"
     );
-    return self.parseOrders(response, market, nothing, nothing, extendedParams)
+    return self.parseOrders(response, market = market, since = nothing, limit = nothing, params = extendedParams)
 
 end
-function cancelOrders(self::Weex, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://www.weex.com/api-doc/spot/orderApi/BulkCancel // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/CancelOrdersBatch // contract
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids (could be an alternative to ids)
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Weex, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2017,7 +2375,7 @@ function cancelOrders(self::Weex, ids, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelOrders", market = market, params = params);
     isSpot = (marketType == "spot");
     clientOrderIds = self.safeList(params, "clientOrderIds");
     params = omit(params, "clientOrderIds");
@@ -2042,14 +2400,29 @@ function cancelOrders(self::Weex, ids, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.contractPrivateDeleteCapiV3BatchOrders(extend(request, params)));
     end
-    ordersResponse = self.safeList(response, "orderList", []);
+    ordersResponse = self.safeList(response, "orderList", defaultValue = []);
     extendedParams = Dict{Symbol, Any}(
         Symbol("status") => "canceled"
     );
-    return self.parseOrders(ordersResponse, market, nothing, nothing, extendedParams)
+    return self.parseOrders(ordersResponse, market = market, since = nothing, limit = nothing, params = extendedParams)
 
 end
-function fetchOrder(self::Weex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://www.weex.com/api-doc/spot/orderApi/OrderDetails // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetSingleOrderInfo // contract
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.clientOrderId`::string, optional: *spot only* a unique id for the order, used if id is not provided
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Weex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2058,7 +2431,7 @@ function fetchOrder(self::Weex, id, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrder", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOrder", market = market, params = params);
     isSpot = (marketType == "spot");
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(@functions.ccxt_and((id == nothing), !functions.ccxtruthy(isSpot)))
@@ -2082,10 +2455,27 @@ function fetchOrder(self::Weex, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOpenOrders(self::Weex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.weex.com/api-doc/spot/orderApi/UnfinishedOrders // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentOrderStatus // contract
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentPendingOrders // contract trigger
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.trigger`::bool, optional: *swap only* whether to fetch trigger orders (default is false)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Weex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2094,16 +2484,16 @@ function fetchOpenOrders(self::Weex, symbol=nothing, since=nothing, limit=nothin
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market = market, params = params);
     isSpot = (marketType == "spot");
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate", defaultValue = false);
     maxLimit = 100;
     if functions.ccxtruthy(paginate)
         if functions.ccxtruthy(isSpot)
             throw(NotSupported(string(self.id, " fetchOpenOrders() pagination is not supported for spot markets")));
         end
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOpenOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbol != nothing)
@@ -2120,7 +2510,7 @@ function fetchOpenOrders(self::Weex, symbol=nothing, since=nothing, limit=nothin
             request[Symbol("limit")] = limit;
         end
         (request, params) = self.handleUntilOption("endTime", request, params);
-        trigger = self.safeBool(params, "trigger", false);
+        trigger = self.safeBool(params, "trigger", defaultValue = false);
         if functions.ccxtruthy(trigger)
             params = omit(params, "trigger");
             response = Base.fetch(self.contractPrivateGetCapiV3OpenAlgoOrders(extend(request, params)));
@@ -2131,10 +2521,27 @@ function fetchOpenOrders(self::Weex, symbol=nothing, since=nothing, limit=nothin
     extendedParams = Dict{Symbol, Any}(
         Symbol("status") => "open"
     );
-    return self.parseOrders(response, market, since, limit, extendedParams)
+    return self.parseOrders(response, market = market, since = since, limit = limit, params = extendedParams)
 
 end
-function fetchClosedOrders(self::Weex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+see: https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Weex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2143,20 +2550,37 @@ function fetchClosedOrders(self::Weex, symbol=nothing, since=nothing, limit=noth
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchClosedOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchClosedOrders", market = market, params = params);
     orders = nothing;
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchClosedOrders() requires a symbol argument for spot markets")));
         end
-        orders = Base.fetch(self.fetchOrders(symbol, since, nothing, params));
+        orders = Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = params));
     else
-        orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, params));
+        orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = params));
     end
     return filterBy(orders, "status", "closed")
 
 end
-function fetchCanceledOrders(self::Weex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+see: https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Weex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2165,20 +2589,35 @@ function fetchCanceledOrders(self::Weex, symbol=nothing, since=nothing, limit=no
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchCanceledOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchCanceledOrders", market = market, params = params);
     orders = nothing;
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchCanceledOrders() requires a symbol argument for spot markets")));
         end
-        orders = Base.fetch(self.fetchOrders(symbol, since, nothing, params));
+        orders = Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = params));
     else
-        orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, params));
+        orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = params));
     end
     return filterBy(orders, "status", "canceled")
 
 end
-function fetchOrders(self::Weex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple spot orders made by the user
+see: https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in (required for spot orders)
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::object, optional: end time, ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Weex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -2191,9 +2630,9 @@ function fetchOrders(self::Weex, symbol=nothing, since=nothing, limit=nothing, p
     end
     maxLimit = 1000;
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
@@ -2206,10 +2645,27 @@ function fetchOrders(self::Weex, symbol=nothing, since=nothing, limit=nothing, p
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.privateGetApiV3AllOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchCanceledAndClosedOrders(self::Weex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed and canceled orders made by the user
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+see: https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in (required for spot orders)
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::object, optional: end time, ms
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Weex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2218,15 +2674,15 @@ function fetchCanceledAndClosedOrders(self::Weex, symbol=nothing, since=nothing,
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         throw(NotSupported(string(self.id, " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")));
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate", defaultValue = false);
     maxLimit = 1000;
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbol != nothing)
@@ -2239,17 +2695,17 @@ function fetchCanceledAndClosedOrders(self::Weex, symbol=nothing, since=nothing,
         request[Symbol("limit")] = limit;
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     response = nothing;
     if functions.ccxtruthy(sandboxMode)
         response = Base.fetch(self.contractPrivateGetCapiV3SimOrderHistory(extend(request, params)));
     else
         response = Base.fetch(self.contractPrivateGetCapiV3OrderHistory(extend(request, params)));
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function parseOrder(self::Weex, order, market=nothing)
+function parseOrder(self::Weex, order; market=nothing)
     errorCode = safeString(order, "errorCode");
     errorMessage = safeString(order, "errorMsg");
     if functions.ccxtruthy(@functions.ccxt_or((errorCode != nothing), (errorMessage != nothing)))
@@ -2259,7 +2715,7 @@ function parseOrder(self::Weex, order, market=nothing)
         marketId = self.fromSandboxMarketId(safeString(order, "symbol"));
         positionSide = safeString(order, "positionSide");
         marketType = functions.ccxtruthy((positionSide == nothing)) ? "spot" : "swap";
-        market = self.safeMarket(marketId, nothing, nothing, marketType);
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = marketType);
     end
     timestamp = safeIntegerN(order, ["transactTime", "time", "createTime"]);
     rawStatus = safeStringLower(order, "status");
@@ -2298,7 +2754,7 @@ function parseOrder(self::Weex, order, market=nothing)
     Symbol("stopLossPrice") => stopLossPrice,
     Symbol("takeProfitPrice") => takeProfitPrice,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Weex, status)
@@ -2346,17 +2802,48 @@ function handleOrderOrPositionError(self::Weex, errorCode, errorMessage, order)
     throw(InvalidOrder(feedback));
 
 end
-function fetchOrderTrades(self::Weex, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetTradeDetails // contract
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Weex, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    return Base.fetch(self.fetchMyTrades(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchMyTrades(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchMyTrades(self::Weex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetTradeDetails // contract
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Weex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2365,16 +2852,16 @@ function fetchMyTrades(self::Weex, symbol=nothing, since=nothing, limit=nothing,
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     isSpot = (marketType == "spot");
     if functions.ccxtruthy(@functions.ccxt_and(isSpot, (symbol == nothing)))
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument for spot markets")));
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate", defaultValue = false);
     maxLimit = 100;
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbol != nothing)
@@ -2397,22 +2884,40 @@ function fetchMyTrades(self::Weex, symbol=nothing, since=nothing, limit=nothing,
     if functions.ccxtruthy(response != nothing)
         responseList = toArray(response);
     end
-    return self.parseTrades(responseList, market, since, limit)
+    return self.parseTrades(responseList, market = market, since = since, limit = limit)
 
 end
-function fetchLedger(self::Weex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.weex.com/api-doc/spot/AccountAPI/GetBillRecords // spot
+see: https://www.weex.com/api-doc/spot/AccountAPI/GetFundBillRecords // funding
+see: https://www.weex.com/api-doc/contract/Account_API/GetContractBills // contract
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined, max is 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+- `params.type`::string, optional: 'spot', 'funding' or 'swap' (default is 'spot')
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Weex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate", defaultValue = false);
     maxLimit = 100;
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", symbol = code, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     accountType = nothing;
-    (accountType, params) = self.handleMarketTypeAndParams("fetchLedger", nothing, params);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    (accountType, params) = self.handleMarketTypeAndParams("fetchLedger", market = nothing, params = params);
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     accountType = safeString(accountsByType, accountType, accountType);
     request = Dict{Symbol, Any}();
     items = nothing;
@@ -2435,7 +2940,7 @@ function fetchLedger(self::Weex, code=nothing, since=nothing, limit=nothing, par
         end
         (request, params) = self.handleUntilOption("endTime", request, params);
         contractResponse = Base.fetch(self.contractPrivatePostCapiV3AccountIncome(extend(request, params)));
-        items = self.safeList(contractResponse, "items", []);
+        items = self.safeList(contractResponse, "items", defaultValue = []);
     elseif functions.ccxtruthy(accountType == "funding")
         if functions.ccxtruthy(since != nothing)
             request[Symbol("startTime")] = since;
@@ -2445,7 +2950,7 @@ function fetchLedger(self::Weex, code=nothing, since=nothing, limit=nothing, par
         end
         (request, params) = self.handleUntilOption("endTime", request, params);
         fundingResponse = Base.fetch(self.privatePostApiV3AccountFundingBills(extend(request, params)));
-        items = self.safeList(fundingResponse, "items", []);
+        items = self.safeList(fundingResponse, "items", defaultValue = []);
     else
         if functions.ccxtruthy(since != nothing)
             request[Symbol("after")] = since;
@@ -2457,13 +2962,13 @@ function fetchLedger(self::Weex, code=nothing, since=nothing, limit=nothing, par
         billsResponse = Base.fetch(self.privatePostApiV3AccountBills(extend(request, params)));
         items = toArray(billsResponse);
     end
-    return self.parseLedger(items, currency, since, limit)
+    return self.parseLedger(items, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Weex, item, currency=nothing)
+function parseLedgerEntry(self::Weex, item; currency=nothing)
     currencyId = safeString2(item, "coinName", "asset");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     timestamp = safeInteger2(item, "cTime", "time");
     amountRaw = safeString2(item, "deltaAmount", "income");
     after = safeString2(item, "afterAmount", "balance");
@@ -2503,7 +3008,7 @@ function parseLedgerEntry(self::Weex, item, currency=nothing)
         Symbol("currency") => code,
         Symbol("cost") => self.safeNumber2(item, "fees", "fillFee")
     )
-), currency)
+), currency = currency)
 
 end
 function parseLedgerType(self::Weex, type_var)
@@ -2522,50 +3027,84 @@ function parseLedgerType(self::Weex, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function fetchPositions(self::Weex, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+see: https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Weex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    symbols = self.marketSymbols(symbols = symbols);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     response = nothing;
     if functions.ccxtruthy(sandboxMode)
         response = Base.fetch(self.contractPrivateGetCapiV3SimPositionAllPosition(params));
     else
         response = Base.fetch(self.contractPrivateGetCapiV3AccountPositionAllPosition(params));
     end
-    return self.parsePositions(response, symbols)
+    return self.parsePositions(response, symbols = symbols)
 
 end
-function fetchPosition(self::Weex, symbol, params=Dict())
-    positions = Base.fetch(self.fetchPositionsForSymbol(symbol, params));
+"""
+fetch data on an open position
+see: https://www.weex.com/api-doc/contract/Account_API/GetSinglePosition
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Weex, symbol; params=Dict())
+    positions = Base.fetch(self.fetchPositionsForSymbol(symbol, params = params));
     return self.safeDict(positions, 0)
 
 end
-function fetchPositionsForSymbol(self::Weex, symbol, params=Dict())
+"""
+fetch open positions for a single market fetch all open positions for specific symbol
+see: https://www.weex.com/api-doc/contract/Account_API/GetSinglePosition
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsForSymbol(self::Weex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     if functions.ccxtruthy(sandboxMode)
-            return Base.fetch(self.fetchPositions([get(market, Symbol("symbol"), nothing)], params))
+            return Base.fetch(self.fetchPositions(symbols = [get(market, Symbol("symbol"), nothing)], params = params))
     end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.contractPrivateGetCapiV3AccountPositionSinglePosition(extend(request, params)));
-    return self.parsePositions(response, [get(market, Symbol("symbol"), nothing)])
+    return self.parsePositions(response, symbols = [get(market, Symbol("symbol"), nothing)])
 
 end
-function parsePosition(self::Weex, position, market=nothing)
+function parsePosition(self::Weex, position; market=nothing)
     errorMessage = safeString(position, "errorMsg");
     errorCode = safeString(position, "errorCode");
     if functions.ccxtruthy(errorMessage != nothing)
         self.handleOrderOrPositionError(errorCode, errorMessage, position);
     end
     marketId = self.fromSandboxMarketId(safeString2(position, "symbol", "coinId"));
-    market = self.safeMarket(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
     timestamp = safeInteger(position, "createdTime");
     marginType = safeString2(position, "marginType", "marginMode");
     marginMode = "cross";
@@ -2614,7 +3153,17 @@ function parsePosition(self::Weex, position, market=nothing)
 ))
 
 end
-function closeAllPositions(self::Weex, params=Dict())
+"""
+closes all open positions for a market type
+see: https://www.weex.com/api-doc/contract/Transaction_API/ClosePositions
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closeAllPositions(self::Weex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2622,7 +3171,19 @@ function closeAllPositions(self::Weex, params=Dict())
     return self.parsePositions(response)
 
 end
-function closePosition(self::Weex, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a market
+see: https://www.weex.com/api-doc/contract/Transaction_API/ClosePositions
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: not used by current exchange
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function closePosition(self::Weex, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2631,11 +3192,22 @@ function closePosition(self::Weex, symbol, side=nothing, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.contractPrivatePostCapiV3ClosePositions(extend(request, params)));
-    orders = self.parseOrders(response, market);
+    orders = self.parseOrders(response, market = market);
     return self.safeDict(orders, 0)
 
 end
-function fetchTradingFee(self::Weex, symbol, params=Dict())
+"""
+fetch the trading fees for a contract market
+see: https://www.weex.com/api-doc/contract/Account_API/GetCommissionRate // contract
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Weex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2647,14 +3219,14 @@ function fetchTradingFee(self::Weex, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.contractPrivateGetCapiV3AccountCommissionRate(extend(request, params)));
-    return self.parseTradingFee(response, market)
+    return self.parseTradingFee(response, market = market)
 
 end
-function parseTradingFee(self::Weex, fee, market=nothing)
+function parseTradingFee(self::Weex, fee; market=nothing)
     marketId = safeString(fee, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("maker") => self.safeNumber(fee, "makerCommissionRate"),
     Symbol("taker") => self.safeNumber(fee, "takerCommissionRate"),
     Symbol("percentage") => true,
@@ -2662,7 +3234,18 @@ function parseTradingFee(self::Weex, fee, market=nothing)
 )
 
 end
-function fetchMarginMode(self::Weex, symbol, params=Dict())
+"""
+fetches the margin mode of a specific symbol
+see: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+
+# Arguments
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Weex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2671,25 +3254,36 @@ function fetchMarginMode(self::Weex, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.contractPrivateGetCapiV3AccountSymbolConfig(extend(request, params)));
-    marginMode = self.safeDict(response, 0, Dict{Symbol, Any}());
-    return self.parseMarginMode(marginMode, market)
+    marginMode = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginMode(marginMode, market = market)
 
 end
-function fetchMarginModes(self::Weex, symbols=nothing, params=Dict())
+"""
+fetches margin modes the symbols, with symbols=undefined all markets are returned
+see: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginModes(self::Weex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.contractPrivateGetCapiV3AccountSymbolConfig(params));
-    return self.parseMarginModes(toArray(response), symbols, "symbol", "swap")
+    return self.parseMarginModes(toArray(response), symbols = symbols, symbolKey = "symbol", marketType = "swap")
 
 end
-function parseMarginMode(self::Weex, marginMode, market=nothing)
+function parseMarginMode(self::Weex, marginMode; market=nothing)
     marketId = safeString(marginMode, "symbol");
     marginType = safeString(marginMode, "marginType");
     return Dict{Symbol, Any}(
     Symbol("info") => marginMode,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("marginMode") => self.parseMarginType(marginType)
 )
 
@@ -2702,7 +3296,19 @@ function parseMarginType(self::Weex, marginType)
     return safeString(marginTypes, marginType, marginType)
 
 end
-function setMarginMode(self::Weex, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Weex, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -2729,7 +3335,18 @@ function encodeMarginMode(self::Weex, marginMode)
     return result
 
 end
-function fetchLeverage(self::Weex, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Weex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2738,20 +3355,31 @@ function fetchLeverage(self::Weex, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.contractPrivateGetCapiV3AccountSymbolConfig(extend(request, params)));
-    marginMode = self.safeDict(response, 0, Dict{Symbol, Any}());
-    return self.parseLeverage(marginMode, market)
+    marginMode = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(marginMode, market = market)
 
 end
-function fetchLeverages(self::Weex, symbols=nothing, params=Dict())
+"""
+fetch the set leverage for all markets
+see: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverages(self::Weex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.contractPrivateGetCapiV3AccountSymbolConfig(params));
-    return self.parseLeverages(toArray(response), symbols, "symbol", "swap")
+    return self.parseLeverages(toArray(response), symbols = symbols, symbolKey = "symbol", marketType = "swap")
 
 end
-function parseLeverage(self::Weex, leverage, market=nothing)
+function parseLeverage(self::Weex, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
     marginType = safeString(leverage, "marginType");
     marginMode = self.parseMarginType(marginType);
@@ -2764,14 +3392,30 @@ function parseLeverage(self::Weex, leverage, market=nothing)
     end
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("marginMode") => marginMode,
     Symbol("longLeverage") => longLeverage,
     Symbol("shortLeverage") => shortLeverage
 )
 
 end
-function setLeverage(self::Weex, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.weex.com/api-doc/contract/Account_API/UpdateLeverageTRADE
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' (default is 'cross' if specific leverage parameters are not provided)
+- `params.crossLeverage`::float, optional: *cross margin mode only* leverage for cross margin mode when marginMode is 'cross'
+- `params.isolatedLongLeverage`::float, optional: *isolated margin mode only* leverage for long positions when marginMode is 'isolated'
+- `params.isolatedShortLeverage`::float, optional: *isolated margin mode only* leverage for short positions when marginMode is 'isolated' If specific leverage parameters are not provided the leverage value will be applied to both long and short positions if marginMode is 'isolated' or to cross margin mode if marginMode is 'cross' If marginMode is not provided and specific leverage parameters are not provided too the leverage value will be applied to cross leverage
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Weex, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -2783,7 +3427,7 @@ function setLeverage(self::Weex, leverage, symbol=nothing, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params);
+    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params);
     if functions.ccxtruthy(marginMode != nothing)
         request[Symbol("marginType")] = self.encodeMarginMode(marginMode);
     end
@@ -2801,7 +3445,18 @@ function setLeverage(self::Weex, leverage, symbol=nothing, params=Dict())
     return Base.fetch(self.contractPrivatePostCapiV3AccountLeverage(extend(request, params)))
 
 end
-function fetchPositionMode(self::Weex, symbol=nothing, params=Dict())
+"""
+fetchs the position mode, hedged or one way
+see: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+function fetchPositionMode(self::Weex; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2810,7 +3465,7 @@ function fetchPositionMode(self::Weex, symbol=nothing, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.contractPrivateGetCapiV3AccountSymbolConfig(extend(request, params)));
-    entry = self.safeDict(response, 0, Dict{Symbol, Any}());
+    entry = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
     separatedType = safeString(entry, "separatedType");
     return Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -2818,7 +3473,20 @@ function fetchPositionMode(self::Weex, symbol=nothing, params=Dict())
 )
 
 end
-function setPositionMode(self::Weex, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string: 'cross' or 'isolated' (default is 'cross')
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Weex, hedged; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setPositionMode() requires a symbol argument")));
     end
@@ -2827,7 +3495,7 @@ function setPositionMode(self::Weex, hedged, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("setPositionMode", params);
+    (marginMode, params) = self.handleMarginModeAndParams("setPositionMode", params = params);
     if functions.ccxtruthy(marginMode == nothing)
         throw(ArgumentsRequired(string(self.id, " setPositionMode() also sets marginMode, so a marginMode parameter is required")));
     end
@@ -2840,7 +3508,7 @@ function setPositionMode(self::Weex, hedged, symbol=nothing, params=Dict())
     return Base.fetch(self.contractPrivatePostCapiV3AccountMarginType(extend(request, params)))
 
 end
-function modifyMarginHelper(self::Weex, symbol, amount, type_var, params=Dict())
+function modifyMarginHelper(self::Weex, symbol, amount, type_var; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2857,13 +3525,13 @@ function modifyMarginHelper(self::Weex, symbol, amount, type_var, params=Dict())
     );
     parsedType = functions.ccxtruthy((type_var == 1)) ? "add" : "reduce";
     response = Base.fetch(self.contractPrivatePostCapiV3AccountPositionMargin(extend(request, params)));
-    return extend(self.parseMarginModification(response, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(response, market = market), Dict{Symbol, Any}(
     Symbol("amount") => self.parseNumber(amount),
     Symbol("type") => parsedType
 ))
 
 end
-function parseMarginModification(self::Weex, data, market=nothing)
+function parseMarginModification(self::Weex, data; market=nothing)
     msg = safeString(data, "msg");
     status = functions.ccxtruthy((msg == "success")) ? "ok" : "failed";
     timestamp = safeInteger(data, "requestTime");
@@ -2881,16 +3549,51 @@ function parseMarginModification(self::Weex, data, market=nothing)
 )
 
 end
-function reduceMargin(self::Weex, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, 2, params))
+"""
+remove margin from a position
+see: https://www.weex.com/api-doc/contract/Account_API/AdjustPositionMarginTRADE
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::string: the id of the position to reduce margin from, required
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Weex, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, 2, params = params))
 
 end
-function addMargin(self::Weex, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, 1, params))
+"""
+add margin
+see: https://www.weex.com/api-doc/contract/Account_API/AdjustPositionMarginTRADE
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::string: the id of the position to add margin to, required
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Weex, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, 1, params = params))
 
 end
+"""
+get the market id to send in a request, converting to the demo-trading market id (e.g. BTCSUSDT) when sandbox mode is enabled, only valid for USDT-margined linear markets which is all the demo environment provides
+
+# Arguments
+- `market`::object: a unified market structure
+
+# Returns
+- the market id for the request
+"""
 function toSandboxMarketId(self::Weex, market)
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     baseId = safeString(market, "baseId");
     if functions.ccxtruthy(@functions.ccxt_and(sandboxMode, (baseId != nothing)))
             return string(baseId, "SUSDT")
@@ -2898,8 +3601,17 @@ function toSandboxMarketId(self::Weex, market)
     return safeString(market, "id")
 
 end
+"""
+convert a demo-trading market id (e.g. BTCSUSDT) from a response back into the live market id (e.g. BTCUSDT) when sandbox mode is enabled
+
+# Arguments
+- `marketId`::string, optional: a market id from an exchange response
+
+# Returns
+- the live market id
+"""
 function fromSandboxMarketId(self::Weex, marketId)
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_or(!functions.ccxtruthy(sandboxMode), (marketId == nothing)))
             return marketId
     end
@@ -2918,7 +3630,7 @@ function setSandboxMode(self::Weex, enable)
     self.options[Symbol("sandboxMode")] = enable;
 
 end
-function sign(self::Weex, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Weex, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     endpoint = self.implodeParams(path, params);
     query = omit(params, self.extractParams(path));
     isBatch = (findfirst("batch", path) !== nothing);
@@ -2928,7 +3640,7 @@ function sign(self::Weex, path, api="public", method="GET", params=Dict(), heade
         end
     end
     if functions.ccxtruthy(@functions.ccxt_or((api == "private"), (api == "contractPrivate")))
-        sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+        sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
         if functions.ccxtruthy(@functions.ccxt_and(sandboxMode, (findfirst("capi/v3/sim/", path) === nothing)))
             throw(NotSupported(string(self.id, " ", path, " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")));
         end
@@ -2983,323 +3695,323 @@ Base.getproperty(self::Weex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetApiV3Time(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV3Coins(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/coins", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/coins"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV3ExchangeInfo(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/exchangeInfo", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/exchangeInfo"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV3Ping(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/ping", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/ping"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV3ApiTradingSymbols(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/apiTradingSymbols", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/apiTradingSymbols"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV3MarketTickerPrice(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/ticker/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/market/ticker/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV3MarketTicker24hr(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/market/ticker/24hr"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV3MarketTrades(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/market/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV3MarketKlines(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/klines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/market/klines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV3MarketDepth(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/market/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetApiV3MarketTickerBookTicker(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/market/ticker/bookTicker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3Account(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/account/", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/account/"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3AccountTransferRecords(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/account/transferRecords", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/account/transferRecords"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3OpenOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3AllOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/allOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/allOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3MyTrades(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/myTrades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/myTrades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3RebateAffiliateGetAffiliateUIDs(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/getAffiliateUIDs", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/rebate/affiliate/getAffiliateUIDs"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/getChannelUserTradeAndAsset", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/rebate/affiliate/getChannelUserTradeAndAsset"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3RebateAffiliateGetAffiliateCommission(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/getAffiliateCommission", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/rebate/affiliate/getAffiliateCommission"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/getInternalWithdrawalStatus", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/rebate/affiliate/getInternalWithdrawalStatus"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3RebateAffiliateQuerySubChannelTransactions(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/querySubChannelTransactions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/rebate/affiliate/querySubChannelTransactions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3AgencyVerifyReferrals(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/agency/verifyReferrals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/agency/verifyReferrals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3AgencyGetAssert(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/agency/getAssert", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/agency/getAssert"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiV3AgencyGetDealData(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/agency/getDealData", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/agency/getDealData"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV3AccountBills(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/account/bills", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/account/bills"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV3AccountFundingBills(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/account/fundingBills", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/account/fundingBills"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV3OrderBatch(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/order/batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/order/batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostApiV3RebateAffiliateInternalWithdrawal(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/internalWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/rebate/affiliate/internalWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v3/order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV3OpenOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/openOrders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v3/openOrders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteApiV3OrderBatch(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/order/batch", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "api/v3/order/batch"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketTime(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/time", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/time"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketExchangeInfo(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/exchangeInfo", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/exchangeInfo"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketDepth(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/depth", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/depth"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketTicker24hr(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/ticker/24hr", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/ticker/24hr"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketTickerBookTicker(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/ticker/bookTicker", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/ticker/bookTicker"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketTrades(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/trades", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/trades"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketKlines(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/klines", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/klines"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketIndexPriceKlines(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/indexPriceKlines", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/indexPriceKlines"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketMarkPriceKlines(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/markPriceKlines", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/markPriceKlines"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketHistoryKlines(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/historyKlines", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/historyKlines"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketSymbolPrice(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/symbolPrice", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/symbolPrice"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketOpenInterest(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/openInterest", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/openInterest"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketPremiumIndex(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/premiumIndex", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/premiumIndex"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketFundingRate(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/fundingRate", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/fundingRate"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractGetCapiV3MarketApiTradingSymbols(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/apiTradingSymbols", "contract", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/market/apiTradingSymbols"; api="contract", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3AccountBalance(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/balance", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/balance"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3AccountCommissionRate(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/commissionRate", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/commissionRate"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3AccountAccountConfig(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/accountConfig", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/accountConfig"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3AccountSymbolConfig(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/symbolConfig", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/symbolConfig"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3AccountPositionAllPosition(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/position/allPosition", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/position/allPosition"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3AccountPositionSinglePosition(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/position/singlePosition", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/position/singlePosition"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/order", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/order"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3OpenOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/openOrders", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/openOrders"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3OrderHistory(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/order/history", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/order/history"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3UserTrades(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/userTrades", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/userTrades"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3OpenAlgoOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/openAlgoOrders", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/openAlgoOrders"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3AllAlgoOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/allAlgoOrders", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/allAlgoOrders"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3SimBalance(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/sim/balance", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/sim/balance"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3SimPositionAllPosition(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/sim/position/allPosition", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/sim/position/allPosition"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetCapiV3SimOrderHistory(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/sim/order/history", "contractPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/sim/order/history"; api="contractPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3AccountIncome(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/income", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/income"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3AccountMarginType(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/marginType", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/marginType"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3AccountLeverage(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/leverage", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/leverage"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3AccountPositionMargin(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/positionMargin", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/positionMargin"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3AccountModifyAutoAppendMargin(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/modifyAutoAppendMargin", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/account/modifyAutoAppendMargin"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/order", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/order"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3BatchOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/batchOrders", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/batchOrders"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3ClosePositions(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/closePositions", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/closePositions"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3AlgoOrder(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/algoOrder", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/algoOrder"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3PlaceTpSlOrder(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/placeTpSlOrder", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/placeTpSlOrder"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3ModifyTpSlOrder(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/modifyTpSlOrder", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/modifyTpSlOrder"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostCapiV3SimOrder(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/sim/order", "contractPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/sim/order"; api="contractPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateDeleteCapiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/order", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/order"; api="contractPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateDeleteCapiV3BatchOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/batchOrders", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/batchOrders"; api="contractPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateDeleteCapiV3AllOpenOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/allOpenOrders", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/allOpenOrders"; api="contractPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateDeleteCapiV3AlgoOrder(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/algoOrder", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/algoOrder"; api="contractPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateDeleteCapiV3AlgoOpenOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/algoOpenOrders", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "capi/v3/algoOpenOrders"; api="contractPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Weex(; kwargs...)
@@ -3363,3 +4075,873 @@ function Weex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Weex_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://www.weex.com/api-doc/spot/ConfigAPI/Ping
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Weex_fetchStatus
+
+function __ccxt_doc_Weex_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.weex.com/api-doc/spot/ConfigAPI/GetServerTime
+see: https://www.weex.com/api-doc/contract/Market_API/GetServerTime
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', default is 'spot'
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Weex_fetchTime
+
+function __ccxt_doc_Weex_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://www.weex.com/api-doc/spot/ConfigAPI/CurrencyInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Weex_fetchCurrencies
+
+function __ccxt_doc_Weex_fetchMarkets() end
+"""
+retrieves data on all markets for exchagne
+see: https://www.weex.com/api-doc/spot/ConfigAPI/GetProductInfo // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetContractInfo // contract
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Weex_fetchMarkets
+
+function __ccxt_doc_Weex_fetchTickers() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetAllTickerInfo // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetTicker24h // contract
+
+# Arguments
+- `symbols`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Weex_fetchTickers
+
+function __ccxt_doc_Weex_fetchBidsAsks() end
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetBookTicker // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetBookTicker // contract
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Weex_fetchBidsAsks
+
+function __ccxt_doc_Weex_fetchLastPrices() end
+"""
+fetches the last price for multiple markets
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of lastprice structures
+"""
+__ccxt_doc_Weex_fetchLastPrices
+
+function __ccxt_doc_Weex_fetchMarkPrice() end
+"""
+fetches mark price for the market
+see: https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the mark price for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.priceType`::string, optional: "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Weex_fetchMarkPrice
+
+function __ccxt_doc_Weex_fetchMarkPrices() end
+"""
+fetches mark prices for multiple markets
+see: https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Weex_fetchMarkPrices
+
+function __ccxt_doc_Weex_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetDepthData // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetDepthData // contract
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return (default 15, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Weex_fetchOrderBook
+
+function __ccxt_doc_Weex_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetKLineData // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
+see: https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
+see: https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
+see: https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract historical klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (default 100, max 300)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Weex_fetchOHLCV
+
+function __ccxt_doc_Weex_fetchSpotOHLCV() end
+"""
+helper method for fetchOHLCV
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetKLineData
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Weex_fetchSpotOHLCV
+
+function __ccxt_doc_Weex_fetchContractOHLCV() end
+"""
+helper method for fetchOHLCV
+see: https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
+see: https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
+see: https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
+see: https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract historical klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (default 100, max 100 for historical klines, max 1000 for other contract klines)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: whether to automatically paginate requests until the required number of candles is returned
+- `params.historical`::bool, optional: whether to fetch historical klines (default is false). If false, will fetch last price klines
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Weex_fetchContractOHLCV
+
+function __ccxt_doc_Weex_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.weex.com/api-doc/spot/MarketDataAPI/GetTradeData // spot
+see: https://www.weex.com/api-doc/contract/Market_API/GetRecentTrades // contract
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (default 100, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Weex_fetchTrades
+
+function __ccxt_doc_Weex_fetchOpenInterest() end
+"""
+retrieves the open interest of a contract trading pair
+see: https://www.weex.com/api-doc/contract/Market_API/GetOpenInterest
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Weex_fetchOpenInterest
+
+function __ccxt_doc_Weex_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Weex_fetchFundingRates
+
+function __ccxt_doc_Weex_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://www.weex.com/api-doc/contract/Market_API/GetFundingRateHistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of funding rate records to fetch (default 100, max 1000)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Weex_fetchFundingRateHistory
+
+function __ccxt_doc_Weex_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in positions
+see: https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
+see: https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+see: https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Weex_fetchBalance
+
+function __ccxt_doc_Weex_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://www.weex.com/api-doc/spot/AccountAPI/TransferRecords
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve (default 10, max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Weex_fetchTransfers
+
+function __ccxt_doc_Weex_createOrder() end
+"""
+Create an order on the exchange
+see: https://www.weex.com/api-doc/spot/orderApi/PlaceOrder // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
+see: https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
+see: https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+see: https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_createOrder
+
+function __ccxt_doc_Weex_createSpotOrder() end
+"""
+helper method for creating spot orders
+see: https://www.weex.com/api-doc/spot/orderApi/PlaceOrder
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', or 'FOK'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_createSpotOrder
+
+function __ccxt_doc_Weex_createContractOrder() end
+"""
+helper method for creating contract orders
+see: https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
+see: https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+see: https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `type`::string: 'limit' or 'market'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: the amount of currency to trade
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+- `params.takeProfit.triggerPrice`::float, optional: The price at which the take profit order will be triggered
+- `params.takeProfit.triggerPriceType`::string, optional: The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
+- `params.stopLoss.triggerPrice`::float, optional: The price at which the stop loss order will be triggered
+- `params.stopLoss.triggerPriceType`::string, optional: The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
+- `params.stopLossPrice`::float, optional: price to trigger stop-loss orders
+- `params.stopLossPriceType`::string, optional: The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
+- `params.takeProfitPrice`::float, optional: price to trigger take-profit orders
+- `params.takeProfitPriceType`::string, optional: The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+- `params.reduceOnly`::bool, optional: A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+- `params.timeInForce`::string, optional: GTC, IOC, or FOK (default is GTC for limit orders)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_createContractOrder
+
+function __ccxt_doc_Weex_cancelOrder() end
+"""
+cancels an open order
+see: https://www.weex.com/api-doc/spot/orderApi/CancelOrder // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/CancelOrder // contract
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' (default is 'spot')
+- `params.trigger`::bool, optional: *contract orders only* whether the order to cancel is a trigger order
+- `params.clientOrderId`::string, optional: *non-trigger orders only* a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_cancelOrder
+
+function __ccxt_doc_Weex_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://www.weex.com/api-doc/spot/orderApi/Cancel-Symbol-Orders // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/CancelAllOrders // contract
+see: https://www.weex.com/api-doc/contract/Transaction_API/CancelAllPendingOrders // contract trigger
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.trigger`::bool, optional: *swap only* true for cancelling trigger orders (default is false)
+
+# Returns
+- Response from the exchange
+"""
+__ccxt_doc_Weex_cancelAllOrders
+
+function __ccxt_doc_Weex_cancelOrders() end
+"""
+cancel multiple orders
+see: https://www.weex.com/api-doc/spot/orderApi/BulkCancel // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/CancelOrdersBatch // contract
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids (could be an alternative to ids)
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_cancelOrders
+
+function __ccxt_doc_Weex_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://www.weex.com/api-doc/spot/orderApi/OrderDetails // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetSingleOrderInfo // contract
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.clientOrderId`::string, optional: *spot only* a unique id for the order, used if id is not provided
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_fetchOrder
+
+function __ccxt_doc_Weex_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.weex.com/api-doc/spot/orderApi/UnfinishedOrders // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentOrderStatus // contract
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentPendingOrders // contract trigger
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.trigger`::bool, optional: *swap only* whether to fetch trigger orders (default is false)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_fetchOpenOrders
+
+function __ccxt_doc_Weex_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+see: https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_fetchClosedOrders
+
+function __ccxt_doc_Weex_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+see: https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_fetchCanceledOrders
+
+function __ccxt_doc_Weex_fetchOrders() end
+"""
+fetches information on multiple spot orders made by the user
+see: https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in (required for spot orders)
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::object, optional: end time, ms
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_fetchOrders
+
+function __ccxt_doc_Weex_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple closed and canceled orders made by the user
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+see: https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in (required for spot orders)
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::object, optional: end time, ms
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Weex_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetTradeDetails // contract
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Weex_fetchOrderTrades
+
+function __ccxt_doc_Weex_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
+see: https://www.weex.com/api-doc/contract/Transaction_API/GetTradeDetails // contract
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.type`::string, optional: 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Weex_fetchMyTrades
+
+function __ccxt_doc_Weex_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.weex.com/api-doc/spot/AccountAPI/GetBillRecords // spot
+see: https://www.weex.com/api-doc/spot/AccountAPI/GetFundBillRecords // funding
+see: https://www.weex.com/api-doc/contract/Account_API/GetContractBills // contract
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined, max is 100
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+- `params.type`::string, optional: 'spot', 'funding' or 'swap' (default is 'spot')
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Weex_fetchLedger
+
+function __ccxt_doc_Weex_fetchPositions() end
+"""
+fetch all open positions
+see: https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+see: https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Weex_fetchPositions
+
+function __ccxt_doc_Weex_fetchPosition() end
+"""
+fetch data on an open position
+see: https://www.weex.com/api-doc/contract/Account_API/GetSinglePosition
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Weex_fetchPosition
+
+function __ccxt_doc_Weex_fetchPositionsForSymbol() end
+"""
+fetch open positions for a single market fetch all open positions for specific symbol
+see: https://www.weex.com/api-doc/contract/Account_API/GetSinglePosition
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Weex_fetchPositionsForSymbol
+
+function __ccxt_doc_Weex_closeAllPositions() end
+"""
+closes all open positions for a market type
+see: https://www.weex.com/api-doc/contract/Transaction_API/ClosePositions
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Weex_closeAllPositions
+
+function __ccxt_doc_Weex_closePosition() end
+"""
+closes open positions for a market
+see: https://www.weex.com/api-doc/contract/Transaction_API/ClosePositions
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: not used by current exchange
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Weex_closePosition
+
+function __ccxt_doc_Weex_fetchTradingFee() end
+"""
+fetch the trading fees for a contract market
+see: https://www.weex.com/api-doc/contract/Account_API/GetCommissionRate // contract
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Weex_fetchTradingFee
+
+function __ccxt_doc_Weex_fetchMarginMode() end
+"""
+fetches the margin mode of a specific symbol
+see: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+
+# Arguments
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Weex_fetchMarginMode
+
+function __ccxt_doc_Weex_fetchMarginModes() end
+"""
+fetches margin modes the symbols, with symbols=undefined all markets are returned
+see: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Weex_fetchMarginModes
+
+function __ccxt_doc_Weex_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Weex_setMarginMode
+
+function __ccxt_doc_Weex_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Weex_fetchLeverage
+
+function __ccxt_doc_Weex_fetchLeverages() end
+"""
+fetch the set leverage for all markets
+see: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Weex_fetchLeverages
+
+function __ccxt_doc_Weex_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.weex.com/api-doc/contract/Account_API/UpdateLeverageTRADE
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' (default is 'cross' if specific leverage parameters are not provided)
+- `params.crossLeverage`::float, optional: *cross margin mode only* leverage for cross margin mode when marginMode is 'cross'
+- `params.isolatedLongLeverage`::float, optional: *isolated margin mode only* leverage for long positions when marginMode is 'isolated'
+- `params.isolatedShortLeverage`::float, optional: *isolated margin mode only* leverage for short positions when marginMode is 'isolated' If specific leverage parameters are not provided the leverage value will be applied to both long and short positions if marginMode is 'isolated' or to cross margin mode if marginMode is 'cross' If marginMode is not provided and specific leverage parameters are not provided too the leverage value will be applied to cross leverage
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Weex_setLeverage
+
+function __ccxt_doc_Weex_fetchPositionMode() end
+"""
+fetchs the position mode, hedged or one way
+see: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+__ccxt_doc_Weex_fetchPositionMode
+
+function __ccxt_doc_Weex_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string: 'cross' or 'isolated' (default is 'cross')
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Weex_setPositionMode
+
+function __ccxt_doc_Weex_reduceMargin() end
+"""
+remove margin from a position
+see: https://www.weex.com/api-doc/contract/Account_API/AdjustPositionMarginTRADE
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::string: the id of the position to reduce margin from, required
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Weex_reduceMargin
+
+function __ccxt_doc_Weex_addMargin() end
+"""
+add margin
+see: https://www.weex.com/api-doc/contract/Account_API/AdjustPositionMarginTRADE
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::string: the id of the position to add margin to, required
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Weex_addMargin
+
+function __ccxt_doc_Weex_toSandboxMarketId() end
+"""
+get the market id to send in a request, converting to the demo-trading market id (e.g. BTCSUSDT) when sandbox mode is enabled, only valid for USDT-margined linear markets which is all the demo environment provides
+
+# Arguments
+- `market`::object: a unified market structure
+
+# Returns
+- the market id for the request
+"""
+__ccxt_doc_Weex_toSandboxMarketId
+
+function __ccxt_doc_Weex_fromSandboxMarketId() end
+"""
+convert a demo-trading market id (e.g. BTCSUSDT) from a response back into the live market id (e.g. BTCUSDT) when sandbox mode is enabled
+
+# Arguments
+- `marketId`::string, optional: a market id from an exchange response
+
+# Returns
+- the live market id
+"""
+__ccxt_doc_Weex_fromSandboxMarketId

@@ -417,25 +417,67 @@ function describe(self::Nado, )
 ))
 
 end
-function createOrder(self::Nado, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.nado.xyz/developer-resources/api/gateway/executes/place-order
+see: https://docs.nado.xyz/developer-resources/api/trigger/executes/place-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.expiration`::any, optional: order expiration timestamp in seconds, defaults to 4294967295
+- `params.appendix`::any, optional: pre-encoded order appendix
+- `params.reduceOnly`::bool, optional: true if the order should only reduce position
+- `params.postOnly`::bool, optional: true to create a post-only order
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK', or 'PO'
+- `params.spotLeverage`::bool, optional: whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
+- `params.triggerPrice`::float, optional: *swap only* The price at which a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: *swap only* The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: *swap only* The price at which a take profit order is triggered at
+- `params.triggerDirection`::string, optional: trigger direction, above, below
+- `params.id`::int, optional: client-provided request id, returned by the exchange in the response
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+"""
+function createOrder(self::Nado, symbol, type_var, side, amount; price=nothing, params=Dict())
     self.checkRequiredCredentials();
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
-    placeOrder = self.safeDict(request, "place_order", Dict{Symbol, Any}());
+    request = Base.fetch(self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params));
+    placeOrder = self.safeDict(request, "place_order", defaultValue = Dict{Symbol, Any}());
     isTriggerOrder = (ccxt_in("trigger", placeOrder));
     response = nothing;
     if functions.ccxtruthy(isTriggerOrder)
-        response = self.triggerPrivatePostExecute(request);
+        response = Base.fetch(self.triggerPrivatePostExecute(request));
     else
-        response = self.gatewayPrivatePostExecute(request);
+        response = Base.fetch(self.gatewayPrivatePostExecute(request));
     end
     return self.parseOrder(extend(Dict{Symbol, Any}(
     Symbol("place_order") => placeOrder
-), response), market)
+), response), market = market)
 
 end
-function createOrderRequest(self::Nado, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+build and sign the place_order execute payload
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the request payload for the place_order execute
+"""
+function createOrderRequest(self::Nado, symbol, type_var, side, amount; price=nothing, params=Dict())
     market = self.market(symbol);
     if functions.ccxtruthy(type_var != "limit")
         throw(InvalidOrder(string(self.id, " createOrder() supports limit orders only")));
@@ -452,15 +494,15 @@ function createOrderRequest(self::Nado, symbol, type_var, side, amount, price=no
         amountX18 = stringMul(amountX18, "-1");
     end
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "createOrder", "subaccount", "default");
+    (subaccount, params) = self.handleOptionAndParams(params, "createOrder", "subaccount", defaultValue = "default");
     expiration = nothing;
-    (expiration, params) = self.handleOptionAndParams(params, "createOrder", "expiration", "4294967295");
+    (expiration, params) = self.handleOptionAndParams(params, "createOrder", "expiration", defaultValue = "4294967295");
     recvWindow = nothing;
-    (recvWindow, params) = self.handleOptionAndParams(params, "createOrder", "recvWindow", 5000);
+    (recvWindow, params) = self.handleOptionAndParams(params, "createOrder", "recvWindow", defaultValue = 5000);
     nonce = self.createOrderNonce(recvWindow);
     requestId = safeInteger(params, "id");
     spotLeverage = self.safeBool2(params, "spotLeverage", "spot_leverage");
-    sender = self.createSubaccount(self.walletAddress, subaccount);
+    sender = self.createSubaccount(self.walletAddress, subaccount = subaccount);
     order = Dict{Symbol, Any}(
         Symbol("sender") => sender,
         Symbol("priceX18") => priceX18,
@@ -519,10 +561,10 @@ function createOrderRequest(self::Nado, symbol, type_var, side, amount, price=no
     end
     appendix = safeString(params, "appendix");
     if functions.ccxtruthy(appendix == nothing)
-        appendix = self.createOrderAppendix(isTriggerOrder, params);
+        appendix = self.createOrderAppendix(isTriggerOrder, params = params);
     end
     order[Symbol("appendix")] = appendix;
-    contracts = self.queryContracts();
+    contracts = Base.fetch(self.queryContracts());
     chainId = safeString(contracts, "chain_id");
     signature = self.signOrder(order, productId, chainId);
     placeOrder[Symbol("order")] = order;
@@ -534,20 +576,60 @@ function createOrderRequest(self::Nado, symbol, type_var, side, amount, price=no
     return extend(request, params)
 
 end
-function editOrder(self::Nado, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-and-place
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.expiration`::any, optional: order expiration timestamp in seconds, defaults to 4294967295
+- `params.appendix`::any, optional: pre-encoded order appendix
+- `params.reduceOnly`::bool, optional: true if the order should only reduce position
+- `params.postOnly`::bool, optional: true to create a post-only order
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK', or 'PO'
+- `params.spotLeverage`::bool, optional: whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
+- `params.placeRequiresUnfilled`::bool, optional: when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
+- `params.id`::int, optional: client-provided request id, returned by the exchange in the response
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+"""
+function editOrder(self::Nado, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     self.checkRequiredCredentials();
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
-    request = self.editOrderRequest(id, symbol, type_var, side, amount, price, params);
-    response = self.gatewayPrivatePostExecute(request);
-    cancelAndPlace = self.safeDict(request, "cancel_and_place", Dict{Symbol, Any}());
-    placeOrder = self.safeDict(cancelAndPlace, "place_order", Dict{Symbol, Any}());
+    request = Base.fetch(self.editOrderRequest(id, symbol, type_var, side, amount = amount, price = price, params = params));
+    response = Base.fetch(self.gatewayPrivatePostExecute(request));
+    cancelAndPlace = self.safeDict(request, "cancel_and_place", defaultValue = Dict{Symbol, Any}());
+    placeOrder = self.safeDict(cancelAndPlace, "place_order", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(extend(Dict{Symbol, Any}(
     Symbol("place_order") => placeOrder
-), response), market)
+), response), market = market)
 
 end
-function editOrderRequest(self::Nado, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+build and sign the cancel_and_place execute payload
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the request payload for the cancel_and_place execute
+"""
+function editOrderRequest(self::Nado, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     market = self.market(symbol);
     if functions.ccxtruthy(type_var != "limit")
         throw(InvalidOrder(string(self.id, " editOrder() supports limit orders only")));
@@ -566,24 +648,24 @@ function editOrderRequest(self::Nado, id, symbol, type_var, side, amount=nothing
     if functions.ccxtruthy(side == "sell")
         amountX18 = stringMul(amountX18, "-1");
     end
-    editOrderOptions = self.safeDict(self.options, "editOrder", Dict{Symbol, Any}());
+    editOrderOptions = self.safeDict(self.options, "editOrder", defaultValue = Dict{Symbol, Any}());
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "editOrder", "subaccount", "default");
+    (subaccount, params) = self.handleOptionAndParams(params, "editOrder", "subaccount", defaultValue = "default");
     expiration = nothing;
-    (expiration, params) = self.handleOptionAndParams(params, "editOrder", "expiration", "4294967295");
+    (expiration, params) = self.handleOptionAndParams(params, "editOrder", "expiration", defaultValue = "4294967295");
     recvWindow = nothing;
-    (recvWindow, params) = self.handleOptionAndParams(params, "editOrder", "recvWindow", 5000);
+    (recvWindow, params) = self.handleOptionAndParams(params, "editOrder", "recvWindow", defaultValue = 5000);
     cancelNonce = self.createOrderNonce(recvWindow);
     orderNonce = stringAdd(cancelNonce, "1");
     appendix = safeString(params, "appendix");
     if functions.ccxtruthy(appendix == nothing)
-        appendix = self.createOrderAppendix(false, params);
+        appendix = self.createOrderAppendix(false, params = params);
     end
     requestId = safeInteger(params, "id");
     spotLeverage = self.safeBool2(params, "spotLeverage", "spot_leverage");
-    placeRequiresUnfilled = self.safeBool2(params, "placeRequiresUnfilled", "place_requires_unfilled", self.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
+    placeRequiresUnfilled = self.safeBool2(params, "placeRequiresUnfilled", "place_requires_unfilled", defaultValue = self.safeBool(editOrderOptions, "placeRequiresUnfilled", defaultValue = true));
     params = omit(params, ["expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled"]);
-    sender = self.createSubaccount(self.walletAddress, subaccount);
+    sender = self.createSubaccount(self.walletAddress, subaccount = subaccount);
     cancelTx = Dict{Symbol, Any}(
         Symbol("sender") => sender,
         Symbol("productIds") => [productId],
@@ -598,7 +680,7 @@ function editOrderRequest(self::Nado, id, symbol, type_var, side, amount=nothing
         Symbol("nonce") => orderNonce,
         Symbol("appendix") => appendix
     );
-    contracts = self.queryContracts();
+    contracts = Base.fetch(self.queryContracts());
     chainId = safeString(contracts, "chain_id");
     endpointAddress = safeString(contracts, "endpoint_addr");
     if functions.ccxtruthy(endpointAddress == nothing)
@@ -629,58 +711,97 @@ function editOrderRequest(self::Nado, id, symbol, type_var, side, amount=nothing
     return extend(request, params)
 
 end
-function cancelOrder(self::Nado, id, symbol=nothing, params=Dict())
-    orders = self.cancelOrders([id], symbol, params);
+"""
+cancels an open order
+see: https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.requiredUnfilledAmount`::string, optional: cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias params.required_unfilled_amount
+- `params.id`::int, optional: client-provided request id, returned by the exchange in the response
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Nado, id; symbol=nothing, params=Dict())
+    orders = Base.fetch(self.cancelOrders([id], symbol = symbol, params = params));
     return self.safeDict(orders, 0)
 
 end
-function cancelAllOrders(self::Nado, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-product-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, when undefined all orders for all products are canceled
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.id`::int, optional: client-provided request id, returned by the exchange in the response
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Nado; symbol=nothing, params=Dict())
     self.checkRequiredCredentials();
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     trigger = self.safeBool2(params, "stop", "trigger");
     params = omit(params, ["stop", "trigger"]);
-    request = self.cancelAllOrdersRequest(symbol, params);
+    request = Base.fetch(self.cancelAllOrdersRequest(symbol = symbol, params = params));
     response = nothing;
     if functions.ccxtruthy(trigger)
-        response = self.triggerPrivatePostExecute(request);
+        response = Base.fetch(self.triggerPrivatePostExecute(request));
     else
-        response = self.gatewayPrivatePostExecute(request);
+        response = Base.fetch(self.gatewayPrivatePostExecute(request));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    cancelledOrders = self.safeList(data, "cancelled_orders", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    cancelledOrders = self.safeList(data, "cancelled_orders", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(cancelledOrders)))
         push!(result, self.parseOrder(extend(Dict{Symbol, Any}(
     Symbol("status") => "canceled"
-), get(cancelledOrders, i + 1, nothing)), market));
+), get(cancelledOrders, i + 1, nothing)), market = market));
         i += 1
     end
     return result
 
 end
-function cancelAllOrdersRequest(self::Nado, symbol=nothing, params=Dict())
+"""
+build and sign the cancel_product_orders execute payload
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, when undefined all orders for all products are canceled
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the request payload for the cancel_product_orders execute
+"""
+function cancelAllOrdersRequest(self::Nado; symbol=nothing, params=Dict())
     productIds = [];
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
                 push!(productIds, self.parseToInt(get(market, Symbol("id"), nothing)));
     end
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "cancelAllOrders", "subaccount", "default");
-    sender = self.createSubaccount(self.walletAddress, subaccount);
+    (subaccount, params) = self.handleOptionAndParams(params, "cancelAllOrders", "subaccount", defaultValue = "default");
+    sender = self.createSubaccount(self.walletAddress, subaccount = subaccount);
     recvWindow = nothing;
-    (recvWindow, params) = self.handleOptionAndParams(params, "cancelAllOrders", "recvWindow", 5000);
+    (recvWindow, params) = self.handleOptionAndParams(params, "cancelAllOrders", "recvWindow", defaultValue = 5000);
     nonce = self.createOrderNonce(recvWindow);
     tx = Dict{Symbol, Any}(
         Symbol("sender") => sender,
         Symbol("productIds") => productIds,
         Symbol("nonce") => nonce
     );
-    contracts = self.queryContracts();
+    contracts = Base.fetch(self.queryContracts());
     chainId = safeString(contracts, "chain_id");
     endpointAddress = safeString(contracts, "endpoint_addr");
     if functions.ccxtruthy(endpointAddress == nothing)
@@ -702,41 +823,68 @@ function cancelAllOrdersRequest(self::Nado, symbol=nothing, params=Dict())
     return extend(request, params)
 
 end
-function cancelOrders(self::Nado, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.requiredUnfilledAmount`::string, optional: cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias params.required_unfilled_amount
+- `params.id`::int, optional: client-provided request id, returned by the exchange in the response
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Nado, ids; symbol=nothing, params=Dict())
     self.checkRequiredCredentials();
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     trigger = self.safeBool2(params, "stop", "trigger");
     params = omit(params, ["stop", "trigger"]);
-    request = self.cancelOrdersRequest(ids, symbol, params);
+    request = Base.fetch(self.cancelOrdersRequest(ids, symbol = symbol, params = params));
     response = nothing;
     if functions.ccxtruthy(trigger)
-        response = self.triggerPrivatePostExecute(request);
+        response = Base.fetch(self.triggerPrivatePostExecute(request));
     else
-        response = self.gatewayPrivatePostExecute(request);
+        response = Base.fetch(self.gatewayPrivatePostExecute(request));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    cancelledOrders = self.safeList(data, "cancelled_orders", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    cancelledOrders = self.safeList(data, "cancelled_orders", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(cancelledOrders)))
         push!(result, self.parseOrder(extend(Dict{Symbol, Any}(
     Symbol("status") => "canceled"
-), get(cancelledOrders, i + 1, nothing)), market));
+), get(cancelledOrders, i + 1, nothing)), market = market));
         i += 1
     end
     return result
 
 end
-function cancelOrdersRequest(self::Nado, ids, symbol=nothing, params=Dict())
+"""
+build and sign the cancel_orders execute payload
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the request payload for the cancel_orders execute
+"""
+function cancelOrdersRequest(self::Nado, ids; symbol=nothing, params=Dict())
     market = self.market(symbol);
     productId = self.parseToInt(get(market, Symbol("id"), nothing));
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "cancelOrders", "subaccount", "default");
-    sender = self.createSubaccount(self.walletAddress, subaccount);
+    (subaccount, params) = self.handleOptionAndParams(params, "cancelOrders", "subaccount", defaultValue = "default");
+    sender = self.createSubaccount(self.walletAddress, subaccount = subaccount);
     productIds = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(ids)))
@@ -744,7 +892,7 @@ function cancelOrdersRequest(self::Nado, ids, symbol=nothing, params=Dict())
         i += 1
     end
     recvWindow = nothing;
-    (recvWindow, params) = self.handleOptionAndParams(params, "cancelOrders", "recvWindow", 5000);
+    (recvWindow, params) = self.handleOptionAndParams(params, "cancelOrders", "recvWindow", defaultValue = 5000);
     nonce = self.createOrderNonce(recvWindow);
     tx = Dict{Symbol, Any}(
         Symbol("sender") => sender,
@@ -752,7 +900,7 @@ function cancelOrdersRequest(self::Nado, ids, symbol=nothing, params=Dict())
         Symbol("digests") => ids,
         Symbol("nonce") => nonce
     );
-    contracts = self.queryContracts();
+    contracts = Base.fetch(self.queryContracts());
     chainId = safeString(contracts, "chain_id");
     endpointAddress = safeString(contracts, "endpoint_addr");
     if functions.ccxtruthy(endpointAddress == nothing)
@@ -781,24 +929,51 @@ function cancelOrdersRequest(self::Nado, ids, symbol=nothing, params=Dict())
     return extend(request, params)
 
 end
-function fetchOrder(self::Nado, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Nado, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("type") => "order",
         Symbol("product_id") => self.parseToInt(get(market, Symbol("id"), nothing)),
         Symbol("digest") => id
     );
-    response = self.gatewayPublicGetQuery(extend(request, params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    response = Base.fetch(self.gatewayPublicGetQuery(extend(request, params)));
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function fetchOrders(self::Nado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    self.loadMarkets();
+"""
+fetches information on multiple orders made by the user
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/orders
+see: https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Nado; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    Base.fetch(self.loadMarkets());
     productIds = [];
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -806,15 +981,15 @@ function fetchOrders(self::Nado, symbol=nothing, since=nothing, limit=nothing, p
                 push!(productIds, self.parseToInt(get(market, Symbol("id"), nothing)));
     end
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "fetchOrders", "subaccount", "default");
-    sender = self.createSubaccount(self.walletAddress, subaccount);
+    (subaccount, params) = self.handleOptionAndParams(params, "fetchOrders", "subaccount", defaultValue = "default");
+    sender = self.createSubaccount(self.walletAddress, subaccount = subaccount);
     trigger = self.safeBool2(params, "stop", "trigger");
     params = omit(params, ["stop", "trigger"]);
     if functions.ccxtruthy(!functions.ccxtruthy(trigger))
         throw(NotSupported(string(self.id, " fetchOrders only support trigger")));
     end
     recvWindow = nothing;
-    (recvWindow, params) = self.handleOptionAndParams(params, "fetchOrders", "recvWindow", 5000);
+    (recvWindow, params) = self.handleOptionAndParams(params, "fetchOrders", "recvWindow", defaultValue = 5000);
     tx = Dict{Symbol, Any}(
         Symbol("sender") => sender,
         Symbol("recvTime") => numberToString(milliseconds() + recvWindow)
@@ -827,30 +1002,46 @@ function fetchOrders(self::Nado, symbol=nothing, since=nothing, limit=nothing, p
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    contracts = self.queryContracts();
+    contracts = Base.fetch(self.queryContracts());
     chainId = safeString(contracts, "chain_id");
     endpointAddress = safeString(contracts, "endpoint_addr");
     signature = self.signFetchTriggerOrders(tx, chainId, endpointAddress);
     request[Symbol("signature")] = signature;
-    response = self.triggerPrivatePostQuery(extend(request, params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    response = Base.fetch(self.triggerPrivatePostQuery(extend(request, params)));
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Nado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/orders
+see: https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.trigger`::bool, optional: whether the order is a trigger order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Nado; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.walletAddress == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires walletAddress")));
     end
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "subaccount", "default");
-    sender = self.createSubaccount(self.walletAddress, subaccount);
+    (subaccount, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "subaccount", defaultValue = "default");
+    sender = self.createSubaccount(self.walletAddress, subaccount = subaccount);
     trigger = self.safeBool2(params, "stop", "trigger");
     if functions.ccxtruthy(trigger)
-            return self.fetchOrders(symbol, since, nothing, extend(params, Dict{Symbol, Any}(
+            return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = extend(params, Dict{Symbol, Any}(
     Symbol("status_types") => ["waiting_price", "waiting_dependency"]
-)))
+))))
     end
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument")));
@@ -861,31 +1052,48 @@ function fetchOpenOrders(self::Nado, symbol=nothing, since=nothing, limit=nothin
         Symbol("type") => "subaccount_orders",
         Symbol("product_id") => self.parseToInt(get(market, Symbol("id"), nothing))
     );
-    response = self.gatewayPublicGetQuery(extend(request, params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "orders", []);
-    return self.parseOrders(orders, market, since, limit, Dict{Symbol, Any}(
+    response = Base.fetch(self.gatewayPublicGetQuery(extend(request, params)));
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("status") => "open"
 ))
 
 end
-function fetchClosedOrders(self::Nado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/orders
+see: https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.until`::int, optional: timestamp in ms of the latest order to fetch
+- `params.trigger`::bool, optional: whether the order is a trigger order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+"""
+function fetchClosedOrders(self::Nado; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.walletAddress == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchClosedOrders() requires walletAddress")));
     end
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "subaccount", "default");
-    sender = self.createSubaccount(self.walletAddress, subaccount);
+    (subaccount, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "subaccount", defaultValue = "default");
+    sender = self.createSubaccount(self.walletAddress, subaccount = subaccount);
     trigger = self.safeBool2(params, "stop", "trigger");
     if functions.ccxtruthy(trigger)
-            return self.fetchOrders(symbol, since, nothing, extend(params, Dict{Symbol, Any}(
+            return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = extend(params, Dict{Symbol, Any}(
     Symbol("status_types") => ["triggered", "triggering", "twap_executing", "twap_completed"]
-)))
+))))
     end
     ordersRequest = Dict{Symbol, Any}(
         Symbol("subaccounts") => [sender]
@@ -893,16 +1101,16 @@ function fetchClosedOrders(self::Nado, symbol=nothing, since=nothing, limit=noth
     if functions.ccxtruthy(market != nothing)
         ordersRequest[Symbol("product_ids")] = [self.parseToInt(get(market, Symbol("id"), nothing))];
     end
-    (ordersRequest, params) = self.handleUntilOption("max_time", ordersRequest, params, 0.001);
+    (ordersRequest, params) = self.handleUntilOption("max_time", ordersRequest, params, multiplier = 0.001);
     if functions.ccxtruthy(limit != nothing)
         ordersRequest[Symbol("limit")] = min(limit, 500);
     end
     request = Dict{Symbol, Any}(
         Symbol("orders") => ordersRequest
     );
-    response = self.archivePost(deepExtend(request, params));
+    response = Base.fetch(self.archivePost(deepExtend(request, params)));
     closedOrders = [];
-    orders = self.safeList(response, "orders", []);
+    orders = self.safeList(response, "orders", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
         order = get(orders, i + 1, nothing);
@@ -913,98 +1121,182 @@ function fetchClosedOrders(self::Nado, symbol=nothing, since=nothing, limit=noth
         end
         i += 1
     end
-    return self.parseOrders(closedOrders, market, since, limit)
+    return self.parseOrders(closedOrders, market = market, since = since, limit = limit)
 
 end
-function fetchCanceledOrders(self::Nado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return self.fetchOrders(symbol, since, nothing, extend(params, Dict{Symbol, Any}(
+"""
+fetches information on multiple canceled orders made by the user
+see: https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Nado; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = extend(params, Dict{Symbol, Any}(
     Symbol("status_types") => ["cancelled", "internal_error"]
-)))
+))))
 
 end
-function fetchCanceledAndClosedOrders(self::Nado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return self.fetchOrders(symbol, since, nothing, extend(params, Dict{Symbol, Any}(
+"""
+fetches information on multiple canceled orders made by the user
+see: https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Nado; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = extend(params, Dict{Symbol, Any}(
     Symbol("status_types") => ["cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed"]
-)))
+))))
 
 end
-function fetchMyTrades(self::Nado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/matches
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: timestamp in ms of the earliest trade
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+"""
+function fetchMyTrades(self::Nado; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.walletAddress == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires walletAddress")));
     end
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "fetchMyTrades", "subaccount", "default");
+    (subaccount, params) = self.handleOptionAndParams(params, "fetchMyTrades", "subaccount", defaultValue = "default");
     matchesRequest = Dict{Symbol, Any}(
-        Symbol("subaccounts") => [self.createSubaccount(self.walletAddress, subaccount)]
+        Symbol("subaccounts") => [self.createSubaccount(self.walletAddress, subaccount = subaccount)]
     );
     if functions.ccxtruthy(market != nothing)
         matchesRequest[Symbol("product_ids")] = [self.parseToInt(get(market, Symbol("id"), nothing))];
     end
-    (matchesRequest, params) = self.handleUntilOption("max_time", matchesRequest, params, 0.001);
+    (matchesRequest, params) = self.handleUntilOption("max_time", matchesRequest, params, multiplier = 0.001);
     if functions.ccxtruthy(limit != nothing)
         matchesRequest[Symbol("limit")] = min(limit, 500);
     end
     request = Dict{Symbol, Any}(
         Symbol("matches") => matchesRequest
     );
-    response = self.archivePost(deepExtend(request, params));
-    matches = self.safeList(response, "matches", []);
-    txs = self.safeList(response, "txs", []);
+    response = Base.fetch(self.archivePost(deepExtend(request, params)));
+    matches = self.safeList(response, "matches", defaultValue = []);
+    txs = self.safeList(response, "txs", defaultValue = []);
     txsBySubmission = indexBy(txs, "submission_idx");
     trades = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(matches)))
         match_var = get(matches, i + 1, nothing);
         submissionIdx = safeString(match_var, "submission_idx");
-        tx = self.safeDict(txsBySubmission, submissionIdx, Dict{Symbol, Any}());
+        tx = self.safeDict(txsBySubmission, submissionIdx, defaultValue = Dict{Symbol, Any}());
         push!(trades, extend(tx, match_var));
         i += 1
     end
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchBalance(self::Nado, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/subaccount-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Nado; params=Dict())
     if functions.ccxtruthy(self.walletAddress == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchBalance() requires walletAddress")));
     end
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "fetchBalance", "subaccount", "default");
+    (subaccount, params) = self.handleOptionAndParams(params, "fetchBalance", "subaccount", defaultValue = "default");
     request = Dict{Symbol, Any}(
         Symbol("type") => "subaccount_info",
-        Symbol("subaccount") => self.createSubaccount(self.walletAddress, subaccount)
+        Symbol("subaccount") => self.createSubaccount(self.walletAddress, subaccount = subaccount)
     );
-    response = self.gatewayPublicGetQuery(extend(request, params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    response = Base.fetch(self.gatewayPublicGetQuery(extend(request, params)));
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseBalance(data)
 
 end
-function fetchDeposits(self::Nado, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return self.queryTransactionsByEventType("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params)
+"""
+fetch all deposits made to an account
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/events
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.until`::int, optional: timestamp in ms of the latest deposit to fetch
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+"""
+function fetchDeposits(self::Nado; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.queryTransactionsByEventType("deposit_collateral", "deposit", "fetchDeposits", code = code, since = since, limit = limit, params = params))
 
 end
-function fetchWithdrawals(self::Nado, code=nothing, since=nothing, limit=nothing, params=Dict())
-    return self.queryTransactionsByEventType("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params)
+"""
+fetch all withdrawals made from an account
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/events
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.until`::int, optional: timestamp in ms of the latest withdrawal to fetch
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Nado; code=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.queryTransactionsByEventType("withdraw_collateral", "withdrawal", "fetchWithdrawals", code = code, since = since, limit = limit, params = params))
 
 end
-function queryTransactionsByEventType(self::Nado, eventType, transactionType, methodName, code=nothing, since=nothing, limit=nothing, params=Dict())
+function queryTransactionsByEventType(self::Nado, eventType, transactionType, methodName; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.walletAddress == nothing)
         throw(ArgumentsRequired(string(self.id, " ", methodName, "() requires walletAddress")));
     end
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, methodName, "subaccount", "default");
+    (subaccount, params) = self.handleOptionAndParams(params, methodName, "subaccount", defaultValue = "default");
     eventsRequest = Dict{Symbol, Any}(
-        Symbol("subaccounts") => [self.createSubaccount(self.walletAddress, subaccount)],
+        Symbol("subaccounts") => [self.createSubaccount(self.walletAddress, subaccount = subaccount)],
         Symbol("event_types") => [eventType],
         Symbol("limit") => Dict{Symbol, Any}(
             Symbol("raw") => functions.ccxtruthy((limit == nothing)) ? 100 : min(limit, 500)
@@ -1013,13 +1305,13 @@ function queryTransactionsByEventType(self::Nado, eventType, transactionType, me
     if functions.ccxtruthy(currency != nothing)
         eventsRequest[Symbol("product_ids")] = [self.parseToInt(get(currency, Symbol("id"), nothing))];
     end
-    (eventsRequest, params) = self.handleUntilOption("max_time", eventsRequest, params, 0.001);
+    (eventsRequest, params) = self.handleUntilOption("max_time", eventsRequest, params, multiplier = 0.001);
     request = Dict{Symbol, Any}(
         Symbol("events") => eventsRequest
     );
-    response = self.archivePost(deepExtend(request, params));
-    events = self.safeList(response, "events", []);
-    txs = self.safeList(response, "txs", []);
+    response = Base.fetch(self.archivePost(deepExtend(request, params)));
+    events = self.safeList(response, "events", defaultValue = []);
+    txs = self.safeList(response, "txs", defaultValue = []);
     transactions = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(events)))
@@ -1039,33 +1331,45 @@ function queryTransactionsByEventType(self::Nado, eventType, transactionType, me
         transaction = extend(Dict{Symbol, Any}(), tx);
         transaction = extend(transaction, event);
         transaction[Symbol("transaction_type")] = transactionType;
-        push!(transactions, self.parseTransaction(transaction, currency));
+        push!(transactions, self.parseTransaction(transaction, currency = currency));
         i += 1
     end
-    return self.filterByCurrencySinceLimit(transactions, code, since, limit)
+    return self.filterByCurrencySinceLimit(transactions, code = code, since = since, limit = limit)
 
 end
-function fetchPositions(self::Nado, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/subaccount-info
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+"""
+function fetchPositions(self::Nado; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.walletAddress == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchPositions() requires walletAddress")));
     end
-    self.loadMarkets();
-    symbols = self.marketSymbols(symbols);
+    Base.fetch(self.loadMarkets());
+    symbols = self.marketSymbols(symbols = symbols);
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "fetchPositions", "subaccount", "default");
+    (subaccount, params) = self.handleOptionAndParams(params, "fetchPositions", "subaccount", defaultValue = "default");
     request = Dict{Symbol, Any}(
         Symbol("type") => "subaccount_info",
-        Symbol("subaccount") => self.createSubaccount(self.walletAddress, subaccount)
+        Symbol("subaccount") => self.createSubaccount(self.walletAddress, subaccount = subaccount)
     );
-    response = self.gatewayPublicGetQuery(extend(request, params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    positions = self.safeList(data, "perp_balances", []);
-    products = self.safeList(data, "perp_products", []);
+    response = Base.fetch(self.gatewayPublicGetQuery(extend(request, params)));
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    positions = self.safeList(data, "perp_balances", defaultValue = []);
+    products = self.safeList(data, "perp_products", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         position = get(positions, i + 1, nothing);
-        balance = self.safeDict(position, "balance", Dict{Symbol, Any}());
+        balance = self.safeDict(position, "balance", defaultValue = Dict{Symbol, Any}());
         amount = safeString(balance, "amount");
         if functions.ccxtruthy(@functions.ccxt_or((amount == nothing), stringEquals(amount, "0")))
             i += 1; continue
@@ -1087,22 +1391,42 @@ function fetchPositions(self::Nado, symbols=nothing, params=Dict())
 ), position)));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function fetchTime(self::Nado, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.nado.xyz/developer-resources/api/gateway/edge#control-messages
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Nado; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => "time"
     );
-    response = self.gatewayPublicGetEdgeQuery(extend(request, params));
+    response = Base.fetch(self.gatewayPublicGetEdgeQuery(extend(request, params)));
     return safeInteger(response, "server_time")
 
 end
-function fetchStatus(self::Nado, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Nado; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => "status"
     );
-    response = self.gatewayPublicGetQuery(extend(request, params));
+    response = Base.fetch(self.gatewayPublicGetQuery(extend(request, params)));
     status = safeString(response, "data");
     return Dict{Symbol, Any}(
     Symbol("status") => functions.ccxtruthy((status == "active")) ? "ok" : "error",
@@ -1113,14 +1437,26 @@ function fetchStatus(self::Nado, params=Dict())
 )
 
 end
-function fetchMarkets(self::Nado, params=Dict())
+"""
+retrieves data on all markets for nado
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/symbols
+see: https://docs.nado.xyz/developer-resources/api/v2/pairs
+see: https://docs.nado.xyz/developer-resources/api/v2/assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Nado; params=Dict())
     symbolsRequest = self.gatewayPublicGetSymbols(params);
     pairsRequest = self.gatewayV2PublicGetPairs(params);
     assetsRequest = self.gatewayV2PublicGetAssets(params);
-    responses = asyncmap(Base.fetch, [symbolsRequest, pairsRequest, assetsRequest]);
-    symbols = self.safeList(responses, 0, []);
-    pairs_var = self.safeList(responses, 1, []);
-    assets = self.safeList(responses, 2, []);
+    responses = Base.fetch(asyncmap(Base.fetch, [symbolsRequest, pairsRequest, assetsRequest]));
+    symbols = self.safeList(responses, 0, defaultValue = []);
+    pairs_var = self.safeList(responses, 1, defaultValue = []);
+    assets = self.safeList(responses, 2, defaultValue = []);
     pairsById = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(pairs_var)))
@@ -1154,10 +1490,10 @@ function fetchMarkets(self::Nado, params=Dict())
         if functions.ccxtruthy(previous == nothing)
             assetsByCode[Symbol(assetCode)] = rawAsset;
         else
-            previousDeposit = self.safeBool(previous, "can_deposit", false);
-            previousWithdraw = self.safeBool(previous, "can_withdraw", false);
-            currentDeposit = self.safeBool(rawAsset, "can_deposit", false);
-            currentWithdraw = self.safeBool(rawAsset, "can_withdraw", false);
+            previousDeposit = self.safeBool(previous, "can_deposit", defaultValue = false);
+            previousWithdraw = self.safeBool(previous, "can_withdraw", defaultValue = false);
+            currentDeposit = self.safeBool(rawAsset, "can_deposit", defaultValue = false);
+            currentWithdraw = self.safeBool(rawAsset, "can_withdraw", defaultValue = false);
             if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(!functions.ccxtruthy(previousDeposit), !functions.ccxtruthy(previousWithdraw)), (@functions.ccxt_or(currentDeposit, currentWithdraw))))
                 assetsByCode[Symbol(assetCode)] = rawAsset;
             end
@@ -1169,8 +1505,8 @@ function fetchMarkets(self::Nado, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
         market = get(symbols, i + 1, nothing);
         id = safeString(market, "product_id");
-        pair = self.safeDict(pairsById, id, Dict{Symbol, Any}());
-        asset = self.safeDict(assetsById, id, Dict{Symbol, Any}());
+        pair = self.safeDict(pairsById, id, defaultValue = Dict{Symbol, Any}());
+        asset = self.safeDict(assetsById, id, defaultValue = Dict{Symbol, Any}());
         rawType = safeString(market, "type");
         type_var = functions.ccxtruthy((rawType == "perp")) ? "swap" : rawType;
         contract = (type_var == "swap");
@@ -1182,7 +1518,7 @@ function fetchMarkets(self::Nado, params=Dict())
         rawQuoteId = safeString(pair, "quote", "USDT0");
         base = self.safeCurrencyCode(self.removeMarketSuffix(rawBaseId));
         quote_var = self.safeCurrencyCode(rawQuoteId);
-        baseAsset = self.safeDict(assetsByCode, base, asset);
+        baseAsset = self.safeDict(assetsByCode, base, defaultValue = asset);
         quoteAsset = self.safeDict(assetsByCode, quote_var);
         baseId = safeString(baseAsset, "product_id", rawBaseId);
         quoteId = safeString(quoteAsset, "product_id", rawQuoteId);
@@ -1197,7 +1533,7 @@ function fetchMarkets(self::Nado, params=Dict())
         priceIncrement = self.parseX18(safeString(market, "price_increment_x18"));
         amountIncrement = self.parseX18(safeString(market, "size_increment"));
         minCost = self.parseX18(safeString(market, "min_size"));
-        push!(markets, self.safeMarketStructure(Dict{Symbol, Any}(
+        push!(markets, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("lowercaseId") => nothing,
     Symbol("symbol") => symbol,
@@ -1259,8 +1595,18 @@ function fetchMarkets(self::Nado, params=Dict())
     return markets
 
 end
-function fetchCurrencies(self::Nado, params=Dict())
-    response = self.gatewayV2PublicGetAssets(params);
+"""
+fetches all available currencies on an exchange
+see: https://docs.nado.xyz/developer-resources/api/v2/assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Nado; params=Dict())
+    response = Base.fetch(self.gatewayV2PublicGetAssets(params));
     result = Dict{Symbol, Any}();
     assets = toArray(response);
     i = 0
@@ -1272,13 +1618,13 @@ function fetchCurrencies(self::Nado, params=Dict())
             i += 1; continue
         end
         previous = self.safeDict(result, code);
-        canDeposit = self.safeBool(currency, "can_deposit", false);
-        canWithdraw = self.safeBool(currency, "can_withdraw", false);
+        canDeposit = self.safeBool(currency, "can_deposit", defaultValue = false);
+        canWithdraw = self.safeBool(currency, "can_withdraw", defaultValue = false);
         if functions.ccxtruthy(previous == nothing)
             result[Symbol(code)] = parsed;
         else
-            previousDeposit = self.safeBool(previous, "deposit", false);
-            previousWithdraw = self.safeBool(previous, "withdraw", false);
+            previousDeposit = self.safeBool(previous, "deposit", defaultValue = false);
+            previousWithdraw = self.safeBool(previous, "withdraw", defaultValue = false);
             if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(!functions.ccxtruthy(previousDeposit), !functions.ccxtruthy(previousWithdraw)), (@functions.ccxt_or(canDeposit, canWithdraw))))
                 result[Symbol(code)] = parsed;
             end
@@ -1288,127 +1634,237 @@ function fetchCurrencies(self::Nado, params=Dict())
     return result
 
 end
-function fetchTickers(self::Nado, symbols=nothing, params=Dict())
-    self.loadMarkets();
-    symbols = self.marketSymbols(symbols);
-    response = self.archiveV2PublicGetTickers(params);
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.nado.xyz/developer-resources/api/v2/tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Nado; symbols=nothing, params=Dict())
+    Base.fetch(self.loadMarkets());
+    symbols = self.marketSymbols(symbols = symbols);
+    response = Base.fetch(self.archiveV2PublicGetTickers(params));
     tickers = toArray(response);
-    return self.parseTickers(tickers, symbols)
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function fetchTicker(self::Nado, symbol, params=Dict())
-    self.loadMarkets();
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.nado.xyz/developer-resources/api/v2/tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Nado, symbol; params=Dict())
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
-    tickers = self.fetchTickers([symbol], params);
+    tickers = Base.fetch(self.fetchTickers(symbols = [symbol], params = params));
     ticker = self.safeDict(tickers, symbol);
     if functions.ccxtruthy(ticker == nothing)
         throw(BadSymbol(string(self.id, " fetchTicker() ticker not found for ", symbol)));
     end
-    return self.safeTicker(ticker, market)
+    return self.safeTicker(ticker, market = market)
 
 end
-function fetchFundingRate(self::Nado, symbol, params=Dict())
-    self.loadMarkets();
+"""
+fetch the current funding rate
+see: https://docs.nado.xyz/developer-resources/api/v2/contracts
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.edge`::bool, optional: whether to retrieve volume and open interest metrics for all chains, defaults to true
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Nado, symbol; params=Dict())
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
         throw(BadSymbol(string(self.id, " fetchFundingRate() supports swap contracts only")));
     end
     tickerId = safeString(get(market, Symbol("info"), nothing), "ticker_id");
-    response = self.archiveV2PublicGetContracts(params);
-    data = self.safeDict(response, tickerId, Dict{Symbol, Any}());
-    return self.parseFundingRate(data, market)
+    response = Base.fetch(self.archiveV2PublicGetContracts(params));
+    data = self.safeDict(response, tickerId, defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(data, market = market)
 
 end
-function fetchFundingHistory(self::Nado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/interest-and-funding-payments
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Nado; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingHistory() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.walletAddress == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingHistory() requires walletAddress")));
     end
-    self.loadMarkets();
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
         throw(BadSymbol(string(self.id, " fetchFundingHistory() supports swap contracts only")));
     end
     subaccount = nothing;
-    (subaccount, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "subaccount", "default");
+    (subaccount, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "subaccount", defaultValue = "default");
     request = Dict{Symbol, Any}(
         Symbol("interest_and_funding") => Dict{Symbol, Any}(
-            Symbol("subaccount") => self.createSubaccount(self.walletAddress, subaccount),
+            Symbol("subaccount") => self.createSubaccount(self.walletAddress, subaccount = subaccount),
             Symbol("product_ids") => [self.parseToInt(get(market, Symbol("id"), nothing))],
             Symbol("limit") => functions.ccxtruthy((limit == nothing)) ? 100 : min(limit, 100)
         )
     );
-    response = self.archivePost(deepExtend(request, params));
-    fundingPayments = self.safeList(response, "funding_payments", []);
+    response = Base.fetch(self.archivePost(deepExtend(request, params)));
+    fundingPayments = self.safeList(response, "funding_payments", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fundingPayments)))
-        push!(result, self.parseFundingHistory(get(fundingPayments, i + 1, nothing), market));
+        push!(result, self.parseFundingHistory(get(fundingPayments, i + 1, nothing), market = market));
         i += 1
     end
     sorted = sortBy(result, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchFundingRates(self::Nado, symbols=nothing, params=Dict())
-    self.loadMarkets();
-    symbols = self.marketSymbols(symbols, "swap", true);
-    response = self.archiveV2PublicGetContracts(params);
+"""
+fetch the funding rate for multiple markets
+see: https://docs.nado.xyz/developer-resources/api/v2/contracts
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.edge`::bool, optional: whether to retrieve volume and open interest metrics for all chains, defaults to true
+
+# Returns
+- a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Nado; symbols=nothing, params=Dict())
+    Base.fetch(self.loadMarkets());
+    symbols = self.marketSymbols(symbols = symbols, type_var = "swap", allowEmpty = true);
+    response = Base.fetch(self.archiveV2PublicGetContracts(params));
     tickers = objectKeys(response);
     rates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
         ticker = get(tickers, i + 1, nothing);
-        push!(rates, self.safeDict(response, ticker, Dict{Symbol, Any}()));
+        push!(rates, self.safeDict(response, ticker, defaultValue = Dict{Symbol, Any}()));
         i += 1
     end
-    return self.parseFundingRates(rates, symbols)
+    return self.parseFundingRates(rates, symbols = symbols)
 
 end
-function fetchOpenInterest(self::Nado, symbol, params=Dict())
-    self.loadMarkets();
+"""
+retrieves the open interest of a contract trading pair
+see: https://docs.nado.xyz/developer-resources/api/v2/contracts
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+- `params.edge`::bool, optional: whether to retrieve volume and open interest metrics for all chains, defaults to true
+
+# Returns
+- an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Nado, symbol; params=Dict())
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
         throw(BadSymbol(string(self.id, " fetchOpenInterest() supports swap contracts only")));
     end
     tickerId = safeString(get(market, Symbol("info"), nothing), "ticker_id");
-    response = self.archiveV2PublicGetContracts(params);
-    data = self.safeDict(response, tickerId, Dict{Symbol, Any}());
-    return self.parseOpenInterest(data, market)
+    response = Base.fetch(self.archiveV2PublicGetContracts(params));
+    data = self.safeDict(response, tickerId, defaultValue = Dict{Symbol, Any}());
+    return self.parseOpenInterest(data, market = market)
 
 end
-function fetchOpenInterests(self::Nado, symbols=nothing, params=Dict())
-    self.loadMarkets();
-    symbols = self.marketSymbols(symbols, "swap", true);
-    response = self.archiveV2PublicGetContracts(params);
+"""
+retrieves the open interests of some currencies
+see: https://docs.nado.xyz/developer-resources/api/v2/contracts
+
+# Arguments
+- `symbols`::array, optional: unified CCXT market symbols
+- `params`::object, optional: exchange specific parameters
+- `params.edge`::bool, optional: whether to retrieve volume and open interest metrics for all chains, defaults to true
+
+# Returns
+- a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterests(self::Nado; symbols=nothing, params=Dict())
+    Base.fetch(self.loadMarkets());
+    symbols = self.marketSymbols(symbols = symbols, type_var = "swap", allowEmpty = true);
+    response = Base.fetch(self.archiveV2PublicGetContracts(params));
     tickers = objectKeys(response);
     interests = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
         ticker = get(tickers, i + 1, nothing);
-        push!(interests, self.safeDict(response, ticker, Dict{Symbol, Any}()));
+        push!(interests, self.safeDict(response, ticker, defaultValue = Dict{Symbol, Any}()));
         i += 1
     end
-    return self.parseOpenInterests(interests, symbols)
+    return self.parseOpenInterests(interests, symbols = symbols)
 
 end
-function fetchOrderBook(self::Nado, symbol, limit=nothing, params=Dict())
-    self.loadMarkets();
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.nado.xyz/developer-resources/api/v2/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Nado, symbol; limit=nothing, params=Dict())
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     tickerId = safeString(get(market, Symbol("info"), nothing), "ticker_id");
     request = Dict{Symbol, Any}(
         Symbol("ticker_id") => tickerId,
         Symbol("depth") => functions.ccxtruthy((limit == nothing)) ? 100 : limit
     );
-    response = self.gatewayV2PublicGetOrderbook(extend(request, params));
+    response = Base.fetch(self.gatewayV2PublicGetOrderbook(extend(request, params)));
     timestamp = safeInteger(response, "timestamp");
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp)
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = timestamp)
 
 end
-function fetchTrades(self::Nado, symbol, since=nothing, limit=nothing, params=Dict())
-    self.loadMarkets();
+"""
+get the list of the most recent trades for a particular symbol
+see: https://docs.nado.xyz/developer-resources/api/v2/trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.max_trade_id`::int, optional: max trade id to include in the result for pagination
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Nado, symbol; since=nothing, limit=nothing, params=Dict())
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     tickerId = safeString(get(market, Symbol("info"), nothing), "ticker_id");
     request = Dict{Symbol, Any}(
@@ -1417,12 +1873,27 @@ function fetchTrades(self::Nado, symbol, since=nothing, limit=nothing, params=Di
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, 500);
     end
-    response = self.archiveV2PublicGetTrades(extend(request, params));
-    return self.parseTrades(response, market, since, limit)
+    response = Base.fetch(self.archiveV2PublicGetTrades(extend(request, params)));
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchOHLCV(self::Nado, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
-    self.loadMarkets();
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/candlesticks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Nado, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
+    Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     until = safeInteger(params, "until");
     params = omit(params, "until");
@@ -1438,18 +1909,18 @@ function fetchOHLCV(self::Nado, symbol, timeframe="1m", since=nothing, limit=not
     if functions.ccxtruthy(until != nothing)
         request[Symbol("candlesticks")][Symbol("max_time")] = self.parseToInt(until / 1000);
     end
-    response = self.archivePost(deepExtend(request, params));
-    data = self.safeList(response, "candlesticks", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    response = Base.fetch(self.archivePost(deepExtend(request, params)));
+    data = self.safeList(response, "candlesticks", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Nado, ohlcv, market=nothing)
+function parseOHLCV(self::Nado, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, "timestamp"), self.parseX18(safeString(ohlcv, "open_x18")), self.parseX18(safeString(ohlcv, "high_x18")), self.parseX18(safeString(ohlcv, "low_x18")), self.parseX18(safeString(ohlcv, "close_x18")), self.parseX18(safeString(ohlcv, "volume"))]
 
 end
-function parseTrade(self::Nado, trade, market=nothing)
+function parseTrade(self::Nado, trade; market=nothing)
     marketId = safeString(trade, "product_id");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeTimestamp(trade, "timestamp");
     rawOrder = self.safeDict(trade, "order");
     isArchiveMatch = rawOrder != nothing;
@@ -1525,12 +1996,12 @@ function parseTrade(self::Nado, trade, market=nothing)
     Symbol("amount") => parsedAmount,
     Symbol("cost") => parsedCost,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function parseFundingRate(self::Nado, contract, market=nothing)
+function parseFundingRate(self::Nado, contract; market=nothing)
     marketId = safeString(contract, "product_id");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     fundingTimestamp = safeTimestamp(contract, "next_funding_rate_timestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
@@ -1554,9 +2025,9 @@ function parseFundingRate(self::Nado, contract, market=nothing)
 )
 
 end
-function parseFundingHistory(self::Nado, funding, market=nothing)
+function parseFundingHistory(self::Nado, funding; market=nothing)
     marketId = safeString(funding, "product_id");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeTimestamp(funding, "timestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => funding,
@@ -1569,9 +2040,9 @@ function parseFundingHistory(self::Nado, funding, market=nothing)
 )
 
 end
-function parseOpenInterest(self::Nado, interest, market=nothing)
+function parseOpenInterest(self::Nado, interest; market=nothing)
     marketId = safeString(interest, "product_id");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return self.safeOpenInterest(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
     Symbol("openInterestAmount") => self.safeNumber(interest, "open_interest"),
@@ -1579,12 +2050,12 @@ function parseOpenInterest(self::Nado, interest, market=nothing)
     Symbol("timestamp") => nothing,
     Symbol("datetime") => nothing,
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function parseTicker(self::Nado, ticker, market=nothing)
+function parseTicker(self::Nado, ticker; market=nothing)
     marketId = safeString(ticker, "product_id");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = nothing;
     last_var = safeString(ticker, "last_price");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1608,12 +2079,12 @@ function parseTicker(self::Nado, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "base_volume"),
     Symbol("quoteVolume") => safeString(ticker, "quote_volume"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
 function parseCurrency(self::Nado, rawCurrency)
-    canDeposit = self.safeBool(rawCurrency, "can_deposit", false);
-    canWithdraw = self.safeBool(rawCurrency, "can_withdraw", false);
+    canDeposit = self.safeBool(rawCurrency, "can_deposit", defaultValue = false);
+    canWithdraw = self.safeBool(rawCurrency, "can_withdraw", defaultValue = false);
     id = safeString(rawCurrency, "product_id");
     currencyId = safeString(rawCurrency, "symbol");
     code = self.safeCurrencyCode(self.removeMarketSuffix(currencyId));
@@ -1646,7 +2117,7 @@ function parseBalance(self::Nado, response)
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    balances = self.safeList(response, "spot_balances", []);
+    balances = self.safeList(response, "spot_balances", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         rawBalance = get(balances, i + 1, nothing);
@@ -1655,12 +2126,12 @@ function parseBalance(self::Nado, response)
         if functions.ccxtruthy(code == "0")
             code = "USDT0";
         elseif functions.ccxtruthy(code == currencyId)
-            market = self.safeMarket(currencyId, nothing, nothing, "spot");
+            market = self.safeMarket(marketId = currencyId, market = nothing, delimiter = nothing, marketType = "spot");
             if functions.ccxtruthy(self.safeBool(market, "spot"))
                 code = safeString(market, "base", code);
             end
         end
-        balance = self.safeDict(rawBalance, "balance", Dict{Symbol, Any}());
+        balance = self.safeDict(rawBalance, "balance", defaultValue = Dict{Symbol, Any}());
         amount = stringDiv(safeString(balance, "amount"), "1000000000000000000");
         account = self.account();
         account[Symbol("total")] = amount;
@@ -1673,16 +2144,16 @@ function parseBalance(self::Nado, response)
     return self.safeBalance(result)
 
 end
-function parseTransaction(self::Nado, transaction, currency=nothing)
+function parseTransaction(self::Nado, transaction; currency=nothing)
     currencyId = safeString(transaction, "product_id");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeTimestamp(transaction, "timestamp");
-    preBalance = self.safeDict(transaction, "pre_balance", Dict{Symbol, Any}());
-    postBalance = self.safeDict(transaction, "post_balance", Dict{Symbol, Any}());
-    preSpot = self.safeDict(preBalance, "spot", Dict{Symbol, Any}());
-    postSpot = self.safeDict(postBalance, "spot", Dict{Symbol, Any}());
-    preSpotBalance = self.safeDict(preSpot, "balance", Dict{Symbol, Any}());
-    postSpotBalance = self.safeDict(postSpot, "balance", Dict{Symbol, Any}());
+    preBalance = self.safeDict(transaction, "pre_balance", defaultValue = Dict{Symbol, Any}());
+    postBalance = self.safeDict(transaction, "post_balance", defaultValue = Dict{Symbol, Any}());
+    preSpot = self.safeDict(preBalance, "spot", defaultValue = Dict{Symbol, Any}());
+    postSpot = self.safeDict(postBalance, "spot", defaultValue = Dict{Symbol, Any}());
+    preSpotBalance = self.safeDict(preSpot, "balance", defaultValue = Dict{Symbol, Any}());
+    postSpotBalance = self.safeDict(postSpot, "balance", defaultValue = Dict{Symbol, Any}());
     preAmount = safeString(preSpotBalance, "amount", "0");
     postAmount = safeString(postSpotBalance, "amount", "0");
     amount = self.parseX18(stringAbs(stringSub(postAmount, preAmount)));
@@ -1710,13 +2181,13 @@ function parseTransaction(self::Nado, transaction, currency=nothing)
 )
 
 end
-function parsePosition(self::Nado, position, market=nothing)
+function parsePosition(self::Nado, position; market=nothing)
     marketId = safeString(position, "product_id");
-    market = self.safeMarket(marketId, market);
-    balance = self.safeDict(position, "balance", Dict{Symbol, Any}());
+    market = self.safeMarket(marketId = marketId, market = market);
+    balance = self.safeDict(position, "balance", defaultValue = Dict{Symbol, Any}());
     amountString = safeString(balance, "amount");
-    product = self.safeDict(position, "product", Dict{Symbol, Any}());
-    risk = self.safeDict(product, "risk", Dict{Symbol, Any}());
+    product = self.safeDict(position, "product", defaultValue = Dict{Symbol, Any}());
+    risk = self.safeDict(product, "risk", defaultValue = Dict{Symbol, Any}());
     markPriceX18 = safeString2(risk, "price_x18", "oracle_price_x18");
     vQuoteBalance = safeString(balance, "v_quote_balance");
     side = nothing;
@@ -1778,7 +2249,7 @@ function isArchiveOrderClosed(self::Nado, order)
     return stringGe(stringAbs(filled), stringAbs(amount))
 
 end
-function parseOrder(self::Nado, order, market=nothing)
+function parseOrder(self::Nado, order; market=nothing)
     id = nothing;
     timestamp = nothing;
     timeInForce = nothing;
@@ -1799,7 +2270,7 @@ function parseOrder(self::Nado, order, market=nothing)
     if functions.ccxtruthy(archiveFilled != nothing)
         id = cancelOrderDigest;
         marketId = safeString(order, "product_id");
-        market = self.safeMarket(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = market);
         amountString = safeString(order, "amount");
         if functions.ccxtruthy(amountString != nothing)
             side = functions.ccxtruthy(stringLt(amountString, "0")) ? "sell" : "buy";
@@ -1833,7 +2304,7 @@ function parseOrder(self::Nado, order, market=nothing)
     elseif functions.ccxtruthy(cancelOrderDigest != nothing)
         id = cancelOrderDigest;
         marketId = safeString(order, "product_id");
-        market = self.safeMarket(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = market);
         amountString = safeString(order, "amount");
         if functions.ccxtruthy(amountString != nothing)
             side = functions.ccxtruthy(stringLt(amountString, "0")) ? "sell" : "buy";
@@ -1850,11 +2321,11 @@ function parseOrder(self::Nado, order, market=nothing)
         price = self.parseX18(safeString(order, "price_x18"));
         status = safeString(order, "status", "open");
     else
-        placeOrder = self.safeDict2(order, "place_order", "order", Dict{Symbol, Any}());
-        rawOrder = self.safeDict(placeOrder, "order", Dict{Symbol, Any}());
+        placeOrder = self.safeDict2(order, "place_order", "order", defaultValue = Dict{Symbol, Any}());
+        rawOrder = self.safeDict(placeOrder, "order", defaultValue = Dict{Symbol, Any}());
         marketId = safeString(placeOrder, "product_id");
-        market = self.safeMarket(marketId, market);
-        data = self.safeDict(order, "data", Dict{Symbol, Any}());
+        market = self.safeMarket(marketId = marketId, market = market);
+        data = self.safeDict(order, "data", defaultValue = Dict{Symbol, Any}());
         id = safeString(data, "digest");
         if functions.ccxtruthy(id == nothing)
             id = safeString(placeOrder, "digest");
@@ -1906,7 +2377,7 @@ function parseOrder(self::Nado, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => fee,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
 function parseOrderTimeInForce(self::Nado, timeInForce)
@@ -1938,9 +2409,9 @@ function createOrderNonce(self::Nado, recvWindow)
     return stringMul(numberToString(expires), "1048576")
 
 end
-function createOrderAppendix(self::Nado, isTriggerOrder, params=Dict())
-    reduceOnly = self.safeBool(params, "reduceOnly", false);
-    postOnly = self.isPostOnly(false, nothing, params);
+function createOrderAppendix(self::Nado, isTriggerOrder; params=Dict())
+    reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
+    postOnly = self.isPostOnly(false, nothing, params = params);
     timeInForce = safeStringUpper(params, "timeInForce");
     orderType = 0;
     if functions.ccxtruthy(timeInForce == "IOC")
@@ -1962,7 +2433,7 @@ function createOrderAppendix(self::Nado, isTriggerOrder, params=Dict())
     if functions.ccxtruthy(reduceOnly)
         appendix = stringAdd(appendix, "2048");
     end
-    buildFee = self.safeBool(self.options, "builderFee", true);
+    buildFee = self.safeBool(self.options, "builderFee", defaultValue = true);
     if functions.ccxtruthy(buildFee)
         builder = safeString(self.options, "builder", "4500");
         builderFeeRate = safeString(self.options, "feeRate", "10");
@@ -1975,7 +2446,7 @@ function createOrderAppendix(self::Nado, isTriggerOrder, params=Dict())
     return appendix
 
 end
-function createSubaccount(self::Nado, walletAddress, subaccount="default")
+function createSubaccount(self::Nado, walletAddress; subaccount="default")
     if functions.ccxtruthy(walletAddress == nothing)
         throw(ArgumentsRequired(string(self.id, " createSubaccount() requires walletAddress")));
     end
@@ -1990,10 +2461,10 @@ function createSubaccount(self::Nado, walletAddress, subaccount="default")
     if functions.ccxtruthy(functions.ccxt_gt(length(encoded), 24))
         throw(BadRequest(string(self.id, " createOrder() subaccount must fit in 12 bytes")));
     end
-    return string("0x", address, self.padHex(encoded, 24, false))
+    return string("0x", address, self.padHex(encoded, 24, left = false))
 
 end
-function queryContracts(self::Nado, params=Dict())
+function queryContracts(self::Nado; params=Dict())
     cachedContracts = self.safeDict(self.options, "gatewayContracts");
     if functions.ccxtruthy(cachedContracts != nothing)
             return cachedContracts
@@ -2001,8 +2472,8 @@ function queryContracts(self::Nado, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => "contracts"
     );
-    response = self.gatewayPublicGetQuery(extend(request, params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    response = Base.fetch(self.gatewayPublicGetQuery(extend(request, params)));
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     self.options[Symbol("gatewayContracts")] = data;
     return data
 
@@ -2011,7 +2482,7 @@ function orderVerifyingContract(self::Nado, productId)
     return string("0x", self.padHex(self.intToBase16(productId), 40))
 
 end
-function padHex(self::Nado, value, length, left=true)
+function padHex(self::Nado, value, length; left=true)
     if functions.ccxtruthy(length == nothing)
         throw(ArgumentsRequired(string(self.id, " padHex() requires length")));
     end
@@ -2150,7 +2621,7 @@ function removeMarketSuffix(self::Nado, marketId)
     return marketId
 
 end
-function sign(self::Nado, path, api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Nado, path; api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
     endpoint = get(api, 1, nothing);
     if functions.ccxtruthy(isa(api, AbstractString))
         endpoint = api;
@@ -2203,59 +2674,59 @@ Base.getproperty(self::Nado, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function gatewayPublicGetSymbols(self::Nado, params=Dict(), context=Dict())
-    return request(self, "symbols", ["gateway", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "symbols"; api=["gateway", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function gatewayPublicGetQuery(self::Nado, params=Dict(), context=Dict())
-    return request(self, "query", ["gateway", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "query"; api=["gateway", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function gatewayPublicGetEdgeQuery(self::Nado, params=Dict(), context=Dict())
-    return request(self, "edge/query", ["gateway", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "edge/query"; api=["gateway", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function gatewayPublicPostQuery(self::Nado, params=Dict(), context=Dict())
-    return request(self, "query", ["gateway", "public"], "POST", params, nothing, nothing, Dict())
+    return request(self, "query"; api=["gateway", "public"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function gatewayPrivatePostExecute(self::Nado, params=Dict(), context=Dict())
-    return request(self, "execute", ["gateway", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "execute"; api=["gateway", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function gatewayV2PublicGetAssets(self::Nado, params=Dict(), context=Dict())
-    return request(self, "assets", ["gatewayV2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets"; api=["gatewayV2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function gatewayV2PublicGetPairs(self::Nado, params=Dict(), context=Dict())
-    return request(self, "pairs", ["gatewayV2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "pairs"; api=["gatewayV2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function gatewayV2PublicGetOrderbook(self::Nado, params=Dict(), context=Dict())
-    return request(self, "orderbook", ["gatewayV2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook"; api=["gatewayV2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function archivePost(self::Nado, params=Dict(), context=Dict())
-    return request(self, "", "archive", "POST", params, nothing, nothing, Dict())
+    return request(self, ""; api="archive", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function archiveV2PublicGetTickers(self::Nado, params=Dict(), context=Dict())
-    return request(self, "tickers", ["archiveV2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api=["archiveV2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function archiveV2PublicGetContracts(self::Nado, params=Dict(), context=Dict())
-    return request(self, "contracts", ["archiveV2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "contracts"; api=["archiveV2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function archiveV2PublicGetTrades(self::Nado, params=Dict(), context=Dict())
-    return request(self, "trades", ["archiveV2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api=["archiveV2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function triggerPrivatePostExecute(self::Nado, params=Dict(), context=Dict())
-    return request(self, "execute", ["trigger", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "execute"; api=["trigger", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function triggerPrivatePostQuery(self::Nado, params=Dict(), context=Dict())
-    return request(self, "query", ["trigger", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "query"; api=["trigger", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Nado(; kwargs...)
@@ -2319,3 +2790,578 @@ function Nado(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Nado_createOrder() end
+"""
+create a trade order
+see: https://docs.nado.xyz/developer-resources/api/gateway/executes/place-order
+see: https://docs.nado.xyz/developer-resources/api/trigger/executes/place-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.expiration`::any, optional: order expiration timestamp in seconds, defaults to 4294967295
+- `params.appendix`::any, optional: pre-encoded order appendix
+- `params.reduceOnly`::bool, optional: true if the order should only reduce position
+- `params.postOnly`::bool, optional: true to create a post-only order
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK', or 'PO'
+- `params.spotLeverage`::bool, optional: whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
+- `params.triggerPrice`::float, optional: *swap only* The price at which a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: *swap only* The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: *swap only* The price at which a take profit order is triggered at
+- `params.triggerDirection`::string, optional: trigger direction, above, below
+- `params.id`::int, optional: client-provided request id, returned by the exchange in the response
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+"""
+__ccxt_doc_Nado_createOrder
+
+function __ccxt_doc_Nado_createOrderRequest() end
+"""
+build and sign the place_order execute payload
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the request payload for the place_order execute
+"""
+__ccxt_doc_Nado_createOrderRequest
+
+function __ccxt_doc_Nado_editOrder() end
+"""
+edit a trade order
+see: https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-and-place
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.expiration`::any, optional: order expiration timestamp in seconds, defaults to 4294967295
+- `params.appendix`::any, optional: pre-encoded order appendix
+- `params.reduceOnly`::bool, optional: true if the order should only reduce position
+- `params.postOnly`::bool, optional: true to create a post-only order
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK', or 'PO'
+- `params.spotLeverage`::bool, optional: whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
+- `params.placeRequiresUnfilled`::bool, optional: when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
+- `params.id`::int, optional: client-provided request id, returned by the exchange in the response
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+"""
+__ccxt_doc_Nado_editOrder
+
+function __ccxt_doc_Nado_editOrderRequest() end
+"""
+build and sign the cancel_and_place execute payload
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the request payload for the cancel_and_place execute
+"""
+__ccxt_doc_Nado_editOrderRequest
+
+function __ccxt_doc_Nado_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.requiredUnfilledAmount`::string, optional: cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias params.required_unfilled_amount
+- `params.id`::int, optional: client-provided request id, returned by the exchange in the response
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Nado_cancelOrder
+
+function __ccxt_doc_Nado_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-product-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, when undefined all orders for all products are canceled
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.id`::int, optional: client-provided request id, returned by the exchange in the response
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Nado_cancelAllOrders
+
+function __ccxt_doc_Nado_cancelAllOrdersRequest() end
+"""
+build and sign the cancel_product_orders execute payload
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, when undefined all orders for all products are canceled
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the request payload for the cancel_product_orders execute
+"""
+__ccxt_doc_Nado_cancelAllOrdersRequest
+
+function __ccxt_doc_Nado_cancelOrders() end
+"""
+cancel multiple orders
+see: https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.requiredUnfilledAmount`::string, optional: cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias params.required_unfilled_amount
+- `params.id`::int, optional: client-provided request id, returned by the exchange in the response
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Nado_cancelOrders
+
+function __ccxt_doc_Nado_cancelOrdersRequest() end
+"""
+build and sign the cancel_orders execute payload
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the request payload for the cancel_orders execute
+"""
+__ccxt_doc_Nado_cancelOrdersRequest
+
+function __ccxt_doc_Nado_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Nado_fetchOrder
+
+function __ccxt_doc_Nado_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/orders
+see: https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Nado_fetchOrders
+
+function __ccxt_doc_Nado_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/orders
+see: https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.trigger`::bool, optional: whether the order is a trigger order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Nado_fetchOpenOrders
+
+function __ccxt_doc_Nado_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/orders
+see: https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.until`::int, optional: timestamp in ms of the latest order to fetch
+- `params.trigger`::bool, optional: whether the order is a trigger order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+"""
+__ccxt_doc_Nado_fetchClosedOrders
+
+function __ccxt_doc_Nado_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Nado_fetchCanceledOrders
+
+function __ccxt_doc_Nado_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Nado_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Nado_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/matches
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: timestamp in ms of the earliest trade
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+"""
+__ccxt_doc_Nado_fetchMyTrades
+
+function __ccxt_doc_Nado_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/subaccount-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Nado_fetchBalance
+
+function __ccxt_doc_Nado_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/events
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.until`::int, optional: timestamp in ms of the latest deposit to fetch
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+"""
+__ccxt_doc_Nado_fetchDeposits
+
+function __ccxt_doc_Nado_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/events
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+- `params.until`::int, optional: timestamp in ms of the latest withdrawal to fetch
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+"""
+__ccxt_doc_Nado_fetchWithdrawals
+
+function __ccxt_doc_Nado_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/subaccount-info
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+"""
+__ccxt_doc_Nado_fetchPositions
+
+function __ccxt_doc_Nado_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.nado.xyz/developer-resources/api/gateway/edge#control-messages
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Nado_fetchTime
+
+function __ccxt_doc_Nado_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Nado_fetchStatus
+
+function __ccxt_doc_Nado_fetchMarkets() end
+"""
+retrieves data on all markets for nado
+see: https://docs.nado.xyz/developer-resources/api/gateway/queries/symbols
+see: https://docs.nado.xyz/developer-resources/api/v2/pairs
+see: https://docs.nado.xyz/developer-resources/api/v2/assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Nado_fetchMarkets
+
+function __ccxt_doc_Nado_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.nado.xyz/developer-resources/api/v2/assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Nado_fetchCurrencies
+
+function __ccxt_doc_Nado_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.nado.xyz/developer-resources/api/v2/tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Nado_fetchTickers
+
+function __ccxt_doc_Nado_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.nado.xyz/developer-resources/api/v2/tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Nado_fetchTicker
+
+function __ccxt_doc_Nado_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://docs.nado.xyz/developer-resources/api/v2/contracts
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.edge`::bool, optional: whether to retrieve volume and open interest metrics for all chains, defaults to true
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Nado_fetchFundingRate
+
+function __ccxt_doc_Nado_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/interest-and-funding-payments
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount`::string, optional: the 12-byte subaccount identifier, defaults to 'default'
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Nado_fetchFundingHistory
+
+function __ccxt_doc_Nado_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://docs.nado.xyz/developer-resources/api/v2/contracts
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.edge`::bool, optional: whether to retrieve volume and open interest metrics for all chains, defaults to true
+
+# Returns
+- a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Nado_fetchFundingRates
+
+function __ccxt_doc_Nado_fetchOpenInterest() end
+"""
+retrieves the open interest of a contract trading pair
+see: https://docs.nado.xyz/developer-resources/api/v2/contracts
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+- `params.edge`::bool, optional: whether to retrieve volume and open interest metrics for all chains, defaults to true
+
+# Returns
+- an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Nado_fetchOpenInterest
+
+function __ccxt_doc_Nado_fetchOpenInterests() end
+"""
+retrieves the open interests of some currencies
+see: https://docs.nado.xyz/developer-resources/api/v2/contracts
+
+# Arguments
+- `symbols`::array, optional: unified CCXT market symbols
+- `params`::object, optional: exchange specific parameters
+- `params.edge`::bool, optional: whether to retrieve volume and open interest metrics for all chains, defaults to true
+
+# Returns
+- a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Nado_fetchOpenInterests
+
+function __ccxt_doc_Nado_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.nado.xyz/developer-resources/api/v2/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Nado_fetchOrderBook
+
+function __ccxt_doc_Nado_fetchTrades() end
+"""
+get the list of the most recent trades for a particular symbol
+see: https://docs.nado.xyz/developer-resources/api/v2/trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.max_trade_id`::int, optional: max trade id to include in the result for pagination
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Nado_fetchTrades
+
+function __ccxt_doc_Nado_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.nado.xyz/developer-resources/api/archive-indexer/candlesticks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Nado_fetchOHLCV

@@ -767,17 +767,27 @@ function usesPrivateKey(self::Grvt, )
     return privateKeyDefined
 
 end
-function signIn(self::Grvt, params=Dict())
+"""
+sign in, must be called prior to using other authenticated methods
+see: https://api-docs.grvt.io/#authentication
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from exchange
+"""
+function signIn(self::Grvt; params=Dict())
     if functions.ccxtruthy(@functions.ccxt_or(self.privateKey == nothing, self.privateKey == ""))
         throw(PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt"));
     end
-    Base.fetch(self.signInWithPrivateKey(params));
-    Base.fetch(self.initializeClient(params));
+    Base.fetch(self.signInWithPrivateKey(params = params));
+    Base.fetch(self.initializeClient(params = params));
     Base.fetch(self.loadAccountInfos());
     return true
 
 end
-function signInWithApiKey(self::Grvt, params=Dict())
+function signInWithApiKey(self::Grvt; params=Dict())
     now = milliseconds();
     expires = safeInteger(self.options, "signInExpiration", 0);
     if functions.ccxtruthy(@functions.ccxt_and(expires != nothing, functions.ccxt_gt(expires, now + 10000)))
@@ -791,7 +801,7 @@ function signInWithApiKey(self::Grvt, params=Dict())
     return response
 
 end
-function signInWithPrivateKey(self::Grvt, params=Dict())
+function signInWithPrivateKey(self::Grvt; params=Dict())
     self.checkRequiredCredentials();
     now = milliseconds();
     expires = safeInteger(self.options, "signInExpiration", 0);
@@ -809,23 +819,23 @@ function signInWithPrivateKey(self::Grvt, params=Dict())
     return response
 
 end
-function initializeClient(self::Grvt, params=Dict())
-    builderFee = self.safeBool(params, "builderFee", self.safeBool(self.options, "builderFee", true));
+function initializeClient(self::Grvt; params=Dict())
+    builderFee = self.safeBool(params, "builderFee", defaultValue = self.safeBool(self.options, "builderFee", defaultValue = true));
     if functions.ccxtruthy(!functions.ccxtruthy(builderFee))
             return false
     end
-    approvedBuilderFee = self.safeBool(self.options, "approvedBuilderFee", false);
+    approvedBuilderFee = self.safeBool(self.options, "approvedBuilderFee", defaultValue = false);
     if functions.ccxtruthy(approvedBuilderFee)
             return true
     end
     results = Base.fetch(asyncmap(Base.fetch, [self.privateTradingPostFullV1GetAuthorizedBuilders(), self.loadAccountInfos()]));
     currentBuilders = get(results, 1, nothing);
-    approvedBuilder = self.safeList(currentBuilders, "results", []);
+    approvedBuilder = self.safeList(currentBuilders, "results", defaultValue = []);
     len = length(approvedBuilder);
     found = false;
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, len))
-        builderInfo = self.safeDict(approvedBuilder, i, Dict{Symbol, Any}());
+        builderInfo = self.safeDict(approvedBuilder, i, defaultValue = Dict{Symbol, Any}());
         builderAccountId = safeString(builderInfo, "builder_account_id");
         if functions.ccxtruthy(builderAccountId == safeString(self.options, "builder"))
             found = true;
@@ -861,7 +871,17 @@ function initializeClient(self::Grvt, params=Dict())
     return nothing
 
 end
-function fetchMarkets(self::Grvt, params=Dict())
+"""
+retrieves data on all markets
+see: https://api-docs.grvt.io/market_data_api/#get-instrument-prod
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Grvt; params=Dict())
     marketsPromise = self.publicMarketPostFullV1AllInstruments(params);
     promises = [marketsPromise];
     if functions.ccxtruthy(@functions.ccxt_or(!functions.ccxtruthy(self.isEmptyString(self.apiKey)), !functions.ccxtruthy(self.isEmptyString(self.privateKey))))
@@ -869,7 +889,7 @@ function fetchMarkets(self::Grvt, params=Dict())
     end
     results = Base.fetch(asyncmap(Base.fetch, promises));
     response = get(results, 1, nothing);
-    result = self.safeList(response, "result", []);
+    result = self.safeList(response, "result", defaultValue = []);
     return self.parseMarkets(result)
 
 end
@@ -918,8 +938,8 @@ function parseMarket(self::Grvt, market)
     Symbol("precision") => Dict{Symbol, Any}(
         Symbol("amount") => self.safeNumber(market, "min_size"),
         Symbol("price") => self.safeNumber(market, "tick_size"),
-        Symbol("base") => self.parseNumber(self.parsePrecision(safeString(market, "base_decimals"))),
-        Symbol("quote") => self.parseNumber(self.parsePrecision(safeString(market, "quote_decimals")))
+        Symbol("base") => self.parseNumber(self.parsePrecision(precision = safeString(market, "base_decimals"))),
+        Symbol("quote") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quote_decimals")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -944,12 +964,22 @@ function parseMarket(self::Grvt, market)
 )
 
 end
-function fetchCurrencies(self::Grvt, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://api-docs.grvt.io/market_data_api/#get-currency-response
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Grvt; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("") => ""
     );
     response = Base.fetch(self.publicMarketPostFullV1Currency(request));
-    responseResult = self.safeList(response, "result", []);
+    responseResult = self.safeList(response, "result", defaultValue = []);
     return self.parseCurrencies(responseResult)
 
 end
@@ -965,7 +995,7 @@ function parseCurrency(self::Grvt, rawCurrency)
     Symbol("deposit") => nothing,
     Symbol("withdraw") => nothing,
     Symbol("fee") => nothing,
-    Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(rawCurrency, "balance_decimals"))),
+    Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(rawCurrency, "balance_decimals"))),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("amount") => Dict{Symbol, Any}(
             Symbol("min") => nothing,
@@ -986,7 +1016,18 @@ function parseCurrency(self::Grvt, rawCurrency)
 ))
 
 end
-function fetchTicker(self::Grvt, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api-docs.grvt.io/market_data_api/#ticker_1
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Grvt, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -995,16 +1036,16 @@ function fetchTicker(self::Grvt, symbol, params=Dict())
         Symbol("instrument") => self.marketId(symbol)
     );
     response = Base.fetch(self.publicMarketPostFullV1Ticker(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTicker(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(result, market = market)
 
 end
-function parseTicker(self::Grvt, ticker, market=nothing)
+function parseTicker(self::Grvt, ticker; market=nothing)
     marketId = safeString(ticker, "instrument");
     timestamp = safeIntegerProduct(ticker, "event_time", 0.000001);
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("info") => ticker,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("open") => safeString(ticker, "open_price"),
@@ -1027,7 +1068,20 @@ function parseTicker(self::Grvt, ticker, market=nothing)
 ))
 
 end
-function fetchOrderBook(self::Grvt, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api-docs.grvt.io/market_data_api/#orderbook-levels
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Grvt, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1041,13 +1095,27 @@ function fetchOrderBook(self::Grvt, symbol, limit=nothing, params=Dict())
         request[Symbol("depth")] = self.findNearestCeiling([10, 50, 100, 500], limit);
     end
     response = Base.fetch(self.publicMarketPostFullV1Book(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     timestamp = self.parse8601(safeString(result, "event_time"));
     marketId = safeString(result, "instrument");
-    return self.parseOrderBook(result, self.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size")
+    return self.parseOrderBook(result, self.safeSymbol(marketId), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "size")
 
 end
-function fetchTrades(self::Grvt, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://api-docs.grvt.io/market_data_api/#trade_1
+
+# Arguments
+- `symbol`::string: unified symbol of the market
+- `since`::int, optional: timestamp in ms of the earliest item to fetch
+- `limit`::int, optional: the maximum amount of items to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Grvt, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1058,18 +1126,18 @@ function fetchTrades(self::Grvt, symbol, since=nothing, limit=nothing, params=Di
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, 1000);
     end
-    (request, params) = self.handleUntilOptionString("end_time", request, params, 1000000);
+    (request, params) = self.handleUntilOptionString("end_time", request, params, multiplier = 1000000);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_time")] = numberToString(since * 1000000);
     end
     response = Base.fetch(self.publicMarketPostFullV1TradeHistory(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseTrades(result, market, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseTrades(result, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Grvt, trade, market=nothing)
+function parseTrade(self::Grvt, trade; market=nothing)
     marketId = safeString(trade, "instrument");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeIntegerProduct(trade, "event_time", 0.000001);
     takerOrMaker = nothing;
     isTakerBuyer = self.safeBool(trade, "is_taker_buyer");
@@ -1103,18 +1171,34 @@ function parseTrade(self::Grvt, trade, market=nothing)
     Symbol("cost") => nothing,
     Symbol("fee") => fee,
     Symbol("order") => safeString(trade, "order_id")
-), market)
+), market = market)
 
 end
-function fetchOHLCV(self::Grvt, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api-docs.grvt.io/market_data_api/#candlestick_1
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest item to fetch
+- `limit`::int, optional: the maximum amount of items to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Grvt, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     maxLimit = 1000;
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxLimit))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1131,20 +1215,35 @@ function fetchOHLCV(self::Grvt, symbol, timeframe="1m", since=nothing, limit=not
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, 1000);
     end
-    (request, params) = self.handleUntilOptionString("end_time", request, params, 1000000);
+    (request, params) = self.handleUntilOptionString("end_time", request, params, multiplier = 1000000);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_time")] = numberToString(since * 1000000);
     end
     response = Base.fetch(self.publicMarketPostFullV1Kline(extend(request, params)));
-    candles = self.safeList(response, "result", []);
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    candles = self.safeList(response, "result", defaultValue = []);
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Grvt, ohlcv, market=nothing)
+function parseOHLCV(self::Grvt, ohlcv; market=nothing)
     return [safeIntegerProduct(ohlcv, "open_time", 0.000001), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume_b")]
 
 end
-function fetchFundingRateHistory(self::Grvt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://api-docs.grvt.io/market_data_api/#funding-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Grvt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -1154,7 +1253,7 @@ function fetchFundingRateHistory(self::Grvt, symbol=nothing, since=nothing, limi
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1163,21 +1262,21 @@ function fetchFundingRateHistory(self::Grvt, symbol=nothing, since=nothing, limi
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, 1000);
     end
-    (request, params) = self.handleUntilOptionString("end_time", request, params, 1000000);
+    (request, params) = self.handleUntilOptionString("end_time", request, params, multiplier = 1000000);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_time")] = numberToString(since * 1000000);
     end
     response = Base.fetch(self.publicMarketPostFullV1Funding(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseFundingRateHistories(result, market)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseFundingRateHistories(result, market = market)
 
 end
-function parseFundingRateHistory(self::Grvt, rawItem, market=nothing)
+function parseFundingRateHistory(self::Grvt, rawItem; market=nothing)
     marketId = safeString(rawItem, "instrument");
     ts = safeIntegerProduct(rawItem, "funding_time", 0.000001);
     return Dict{Symbol, Any}(
     Symbol("info") => rawItem,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("fundingRate") => self.safeNumber(rawItem, "funding_rate"),
     Symbol("timestamp") => ts,
     Symbol("datetime") => self.iso8601(ts)
@@ -1193,13 +1292,23 @@ function getSubAccountId(self::Grvt, params)
     return string(subAccountId)
 
 end
-function fetchBalance(self::Grvt, params=Dict())
+"""
+query for account info
+see: https://api-docs.grvt.io/trading_api/#sub-account-summary
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Grvt; params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     request = Dict{Symbol, Any}(
         Symbol("sub_account_id") => self.getSubAccountId(params)
     );
     response = Base.fetch(self.privateTradingPostFullV1AccountSummary(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parseBalance(result)
 
 end
@@ -1210,7 +1319,7 @@ function parseBalance(self::Grvt, response)
         Symbol("timestamp") => timestamp,
         Symbol("datetime") => self.iso8601(timestamp)
     );
-    spotBalances = self.safeList(response, "spot_balances", []);
+    spotBalances = self.safeList(response, "spot_balances", defaultValue = []);
     availableBalance = safeString(response, "available_balance");
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(spotBalances)))
@@ -1228,7 +1337,21 @@ function parseBalance(self::Grvt, response)
     return self.safeBalance(result)
 
 end
-function fetchDeposits(self::Grvt, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://api-docs.grvt.io/trading_api/#transfer
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Grvt; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -1239,24 +1362,38 @@ function fetchDeposits(self::Grvt, code=nothing, since=nothing, limit=nothing, p
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, 1000);
     end
-    (request, params) = self.handleUntilOptionString("end_time", request, params, 1000000);
+    (request, params) = self.handleUntilOptionString("end_time", request, params, multiplier = 1000000);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_time")] = numberToString(since * 1000000);
     end
-    useTransfersEndpoint = self.safeBool(self.options, "useTransfersEndpointForDepositsWithdrawals", true);
+    useTransfersEndpoint = self.safeBool(self.options, "useTransfersEndpointForDepositsWithdrawals", defaultValue = true);
     if functions.ccxtruthy(useTransfersEndpoint)
-        transfers = Base.fetch(self.internalFetchTransfers(extend(request, params), currency, since, limit));
-        filteredResults = self.filterTransfersByType(transfers, "deposit", true);
+        transfers = Base.fetch(self.internalFetchTransfers(extend(request, params), currency = currency, since = since, limit = limit));
+        filteredResults = self.filterTransfersByType(transfers, "deposit", onlyMainAccount = true);
         transactions = self.getListFromObjectValues(get(filteredResults, 1, nothing), "info");
-            return self.parseTransactions(transactions, currency, since, limit)
+            return self.parseTransactions(transactions, currency = currency, since = since, limit = limit)
     else
         response = Base.fetch(self.privateTradingPostFullV1DepositHistory(extend(request, params)));
-        result = self.safeList(response, "result", []);
-        return self.parseTransactions(result, currency, since, limit)
+        result = self.safeList(response, "result", defaultValue = []);
+        return self.parseTransactions(result, currency = currency, since = since, limit = limit)
     end
 
 end
-function fetchWithdrawals(self::Grvt, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://api-docs.grvt.io/trading_api/#withdrawal-history
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for (default 24 hours ago)
+- `limit`::int, optional: the maximum number of transfer structures to retrieve (default 50, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Grvt; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -1269,45 +1406,45 @@ function fetchWithdrawals(self::Grvt, code=nothing, since=nothing, limit=nothing
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, 1000);
     end
-    (request, params) = self.handleUntilOptionString("end_time", request, params, 1000000);
+    (request, params) = self.handleUntilOptionString("end_time", request, params, multiplier = 1000000);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_time")] = numberToString(since * 1000000);
     end
-    useTransfersEndpoint = self.safeBool(self.options, "useTransfersEndpointForDepositsWithdrawals", true);
+    useTransfersEndpoint = self.safeBool(self.options, "useTransfersEndpointForDepositsWithdrawals", defaultValue = true);
     if functions.ccxtruthy(useTransfersEndpoint)
-        transfers = Base.fetch(self.internalFetchTransfers(extend(request, params), currency, since, limit));
-        filteredResults = self.filterTransfersByType(transfers, "withdrawal", true);
+        transfers = Base.fetch(self.internalFetchTransfers(extend(request, params), currency = currency, since = since, limit = limit));
+        filteredResults = self.filterTransfersByType(transfers, "withdrawal", onlyMainAccount = true);
         transactions = self.getListFromObjectValues(get(filteredResults, 1, nothing), "info");
-            return self.parseTransactions(transactions, currency, since, limit)
+            return self.parseTransactions(transactions, currency = currency, since = since, limit = limit)
     else
         response = Base.fetch(self.privateTradingPostFullV1WithdrawalHistory(extend(request, params)));
-        result = self.safeList(response, "result", []);
-        return self.parseTransactions(result, currency, since, limit)
+        result = self.safeList(response, "result", defaultValue = []);
+        return self.parseTransactions(result, currency = currency, since = since, limit = limit)
     end
 
 end
-function internalFetchTransfers(self::Grvt, req, currency=nothing, since=nothing, limit=nothing)
+function internalFetchTransfers(self::Grvt, req; currency=nothing, since=nothing, limit=nothing)
     response = Base.fetch(self.privateTradingPostFullV1TransferHistory(req));
-    rows = self.safeList(response, "result", []);
-    transfers = self.parseTransfers(rows, currency, since, limit);
+    rows = self.safeList(response, "result", defaultValue = []);
+    transfers = self.parseTransfers(rows, currency = currency, since = since, limit = limit);
     return transfers
 
 end
-function parseTransaction(self::Grvt, transaction, currency=nothing)
+function parseTransaction(self::Grvt, transaction; currency=nothing)
     direction = nothing;
     txId = nothing;
     networkCode = nothing;
     addressFrom = safeString(transaction, "from_account_id");
     addressTo = safeString(transaction, "to_account_id");
     currencyId = safeString(transaction, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     if functions.ccxtruthy(ccxt_in("transfer_metadata", transaction))
         metaData = omitZero(safeString(transaction, "transfer_metadata"));
         if functions.ccxtruthy(metaData != nothing)
             parsedMeta = self.parseJson(metaData);
             direction = safeStringLower(parsedMeta, "direction");
             txId = safeString(parsedMeta, "provider_tx_id");
-            networkCode = self.networkIdToCode(safeString(parsedMeta, "chainid"), code);
+            networkCode = self.networkIdToCode(networkId = safeString(parsedMeta, "chainid"), currencyCode = code);
             if functions.ccxtruthy(direction == "withdrawal")
                 addressTo = safeString(parsedMeta, "endpoint");
             elseif functions.ccxtruthy(direction == "deposit")
@@ -1339,7 +1476,21 @@ function parseTransaction(self::Grvt, transaction, currency=nothing)
 )
 
 end
-function fetchTransfers(self::Grvt, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://api-docs.grvt.io/trading_api/#transfer-history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve (default 10, max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: whether to paginate the results (default false)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Grvt; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchTransfers() requires a code argument")));
     end
@@ -1348,25 +1499,25 @@ function fetchTransfers(self::Grvt, code=nothing, since=nothing, limit=nothing, 
     currency = self.currency(code);
     maxLimit = 1000;
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", nothing, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", symbol = nothing, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, 1000);
     end
-    (request, params) = self.handleUntilOptionString("end_time", request, params, 1000000);
+    (request, params) = self.handleUntilOptionString("end_time", request, params, multiplier = 1000000);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_time")] = numberToString(since * 1000000);
     end
     response = Base.fetch(self.privateTradingPostFullV1TransferHistory(extend(request, params)));
-    rows = self.safeList(response, "result", []);
-    transfers = self.parseTransfers(rows, currency, since, limit);
-    filteredResults = self.filterTransfersByType(transfers, "internal", false);
+    rows = self.safeList(response, "result", defaultValue = []);
+    transfers = self.parseTransfers(rows, currency = currency, since = since, limit = limit);
+    filteredResults = self.filterTransfersByType(transfers, "internal", onlyMainAccount = false);
     return get(filteredResults, 2, nothing)
 
 end
-function filterTransfersByType(self::Grvt, transfers, transferType, onlyMainAccount=true)
+function filterTransfersByType(self::Grvt, transfers, transferType; onlyMainAccount=true)
     matchedResults = [];
     nonMatchedResults = [];
     i = 0
@@ -1387,7 +1538,21 @@ function filterTransfersByType(self::Grvt, transfers, transferType, onlyMainAcco
     return [matchedResults, nonMatchedResults]
 
 end
-function transfer(self::Grvt, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://api-docs.grvt.io/trading_api/#transfer_1
+
+# Arguments
+- `code`::string: unified currency codeåå
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Grvt, code, amount, fromAccount, toAccount; params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     currency = self.currency(code);
     defaultFromAccountId = safeString(self.options, "userMainAccountId");
@@ -1413,7 +1578,7 @@ function transfer(self::Grvt, code, amount, fromAccount, toAccount, params=Dict(
         Symbol("transfer_type") => "STANDARD",
         Symbol("transfer_metadata") => nothing
     );
-    request = self.createSignedRequest(request, "EIP712_TRANSFER_TYPE", currency);
+    request = self.createSignedRequest(request, "EIP712_TRANSFER_TYPE", currencyObj = currency);
     response = nothing;
     try
         response = Base.fetch(self.privateTradingPostFullV1Transfer(extend(request, params)));
@@ -1426,13 +1591,13 @@ function transfer(self::Grvt, code, amount, fromAccount, toAccount, params=Dict(
         throw(error);
 
     end
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTransfer(result, currency)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransfer(result, currency = currency)
 
 end
-function parseTransfer(self::Grvt, transfer, currency=nothing)
+function parseTransfer(self::Grvt, transfer; currency=nothing)
     currencyId = safeString(transfer, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeIntegerProduct(transfer, "event_time", 0.000001);
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
@@ -1458,11 +1623,11 @@ function loadAccountInfos(self::Grvt, )
                 push!(promises, self.privateTradingPostFullV1GetSubAccounts());
     end
     responses = Base.fetch(asyncmap(Base.fetch, promises));
-    result1 = self.safeDict(get(responses, 1, nothing), "result", Dict{Symbol, Any}());
+    result1 = self.safeDict(get(responses, 1, nothing), "result", defaultValue = Dict{Symbol, Any}());
     mainAccountId = safeString(result1, "main_account_id");
     self.options[Symbol("userMainAccountId")] = mainAccountId;
     if functions.ccxtruthy(accountIsUndefined)
-        subAccountIds = self.safeList(get(responses, 2, nothing), "sub_account_ids", []);
+        subAccountIds = self.safeList(get(responses, 2, nothing), "sub_account_ids", defaultValue = []);
         len = length(subAccountIds);
         if functions.ccxtruthy(functions.ccxt_lt(len, 1))
             throw(ArgumentsRequired(string(self.id, " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")));
@@ -1476,8 +1641,23 @@ function loadAccountInfos(self::Grvt, )
     return true
 
 end
-function withdraw(self::Grvt, code, amount, address, tag=nothing, params=Dict())
-    self.checkAddress(address);
+"""
+make a withdrawal
+see: https://api-docs.grvt.io/trading_api/#withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string: the network to withdraw on (mandatory)
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Grvt, code, amount, address; tag=nothing, params=Dict())
+    self.checkAddress(address = address);
     Base.fetch(self.loadMarketsAndSignIn());
     defaultFromAccountId = safeString(self.options, "userMainAccountId");
     currency = self.currency(code);
@@ -1489,18 +1669,40 @@ function withdraw(self::Grvt, code, amount, address, tag=nothing, params=Dict())
         Symbol("signature") => self.defaultSignature()
     );
     (networkCode, query) = self.handleNetworkCodeAndParams(params);
-    networkId = self.networkCodeToId(networkCode, code);
+    networkId = self.networkCodeToId(networkCode, currencyCode = code);
     if functions.ccxtruthy(networkId == nothing)
         throw(BadRequest(string(self.id, " withdraw() requires a network parameter")));
     end
     request[Symbol("signature")][Symbol("chain_id")] = networkId;
-    request = self.createSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency);
+    request = self.createSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currencyObj = currency);
     response = Base.fetch(self.privateTradingPostFullV1Withdrawal(extend(request, query)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTransaction(result, currency)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(result, currency = currency)
 
 end
-function createOrder(self::Grvt, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://api-docs.grvt.io/trading_api/#create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: The price a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price a take profit order is triggered at
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "POST_ONLY"
+- `params.postOnly`::bool, optional: true or false
+- `params.reduceOnly`::bool, optional: Ensures that the executed order does not flip the opened position.
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Grvt, symbol, type_var, side, amount; price=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     market = self.market(symbol);
     orderLeg = Dict{Symbol, Any}(
@@ -1526,7 +1728,7 @@ function createOrder(self::Grvt, symbol, type_var, side, amount, price=nothing, 
     params = omit(params, ["clientOrderId"]);
     isMarketOrder = (type_var == "market");
     subAccountId = self.getSubAccountId(params);
-    isReduceOnly = self.safeBool(params, "reduceOnly", false);
+    isReduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
     orderRequest = Dict{Symbol, Any}(
         Symbol("sub_account_id") => subAccountId,
         Symbol("time_in_force") => nothing,
@@ -1540,7 +1742,7 @@ function createOrder(self::Grvt, symbol, type_var, side, amount, price=nothing, 
         Symbol("reduce_only") => isReduceOnly
     );
     timeInForce = safeStringUpper(params, "timeInForce", "GOOD_TILL_TIME");
-    postOnly = self.isPostOnly(isMarketOrder, nothing, params);
+    postOnly = self.isPostOnly(isMarketOrder, nothing, params = params);
     if functions.ccxtruthy(postOnly)
         orderRequest[Symbol("post_only")] = true;
     end
@@ -1604,13 +1806,13 @@ function createOrder(self::Grvt, symbol, type_var, side, amount, price=nothing, 
             Symbol("tpsl") => Dict{Symbol, Any}(
                 Symbol("trigger_by") => triggerPriceType,
                 Symbol("trigger_price") => selectedPrice,
-                Symbol("close_position") => self.safeBool(params, "closePosition", false)
+                Symbol("close_position") => self.safeBool(params, "closePosition", defaultValue = false)
             )
         );
         params = omit(params, ["triggerDirection", "triggerPriceType", "closePosition"]);
     end
     eipType = "EIP712_ORDER_TYPE";
-    builderFee = self.safeBool(params, "builderFee", self.safeBool(self.options, "builderFee", true));
+    builderFee = self.safeBool(params, "builderFee", defaultValue = self.safeBool(self.options, "builderFee", defaultValue = true));
     if functions.ccxtruthy(builderFee)
         eipType = "EIP712_ORDER_WITH_BUILDER_TYPE";
         orderRequest[Symbol("builder")] = safeString(self.options, "builder");
@@ -1622,8 +1824,8 @@ function createOrder(self::Grvt, symbol, type_var, side, amount, price=nothing, 
         Symbol("order") => signedOrderRequest
     );
     response = Base.fetch(self.privateTradingPostFullV1CreateOrder(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
 function convertToBigIntCustom(self::Grvt, x)
@@ -1632,7 +1834,7 @@ function convertToBigIntCustom(self::Grvt, x)
 end
 function eipMessageForOrder(self::Grvt, order, structureType)
     priceMultiplier = "1000000000";
-    orderLegs = self.safeList(order, "legs", []);
+    orderLegs = self.safeList(order, "legs", defaultValue = []);
     legs = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(orderLegs)))
@@ -1679,19 +1881,34 @@ function eipMessageForOrder(self::Grvt, order, structureType)
         Symbol("nonce") => get(get(order, Symbol("signature"), nothing), Symbol("nonce"), nothing),
         Symbol("expiration") => get(get(order, Symbol("signature"), nothing), Symbol("expiration"), nothing)
     );
-    if functions.ccxtruthy(@functions.ccxt_and(structureType == "EIP712_ORDER_WITH_BUILDER_TYPE", self.safeBool(self.options, "builderFee", true)))
+    if functions.ccxtruthy(@functions.ccxt_and(structureType == "EIP712_ORDER_WITH_BUILDER_TYPE", self.safeBool(self.options, "builderFee", defaultValue = true)))
         returnValue[Symbol("builder")] = get(order, Symbol("builder"), nothing);
         returnValue[Symbol("builderFee")] = self.parseToInt(self.convertToBigIntCustom(self.feeAmountMultiplier()) * ccxt_toNumber(get(order, Symbol("builder_fee"), nothing)));
     end
     return returnValue
 
 end
-function fetchMyTrades(self::Grvt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://api-docs.grvt.io/trading_api/#fill-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Grvt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}(
         Symbol("sub_account_id") => self.getSubAccountId(params)
@@ -1707,22 +1924,33 @@ function fetchMyTrades(self::Grvt, symbol=nothing, since=nothing, limit=nothing,
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, 1000);
     end
-    (request, params) = self.handleUntilOptionString("end_time", request, params, 1000000);
+    (request, params) = self.handleUntilOptionString("end_time", request, params, multiplier = 1000000);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_time")] = numberToString(since * 1000000);
     end
     response = Base.fetch(self.privateTradingPostFullV1FillHistory(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseTrades(result, nothing, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseTrades(result, market = nothing, since = since, limit = limit)
 
 end
-function fetchPositions(self::Grvt, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://api-docs.grvt.io/trading_api/#positions-request
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Grvt; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     request = Dict{Symbol, Any}(
         Symbol("sub_account_id") => self.getSubAccountId(params)
     );
     if functions.ccxtruthy(symbols != nothing)
-        symbols = self.marketSymbols(symbols);
+        symbols = self.marketSymbols(symbols = symbols);
         request[Symbol("base")] = [];
         request[Symbol("quote")] = [];
         i = 0
@@ -1739,11 +1967,11 @@ function fetchPositions(self::Grvt, symbols=nothing, params=Dict())
 
     end
     response = Base.fetch(self.privateTradingPostFullV1Positions(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parsePositions(result, symbols)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parsePositions(result, symbols = symbols)
 
 end
-function parsePosition(self::Grvt, position, market=nothing)
+function parsePosition(self::Grvt, position; market=nothing)
     marketId = safeString(position, "instrument");
     timestamp = safeIntegerProduct(position, "event_time", 0.000001);
     sizeRaw = safeString(position, "size");
@@ -1752,7 +1980,7 @@ function parsePosition(self::Grvt, position, market=nothing)
     return self.safePosition(Dict{Symbol, Any}(
     Symbol("info") => position,
     Symbol("id") => nothing,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("notional") => self.parseNumber(stringAbs(safeString(position, "notional"))),
     Symbol("marginMode") => nothing,
     Symbol("liquidationPrice") => self.safeNumber(position, "est_liquidation_price"),
@@ -1780,17 +2008,40 @@ function parsePosition(self::Grvt, position, market=nothing)
 ))
 
 end
-function fetchLeverages(self::Grvt, symbols=nothing, params=Dict())
+"""
+fetch the set leverage for all contract markets
+see: https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverages(self::Grvt; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     request = Dict{Symbol, Any}(
         Symbol("sub_account_id") => self.getSubAccountId(params)
     );
     response = Base.fetch(self.privateTradingPostFullV1GetAllInitialLeverage(extend(request, params)));
-    results = self.safeList(response, "results", []);
-    return self.parseLeverages(results, symbols)
+    results = self.safeList(response, "results", defaultValue = []);
+    return self.parseLeverages(results, symbols = symbols)
 
 end
-function setLeverage(self::Grvt, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://api-docs.grvt.io/trading_api/#set-initial-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Grvt, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -1802,47 +2053,73 @@ function setLeverage(self::Grvt, leverage, symbol=nothing, params=Dict())
         Symbol("leverage") => numberToString(leverage)
     );
     response = Base.fetch(self.privateTradingPostFullV1SetInitialLeverage(extend(request, params)));
-    return self.parseLeverage(response, market)
+    return self.parseLeverage(response, market = market)
 
 end
-function parseLeverage(self::Grvt, leverage, market=nothing)
+function parseLeverage(self::Grvt, leverage; market=nothing)
     marketId = safeString(leverage, "instrument");
     leverageValue = self.safeNumber(leverage, "leverage");
     marginType = safeStringLower(leverage, "margin_type");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => marginType,
     Symbol("longLeverage") => leverageValue,
     Symbol("shortLeverage") => leverageValue
 )
 
 end
-function fetchMarginModes(self::Grvt, symbols=nothing, params=Dict())
+"""
+fetches margin mode of the user
+see: https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginModes(self::Grvt; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     request = Dict{Symbol, Any}(
         Symbol("sub_account_id") => self.getSubAccountId(params)
     );
     response = Base.fetch(self.privateTradingPostFullV1GetAllInitialLeverage(extend(request, params)));
-    results = self.safeList(response, "results", []);
-    return self.parseLeverages(results, symbols)
+    results = self.safeList(response, "results", defaultValue = []);
+    return self.parseLeverages(results, symbols = symbols)
 
 end
-function parseMarginMode(self::Grvt, marginMode, market=nothing)
+function parseMarginMode(self::Grvt, marginMode; market=nothing)
     marketId = safeString(marginMode, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => marginMode,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => safeStringLower(marginMode, "margin_type")
 )
 
 end
-function fetchFundingHistory(self::Grvt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://api-docs.grvt.io/trading_api/#funding-payment-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Grvt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, params, 1000))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchFundingHistory", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 1000))
     end
     request = Dict{Symbol, Any}(
         Symbol("sub_account_id") => self.getSubAccountId(params)
@@ -1858,22 +2135,22 @@ function fetchFundingHistory(self::Grvt, symbol=nothing, since=nothing, limit=no
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, 1000);
     end
-    (request, params) = self.handleUntilOptionString("end_time", request, params, 1000000);
+    (request, params) = self.handleUntilOptionString("end_time", request, params, multiplier = 1000000);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_time")] = numberToString(since * 1000000);
     end
     response = Base.fetch(self.privateTradingPostFullV1FundingPaymentHistory(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseIncomes(result, market, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseIncomes(result, market = market, since = since, limit = limit)
 
 end
-function parseIncome(self::Grvt, income, market=nothing)
+function parseIncome(self::Grvt, income; market=nothing)
     marketId = safeString(income, "instrument");
     currencyId = safeString(income, "currency");
     timestamp = safeIntegerProduct(income, "event_time", 0.000001);
     return Dict{Symbol, Any}(
     Symbol("info") => income,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("code") => self.safeCurrencyCode(currencyId),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -1882,7 +2159,21 @@ function parseIncome(self::Grvt, income, market=nothing)
 )
 
 end
-function fetchOrders(self::Grvt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://api-docs.grvt.io/trading_api/#order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Grvt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     subAccountId = self.getSubAccountId(params);
     request = Dict{Symbol, Any}(
@@ -1899,26 +2190,52 @@ function fetchOrders(self::Grvt, symbol=nothing, since=nothing, limit=nothing, p
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = min(limit, 1000);
     end
-    (request, params) = self.handleUntilOptionString("end_time", request, params, 1000000);
+    (request, params) = self.handleUntilOptionString("end_time", request, params, multiplier = 1000000);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_time")] = numberToString(since * 1000000);
     end
     response = Base.fetch(self.privateTradingPostFullV1OrderHistory(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseOrders(result, market, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOrders(result, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Grvt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://api-docs.grvt.io/trading_api/#open-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Grvt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     request = Dict{Symbol, Any}(
         Symbol("sub_account_id") => self.getSubAccountId(params)
     );
     response = Base.fetch(self.privateTradingPostFullV1OpenOrders(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseOrders(result, nothing, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOrders(result, market = nothing, since = since, limit = limit)
 
 end
-function fetchOrder(self::Grvt, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://api-docs.grvt.io/trading_api/#get-order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Grvt, id; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     subAccountId = self.getSubAccountId(params);
     request = Dict{Symbol, Any}(
@@ -1932,11 +2249,11 @@ function fetchOrder(self::Grvt, id, symbol=nothing, params=Dict())
         request[Symbol("order_id")] = id;
     end
     response = Base.fetch(self.privateTradingPostFullV1Order(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(result)
 
 end
-function parseOrder(self::Grvt, order, market=nothing)
+function parseOrder(self::Grvt, order; market=nothing)
     if functions.ccxtruthy(ccxt_in("ack", order))
             return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => order,
@@ -1954,16 +2271,16 @@ function parseOrder(self::Grvt, order, market=nothing)
     price = nothing;
     filled = nothing;
     avgPrice = nothing;
-    legs = self.safeList(order, "legs", []);
-    metadata = self.safeDict(order, "metadata", Dict{Symbol, Any}());
-    stateObj = self.safeDict(order, "state", Dict{Symbol, Any}());
-    filledAmounts = self.safeList(stateObj, "traded_size", []);
-    avgPrices = self.safeList(stateObj, "avg_fill_price", []);
+    legs = self.safeList(order, "legs", defaultValue = []);
+    metadata = self.safeDict(order, "metadata", defaultValue = Dict{Symbol, Any}());
+    stateObj = self.safeDict(order, "state", defaultValue = Dict{Symbol, Any}());
+    filledAmounts = self.safeList(stateObj, "traded_size", defaultValue = []);
+    avgPrices = self.safeList(stateObj, "avg_fill_price", defaultValue = []);
     primaryOrderIndex = 0;
     firstLeg = self.safeDict(legs, primaryOrderIndex);
     if functions.ccxtruthy(firstLeg != nothing)
         marketId = safeString(firstLeg, "instrument");
-        market = self.safeMarket(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = market);
         size_var = safeString(firstLeg, "size");
         side = functions.ccxtruthy(self.safeBool(firstLeg, "is_buying_asset")) ? "buy" : "sell";
         price = safeString(firstLeg, "limit_price");
@@ -1997,7 +2314,7 @@ function parseOrder(self::Grvt, order, market=nothing)
     Symbol("fees") => nothing,
     Symbol("reduceOnly") => isReduceOnly,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseTimeInForce(self::Grvt, type_var)
@@ -2033,7 +2350,18 @@ function parseOrderStatus(self::Grvt, status)
     return safeString(statuses, status, status)
 
 end
-function cancelAllOrders(self::Grvt, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://api-docs.grvt.io/trading_api/#cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Grvt; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     request = Dict{Symbol, Any}(
         Symbol("sub_account_id") => self.getSubAccountId(params)
@@ -2046,11 +2374,24 @@ function cancelAllOrders(self::Grvt, symbol=nothing, params=Dict())
                 push!(get(request, Symbol("quote"), nothing), get(market, Symbol("quoteId"), nothing));
     end
     response = Base.fetch(self.privateTradingPostFullV1CancelAllOrders(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parseOrders([result])
 
 end
-function cancelOrder(self::Grvt, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://api-docs.grvt.io/trading_api/#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Grvt, id; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     subAccoubntId = self.getSubAccountId(params);
     request = Dict{Symbol, Any}(
@@ -2064,7 +2405,7 @@ function cancelOrder(self::Grvt, id, symbol=nothing, params=Dict())
         request[Symbol("order_id")] = id;
     end
     response = Base.fetch(self.privateTradingPostFullV1CancelOrder(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(result)
 
 end
@@ -2080,7 +2421,7 @@ function feeAmountMultiplier(self::Grvt, )
     return self.convertToBigIntCustom("10000")
 
 end
-function createSignedRequest(self::Grvt, request, structureType, currencyObj=nothing, signerAddress=nothing)
+function createSignedRequest(self::Grvt, request, structureType; currencyObj=nothing, signerAddress=nothing)
     messageData = nothing;
     if functions.ccxtruthy(structureType == "EIP712_TRANSFER_TYPE")
         amountMultiplier = self.convertToBigIntCustom("1000000");
@@ -2173,7 +2514,7 @@ function defaultSignature(self::Grvt, )
 )
 
 end
-function handleUntilOptionString(self::Grvt, key, request, params, multiplier=1)
+function handleUntilOptionString(self::Grvt, key, request, params; multiplier=1)
     until = safeInteger2(params, "until", "till");
     if functions.ccxtruthy(until != nothing)
         request[Symbol(key)] = numberToString(self.parseToInt(until * multiplier));
@@ -2188,7 +2529,7 @@ function requestId(self::Grvt, )
     return requestId
 
 end
-function sign(self::Grvt, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Grvt, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     query = omit(params, self.extractParams(path));
     url = get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing) + path;
     queryString = "";
@@ -2281,203 +2622,203 @@ Base.getproperty(self::Grvt, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function privateEdgePostAuthApiKeyLogin(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "auth/api_key/login", "privateEdge", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/api_key/login"; api="privateEdge", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEdgePostAuthWalletLogin(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "auth/wallet/login", "privateEdge", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth/wallet/login"; api="privateEdge", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1Instrument(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/instrument", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/instrument"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1AllInstruments(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/all_instruments", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/all_instruments"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1Instruments(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/instruments", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/instruments"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1Currency(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/currency", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/currency"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1MarginRules(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/margin_rules", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/margin_rules"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1Mini(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/mini", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/mini"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1Ticker(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/ticker", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/ticker"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1Book(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/book", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/book"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1Trade(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/trade", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/trade"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1TradeHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/trade_history", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/trade_history"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1Kline(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/kline", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/kline"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarketPostFullV1Funding(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/funding", "publicMarket", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/funding"; api="publicMarket", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1CreateOrder(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/create_order", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/create_order"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1CancelOrder(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/cancel_order", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/cancel_order"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1CancelOnDisconnect(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/cancel_on_disconnect", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/cancel_on_disconnect"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1CancelAllOrders(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/cancel_all_orders", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/cancel_all_orders"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1Order(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/order", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/order"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1OrderHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/order_history", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/order_history"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1OpenOrders(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/open_orders", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/open_orders"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1FillHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/fill_history", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/fill_history"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1Positions(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/positions", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/positions"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1FundingPaymentHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/funding_payment_history", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/funding_payment_history"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1GetSubAccounts(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/get_sub_accounts", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/get_sub_accounts"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1AccountSummary(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/account_summary", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/account_summary"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1AccountHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/account_history", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/account_history"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1AggregatedAccountSummary(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/aggregated_account_summary", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/aggregated_account_summary"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1FundingAccountSummary(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/funding_account_summary", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/funding_account_summary"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1Transfer(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/transfer", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/transfer"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1DepositHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/deposit_history", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/deposit_history"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1TransferHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/transfer_history", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/transfer_history"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1Withdrawal(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/withdrawal", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/withdrawal"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1WithdrawalHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/withdrawal_history", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/withdrawal_history"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1AddPositionMargin(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/add_position_margin", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/add_position_margin"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1GetPositionMarginLimits(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/get_position_margin_limits", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/get_position_margin_limits"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1SetPositionConfig(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/set_position_config", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/set_position_config"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1SetInitialLeverage(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/set_initial_leverage", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/set_initial_leverage"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1GetAllInitialLeverage(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/get_all_initial_leverage", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/get_all_initial_leverage"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1SetDeriskMmRatio(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/set_derisk_mm_ratio", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/set_derisk_mm_ratio"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1VaultBurnTokens(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/vault_burn_tokens", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/vault_burn_tokens"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1VaultInvest(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/vault_invest", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/vault_invest"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1VaultInvestorSummary(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/vault_investor_summary", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/vault_investor_summary"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1VaultRedeem(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/vault_redeem", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/vault_redeem"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1VaultRedeemCancel(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/vault_redeem_cancel", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/vault_redeem_cancel"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1VaultViewRedemptionQueue(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/vault_view_redemption_queue", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/vault_view_redemption_queue"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1VaultManagerInvestorHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/vault_manager_investor_history", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/vault_manager_investor_history"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1AuthorizeBuilder(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/authorize_builder", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/authorize_builder"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1GetAuthorizedBuilders(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/get_authorized_builders", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/get_authorized_builders"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTradingPostFullV1BuilderFillHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/builder_fill_history", "privateTrading", "POST", params, nothing, nothing, Dict())
+    return request(self, "full/v1/builder_fill_history"; api="privateTrading", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Grvt(; kwargs...)
@@ -2541,3 +2882,424 @@ function Grvt(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Grvt_signIn() end
+"""
+sign in, must be called prior to using other authenticated methods
+see: https://api-docs.grvt.io/#authentication
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from exchange
+"""
+__ccxt_doc_Grvt_signIn
+
+function __ccxt_doc_Grvt_fetchMarkets() end
+"""
+retrieves data on all markets
+see: https://api-docs.grvt.io/market_data_api/#get-instrument-prod
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Grvt_fetchMarkets
+
+function __ccxt_doc_Grvt_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://api-docs.grvt.io/market_data_api/#get-currency-response
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Grvt_fetchCurrencies
+
+function __ccxt_doc_Grvt_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api-docs.grvt.io/market_data_api/#ticker_1
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Grvt_fetchTicker
+
+function __ccxt_doc_Grvt_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api-docs.grvt.io/market_data_api/#orderbook-levels
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.loc`::string, optional: crypto location, default: us
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Grvt_fetchOrderBook
+
+function __ccxt_doc_Grvt_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://api-docs.grvt.io/market_data_api/#trade_1
+
+# Arguments
+- `symbol`::string: unified symbol of the market
+- `since`::int, optional: timestamp in ms of the earliest item to fetch
+- `limit`::int, optional: the maximum amount of items to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Grvt_fetchTrades
+
+function __ccxt_doc_Grvt_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://api-docs.grvt.io/market_data_api/#candlestick_1
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest item to fetch
+- `limit`::int, optional: the maximum amount of items to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is the current time
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Grvt_fetchOHLCV
+
+function __ccxt_doc_Grvt_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://api-docs.grvt.io/market_data_api/#funding-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Grvt_fetchFundingRateHistory
+
+function __ccxt_doc_Grvt_fetchBalance() end
+"""
+query for account info
+see: https://api-docs.grvt.io/trading_api/#sub-account-summary
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Grvt_fetchBalance
+
+function __ccxt_doc_Grvt_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://api-docs.grvt.io/trading_api/#transfer
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Grvt_fetchDeposits
+
+function __ccxt_doc_Grvt_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://api-docs.grvt.io/trading_api/#withdrawal-history
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for (default 24 hours ago)
+- `limit`::int, optional: the maximum number of transfer structures to retrieve (default 50, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Grvt_fetchWithdrawals
+
+function __ccxt_doc_Grvt_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://api-docs.grvt.io/trading_api/#transfer-history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve (default 10, max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: whether to paginate the results (default false)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Grvt_fetchTransfers
+
+function __ccxt_doc_Grvt_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://api-docs.grvt.io/trading_api/#transfer_1
+
+# Arguments
+- `code`::string: unified currency codeåå
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Grvt_transfer
+
+function __ccxt_doc_Grvt_withdraw() end
+"""
+make a withdrawal
+see: https://api-docs.grvt.io/trading_api/#withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string: the network to withdraw on (mandatory)
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Grvt_withdraw
+
+function __ccxt_doc_Grvt_createOrder() end
+"""
+create a trade order
+see: https://api-docs.grvt.io/trading_api/#create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: The price a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price a take profit order is triggered at
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "POST_ONLY"
+- `params.postOnly`::bool, optional: true or false
+- `params.reduceOnly`::bool, optional: Ensures that the executed order does not flip the opened position.
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Grvt_createOrder
+
+function __ccxt_doc_Grvt_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://api-docs.grvt.io/trading_api/#fill-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Grvt_fetchMyTrades
+
+function __ccxt_doc_Grvt_fetchPositions() end
+"""
+fetch all open positions
+see: https://api-docs.grvt.io/trading_api/#positions-request
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Grvt_fetchPositions
+
+function __ccxt_doc_Grvt_fetchLeverages() end
+"""
+fetch the set leverage for all contract markets
+see: https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Grvt_fetchLeverages
+
+function __ccxt_doc_Grvt_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://api-docs.grvt.io/trading_api/#set-initial-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Grvt_setLeverage
+
+function __ccxt_doc_Grvt_fetchMarginModes() end
+"""
+fetches margin mode of the user
+see: https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Grvt_fetchMarginModes
+
+function __ccxt_doc_Grvt_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://api-docs.grvt.io/trading_api/#funding-payment-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Grvt_fetchFundingHistory
+
+function __ccxt_doc_Grvt_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://api-docs.grvt.io/trading_api/#order-history
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest item
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Grvt_fetchOrders
+
+function __ccxt_doc_Grvt_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://api-docs.grvt.io/trading_api/#open-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Grvt_fetchOpenOrders
+
+function __ccxt_doc_Grvt_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://api-docs.grvt.io/trading_api/#get-order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Grvt_fetchOrder
+
+function __ccxt_doc_Grvt_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://api-docs.grvt.io/trading_api/#cancel-all-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Grvt_cancelAllOrders
+
+function __ccxt_doc_Grvt_cancelOrder() end
+"""
+cancels an open order
+see: https://api-docs.grvt.io/trading_api/#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Grvt_cancelOrder

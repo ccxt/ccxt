@@ -1019,7 +1019,7 @@ function describe(self::Phemex, )
 ))
 
 end
-function parseSafeNumber(self::Phemex, value=nothing)
+function parseSafeNumber(self::Phemex; value=nothing)
     if functions.ccxtruthy(value == nothing)
             return value
     end
@@ -1065,7 +1065,7 @@ function parseSwapMarket(self::Phemex, market)
         contractSize = self.parseNumber(contractSizeString);
     end
     isLinear = !functions.ccxtruthy(inverse);
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var, ":", settle),
     Symbol("base") => base,
@@ -1129,9 +1129,9 @@ function parseSpotMarket(self::Phemex, market)
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
     status = safeString(market, "status");
-    precisionAmount = self.parseSafeNumber(safeString(market, "baseTickSize"));
-    precisionPrice = self.parseSafeNumber(safeString(market, "quoteTickSize"));
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    precisionAmount = self.parseSafeNumber(value = safeString(market, "baseTickSize"));
+    precisionPrice = self.parseSafeNumber(value = safeString(market, "quoteTickSize"));
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -1171,15 +1171,15 @@ function parseSpotMarket(self::Phemex, market)
         ),
         Symbol("amount") => Dict{Symbol, Any}(
             Symbol("min") => precisionAmount,
-            Symbol("max") => self.parseSafeNumber(safeString(market, "maxBaseOrderSize"))
+            Symbol("max") => self.parseSafeNumber(value = safeString(market, "maxBaseOrderSize"))
         ),
         Symbol("price") => Dict{Symbol, Any}(
             Symbol("min") => precisionPrice,
             Symbol("max") => nothing
         ),
         Symbol("cost") => Dict{Symbol, Any}(
-            Symbol("min") => self.parseSafeNumber(safeString(market, "minOrderValue")),
-            Symbol("max") => self.parseSafeNumber(safeString(market, "maxOrderValue"))
+            Symbol("min") => self.parseSafeNumber(value = safeString(market, "minOrderValue")),
+            Symbol("max") => self.parseSafeNumber(value = safeString(market, "maxOrderValue"))
         )
     ),
     Symbol("created") => safeInteger(market, "listTime"),
@@ -1187,19 +1187,29 @@ function parseSpotMarket(self::Phemex, market)
 ))
 
 end
-function fetchMarkets(self::Phemex, params=Dict())
+"""
+retrieves data on all markets for phemex
+see: https://phemex-docs.github.io/#query-product-information-3
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Phemex; params=Dict())
     v2ProductsPromise = self.v2GetPublicProducts(params);
     v1ProductsPromise = self.v1GetExchangePublicProducts(params);
     (v2Products, v1Products) = (Base.fetch(asyncmap(Base.fetch, [v2ProductsPromise, v1ProductsPromise])));
     v1ProductsData = safeValue(v1Products, "data", []);
-    v2ProductsData = self.safeDict(v2Products, "data", Dict{Symbol, Any}());
-    products = self.safeList(v2ProductsData, "products", []);
-    perpetualProductsV2 = self.safeList(v2ProductsData, "perpProductsV2", []);
+    v2ProductsData = self.safeDict(v2Products, "data", defaultValue = Dict{Symbol, Any}());
+    products = self.safeList(v2ProductsData, "products", defaultValue = []);
+    perpetualProductsV2 = self.safeList(v2ProductsData, "perpProductsV2", defaultValue = []);
     products = arrayConcat(products, perpetualProductsV2);
-    riskLimits = self.safeList(v2ProductsData, "riskLimits", []);
-    riskLimitsV2 = self.safeList(v2ProductsData, "riskLimitsV2", []);
+    riskLimits = self.safeList(v2ProductsData, "riskLimits", defaultValue = []);
+    riskLimitsV2 = self.safeList(v2ProductsData, "riskLimitsV2", defaultValue = []);
     riskLimits = arrayConcat(riskLimits, riskLimitsV2);
-    currencies = self.safeList(v2ProductsData, "currencies", []);
+    currencies = self.safeList(v2ProductsData, "currencies", defaultValue = []);
     riskLimitsById = indexBy(riskLimits, "symbol");
     v1ProductsById = indexBy(v1ProductsData, "symbol");
     currenciesByCode = indexBy(currencies, "currency");
@@ -1210,14 +1220,14 @@ function fetchMarkets(self::Phemex, params=Dict())
         type_var = safeStringLower(market, "type");
         if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((type_var == "perpetual"), (type_var == "perpetualv2")), (type_var == "perpetualpilot")))
             id = safeString(market, "symbol");
-            riskLimitValues = self.safeDict(riskLimitsById, id, Dict{Symbol, Any}());
+            riskLimitValues = self.safeDict(riskLimitsById, id, defaultValue = Dict{Symbol, Any}());
             market = extend(market, riskLimitValues);
-            v1ProductsValues = self.safeDict(v1ProductsById, id, Dict{Symbol, Any}());
+            v1ProductsValues = self.safeDict(v1ProductsById, id, defaultValue = Dict{Symbol, Any}());
             market = extend(market, v1ProductsValues);
             market = self.parseSwapMarket(market);
         else
             baseCurrency = safeString(market, "baseCurrency");
-            currencyValues = self.safeDict(currenciesByCode, baseCurrency, Dict{Symbol, Any}());
+            currencyValues = self.safeDict(currenciesByCode, baseCurrency, defaultValue = Dict{Symbol, Any}());
             valueScale = safeString(currencyValues, "valueScale", "8");
             market = extend(market, Dict{Symbol, Any}(
     Symbol("valueScale") => valueScale
@@ -1230,7 +1240,16 @@ function fetchMarkets(self::Phemex, params=Dict())
     return result
 
 end
-function fetchCurrencies(self::Phemex, params=Dict())
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Phemex; params=Dict())
     response = Base.fetch(self.v2GetPublicProducts(params));
     data = safeValue(response, "data", Dict{Symbol, Any}());
     currencies = safeValue(data, "currencies", []);
@@ -1248,7 +1267,7 @@ function parseCurrency(self::Phemex, rawCurrency)
     maxAmount = nothing;
     precision = nothing;
     if functions.ccxtruthy(valueScale != nothing)
-        precisionString = self.parsePrecision(valueScaleString);
+        precisionString = self.parsePrecision(precision = valueScaleString);
         precision = self.parseNumber(precisionString);
         minAmount = self.parseNumber(stringMul(minValueEv, precisionString));
         maxAmount = self.parseNumber(stringMul(maxValueEv, precisionString));
@@ -1279,18 +1298,18 @@ function parseCurrency(self::Phemex, rawCurrency)
 ))
 
 end
-function customParseBidAsk(self::Phemex, bidask, priceKey=0, amountKey=1, market=nothing)
+function customParseBidAsk(self::Phemex, bidask; priceKey=0, amountKey=1, market=nothing)
     if functions.ccxtruthy(market == nothing)
         throw(ArgumentsRequired(string(self.id, " customParseBidAsk() requires a market argument")));
     end
     amount = safeString(bidask, amountKey);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-        amount = self.fromEv(amount, market);
+        amount = self.fromEv(amount, market = market);
     end
-    return [self.parseNumber(self.fromEp(safeString(bidask, priceKey), market)), self.parseNumber(amount)]
+    return [self.parseNumber(self.fromEp(safeString(bidask, priceKey), market = market)), self.parseNumber(amount)]
 
 end
-function customParseOrderBook(self::Phemex, orderbook, symbol, timestamp=nothing, bidsKey="bids", asksKey="asks", priceKey=0, amountKey=1, market=nothing)
+function customParseOrderBook(self::Phemex, orderbook, symbol; timestamp=nothing, bidsKey="bids", asksKey="asks", priceKey=0, amountKey=1, market=nothing)
     result = Dict{Symbol, Any}(
         Symbol("symbol") => symbol,
         Symbol("timestamp") => timestamp,
@@ -1305,7 +1324,7 @@ function customParseOrderBook(self::Phemex, orderbook, symbol, timestamp=nothing
         bidasks = safeValue(orderbook, side);
         k = 0
         while functions.ccxtruthy(functions.ccxt_lt(k, length(bidasks)))
-            push!(orders, self.customParseBidAsk(get(bidasks, k + 1, nothing), priceKey, amountKey, market));
+            push!(orders, self.customParseBidAsk(get(bidasks, k + 1, nothing), priceKey = priceKey, amountKey = amountKey, market = market));
             k += 1
         end
         result[Symbol(side)] = orders;
@@ -1316,7 +1335,19 @@ function customParseOrderBook(self::Phemex, orderbook, symbol, timestamp=nothing
     return result
 
 end
-function fetchOrderBook(self::Phemex, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Phemex, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1337,7 +1368,7 @@ function fetchOrderBook(self::Phemex, symbol, limit=nothing, params=Dict())
     result = safeValue(response, "result", Dict{Symbol, Any}());
     book = safeValue2(result, "book", "orderbook_p", Dict{Symbol, Any}());
     timestamp = safeIntegerProduct(result, "timestamp", 0.000001);
-    orderbook = self.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
+    orderbook = self.customParseOrderBook(book, symbol, timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = 0, amountKey = 1, market = market);
     orderbook[Symbol("nonce")] = safeInteger(result, "sequence");
     return orderbook
 
@@ -1351,14 +1382,14 @@ function toEn(self::Phemex, n, scale)
     return self.parseToNumeric(preciseString)
 
 end
-function toEv(self::Phemex, amount, market=nothing)
+function toEv(self::Phemex, amount; market=nothing)
     if functions.ccxtruthy(@functions.ccxt_or((amount == nothing), (market == nothing)))
             return amount
     end
     return self.toEn(amount, get(market, Symbol("valueScale"), nothing))
 
 end
-function toEp(self::Phemex, price, market=nothing)
+function toEp(self::Phemex, price; market=nothing)
     if functions.ccxtruthy(@functions.ccxt_or((price == nothing), (market == nothing)))
             return price
     end
@@ -1375,37 +1406,53 @@ function fromEn(self::Phemex, en, scale)
     return string(precise)
 
 end
-function fromEp(self::Phemex, ep, market=nothing)
+function fromEp(self::Phemex, ep; market=nothing)
     if functions.ccxtruthy(@functions.ccxt_or((ep == nothing), (market == nothing)))
             return ep
     end
     return self.fromEn(ep, safeInteger(market, "priceScale"))
 
 end
-function fromEv(self::Phemex, ev, market=nothing)
+function fromEv(self::Phemex, ev; market=nothing)
     if functions.ccxtruthy(@functions.ccxt_or((ev == nothing), (market == nothing)))
             return ev
     end
     return self.fromEn(ev, safeInteger(market, "valueScale"))
 
 end
-function fromEr(self::Phemex, er, market=nothing)
+function fromEr(self::Phemex, er; market=nothing)
     if functions.ccxtruthy(@functions.ccxt_or((er == nothing), (market == nothing)))
             return er
     end
     return self.fromEn(er, safeInteger(market, "ratioScale"))
 
 end
-function parseOHLCV(self::Phemex, ohlcv, market=nothing)
+function parseOHLCV(self::Phemex, ohlcv; market=nothing)
     if functions.ccxtruthy(@functions.ccxt_and((market != nothing), get(market, Symbol("spot"), nothing)))
-        baseVolume = self.parseNumber(self.fromEv(safeString(ohlcv, 7), market));
+        baseVolume = self.parseNumber(self.fromEv(safeString(ohlcv, 7), market = market));
     else
         baseVolume = self.safeNumber(ohlcv, 7);
     end
-    return [safeTimestamp(ohlcv, 0), self.parseNumber(self.fromEp(safeString(ohlcv, 3), market)), self.parseNumber(self.fromEp(safeString(ohlcv, 4), market)), self.parseNumber(self.fromEp(safeString(ohlcv, 5), market)), self.parseNumber(self.fromEp(safeString(ohlcv, 6), market)), baseVolume]
+    return [safeTimestamp(ohlcv, 0), self.parseNumber(self.fromEp(safeString(ohlcv, 3), market = market)), self.parseNumber(self.fromEp(safeString(ohlcv, 4), market = market)), self.parseNumber(self.fromEp(safeString(ohlcv, 5), market = market)), self.parseNumber(self.fromEp(safeString(ohlcv, 6), market = market)), baseVolume]
 
 end
-function fetchOHLCV(self::Phemex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: *only used for USDT settled contracts, otherwise is emulated and not supported by the exchange* timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: *USDT settled/ linear swaps only* end time in ms
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Phemex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1460,31 +1507,31 @@ function fetchOHLCV(self::Phemex, symbol, timeframe="1m", since=nothing, limit=n
         response = Base.fetch(self.publicGetMdV2Kline(extend(request, params)));
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseOHLCVs(rows, market, timeframe, since, userLimit)
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseOHLCVs(rows, market = market, timeframe = timeframe, since = since, limit = userLimit)
 
 end
-function parseTicker(self::Phemex, ticker, market=nothing)
+function parseTicker(self::Phemex, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeIntegerProduct(ticker, "timestamp", 0.000001);
-    last_var = self.fromEp(safeString2(ticker, "lastEp", "closeRp"), market);
-    quoteVolume = self.fromEr(safeString2(ticker, "turnoverEv", "turnoverRv"), market);
+    last_var = self.fromEp(safeString2(ticker, "lastEp", "closeRp"), market = market);
+    quoteVolume = self.fromEr(safeString2(ticker, "turnoverEv", "turnoverRv"), market = market);
     baseVolume = safeString(ticker, "volume");
     if functions.ccxtruthy(baseVolume == nothing)
-        baseVolume = self.fromEv(safeString2(ticker, "volumeEv", "volumeRq"), market);
+        baseVolume = self.fromEv(safeString2(ticker, "volumeEv", "volumeRq"), market = market);
     end
-    open = self.fromEp(safeString(ticker, "openEp"), market);
+    open = self.fromEp(safeString(ticker, "openEp"), market = market);
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("high") => self.fromEp(safeString2(ticker, "highEp", "highRp"), market),
-    Symbol("low") => self.fromEp(safeString2(ticker, "lowEp", "lowRp"), market),
-    Symbol("bid") => self.fromEp(safeString(ticker, "bidEp"), market),
+    Symbol("high") => self.fromEp(safeString2(ticker, "highEp", "highRp"), market = market),
+    Symbol("low") => self.fromEp(safeString2(ticker, "lowEp", "lowRp"), market = market),
+    Symbol("bid") => self.fromEp(safeString(ticker, "bidEp"), market = market),
     Symbol("bidVolume") => nothing,
-    Symbol("ask") => self.fromEp(safeString(ticker, "askEp"), market),
+    Symbol("ask") => self.fromEp(safeString(ticker, "askEp"), market = market),
     Symbol("askVolume") => nothing,
     Symbol("vwap") => nothing,
     Symbol("open") => open,
@@ -1497,10 +1544,21 @@ function parseTicker(self::Phemex, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Phemex, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Phemex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1517,11 +1575,24 @@ function fetchTicker(self::Phemex, symbol, params=Dict())
     else
         response = Base.fetch(self.v1GetMdSpotTicker24hr(extend(request, params)));
     end
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTicker(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(result, market = market)
 
 end
-function fetchTickers(self::Phemex, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     // spot
+see: https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             // linear
+see: https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Phemex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1531,9 +1602,9 @@ function fetchTickers(self::Phemex, symbols=nothing, params=Dict())
         market = self.market(first_var);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchTickers", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchTickers", market = market, params = params);
     query = omit(params, "type");
     if functions.ccxtruthy(type_var == "spot")
         response = Base.fetch(self.v1GetMdSpotTicker24hrAll(query));
@@ -1542,11 +1613,24 @@ function fetchTickers(self::Phemex, symbols=nothing, params=Dict())
     else
         response = Base.fetch(self.v2GetMdV2Ticker24hrAll(query));
     end
-    result = self.safeList(response, "result", []);
-    return self.parseTickers(result, symbols)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseTickers(result, symbols = symbols)
 
 end
-function fetchTrades(self::Phemex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Phemex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1562,10 +1646,10 @@ function fetchTrades(self::Phemex, symbol, since=nothing, limit=nothing, params=
     end
     result = safeValue(response, "result", Dict{Symbol, Any}());
     trades = safeValue2(result, "trades", "trades_p", []);
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Phemex, trade, market=nothing)
+function parseTrade(self::Phemex, trade; market=nothing)
     id = nothing;
     side = nothing;
     costString = nothing;
@@ -1575,7 +1659,7 @@ function parseTrade(self::Phemex, trade, market=nothing)
     feeRateString = nothing;
     feeCurrencyCode = nothing;
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     orderId = nothing;
     takerOrMaker = nothing;
@@ -1589,8 +1673,8 @@ function parseTrade(self::Phemex, trade, market=nothing)
         priceString = safeString(trade, tradeLength - 2);
         amountString = safeString(trade, tradeLength - 1);
         if functions.ccxtruthy(isa(get(trade, tradeLength - 2 + 1, nothing), Number))
-            priceString = self.fromEp(priceString, market);
-            amountString = self.fromEv(amountString, market);
+            priceString = self.fromEp(priceString, market = market);
+            amountString = self.fromEv(amountString, market = market);
         end
     else
         timestamp = safeIntegerProduct(trade, "transactTimeNs", 0.000001);
@@ -1634,13 +1718,13 @@ function parseTrade(self::Phemex, trade, market=nothing)
             if functions.ccxtruthy(execStatus == "MakerFill")
                 takerOrMaker = "maker";
             end
-            priceString = self.fromEp(safeString(trade, "execPriceEp"), market);
-            amountString = self.fromEv(safeString(trade, "execBaseQtyEv"), market);
+            priceString = self.fromEp(safeString(trade, "execPriceEp"), market = market);
+            amountString = self.fromEv(safeString(trade, "execBaseQtyEv"), market = market);
             amountString = safeString(trade, "execQty", amountString);
-            costString = self.fromEr(safeString2(trade, "execQuoteQtyEv", "execValueEv"), market);
-            feeCostString = self.fromEr(omitZero(safeString(trade, "execFeeEv")), market);
+            costString = self.fromEr(safeString2(trade, "execQuoteQtyEv", "execValueEv"), market = market);
+            feeCostString = self.fromEr(omitZero(safeString(trade, "execFeeEv")), market = market);
             if functions.ccxtruthy(feeCostString != nothing)
-                feeRateString = self.fromEr(safeString(trade, "feeRateEr"), market);
+                feeRateString = self.fromEr(safeString(trade, "feeRateEr"), market = market);
                 if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
                     feeCurrencyCode = self.safeCurrencyCode(safeString(trade, "feeCurrency"));
                 else
@@ -1677,7 +1761,7 @@ function parseTrade(self::Phemex, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
 function parseSpotBalance(self::Phemex, response)
@@ -1733,12 +1817,26 @@ function parseSwapBalance(self::Phemex, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Phemex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://phemex-docs.github.io/#query-wallets
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+see: https://phemex-docs.github.io/#query-trading-account-and-positions
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: spot or swap
+- `params.code`::string, optional: *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Phemex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     code = safeString(params, "code");
     params = omit(params, ["code"]);
     request = Dict{Symbol, Any}();
@@ -1747,7 +1845,7 @@ function fetchBalance(self::Phemex, params=Dict())
     end
     if functions.ccxtruthy(type_var == "swap")
         settle = nothing;
-        (settle, params) = self.handleOptionAndParams(params, "fetchBalance", "settle", "USDT");
+        (settle, params) = self.handleOptionAndParams(params, "fetchBalance", "settle", defaultValue = "USDT");
         if functions.ccxtruthy(@functions.ccxt_or(code != nothing, settle != nothing))
             coin = nothing;
             if functions.ccxtruthy(code != nothing)
@@ -1830,27 +1928,27 @@ function parseTimeInForce(self::Phemex, timeInForce)
     return safeString(timeInForces, timeInForce, timeInForce)
 
 end
-function parseSpotOrder(self::Phemex, order, market=nothing)
+function parseSpotOrder(self::Phemex, order; market=nothing)
     id = safeString(order, "orderID");
     clientOrderId = safeString(order, "clOrdID");
     if functions.ccxtruthy(@functions.ccxt_and((clientOrderId != nothing), (functions.ccxt_lt(length(clientOrderId), 1))))
         clientOrderId = nothing;
     end
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
-    price = self.fromEp(safeString(order, "priceEp"), market);
-    amount = self.fromEv(safeString(order, "baseQtyEv"), market);
-    remaining = omitZero(self.fromEv(safeString(order, "leavesBaseQtyEv"), market));
-    filled = self.fromEv(safeString2(order, "cumBaseQtyEv", "cumBaseValueEv"), market);
-    cost = self.fromEr(safeString2(order, "cumQuoteValueEv", "quoteQtyEv"), market);
-    average = self.fromEp(safeString(order, "avgPriceEp"), market);
+    price = self.fromEp(safeString(order, "priceEp"), market = market);
+    amount = self.fromEv(safeString(order, "baseQtyEv"), market = market);
+    remaining = omitZero(self.fromEv(safeString(order, "leavesBaseQtyEv"), market = market));
+    filled = self.fromEv(safeString2(order, "cumBaseQtyEv", "cumBaseValueEv"), market = market);
+    cost = self.fromEr(safeString2(order, "cumQuoteValueEv", "quoteQtyEv"), market = market);
+    average = self.fromEp(safeString(order, "avgPriceEp"), market = market);
     status = self.parseOrderStatus(safeString(order, "ordStatus"));
     side = safeStringLower(order, "side");
     type_var = self.parseOrderType(safeString(order, "ordType"));
     timestamp = safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
     fee = nothing;
-    feeCost = self.fromEv(safeString(order, "cumFeeEv"), market);
+    feeCost = self.fromEv(safeString(order, "cumFeeEv"), market = market);
     if functions.ccxtruthy(feeCost != nothing)
         fee = Dict{Symbol, Any}(
             Symbol("cost") => feeCost,
@@ -1882,7 +1980,7 @@ function parseSpotOrder(self::Phemex, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => fee,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
 function parseOrderSide(self::Phemex, side)
@@ -1893,21 +1991,21 @@ function parseOrderSide(self::Phemex, side)
     return safeString(sides, side, side)
 
 end
-function parseSwapOrder(self::Phemex, order, market=nothing)
+function parseSwapOrder(self::Phemex, order; market=nothing)
     id = safeString2(order, "orderID", "orderId");
     clientOrderId = safeString2(order, "clOrdID", "clOrdId");
     if functions.ccxtruthy(@functions.ccxt_and((clientOrderId != nothing), (functions.ccxt_lt(length(clientOrderId), 1))))
         clientOrderId = nothing;
     end
     marketId = safeString(order, "symbol");
-    symbol = self.safeSymbol(marketId, market);
-    market = self.safeMarket(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
+    market = self.safeMarket(marketId = marketId, market = market);
     status = self.parseOrderStatus(safeString(order, "ordStatus"));
     side = self.parseOrderSide(safeStringLower(order, "side"));
     type_var = self.parseOrderType(safeString(order, "orderType"));
     price = safeString(order, "priceRp");
     if functions.ccxtruthy(price == nothing)
-        price = self.fromEp(safeString(order, "priceEp"), market);
+        price = self.fromEp(safeString(order, "priceEp"), market = market);
     end
     amount = self.safeNumber2(order, "orderQty", "orderQtyRq");
     filled = self.safeNumber2(order, "cumQty", "cumQtyRq");
@@ -1973,16 +2071,39 @@ function parseSwapOrder(self::Phemex, order, market=nothing)
 ))
 
 end
-function parseOrder(self::Phemex, order, market=nothing)
-    isSwap = self.safeBool(market, "swap", false);
+function parseOrder(self::Phemex, order; market=nothing)
+    isSwap = self.safeBool(market, "swap", defaultValue = false);
     hasPnl = @functions.ccxt_or(@functions.ccxt_or((ccxt_in("closedPnl", order)), (ccxt_in("closedPnlRv", order))), (ccxt_in("totalPnlRv", order)));
     if functions.ccxtruthy(@functions.ccxt_or(isSwap, hasPnl))
-            return self.parseSwapOrder(order, market)
+            return self.parseSwapOrder(order, market = market)
     end
-    return self.parseSpotOrder(order, market)
+    return self.parseSpotOrder(order, market = market)
 
 end
-function createOrder(self::Phemex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
+see: https://phemex-docs.github.io/#place-order-http-put-prefered-3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::float, optional: trigger price for conditional orders
+- `params.takeProfit`::object, optional: *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.posSide`::string, optional: *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+- `params.hedged`::bool, optional: *swap only* true for hedged mode, false for one way mode, default is false
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Phemex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2014,7 +2135,7 @@ function createOrder(self::Phemex, symbol, type_var, side, amount, price=nothing
         if functions.ccxtruthy(isStableSettled)
             request[Symbol("stopPxRp")] = self.priceToPrecision(symbol, triggerPrice);
         else
-            request[Symbol("stopPxEp")] = self.toEp(triggerPrice, market);
+            request[Symbol("stopPxEp")] = self.toEp(triggerPrice, market = market);
         end
     end
     params = omit(params, ["stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"]);
@@ -2049,13 +2170,13 @@ function createOrder(self::Phemex, symbol, type_var, side, amount, price=nothing
             end
             cost = functions.ccxtruthy((cost == nothing)) ? amount : cost;
             costString = self.costToPrecision(symbol, cost);
-            request[Symbol("quoteQtyEv")] = self.toEv(costString, market);
+            request[Symbol("quoteQtyEv")] = self.toEv(costString, market = market);
         else
             amountString = self.amountToPrecision(symbol, amount);
-            request[Symbol("baseQtyEv")] = self.toEv(amountString, market);
+            request[Symbol("baseQtyEv")] = self.toEv(amountString, market = market);
         end
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
-        hedged = self.safeBool(params, "hedged", false);
+        hedged = self.safeBool(params, "hedged", defaultValue = false);
         params = omit(params, "hedged");
         posSide = safeStringLower(params, "posSide");
         if functions.ccxtruthy(posSide == nothing)
@@ -2108,7 +2229,7 @@ function createOrder(self::Phemex, symbol, type_var, side, amount, price=nothing
                 if functions.ccxtruthy(isStableSettled)
                     request[Symbol("stopLossRp")] = self.priceToPrecision(symbol, stopLossTriggerPrice);
                 else
-                    request[Symbol("stopLossEp")] = self.toEp(stopLossTriggerPrice, market);
+                    request[Symbol("stopLossEp")] = self.toEp(stopLossTriggerPrice, market = market);
                 end
                 stopLossTriggerPriceType = safeString2(stopLoss, "triggerPriceType", "slTrigger");
                 if functions.ccxtruthy(stopLossTriggerPriceType != nothing)
@@ -2127,7 +2248,7 @@ function createOrder(self::Phemex, symbol, type_var, side, amount, price=nothing
                 if functions.ccxtruthy(isStableSettled)
                     request[Symbol("takeProfitRp")] = self.priceToPrecision(symbol, takeProfitTriggerPrice);
                 else
-                    request[Symbol("takeProfitEp")] = self.toEp(takeProfitTriggerPrice, market);
+                    request[Symbol("takeProfitEp")] = self.toEp(takeProfitTriggerPrice, market = market);
                 end
                 takeProfitTriggerPriceType = safeString2(takeProfit, "triggerPriceType", "tpTrigger");
                 if functions.ccxtruthy(takeProfitTriggerPriceType != nothing)
@@ -2145,7 +2266,7 @@ function createOrder(self::Phemex, symbol, type_var, side, amount, price=nothing
             request[Symbol("priceRp")] = self.priceToPrecision(symbol, price);
         else
             priceString = numberToString(price);
-            request[Symbol("priceEp")] = self.toEp(priceString, market);
+            request[Symbol("priceEp")] = self.toEp(priceString, market = market);
         end
     end
     takeProfitPrice = safeString(params, "takeProfitPrice");
@@ -2153,7 +2274,7 @@ function createOrder(self::Phemex, symbol, type_var, side, amount, price=nothing
         if functions.ccxtruthy(isStableSettled)
             request[Symbol("takeProfitRp")] = self.priceToPrecision(symbol, takeProfitPrice);
         else
-            request[Symbol("takeProfitEp")] = self.toEp(takeProfitPrice, market);
+            request[Symbol("takeProfitEp")] = self.toEp(takeProfitPrice, market = market);
         end
         params = omit(params, "takeProfitPrice");
     end
@@ -2162,7 +2283,7 @@ function createOrder(self::Phemex, symbol, type_var, side, amount, price=nothing
         if functions.ccxtruthy(isStableSettled)
             request[Symbol("stopLossRp")] = self.priceToPrecision(symbol, stopLossPrice);
         else
-            request[Symbol("stopLossEp")] = self.toEp(stopLossPrice, market);
+            request[Symbol("stopLossEp")] = self.toEp(stopLossPrice, market = market);
         end
         params = omit(params, "stopLossPrice");
     end
@@ -2173,11 +2294,28 @@ function createOrder(self::Phemex, symbol, type_var, side, amount, price=nothing
     else
         response = Base.fetch(self.privatePostSpotOrders(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function editOrder(self::Phemex, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.posSide`::string, optional: either 'Merged' or 'Long' or 'Short'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Phemex, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2197,7 +2335,7 @@ function editOrder(self::Phemex, id, symbol, type_var, side, amount=nothing, pri
         if functions.ccxtruthy(isStableSettled)
             request[Symbol("priceRp")] = self.priceToPrecision(get(market, Symbol("symbol"), nothing), price);
         else
-            request[Symbol("priceEp")] = self.toEp(price, market);
+            request[Symbol("priceEp")] = self.toEp(price, market = market);
         end
     end
     finalQty = safeString(params, "baseQtyEv");
@@ -2208,7 +2346,7 @@ function editOrder(self::Phemex, id, symbol, type_var, side, amount=nothing, pri
         if functions.ccxtruthy(isStableSettled)
             request[Symbol("orderQtyRq")] = self.amountToPrecision(get(market, Symbol("symbol"), nothing), amount);
         else
-            request[Symbol("baseQtyEV")] = self.toEv(amount, market);
+            request[Symbol("baseQtyEV")] = self.toEv(amount, market = market);
         end
     end
     triggerPrice = safeStringN(params, ["triggerPrice", "stopPx", "stopPrice"]);
@@ -2216,7 +2354,7 @@ function editOrder(self::Phemex, id, symbol, type_var, side, amount=nothing, pri
         if functions.ccxtruthy(isStableSettled)
             request[Symbol("stopPxRp")] = self.priceToPrecision(symbol, triggerPrice);
         else
-            request[Symbol("stopPxEp")] = self.toEp(triggerPrice, market);
+            request[Symbol("stopPxEp")] = self.toEp(triggerPrice, market = market);
         end
     end
     params = omit(params, ["triggerPrice", "stopPx", "stopPrice"]);
@@ -2231,11 +2369,24 @@ function editOrder(self::Phemex, id, symbol, type_var, side, amount=nothing, pri
     else
         response = Base.fetch(self.privatePutSpotOrders(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function cancelOrder(self::Phemex, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.posSide`::string, optional: either 'Merged' or 'Long' or 'Short'
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Phemex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -2264,11 +2415,22 @@ function cancelOrder(self::Phemex, id, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.privateDeleteSpotOrders(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function cancelAllOrders(self::Phemex, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Phemex; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -2296,7 +2458,19 @@ function cancelAllOrders(self::Phemex, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchOrder(self::Phemex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://phemex-docs.github.io/#query-orders-by-ids
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Phemex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -2332,15 +2506,28 @@ function fetchOrder(self::Phemex, id, symbol=nothing, params=Dict())
                 throw(OrderNotFound(string(self.id, " fetchOrder() ", symbol, " order with id ", id, " not found")));
             end
         end
-        order = self.safeDict(data, 0, Dict{Symbol, Any}());
+        order = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-        rows = self.safeList(data, "rows", []);
-        order = self.safeDict(rows, 0, Dict{Symbol, Any}());
+        rows = self.safeList(data, "rows", defaultValue = []);
+        order = self.safeDict(rows, 0, defaultValue = Dict{Symbol, Any}());
     end
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function fetchOrders(self::Phemex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Phemex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -2366,11 +2553,26 @@ function fetchOrders(self::Phemex, symbol=nothing, since=nothing, limit=nothing,
         response = Base.fetch(self.privateGetApiDataSpotsOrders(extend(request, params)));
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", data);
-    return self.parseOrders(rows, market, since, limit)
+    rows = self.safeList(data, "rows", defaultValue = data);
+    return self.parseOrders(rows, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Phemex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotListAllOpenOrder
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Phemex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2401,14 +2603,31 @@ function fetchOpenOrders(self::Phemex, symbol=nothing, since=nothing, limit=noth
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
     if functions.ccxtruthy(functions.ccxt_isArray(data))
-            return self.parseOrders(data, market, since, limit)
+            return self.parseOrders(data, market = market, since = since, limit = limit)
     else
-        rows = self.safeList(data, "rows", []);
-        return self.parseOrders(rows, market, since, limit)
+        rows = self.safeList(data, "rows", defaultValue = []);
+        return self.parseOrders(rows, market = market, since = since, limit = limit)
     end
 
 end
-function fetchClosedOrders(self::Phemex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#queryorder
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedgedd-Perpetual-API.md#query-closed-orders-by-symbol
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataOrdersByIds
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.settle`::string, optional: the settlement currency to fetch orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Phemex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2436,14 +2655,29 @@ function fetchClosedOrders(self::Phemex, symbol=nothing, since=nothing, limit=no
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
     if functions.ccxtruthy(functions.ccxt_isArray(data))
-            return self.parseOrders(data, market, since, limit)
+            return self.parseOrders(data, market = market, since = since, limit = limit)
     else
-        rows = self.safeList(data, "rows", []);
-        return self.parseOrders(rows, market, since, limit)
+        rows = self.safeList(data, "rows", defaultValue = []);
+        return self.parseOrders(rows, market = market, since = since, limit = limit)
     end
 
 end
-function fetchMyTrades(self::Phemex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-trade
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataTradesHist
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Phemex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2452,7 +2686,7 @@ function fetchMyTrades(self::Phemex, symbol=nothing, since=nothing, limit=nothin
         market = self.market(symbol);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(limit != nothing)
         limit = min(200, limit);
@@ -2485,10 +2719,21 @@ function fetchMyTrades(self::Phemex, symbol=nothing, since=nothing, limit=nothin
         data = safeValue(response, "data", Dict{Symbol, Any}());
         data = safeValue(data, "rows", []);
     end
-    return self.parseTrades(data, market, since, limit)
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchDepositAddress(self::Phemex, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Phemex, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2498,7 +2743,7 @@ function fetchDepositAddress(self::Phemex, code, params=Dict())
     );
     defaultNetworks = self.safeDict(self.options, "defaultNetworks");
     defaultNetwork = safeStringUpper(defaultNetworks, code);
-    networks = self.safeDict(self.options, "networks", Dict{Symbol, Any}());
+    networks = self.safeDict(self.options, "networks", defaultValue = Dict{Symbol, Any}());
     network = safeStringUpper2(params, "network", "chainName", defaultNetwork);
     network = safeString(networks, network, network);
     if functions.ccxtruthy(network == nothing)
@@ -2511,7 +2756,7 @@ function fetchDepositAddress(self::Phemex, code, params=Dict())
     data = safeValue(response, "data", Dict{Symbol, Any}());
     address = safeString(data, "address");
     tag = safeString(data, "tag");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
@@ -2521,7 +2766,19 @@ function fetchDepositAddress(self::Phemex, code, params=Dict())
 )
 
 end
-function fetchDeposits(self::Phemex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Phemex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2530,11 +2787,23 @@ function fetchDeposits(self::Phemex, code=nothing, since=nothing, limit=nothing,
         currency = self.currency(code);
     end
     response = Base.fetch(self.privateGetExchangeWalletsDepositList(params));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Phemex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Phemex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2543,8 +2812,8 @@ function fetchWithdrawals(self::Phemex, code=nothing, since=nothing, limit=nothi
         currency = self.currency(code);
     end
     response = Base.fetch(self.privateGetExchangeWalletsWithdrawList(params));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
 function parseTransactionStatus(self::Phemex, status)
@@ -2568,13 +2837,13 @@ function parseTransactionStatus(self::Phemex, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Phemex, transaction, currency=nothing)
+function parseTransaction(self::Phemex, transaction; currency=nothing)
     id = safeString(transaction, "id");
     address = safeString(transaction, "address");
     tag = nothing;
     txid = safeString(transaction, "txHash");
     currencyId = safeString(transaction, "currency");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     code = get(currency, Symbol("code"), nothing);
     networkId = safeString(transaction, "chainName");
     timestamp = safeIntegerN(transaction, ["createdAt", "submitedAt", "submittedAt"]);
@@ -2602,7 +2871,7 @@ function parseTransaction(self::Phemex, transaction, currency=nothing)
     Symbol("txid") => txid,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("address") => address,
     Symbol("addressTo") => address,
     Symbol("addressFrom") => nothing,
@@ -2620,11 +2889,26 @@ function parseTransaction(self::Phemex, transaction, currency=nothing)
 )
 
 end
-function fetchPositions(self::Phemex, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+see: https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string, optional: the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
+- `params.method`::string, optional: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Phemex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     subType = nothing;
     code = safeString2(params, "currency", "code", "USDT");
     params = omit(params, ["currency", "code"]);
@@ -2636,9 +2920,9 @@ function fetchPositions(self::Phemex, symbols=nothing, params=Dict())
         settle = get(market, Symbol("settle"), nothing);
         code = get(market, Symbol("settle"), nothing);
     else
-        (settle, params) = self.handleOptionAndParams(params, "fetchPositions", "settle", code);
+        (settle, params) = self.handleOptionAndParams(params, "fetchPositions", "settle", defaultValue = code);
     end
-    (subType, params) = self.handleSubTypeAndParams("fetchPositions", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchPositions", market = market, params = params);
     isUSDTSettled = settle == "USDT";
     if functions.ccxtruthy(isUSDTSettled)
         code = "USDT";
@@ -2656,7 +2940,7 @@ function fetchPositions(self::Phemex, symbols=nothing, params=Dict())
     );
     if functions.ccxtruthy(isUSDTSettled)
         method = nothing;
-        (method, params) = self.handleOptionAndParams(params, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
+        (method, params) = self.handleOptionAndParams(params, "fetchPositions", "method", defaultValue = "privateGetGAccountsAccountPositions");
         if functions.ccxtruthy(method == "privateGetGAccountsAccountPositions")
             response = Base.fetch(self.privateGetGAccountsAccountPositions(extend(request, params)));
         else
@@ -2674,10 +2958,24 @@ function fetchPositions(self::Phemex, symbols=nothing, params=Dict())
         push!(result, self.parsePosition(position));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function fetchPositionHistory(self::Phemex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://phemex-docs.github.io/#query-closed-positions
+
+# Arguments
+- `symbol`::string: unified contract symbol
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum amount of records to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch positions for
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionHistory(self::Phemex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2690,14 +2988,14 @@ function fetchPositionHistory(self::Phemex, symbol, since=nothing, limit=nothing
         request[Symbol("limit")] = min(200, limit);
     end
     response = Base.fetch(self.privateGetApiDataGFuturesClosedPosition(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    positions = self.parsePositions(data, [symbol]);
-    return self.filterBySymbolSinceLimit(positions, symbol, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    positions = self.parsePositions(data, symbols = [symbol]);
+    return self.filterBySymbolSinceLimit(positions, symbol = symbol, since = since, limit = limit)
 
 end
-function parsePosition(self::Phemex, position, market=nothing)
+function parsePosition(self::Phemex, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     collateral = safeString2(position, "positionMargin", "positionMarginRv");
     notionalString = safeString2(position, "value", "valueRv");
@@ -2771,7 +3069,20 @@ function parsePosition(self::Phemex, position, market=nothing)
 ))
 
 end
-function fetchFundingHistory(self::Phemex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#futureDataFundingFeesHist
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Phemex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingHistory() requires a symbol argument")));
     end
@@ -2810,14 +3121,14 @@ function fetchFundingHistory(self::Phemex, symbol=nothing, since=nothing, limit=
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("id") => nothing,
-    Symbol("amount") => self.parseFundingFeeToPrecision(execFee, market, currencyCode)
+    Symbol("amount") => self.parseFundingFeeToPrecision(execFee, market = market, currencyCode = currencyCode)
 ));
         i += 1
     end
     return result
 
 end
-function parseFundingFeeToPrecision(self::Phemex, value, market=nothing, currencyCode=nothing)
+function parseFundingFeeToPrecision(self::Phemex, value; market=nothing, currencyCode=nothing)
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(value == nothing, currencyCode == nothing), market == nothing))
             return value
     end
@@ -2825,13 +3136,23 @@ function parseFundingFeeToPrecision(self::Phemex, value, market=nothing, currenc
     if functions.ccxtruthy(!functions.ccxtruthy(isStableSettled))
         currency = self.safeCurrency(currencyCode);
         scale = safeString(get(currency, Symbol("info"), nothing), "valueScale");
-        tickPrecision = self.parsePrecision(scale);
+        tickPrecision = self.parsePrecision(precision = scale);
         value = stringMul(value, tickPrecision);
     end
     return value
 
 end
-function fetchFundingRate(self::Phemex, symbol, params=Dict())
+"""
+fetch the current funding rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Phemex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2849,30 +3170,30 @@ function fetchFundingRate(self::Phemex, symbol, params=Dict())
         response = Base.fetch(self.v2GetMdV2Ticker24hr(extend(request, params)));
     end
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    return self.parseFundingRate(result, market)
+    return self.parseFundingRate(result, market = market)
 
 end
-function parseFundingRate(self::Phemex, contract, market=nothing)
+function parseFundingRate(self::Phemex, contract; market=nothing)
     marketId = safeString(contract, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     timestamp = safeIntegerProduct(contract, "timestamp", 0.000001);
-    markEp = self.fromEp(safeString(contract, "markEp"), market);
-    indexEp = self.fromEp(safeString(contract, "indexEp"), market);
-    fundingRateEr = self.fromEr(safeString(contract, "fundingRateEr"), market);
-    nextFundingRateEr = self.fromEr(safeString(contract, "predFundingRateEr"), market);
+    markEp = self.fromEp(safeString(contract, "markEp"), market = market);
+    indexEp = self.fromEp(safeString(contract, "indexEp"), market = market);
+    fundingRateEr = self.fromEr(safeString(contract, "fundingRateEr"), market = market);
+    nextFundingRateEr = self.fromEr(safeString(contract, "predFundingRateEr"), market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
     Symbol("symbol") => symbol,
-    Symbol("markPrice") => self.safeNumber(contract, "markPriceRp", markEp),
-    Symbol("indexPrice") => self.safeNumber(contract, "indexPriceRp", indexEp),
+    Symbol("markPrice") => self.safeNumber(contract, "markPriceRp", defaultNumber = markEp),
+    Symbol("indexPrice") => self.safeNumber(contract, "indexPriceRp", defaultNumber = indexEp),
     Symbol("interestRate") => nothing,
     Symbol("estimatedSettlePrice") => nothing,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("fundingRate") => self.safeNumber(contract, "fundingRateRr", fundingRateEr),
+    Symbol("fundingRate") => self.safeNumber(contract, "fundingRateRr", defaultNumber = fundingRateEr),
     Symbol("fundingTimestamp") => nothing,
     Symbol("fundingDatetime") => nothing,
-    Symbol("nextFundingRate") => self.safeNumber(contract, "predFundingRateRr", nextFundingRateEr),
+    Symbol("nextFundingRate") => self.safeNumber(contract, "predFundingRateRr", defaultNumber = nextFundingRateEr),
     Symbol("nextFundingTimestamp") => nothing,
     Symbol("nextFundingDatetime") => nothing,
     Symbol("previousFundingRate") => nothing,
@@ -2882,17 +3203,29 @@ function parseFundingRate(self::Phemex, contract, market=nothing)
 )
 
 end
-function setMargin(self::Phemex, symbol, amount, params=Dict())
+"""
+Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to set margin in
+- `amount`::float: the amount to set the margin to
+- `params`::object, optional: parameters specific to the exchange API endpoint
+
+# Returns
+- A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function setMargin(self::Phemex, symbol, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
-        Symbol("posBalanceEv") => self.toEv(amount, market)
+        Symbol("posBalanceEv") => self.toEv(amount, market = market)
     );
     response = Base.fetch(self.privatePostPositionsAssign(extend(request, params)));
-    return extend(self.parseMarginModification(response, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(response, market = market), Dict{Symbol, Any}(
     Symbol("amount") => amount
 ))
 
@@ -2904,13 +3237,13 @@ function parseMarginStatus(self::Phemex, status)
     return safeString(statuses, status, status)
 
 end
-function parseMarginModification(self::Phemex, data, market=nothing)
-    market = self.safeMarket(nothing, market);
+function parseMarginModification(self::Phemex, data; market=nothing)
+    market = self.safeMarket(marketId = nothing, market = market);
     inverse = safeValue(market, "inverse");
     codeCurrency = functions.ccxtruthy(inverse) ? "base" : "quote";
     return Dict{Symbol, Any}(
     Symbol("info") => data,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("type") => "set",
     Symbol("marginMode") => "isolated",
     Symbol("amount") => nothing,
@@ -2922,7 +3255,19 @@ function parseMarginModification(self::Phemex, data, market=nothing)
 )
 
 end
-function setMarginMode(self::Phemex, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://phemex-docs.github.io/#set-leverage
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Phemex, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -2960,7 +3305,19 @@ function setMarginMode(self::Phemex, marginMode, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePutPositionsLeverage(extend(request, params)))
 
 end
-function setPositionMode(self::Phemex, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Phemex, hedged; symbol=nothing, params=Dict())
     self.checkRequiredArgument("setPositionMode", symbol, "symbol");
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2980,7 +3337,17 @@ function setPositionMode(self::Phemex, hedged, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePutGPositionsSwitchPosModeSync(extend(request, params)))
 
 end
-function fetchLeverageTiers(self::Phemex, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Phemex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2994,12 +3361,12 @@ function fetchLeverageTiers(self::Phemex, symbols=nothing, params=Dict())
     response = Base.fetch(self.publicGetCfgV2Products(params));
     data = safeValue(response, "data", Dict{Symbol, Any}());
     riskLimits = self.safeList(data, "riskLimits");
-    return self.parseLeverageTiers(riskLimits, symbols, "symbol")
+    return self.parseLeverageTiers(riskLimits, symbols = symbols, marketIdKey = "symbol")
 
 end
-function parseMarketLeverageTiers(self::Phemex, info, market=nothing)
+function parseMarketLeverageTiers(self::Phemex, info; market=nothing)
     marketId = safeString(info, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     riskLimits = (get(get(market, Symbol("info"), nothing), Symbol("riskLimits"), nothing));
     tiers = [];
     minNotional = 0;
@@ -3010,7 +3377,7 @@ function parseMarketLeverageTiers(self::Phemex, info, market=nothing)
         minNotionalResponse = minNotional;
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => self.sum(i, 1),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("currency") => get(market, Symbol("settle"), nothing),
     Symbol("minNotional") => minNotionalResponse,
     Symbol("maxNotional") => maxNotional,
@@ -3024,7 +3391,7 @@ function parseMarketLeverageTiers(self::Phemex, info, market=nothing)
     return tiers
 
 end
-function sign(self::Phemex, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Phemex, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     query = omit(params, self.extractParams(path));
     requestPath = string("/", self.implodeParams(path, params));
     url = requestPath;
@@ -3070,7 +3437,22 @@ function sign(self::Phemex, path, api="public", method="GET", params=Dict(), hea
 )
 
 end
-function setLeverage(self::Phemex, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage, 100 > leverage > -100 excluding numbers between -1 to 1
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.hedged`::bool, optional: set to true if hedged position mode is enabled (by default long and short leverage are set to the same value)
+- `params.longLeverageRr`::float, optional: *hedged mode only* set the leverage for long positions
+- `params.shortLeverageRr`::float, optional: *hedged mode only* set the leverage for short positions
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Phemex, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -3080,7 +3462,7 @@ function setLeverage(self::Phemex, leverage, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    isHedged = self.safeBool(params, "hedged", false);
+    isHedged = self.safeBool(params, "hedged", defaultValue = false);
     longLeverageRr = safeInteger(params, "longLeverageRr");
     shortLeverageRr = safeInteger(params, "shortLeverageRr");
     market = self.market(symbol);
@@ -3104,7 +3486,23 @@ function setLeverage(self::Phemex, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function transfer(self::Phemex, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://phemex-docs.github.io/#transfer-between-spot-and-futures
+see: https://phemex-docs.github.io/#universal-transfer-main-account-only-transfer-between-sub-to-main-main-to-sub-or-sub-to-sub
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.bizType`::string, optional: for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Phemex, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3112,7 +3510,7 @@ function transfer(self::Phemex, code, amount, fromAccount, toAccount, params=Dic
     accountsByType = safeValue(self.options, "accountsByType", Dict{Symbol, Any}());
     fromId = safeString(accountsByType, fromAccount, fromAccount);
     toId = safeString(accountsByType, toAccount, toAccount);
-    scaledAmmount = self.toEv(amount, currency);
+    scaledAmmount = self.toEv(amount, market = currency);
     direction = nothing;
     transfer = nothing;
     if functions.ccxtruthy(@functions.ccxt_and(fromId == "spot", toId == "future"))
@@ -3128,7 +3526,7 @@ function transfer(self::Phemex, code, amount, fromAccount, toAccount, params=Dic
         );
         response = Base.fetch(self.privatePostAssetsTransfer(extend(request, params)));
         data = safeValue(response, "data", Dict{Symbol, Any}());
-        transfer = self.parseTransfer(data, currency);
+        transfer = self.parseTransfer(data, currency = currency);
     else
         request = Dict{Symbol, Any}(
             Symbol("fromUserId") => fromId,
@@ -3141,7 +3539,7 @@ function transfer(self::Phemex, code, amount, fromAccount, toAccount, params=Dic
         transfer = self.parseTransfer(response);
     end
     transferOptions = safeValue(self.options, "transfer", Dict{Symbol, Any}());
-    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", true);
+    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         if functions.ccxtruthy(get(transfer, Symbol("fromAccount"), nothing) == nothing)
             transfer[Symbol("fromAccount")] = fromAccount;
@@ -3159,7 +3557,20 @@ function transfer(self::Phemex, code, amount, fromAccount, toAccount, params=Dic
     return transfer
 
 end
-function fetchTransfers(self::Phemex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://phemex-docs.github.io/#query-transfer-history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Phemex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3178,17 +3589,17 @@ function fetchTransfers(self::Phemex, code=nothing, since=nothing, limit=nothing
     end
     response = Base.fetch(self.privateGetAssetsTransfer(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    transfers = self.safeList(data, "rows", []);
-    return self.parseTransfers(transfers, currency, since, limit)
+    transfers = self.safeList(data, "rows", defaultValue = []);
+    return self.parseTransfers(transfers, currency = currency, since = since, limit = limit)
 
 end
-function parseTransfer(self::Phemex, transfer, currency=nothing)
+function parseTransfer(self::Phemex, transfer; currency=nothing)
     id = safeString(transfer, "linkKey");
     status = safeString(transfer, "status");
     amountEv = safeString(transfer, "amountEv");
     amountTransfered = self.fromEv(amountEv);
     currencyId = safeString(transfer, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     side = safeInteger(transfer, "side");
     fromId = nothing;
     toId = nothing;
@@ -3223,7 +3634,22 @@ function parseTransferStatus(self::Phemex, status)
     return safeString(statuses, status, status)
 
 end
-function fetchFundingRateHistory(self::Phemex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://phemex-docs.github.io/#query-funding-rate-history-2
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Phemex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -3238,7 +3664,7 @@ function fetchFundingRateHistory(self::Phemex, symbol=nothing, since=nothing, li
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params, maxEntriesPerRequest = 100))
     end
     customSymbol = nothing;
     if functions.ccxtruthy(isUsdtSettled)
@@ -3278,21 +3704,36 @@ function fetchFundingRateHistory(self::Phemex, symbol=nothing, since=nothing, li
         i += 1
     end
     sorted = sortBy(result, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function withdraw(self::Phemex, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://phemex-docs.github.io/#create-withdraw-request
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: unified network code
+
+# Returns
+- a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+"""
+function withdraw(self::Phemex, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     currency = self.currency(code);
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     networkId = nothing;
     if functions.ccxtruthy(networkCode != nothing)
-        networkId = self.networkCodeToId(networkCode, code);
+        networkId = self.networkCodeToId(networkCode, currencyCode = code);
     end
     stableCoins = safeValue(self.options, "stableCoins");
     if functions.ccxtruthy(networkId == nothing)
@@ -3312,11 +3753,22 @@ function withdraw(self::Phemex, code, amount, address, tag=nothing, params=Dict(
         request[Symbol("addressTag")] = tag;
     end
     response = Base.fetch(self.privatePostPhemexWithdrawWalletsApiCreateWithdraw(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransaction(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(data, currency = currency)
 
 end
-function fetchOpenInterest(self::Phemex, symbol, params=Dict())
+"""
+retrieves the open interest of a trading pair
+see: https://phemex-docs.github.io/#query-24-hours-ticker
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Phemex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3329,25 +3781,38 @@ function fetchOpenInterest(self::Phemex, symbol, params=Dict())
     );
     response = Base.fetch(self.v2GetMdV2Ticker24hr(extend(request, params)));
     result = self.safeDict(response, "result");
-    return self.parseOpenInterest(result, market)
+    return self.parseOpenInterest(result, market = market)
 
 end
-function parseOpenInterest(self::Phemex, interest, market=nothing)
+function parseOpenInterest(self::Phemex, interest; market=nothing)
     timestamp = safeInteger(interest, "timestamp") / 1000000;
     id = safeString(interest, "symbol");
     return self.safeOpenInterest(Dict{Symbol, Any}(
     Symbol("info") => interest,
-    Symbol("symbol") => self.safeSymbol(id, market),
+    Symbol("symbol") => self.safeSymbol(id, market = market),
     Symbol("baseVolume") => safeString(interest, "volumeRq"),
     Symbol("quoteVolume") => nothing,
     Symbol("openInterestAmount") => safeString(interest, "openInterestRv"),
     Symbol("openInterestValue") => nothing,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
-), market)
+), market = market)
 
 end
-function fetchConvertQuote(self::Phemex, fromCode, toCode, amount=nothing, params=Dict())
+"""
+fetch a quote for converting from one currency to another
+see: https://phemex-docs.github.io/#rfq-quote
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertQuote(self::Phemex, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3360,11 +3825,25 @@ function fetchConvertQuote(self::Phemex, fromCode, toCode, amount=nothing, param
         Symbol("fromAmountEv") => self.toEn(amount, valueScale)
     );
     response = Base.fetch(self.privateGetAssetsQuote(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseConversion(data, fromCurrency, toCurrency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseConversion(data, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function createConvertTrade(self::Phemex, id, fromCode, toCode, amount=nothing, params=Dict())
+"""
+convert from one currency to another
+see: https://phemex-docs.github.io/#convert
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function createConvertTrade(self::Phemex, id, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3380,15 +3859,31 @@ function createConvertTrade(self::Phemex, id, fromCode, toCode, amount=nothing, 
         request[Symbol("fromAmountEv")] = self.toEn(amount, valueScale);
     end
     response = Base.fetch(self.privatePostAssetsConvert(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     fromCurrencyId = safeString(data, "fromCurrency");
-    fromResult = self.safeCurrency(fromCurrencyId, fromCurrency);
+    fromResult = self.safeCurrency(fromCurrencyId, currency = fromCurrency);
     toCurrencyId = safeString(data, "toCurrency");
-    to = self.safeCurrency(toCurrencyId, toCurrency);
-    return self.parseConversion(data, fromResult, to)
+    to = self.safeCurrency(toCurrencyId, currency = toCurrency);
+    return self.parseConversion(data, fromCurrency = fromResult, toCurrency = to)
 
 end
-function fetchConvertTradeHistory(self::Phemex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the users history of conversion trades
+see: https://phemex-docs.github.io/#query-convert-history
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve, default 20, max 200
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::string, optional: the end time in ms
+- `params.fromCurrency`::string, optional: the currency that you sold and converted from
+- `params.toCurrency`::string, optional: the currency that you bought and converted into
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTradeHistory(self::Phemex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3404,19 +3899,19 @@ function fetchConvertTradeHistory(self::Phemex, code=nothing, since=nothing, lim
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.privateGetAssetsConvert(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseConversions(rows, code = code, fromCurrencyKey = "fromCurrency", toCurrencyKey = "toCurrency", since = since, limit = limit)
 
 end
-function parseConversion(self::Phemex, conversion, fromCurrency=nothing, toCurrency=nothing)
-    quoteArgs = self.safeDict(conversion, "quoteArgs", Dict{Symbol, Any}());
+function parseConversion(self::Phemex, conversion; fromCurrency=nothing, toCurrency=nothing)
+    quoteArgs = self.safeDict(conversion, "quoteArgs", defaultValue = Dict{Symbol, Any}());
     requestTime = safeInteger(quoteArgs, "requestAt");
     timestamp = safeInteger(conversion, "createTime", requestTime);
     fromCoin = safeString(conversion, "fromCurrency", safeString(fromCurrency, "code"));
-    fromCode = self.safeCurrencyCode(fromCoin, fromCurrency);
+    fromCode = self.safeCurrencyCode(fromCoin, currency = fromCurrency);
     toCoin = safeString(conversion, "toCurrency", safeString(toCurrency, "code"));
-    toCode = self.safeCurrencyCode(toCoin, toCurrency);
+    toCode = self.safeCurrencyCode(toCoin, currency = toCurrency);
     fromValueScale = safeInteger(fromCurrency, "valueScale");
     toValueScale = safeInteger(toCurrency, "valueScale");
     fromAmount = self.fromEn(safeString(conversion, "fromAmountEv"), fromValueScale);
@@ -3441,11 +3936,26 @@ function parseConversion(self::Phemex, conversion, fromCurrency=nothing, toCurre
 )
 
 end
-function fetchPositionsADLRank(self::Phemex, symbols=nothing, params=Dict())
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://phemex-docs.github.io/#query-account-positions
+see: https://phemex-docs.github.io/#query-trading-account-and-positions
+see: https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string, optional: the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
+- `params.method`::string, optional: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+function fetchPositionsADLRank(self::Phemex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     subType = nothing;
     code = safeString2(params, "currency", "code", "USDT");
     params = omit(params, ["currency", "code"]);
@@ -3457,9 +3967,9 @@ function fetchPositionsADLRank(self::Phemex, symbols=nothing, params=Dict())
         settle = get(market, Symbol("settle"), nothing);
         code = get(market, Symbol("settle"), nothing);
     else
-        (settle, params) = self.handleOptionAndParams(params, "fetchPositionsADLRank", "settle", code);
+        (settle, params) = self.handleOptionAndParams(params, "fetchPositionsADLRank", "settle", defaultValue = code);
     end
-    (subType, params) = self.handleSubTypeAndParams("fetchPositionsADLRank", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchPositionsADLRank", market = market, params = params);
     isUSDTSettled = settle == "USDT";
     if functions.ccxtruthy(isUSDTSettled)
         code = "USDT";
@@ -3477,7 +3987,7 @@ function fetchPositionsADLRank(self::Phemex, symbols=nothing, params=Dict())
     );
     if functions.ccxtruthy(isUSDTSettled)
         method = nothing;
-        (method, params) = self.handleOptionAndParams(params, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
+        (method, params) = self.handleOptionAndParams(params, "fetchPositionsADLRank", "method", defaultValue = "privateGetGAccountsAccountPositions");
         if functions.ccxtruthy(method == "privateGetGAccountsAccountPositions")
             response = Base.fetch(self.privateGetGAccountsAccountPositions(extend(request, params)));
         else
@@ -3495,14 +4005,14 @@ function fetchPositionsADLRank(self::Phemex, symbols=nothing, params=Dict())
         push!(result, self.parseADLRank(rank));
         i += 1
     end
-    return self.filterByArrayADLRanks(result, "symbol", symbols, false)
+    return self.filterByArrayADLRanks(result, "symbol", values = symbols, indexed = false)
 
 end
-function parseADLRank(self::Phemex, info, market=nothing)
+function parseADLRank(self::Phemex, info; market=nothing)
     marketId = safeString(info, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("rank") => nothing,
     Symbol("rating") => nothing,
     Symbol("percentage") => self.safeNumber2(info, "deleveragePercentileRr", "deleveragePercentileEr"),
@@ -3534,463 +4044,463 @@ Base.getproperty(self::Phemex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetCfgV2Products(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "cfg/v2/products", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "cfg/v2/products"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCfgFundingRates(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "cfg/fundingRates", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "cfg/fundingRates"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProducts(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "products", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetNomicsTrades(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "nomics/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "nomics/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMdKline(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMdV2KlineList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/kline/list", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/v2/kline/list"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMdV2Kline(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/v2/kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMdV2KlineLast(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/kline/last", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/v2/kline/last"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMdOrderbook(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMdTrade(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/trade", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/trade"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMdSpotTicker24hr(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/spot/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/spot/ticker/24hr"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetExchangePublicCfgChainSettings(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/public/cfg/chain-settings", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/public/cfg/chain-settings"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetMdFullbook(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/fullbook", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/fullbook"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetMdOrderbook(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/orderbook", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/orderbook"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetMdTrade(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/trade", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/trade"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetMdTicker24hr(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/ticker/24hr", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/ticker/24hr"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetMdTicker24hrAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/ticker/24hr/all", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/ticker/24hr/all"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetMdSpotTicker24hr(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/spot/ticker/24hr", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/spot/ticker/24hr"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetMdSpotTicker24hrAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/spot/ticker/24hr/all", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/spot/ticker/24hr/all"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetExchangePublicProducts(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/public/products", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/public/products"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1GetApiDataPublicDataFundingRateHistory(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/public/data/funding-rate-history", "v1", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/public/data/funding-rate-history"; api="v1", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2GetPublicProducts(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "public/products", "v2", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/products"; api="v2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2GetPublicProductsPlus(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "public/products-plus", "v2", "GET", params, nothing, nothing, Dict())
+    return request(self, "public/products-plus"; api="v2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2GetMdV2Orderbook(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/orderbook", "v2", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/v2/orderbook"; api="v2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2GetMdV2Trade(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/trade", "v2", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/v2/trade"; api="v2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2GetMdV2Ticker24hr(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/ticker/24hr", "v2", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/v2/ticker/24hr"; api="v2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2GetMdV2Ticker24hrAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/ticker/24hr/all", "v2", "GET", params, nothing, nothing, Dict())
+    return request(self, "md/v2/ticker/24hr/all"; api="v2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2GetApiDataPublicDataFundingRateHistory(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/public/data/funding-rate-history", "v2", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/public/data/funding-rate-history"; api="v2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotOrdersActive(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders/active", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/orders/active"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotWallets(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/wallets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/wallets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeSpotOrder(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/spot/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/spot/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeSpotOrderTrades(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/spot/order/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/spot/order/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeOrderV2OrderList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/order/v2/orderList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/order/v2/orderList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeOrderV2TradingList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/order/v2/tradingList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/order/v2/tradingList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsAccountPositions(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "accounts/accountPositions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/accountPositions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGAccountsAccountPositions(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-accounts/accountPositions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "g-accounts/accountPositions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGAccountsPositions(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-accounts/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "g-accounts/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGAccountsRiskUnit(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-accounts/risk-unit", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "g-accounts/risk-unit"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataFuturesFundingFees(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/funding-fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/futures/funding-fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataGFuturesFundingFees(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/funding-fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/g-futures/funding-fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataFuturesOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/futures/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataGFuturesOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/g-futures/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataFuturesOrdersByOrderId(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/orders/by-order-id", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/futures/orders/by-order-id"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataGFuturesOrdersByOrderId(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/orders/by-order-id", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/g-futures/orders/by-order-id"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataFuturesTrades(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/futures/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataGFuturesTrades(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/g-futures/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataFuturesTradingFees(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/trading-fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/futures/trading-fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataGFuturesTradingFees(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/trading-fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/g-futures/trading-fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataFuturesV2TradeAccountDetail(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/v2/tradeAccountDetail", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/futures/v2/tradeAccountDetail"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataGFuturesClosedPosition(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/closedPosition", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/g-futures/closedPosition"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetGOrdersActiveList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders/activeList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "g-orders/activeList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersActiveList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders/activeList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/activeList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeOrderList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/order/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/order/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeOrder(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeOrderTrade(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/order/trade", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/order/trade"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPhemexUserUsersChildren(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-user/users/children", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "phemex-user/users/children"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPhemexUserWalletsV2DepositAddress(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-user/wallets/v2/depositAddress", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "phemex-user/wallets/v2/depositAddress"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPhemexUserWalletsTradeAccountDetail(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-user/wallets/tradeAccountDetail", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "phemex-user/wallets/tradeAccountDetail"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPhemexDepositWalletsApiDepositAddress(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-deposit/wallets/api/depositAddress", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "phemex-deposit/wallets/api/depositAddress"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPhemexDepositWalletsApiDepositHist(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-deposit/wallets/api/depositHist", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "phemex-deposit/wallets/api/depositHist"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPhemexDepositWalletsApiChainCfg(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-deposit/wallets/api/chainCfg", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "phemex-deposit/wallets/api/chainCfg"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPhemexWithdrawWalletsApiWithdrawHist(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-withdraw/wallets/api/withdrawHist", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "phemex-withdraw/wallets/api/withdrawHist"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPhemexWithdrawWalletsApiAssetInfo(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-withdraw/wallets/api/asset/info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "phemex-withdraw/wallets/api/asset/info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPhemexUserOrderClosedPositionList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-user/order/closedPositionList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "phemex-user/order/closedPositionList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeMarginsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/margins/transfer", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/margins/transfer"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeWalletsConfirmWithdraw(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/confirm/withdraw", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/wallets/confirm/withdraw"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeWalletsWithdrawList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/withdrawList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/wallets/withdrawList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeWalletsDepositList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/depositList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/wallets/depositList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetExchangeWalletsV2DepositAddress(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/v2/depositAddress", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchange/wallets/v2/depositAddress"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataSpotsFunds(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/funds", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/spots/funds"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataSpotsOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/spots/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataSpotsOrdersByOrderId(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/orders/by-order-id", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/spots/orders/by-order-id"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataSpotsPnls(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/pnls", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/spots/pnls"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataSpotsTrades(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/spots/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiDataSpotsTradesByOrderId(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/trades/by-order-id", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api-data/spots/trades/by-order-id"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetsConvert(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/convert", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/convert"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/transfer", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/transfer"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetsSpotsSubAccountsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/spots/sub-accounts/transfer", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/spots/sub-accounts/transfer"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetsFuturesSubAccountsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/futures/sub-accounts/transfer", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/futures/sub-accounts/transfer"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetsQuote(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/quote", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/quote"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSpotOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "g-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionsAssign(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "positions/assign", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "positions/assign"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExchangeWalletsTransferOut(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/transferOut", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "exchange/wallets/transferOut"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExchangeWalletsTransferIn(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/transferIn", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "exchange/wallets/transferIn"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExchangeMargins(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/margins", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "exchange/margins"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExchangeWalletsCreateWithdraw(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/createWithdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "exchange/wallets/createWithdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExchangeWalletsCancelWithdraw(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/cancelWithdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "exchange/wallets/cancelWithdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExchangeWalletsCreateWithdrawAddress(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/createWithdrawAddress", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "exchange/wallets/createWithdrawAddress"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetsSpotsSubAccountsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/spots/sub-accounts/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/spots/sub-accounts/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetsFuturesSubAccountsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/futures/sub-accounts/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/futures/sub-accounts/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetsUniversalTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/universal-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/universal-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetsConvert(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/convert", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/convert"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPhemexWithdrawWalletsApiCreateWithdraw(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-withdraw/wallets/api/createWithdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "phemex-withdraw/wallets/api/createWithdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPhemexWithdrawWalletsApiCancelWithdraw(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-withdraw/wallets/api/cancelWithdraw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "phemex-withdraw/wallets/api/cancelWithdraw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutSpotOrdersCreate(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders/create", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "spot/orders/create"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutSpotOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "spot/orders"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOrdersReplace(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders/replace", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "orders/replace"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutGOrdersReplace(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders/replace", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "g-orders/replace"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutGOrdersCreate(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders/create", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "g-orders/create"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutPositionsLeverage(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "positions/leverage", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "positions/leverage"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutGPositionsLeverage(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-positions/leverage", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "g-positions/leverage"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutGPositionsSwitchPosModeSync(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-positions/switch-pos-mode-sync", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "g-positions/switch-pos-mode-sync"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutPositionsRiskLimit(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "positions/riskLimit", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "positions/riskLimit"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteSpotOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "spot/orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteSpotOrdersAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders/all", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "spot/orders/all"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersCancel(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders/cancel", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/cancel"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders/all", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/all"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteGOrdersCancel(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders/cancel", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "g-orders/cancel"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteGOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "g-orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteGOrdersAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders/all", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "g-orders/all"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Phemex(; kwargs...)
@@ -4054,3 +4564,629 @@ function Phemex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Phemex_fetchMarkets() end
+"""
+retrieves data on all markets for phemex
+see: https://phemex-docs.github.io/#query-product-information-3
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Phemex_fetchMarkets
+
+function __ccxt_doc_Phemex_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Phemex_fetchCurrencies
+
+function __ccxt_doc_Phemex_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Phemex_fetchOrderBook
+
+function __ccxt_doc_Phemex_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: *only used for USDT settled contracts, otherwise is emulated and not supported by the exchange* timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: *USDT settled/ linear swaps only* end time in ms
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Phemex_fetchOHLCV
+
+function __ccxt_doc_Phemex_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Phemex_fetchTicker
+
+function __ccxt_doc_Phemex_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     // spot
+see: https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             // linear
+see: https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Phemex_fetchTickers
+
+function __ccxt_doc_Phemex_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Phemex_fetchTrades
+
+function __ccxt_doc_Phemex_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://phemex-docs.github.io/#query-wallets
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+see: https://phemex-docs.github.io/#query-trading-account-and-positions
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: spot or swap
+- `params.code`::string, optional: *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Phemex_fetchBalance
+
+function __ccxt_doc_Phemex_createOrder() end
+"""
+create a trade order
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
+see: https://phemex-docs.github.io/#place-order-http-put-prefered-3
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::float, optional: trigger price for conditional orders
+- `params.takeProfit`::object, optional: *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.posSide`::string, optional: *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+- `params.hedged`::bool, optional: *swap only* true for hedged mode, false for one way mode, default is false
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Phemex_createOrder
+
+function __ccxt_doc_Phemex_editOrder() end
+"""
+edit a trade order
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.posSide`::string, optional: either 'Merged' or 'Long' or 'Short'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Phemex_editOrder
+
+function __ccxt_doc_Phemex_cancelOrder() end
+"""
+cancels an open order
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.posSide`::string, optional: either 'Merged' or 'Long' or 'Short'
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Phemex_cancelOrder
+
+function __ccxt_doc_Phemex_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Phemex_cancelAllOrders
+
+function __ccxt_doc_Phemex_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://phemex-docs.github.io/#query-orders-by-ids
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Phemex_fetchOrder
+
+function __ccxt_doc_Phemex_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Phemex_fetchOrders
+
+function __ccxt_doc_Phemex_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotListAllOpenOrder
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Phemex_fetchOpenOrders
+
+function __ccxt_doc_Phemex_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#queryorder
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedgedd-Perpetual-API.md#query-closed-orders-by-symbol
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataOrdersByIds
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.settle`::string, optional: the settlement currency to fetch orders for
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Phemex_fetchClosedOrders
+
+function __ccxt_doc_Phemex_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-trade
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataTradesHist
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Phemex_fetchMyTrades
+
+function __ccxt_doc_Phemex_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Phemex_fetchDepositAddress
+
+function __ccxt_doc_Phemex_fetchDeposits() end
+"""
+fetch all deposits made to an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Phemex_fetchDeposits
+
+function __ccxt_doc_Phemex_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Phemex_fetchWithdrawals
+
+function __ccxt_doc_Phemex_fetchPositions() end
+"""
+fetch all open positions
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+see: https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string, optional: the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
+- `params.method`::string, optional: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Phemex_fetchPositions
+
+function __ccxt_doc_Phemex_fetchPositionHistory() end
+"""
+fetches historical positions
+see: https://phemex-docs.github.io/#query-closed-positions
+
+# Arguments
+- `symbol`::string: unified contract symbol
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum amount of records to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch positions for
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Phemex_fetchPositionHistory
+
+function __ccxt_doc_Phemex_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#futureDataFundingFeesHist
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Phemex_fetchFundingHistory
+
+function __ccxt_doc_Phemex_fetchFundingRate() end
+"""
+fetch the current funding rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Phemex_fetchFundingRate
+
+function __ccxt_doc_Phemex_setMargin() end
+"""
+Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to set margin in
+- `amount`::float: the amount to set the margin to
+- `params`::object, optional: parameters specific to the exchange API endpoint
+
+# Returns
+- A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Phemex_setMargin
+
+function __ccxt_doc_Phemex_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://phemex-docs.github.io/#set-leverage
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Phemex_setMarginMode
+
+function __ccxt_doc_Phemex_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Phemex_setPositionMode
+
+function __ccxt_doc_Phemex_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Phemex_fetchLeverageTiers
+
+function __ccxt_doc_Phemex_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage, 100 > leverage > -100 excluding numbers between -1 to 1
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.hedged`::bool, optional: set to true if hedged position mode is enabled (by default long and short leverage are set to the same value)
+- `params.longLeverageRr`::float, optional: *hedged mode only* set the leverage for long positions
+- `params.shortLeverageRr`::float, optional: *hedged mode only* set the leverage for short positions
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Phemex_setLeverage
+
+function __ccxt_doc_Phemex_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://phemex-docs.github.io/#transfer-between-spot-and-futures
+see: https://phemex-docs.github.io/#universal-transfer-main-account-only-transfer-between-sub-to-main-main-to-sub-or-sub-to-sub
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.bizType`::string, optional: for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Phemex_transfer
+
+function __ccxt_doc_Phemex_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://phemex-docs.github.io/#query-transfer-history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of  transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Phemex_fetchTransfers
+
+function __ccxt_doc_Phemex_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://phemex-docs.github.io/#query-funding-rate-history-2
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Phemex_fetchFundingRateHistory
+
+function __ccxt_doc_Phemex_withdraw() end
+"""
+make a withdrawal
+see: https://phemex-docs.github.io/#create-withdraw-request
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: unified network code
+
+# Returns
+- a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+"""
+__ccxt_doc_Phemex_withdraw
+
+function __ccxt_doc_Phemex_fetchOpenInterest() end
+"""
+retrieves the open interest of a trading pair
+see: https://phemex-docs.github.io/#query-24-hours-ticker
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Phemex_fetchOpenInterest
+
+function __ccxt_doc_Phemex_fetchConvertQuote() end
+"""
+fetch a quote for converting from one currency to another
+see: https://phemex-docs.github.io/#rfq-quote
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Phemex_fetchConvertQuote
+
+function __ccxt_doc_Phemex_createConvertTrade() end
+"""
+convert from one currency to another
+see: https://phemex-docs.github.io/#convert
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Phemex_createConvertTrade
+
+function __ccxt_doc_Phemex_fetchConvertTradeHistory() end
+"""
+fetch the users history of conversion trades
+see: https://phemex-docs.github.io/#query-convert-history
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve, default 20, max 200
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::string, optional: the end time in ms
+- `params.fromCurrency`::string, optional: the currency that you sold and converted from
+- `params.toCurrency`::string, optional: the currency that you bought and converted into
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Phemex_fetchConvertTradeHistory
+
+function __ccxt_doc_Phemex_fetchPositionsADLRank() end
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://phemex-docs.github.io/#query-account-positions
+see: https://phemex-docs.github.io/#query-trading-account-and-positions
+see: https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string, optional: the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
+- `params.method`::string, optional: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+__ccxt_doc_Phemex_fetchPositionsADLRank

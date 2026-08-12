@@ -512,12 +512,32 @@ function describe(self::Coinmate, )
 ))
 
 end
-function fetchTime(self::Coinmate, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Coinmate; params=Dict())
     response = Base.fetch(self.publicGetSystemTime(params));
     return safeInteger(response, "serverTime")
 
 end
-function fetchMarkets(self::Coinmate, params=Dict())
+"""
+retrieves data on all markets for coinmate
+see: https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Coinmate; params=Dict())
     response = Base.fetch(self.publicGetTradingPairs(params));
     data = safeValue(response, "data", []);
     result = [];
@@ -555,8 +575,8 @@ function fetchMarkets(self::Coinmate, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "lotDecimals"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "priceDecimals")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "lotDecimals"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "priceDecimals")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -605,7 +625,17 @@ function parseBalance(self::Coinmate, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Coinmate, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://coinmate.docs.apiary.io/#reference/balance/get-balances/post
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Coinmate; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -613,7 +643,19 @@ function fetchBalance(self::Coinmate, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Coinmate, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://coinmate.docs.apiary.io/#reference/order-book/get-order-book/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Coinmate, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -623,12 +665,23 @@ function fetchOrderBook(self::Coinmate, symbol, limit=nothing, params=Dict())
         Symbol("groupByPriceLimit") => "False"
     );
     response = Base.fetch(self.publicGetOrderBook(extend(request, params)));
-    orderbook = self.safeDict(response, "data", Dict{Symbol, Any}());
+    orderbook = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeTimestamp(orderbook, "timestamp");
-    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", "price", "amount")
+    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "amount")
 
 end
-function fetchTicker(self::Coinmate, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://coinmate.docs.apiary.io/#reference/ticker/get-ticker/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Coinmate, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -638,14 +691,25 @@ function fetchTicker(self::Coinmate, symbol, params=Dict())
     );
     response = Base.fetch(self.publicGetTicker(extend(request, params)));
     data = self.safeDict(response, "data");
-    return self.parseTicker(data, market)
+    return self.parseTicker(data, market = market)
 
 end
-function fetchTickers(self::Coinmate, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://coinmate.docs.apiary.io/#reference/ticker/get-ticker-all/get
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Coinmate; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetTickerAll(params));
     data = safeValue(response, "data", Dict{Symbol, Any}());
     keys_var = objectKeys(data);
@@ -653,14 +717,14 @@ function fetchTickers(self::Coinmate, symbols=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(keys_var)))
         market = self.market(get(keys_var, i + 1, nothing));
-        ticker = self.parseTicker(safeValue(data, get(keys_var, i + 1, nothing)), market);
+        ticker = self.parseTicker(safeValue(data, get(keys_var, i + 1, nothing)), market = market);
         result[Symbol(market[Symbol("symbol")])] = ticker;
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function parseTicker(self::Coinmate, ticker, market=nothing)
+function parseTicker(self::Coinmate, ticker; market=nothing)
     timestamp = safeTimestamp(ticker, "timestamp");
     last_var = self.safeNumber(ticker, "last");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -684,10 +748,23 @@ function parseTicker(self::Coinmate, ticker, market=nothing)
     Symbol("baseVolume") => self.safeNumber(ticker, "amount"),
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchDepositsWithdrawals(self::Coinmate, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://coinmate.docs.apiary.io/#reference/transfers/get-transfer-history/post
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Coinmate; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -705,8 +782,8 @@ function fetchDepositsWithdrawals(self::Coinmate, code=nothing, since=nothing, l
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostTransferHistory(extend(request, params)));
-    items = self.safeList(response, "data", []);
-    return self.parseTransactions(items, nothing, since, limit)
+    items = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(items, currency = nothing, since = since, limit = limit)
 
 end
 function parseTransactionStatus(self::Coinmate, status)
@@ -722,10 +799,10 @@ function parseTransactionStatus(self::Coinmate, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Coinmate, transaction, currency=nothing)
+function parseTransaction(self::Coinmate, transaction; currency=nothing)
     timestamp = safeInteger(transaction, "timestamp");
     currencyId = safeString(transaction, "amountCurrency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("info") => transaction,
     Symbol("id") => safeString2(transaction, "transactionId", "id"),
@@ -754,9 +831,28 @@ function parseTransaction(self::Coinmate, transaction, currency=nothing)
 )
 
 end
-function withdraw(self::Coinmate, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/withdraw-bitcoins/post
+see: https://coinmate.docs.apiary.io/#reference/litecoin-withdrawal-and-deposit/withdraw-litecoins/post
+see: https://coinmate.docs.apiary.io/#reference/ethereum-withdrawal-and-deposit/withdraw-ethereum/post
+see: https://coinmate.docs.apiary.io/#reference/ripple-withdrawal-and-deposit/withdraw-ripple/post
+see: https://coinmate.docs.apiary.io/#reference/cardano-withdrawal-and-deposit/withdraw-cardano/post
+see: https://coinmate.docs.apiary.io/#reference/solana-withdrawal-and-deposit/withdraw-solana/post
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Coinmate, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -777,8 +873,8 @@ function withdraw(self::Coinmate, code, amount, address, tag=nothing, params=Dic
     end
     response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     data = safeValue(response, "data");
-    transaction = self.parseTransaction(data, currency);
-    fillResponseFromRequest = self.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+    transaction = self.parseTransaction(data, currency = currency);
+    fillResponseFromRequest = self.safeBool(withdrawOptions, "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         transaction[Symbol("amount")] = amount;
         transaction[Symbol("currency")] = code;
@@ -790,7 +886,20 @@ function withdraw(self::Coinmate, code, amount, address, tag=nothing, params=Dic
     return transaction
 
 end
-function fetchMyTrades(self::Coinmate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://coinmate.docs.apiary.io/#reference/trade-history/get-trade-history/post
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Coinmate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -808,13 +917,13 @@ function fetchMyTrades(self::Coinmate, symbol=nothing, since=nothing, limit=noth
         request[Symbol("timestampFrom")] = since;
     end
     response = Base.fetch(self.privatePostTradeHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, nothing, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = nothing, since = since, limit = limit)
 
 end
-function parseTrade(self::Coinmate, trade, market=nothing)
+function parseTrade(self::Coinmate, trade; market=nothing)
     marketId = safeString(trade, "currencyPair");
-    market = self.safeMarket(marketId, market, "_");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
     priceString = safeString(trade, "price");
     amountString = safeString(trade, "amount");
     side = safeStringLower2(trade, "type", "tradeType");
@@ -846,10 +955,23 @@ function parseTrade(self::Coinmate, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Coinmate, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://coinmate.docs.apiary.io/#reference/transactions/transactions/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Coinmate, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -859,11 +981,22 @@ function fetchTrades(self::Coinmate, symbol, since=nothing, limit=nothing, param
         Symbol("minutesIntoHistory") => 10
     );
     response = Base.fetch(self.publicGetTransactions(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFee(self::Coinmate, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Coinmate, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -887,16 +1020,42 @@ function fetchTradingFee(self::Coinmate, symbol, params=Dict())
 )
 
 end
-function fetchOpenOrders(self::Coinmate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://coinmate.docs.apiary.io/#reference/order/get-open-orders/post
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Coinmate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     response = Base.fetch(self.privatePostOpenOrders(extend(Dict{Symbol, Any}(), params)));
     extension = Dict{Symbol, Any}(
         Symbol("status") => "open"
     );
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, nothing, since, limit, extension)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = nothing, since = since, limit = limit, params = extension)
 
 end
-function fetchOrders(self::Coinmate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://coinmate.docs.apiary.io/#reference/order/order-history/post
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Coinmate; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -911,8 +1070,8 @@ function fetchOrders(self::Coinmate, symbol=nothing, since=nothing, limit=nothin
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privatePostOrderHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Coinmate, status)
@@ -933,7 +1092,7 @@ function parseOrderType(self::Coinmate, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseOrder(self::Coinmate, order, market=nothing)
+function parseOrder(self::Coinmate, order; market=nothing)
     id = safeString(order, "id");
     timestamp = safeInteger(order, "timestamp");
     side = safeStringLower(order, "type");
@@ -944,7 +1103,7 @@ function parseOrder(self::Coinmate, order, market=nothing)
     type_var = self.parseOrderType(safeString(order, "orderTradeType"));
     averageString = safeString(order, "avgPrice");
     marketId = safeString(order, "currencyPair");
-    symbol = self.safeSymbol(marketId, market, "_");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_");
     clientOrderId = safeString(order, "clientOrderId");
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -968,10 +1127,28 @@ function parseOrder(self::Coinmate, order, market=nothing)
     Symbol("trades") => nothing,
     Symbol("info") => order,
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function createOrder(self::Coinmate, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://coinmate.docs.apiary.io/#reference/order/buy-limit-order/post
+see: https://coinmate.docs.apiary.io/#reference/order/sell-limit-order/post
+see: https://coinmate.docs.apiary.io/#reference/order/buy-instant-order/post
+see: https://coinmate.docs.apiary.io/#reference/order/sell-instant-order/post
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Coinmate, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -997,10 +1174,23 @@ function createOrder(self::Coinmate, symbol, type_var, side, amount, price=nothi
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("id") => id
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Coinmate, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://coinmate.docs.apiary.io/#reference/order/get-order-by-orderid/post
+see: https://coinmate.docs.apiary.io/#reference/order/get-order-by-clientorderid/post
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Coinmate, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1013,10 +1203,22 @@ function fetchOrder(self::Coinmate, id, symbol=nothing, params=Dict())
     end
     response = Base.fetch(self.privatePostOrderById(extend(request, params)));
     data = self.safeDict(response, "data");
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function cancelOrder(self::Coinmate, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Coinmate, id; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
@@ -1029,7 +1231,7 @@ function nonce(self::Coinmate, )
     return milliseconds()
 
 end
-function sign(self::Coinmate, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Coinmate, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol("rest"), nothing), "/", path);
     if functions.ccxtruthy(api == "public")
         if functions.ccxtruthy(length(objectKeys(params)))
@@ -1079,247 +1281,247 @@ Base.getproperty(self::Coinmate, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetOrderBook(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "orderBook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderBook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerAll(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "tickerAll", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickerAll"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProducts(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "products", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTransactions(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "transactions", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "transactions"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradingPairs(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "tradingPairs", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingPairs"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSystemTime(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "system/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "system/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCurrencies(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "currencies", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "currencies"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBalances(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "balances", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "balances"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBitcoinCashWithdrawal(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "bitcoinCashWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bitcoinCashWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBitcoinCashDepositAddresses(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "bitcoinCashDepositAddresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bitcoinCashDepositAddresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBitcoinDepositAddresses(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "bitcoinDepositAddresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bitcoinDepositAddresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBitcoinWithdrawal(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "bitcoinWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bitcoinWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBitcoinWithdrawalFees(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "bitcoinWithdrawalFees", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bitcoinWithdrawalFees"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBuyInstant(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "buyInstant", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "buyInstant"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBuyLimit(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "buyLimit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "buyLimit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelOrder(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "cancelOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelOrderWithInfo(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "cancelOrderWithInfo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelOrderWithInfo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCreateVoucher(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "createVoucher", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "createVoucher"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDashDepositAddresses(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "dashDepositAddresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dashDepositAddresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDashWithdrawal(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "dashWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dashWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEthereumWithdrawal(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "ethereumWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ethereumWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostEthereumDepositAddresses(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "ethereumDepositAddresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ethereumDepositAddresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLitecoinWithdrawal(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "litecoinWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "litecoinWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostLitecoinDepositAddresses(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "litecoinDepositAddresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "litecoinDepositAddresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOpenOrders(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrder(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderHistory(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "orderHistory", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orderHistory"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderById(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "orderById", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orderById"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPusherAuth(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "pusherAuth", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "pusherAuth"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRedeemVoucher(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "redeemVoucher", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "redeemVoucher"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostReplaceByBuyLimit(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "replaceByBuyLimit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "replaceByBuyLimit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostReplaceByBuyInstant(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "replaceByBuyInstant", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "replaceByBuyInstant"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostReplaceBySellLimit(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "replaceBySellLimit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "replaceBySellLimit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostReplaceBySellInstant(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "replaceBySellInstant", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "replaceBySellInstant"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRippleDepositAddresses(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "rippleDepositAddresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rippleDepositAddresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRippleWithdrawal(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "rippleWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "rippleWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSellInstant(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "sellInstant", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sellInstant"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSellLimit(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "sellLimit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sellLimit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransactionHistory(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "transactionHistory", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transactionHistory"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTraderFees(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "traderFees", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "traderFees"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeHistory(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "tradeHistory", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "tradeHistory"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransfer(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTransferHistory(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "transferHistory", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "transferHistory"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnconfirmedBitcoinDeposits(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "unconfirmedBitcoinDeposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unconfirmedBitcoinDeposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnconfirmedBitcoinCashDeposits(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "unconfirmedBitcoinCashDeposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unconfirmedBitcoinCashDeposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnconfirmedDashDeposits(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "unconfirmedDashDeposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unconfirmedDashDeposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnconfirmedEthereumDeposits(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "unconfirmedEthereumDeposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unconfirmedEthereumDeposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnconfirmedLitecoinDeposits(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "unconfirmedLitecoinDeposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unconfirmedLitecoinDeposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnconfirmedRippleDeposits(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "unconfirmedRippleDeposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unconfirmedRippleDeposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelAllOpenOrders(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "cancelAllOpenOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancelAllOpenOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawVirtualCurrency(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "withdrawVirtualCurrency", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawVirtualCurrency"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostVirtualCurrencyDepositAddresses(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "virtualCurrencyDepositAddresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "virtualCurrencyDepositAddresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnconfirmedVirtualCurrencyDeposits(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "unconfirmedVirtualCurrencyDeposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unconfirmedVirtualCurrencyDeposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAdaWithdrawal(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "adaWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "adaWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAdaDepositAddresses(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "adaDepositAddresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "adaDepositAddresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnconfirmedAdaDeposits(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "unconfirmedAdaDeposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unconfirmedAdaDeposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSolWithdrawal(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "solWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "solWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSolDepositAddresses(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "solDepositAddresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "solDepositAddresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnconfirmedSolDeposits(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "unconfirmedSolDeposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unconfirmedSolDeposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBankWireWithdrawal(self::Coinmate, params=Dict(), context=Dict())
-    return request(self, "bankWireWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "bankWireWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Coinmate(; kwargs...)
@@ -1383,3 +1585,255 @@ function Coinmate(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Coinmate_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Coinmate_fetchTime
+
+function __ccxt_doc_Coinmate_fetchMarkets() end
+"""
+retrieves data on all markets for coinmate
+see: https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Coinmate_fetchMarkets
+
+function __ccxt_doc_Coinmate_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://coinmate.docs.apiary.io/#reference/balance/get-balances/post
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Coinmate_fetchBalance
+
+function __ccxt_doc_Coinmate_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://coinmate.docs.apiary.io/#reference/order-book/get-order-book/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Coinmate_fetchOrderBook
+
+function __ccxt_doc_Coinmate_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://coinmate.docs.apiary.io/#reference/ticker/get-ticker/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coinmate_fetchTicker
+
+function __ccxt_doc_Coinmate_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://coinmate.docs.apiary.io/#reference/ticker/get-ticker-all/get
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coinmate_fetchTickers
+
+function __ccxt_doc_Coinmate_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://coinmate.docs.apiary.io/#reference/transfers/get-transfer-history/post
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinmate_fetchDepositsWithdrawals
+
+function __ccxt_doc_Coinmate_withdraw() end
+"""
+make a withdrawal
+see: https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/withdraw-bitcoins/post
+see: https://coinmate.docs.apiary.io/#reference/litecoin-withdrawal-and-deposit/withdraw-litecoins/post
+see: https://coinmate.docs.apiary.io/#reference/ethereum-withdrawal-and-deposit/withdraw-ethereum/post
+see: https://coinmate.docs.apiary.io/#reference/ripple-withdrawal-and-deposit/withdraw-ripple/post
+see: https://coinmate.docs.apiary.io/#reference/cardano-withdrawal-and-deposit/withdraw-cardano/post
+see: https://coinmate.docs.apiary.io/#reference/solana-withdrawal-and-deposit/withdraw-solana/post
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinmate_withdraw
+
+function __ccxt_doc_Coinmate_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://coinmate.docs.apiary.io/#reference/trade-history/get-trade-history/post
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Coinmate_fetchMyTrades
+
+function __ccxt_doc_Coinmate_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://coinmate.docs.apiary.io/#reference/transactions/transactions/get
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Coinmate_fetchTrades
+
+function __ccxt_doc_Coinmate_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Coinmate_fetchTradingFee
+
+function __ccxt_doc_Coinmate_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://coinmate.docs.apiary.io/#reference/order/get-open-orders/post
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinmate_fetchOpenOrders
+
+function __ccxt_doc_Coinmate_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://coinmate.docs.apiary.io/#reference/order/order-history/post
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinmate_fetchOrders
+
+function __ccxt_doc_Coinmate_createOrder() end
+"""
+create a trade order
+see: https://coinmate.docs.apiary.io/#reference/order/buy-limit-order/post
+see: https://coinmate.docs.apiary.io/#reference/order/sell-limit-order/post
+see: https://coinmate.docs.apiary.io/#reference/order/buy-instant-order/post
+see: https://coinmate.docs.apiary.io/#reference/order/sell-instant-order/post
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinmate_createOrder
+
+function __ccxt_doc_Coinmate_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://coinmate.docs.apiary.io/#reference/order/get-order-by-orderid/post
+see: https://coinmate.docs.apiary.io/#reference/order/get-order-by-clientorderid/post
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinmate_fetchOrder
+
+function __ccxt_doc_Coinmate_cancelOrder() end
+"""
+cancels an open order
+see: https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinmate_cancelOrder

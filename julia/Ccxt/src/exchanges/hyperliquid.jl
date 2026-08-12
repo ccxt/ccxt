@@ -478,7 +478,7 @@ function market(self::Hyperliquid, symbol)
     if functions.ccxtruthy(@functions.ccxt_and((symbol != nothing), !functions.ccxtruthy((ccxt_in(symbol, self.markets)))))
         symbolParts = split(symbol, "/");
         baseName = safeString(symbolParts, 0);
-        spotCurrencyMapping = self.safeDict(self.options, "spotCurrencyMapping", Dict{Symbol, Any}());
+        spotCurrencyMapping = self.safeDict(self.options, "spotCurrencyMapping", defaultValue = Dict{Symbol, Any}());
         if functions.ccxtruthy(ccxt_in(baseName, spotCurrencyMapping))
             unifiedBaseName = safeString(spotCurrencyMapping, baseName);
             quote_var = safeString(symbolParts, 1);
@@ -491,7 +491,16 @@ function market(self::Hyperliquid, symbol)
     return market(self.parent, symbol)
 
 end
-function fetchStatus(self::Hyperliquid, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Hyperliquid; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => "exchangeStatus"
     );
@@ -506,7 +515,16 @@ function fetchStatus(self::Hyperliquid, params=Dict())
 )
 
 end
-function fetchTime(self::Hyperliquid, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Hyperliquid; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => "exchangeStatus"
     );
@@ -514,15 +532,25 @@ function fetchTime(self::Hyperliquid, params=Dict())
     return safeInteger(response, "time")
 
 end
-function fetchCurrencies(self::Hyperliquid, params=Dict())
-    if functions.ccxtruthy(self.checkRequiredCredentials(false))
+"""
+fetches all available currencies on an exchange
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Hyperliquid; params=Dict())
+    if functions.ccxtruthy(self.checkRequiredCredentials(error = false))
         Base.fetch(self.initializeClient());
     end
     request = Dict{Symbol, Any}(
         Symbol("type") => "spotMeta"
     );
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    tokens = self.safeList(response, "tokens", []);
+    tokens = self.safeList(response, "tokens", defaultValue = []);
     self.options[Symbol("cachedCurrenciesById")] = Dict{Symbol, Any}();
     return self.parseCurrencies(tokens)
 
@@ -536,7 +564,7 @@ function parseCurrency(self::Hyperliquid, rawCurrency)
         Symbol("id") => id,
         Symbol("name") => name,
         Symbol("code") => code,
-        Symbol("precision") => self.parsePrecision(safeString(rawCurrency, "weiDecimals")),
+        Symbol("precision") => self.parsePrecision(precision = safeString(rawCurrency, "weiDecimals")),
         Symbol("info") => rawCurrency,
         Symbol("active") => nothing,
         Symbol("deposit") => nothing,
@@ -576,20 +604,31 @@ function parseCurrency(self::Hyperliquid, rawCurrency)
     return result
 
 end
-function fetchMarkets(self::Hyperliquid, params=Dict())
-    options = self.safeDict(self.options, "fetchMarkets", Dict{Symbol, Any}());
-    types = self.safeList(options, "types", []);
+"""
+retrieves data on all markets for hyperliquid
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Hyperliquid; params=Dict())
+    options = self.safeDict(self.options, "fetchMarkets", defaultValue = Dict{Symbol, Any}());
+    types = self.safeList(options, "types", defaultValue = []);
     rawPromises = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(types)))
         marketType = get(types, i + 1, nothing);
         if functions.ccxtruthy(marketType == "swap")
-                        push!(rawPromises, self.fetchSwapMarkets(params));
+                        push!(rawPromises, self.fetchSwapMarkets(params = params));
         elseif functions.ccxtruthy(marketType == "spot")
-            push!(rawPromises, self.fetchSpotMarkets(params));
+            push!(rawPromises, self.fetchSpotMarkets(params = params));
         else
             if functions.ccxtruthy(marketType == "hip3")
-                                push!(rawPromises, self.fetchHip3Markets(params));
+                                push!(rawPromises, self.fetchHip3Markets(params = params));
             end
 
         end
@@ -605,23 +644,34 @@ function fetchMarkets(self::Hyperliquid, params=Dict())
     return result
 
 end
-function fetchHip3Markets(self::Hyperliquid, params=Dict())
+"""
+retrieves data on all hip3 markets for hyperliquid
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchHip3Markets(self::Hyperliquid; params=Dict())
     fetchDexes = Base.fetch(self.publicPostInfo(Dict{Symbol, Any}(
         Symbol("type") => "perpDexs"
     )));
     perpDexesOffset = Dict{Symbol, Any}();
     i = 1
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fetchDexes)))
-        dex = self.safeDict(fetchDexes, i, Dict{Symbol, Any}());
+        dex = self.safeDict(fetchDexes, i, defaultValue = Dict{Symbol, Any}());
         secondPart = (i - 1) * 10000;
         offset = self.sum(110000, secondPart);
         perpDexesOffset[Symbol(dex[Symbol("name")])] = offset;
         i += 1
     end
     fetchDexesList = [];
-    options = self.safeDict(self.options, "fetchMarkets", Dict{Symbol, Any}());
-    hip3 = self.safeDict(options, "hip3", Dict{Symbol, Any}());
-    dexesProvided = self.safeList(hip3, "dexes", []);
+    options = self.safeDict(self.options, "fetchMarkets", defaultValue = Dict{Symbol, Any}());
+    hip3 = self.safeDict(options, "hip3", defaultValue = Dict{Symbol, Any}());
+    dexesProvided = self.safeList(hip3, "dexes", defaultValue = []);
     maxLimit = safeInteger(hip3, "limit", 10);
     userProvidedDexesLength = length(dexesProvided);
     if functions.ccxtruthy(functions.ccxt_gt(userProvidedDexesLength, 0))
@@ -635,7 +685,7 @@ function fetchHip3Markets(self::Hyperliquid, params=Dict())
             if functions.ccxtruthy(functions.ccxt_ge(i, fetchDexesLength))
                 break
             end
-            dex = self.safeDict(fetchDexes, i, Dict{Symbol, Any}());
+            dex = self.safeDict(fetchDexes, i, defaultValue = Dict{Symbol, Any}());
             if functions.ccxtruthy(dex == nothing)
                 i += 1; continue
             end
@@ -662,19 +712,19 @@ function fetchHip3Markets(self::Hyperliquid, params=Dict())
         dexName = get(fetchDexesList, i + 1, nothing);
         offset = get(perpDexesOffset, Symbol(dexName), nothing);
         response = get(promises, i + 1, nothing);
-        meta = self.safeDict(response, 0, Dict{Symbol, Any}());
+        meta = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
         collateralToken = safeString(meta, "collateralToken");
-        universe = self.safeList(meta, "universe", []);
-        assetCtxs = self.safeList(response, 1, []);
+        universe = self.safeList(meta, "universe", defaultValue = []);
+        assetCtxs = self.safeList(response, 1, defaultValue = []);
         result = [];
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(universe)))
-            data = extend(self.safeDict(universe, j, Dict{Symbol, Any}()), self.safeDict(assetCtxs, j, Dict{Symbol, Any}()));
+            data = extend(self.safeDict(universe, j, defaultValue = Dict{Symbol, Any}()), self.safeDict(assetCtxs, j, defaultValue = Dict{Symbol, Any}()));
             data[Symbol("baseId")] = self.sum(j, offset);
             data[Symbol("collateralToken")] = collateralToken;
             data[Symbol("hip3")] = true;
             data[Symbol("dex")] = dexName;
-            cachedCurrencies = self.safeDict(self.options, "cachedCurrenciesById", Dict{Symbol, Any}());
+            cachedCurrencies = self.safeDict(self.options, "cachedCurrenciesById", defaultValue = Dict{Symbol, Any}());
             if functions.ccxtruthy(ccxt_in(collateralToken, cachedCurrencies))
                 name = safeString(data, "name");
                 collateralTokenCode = safeString(cachedCurrencies, collateralToken);
@@ -695,18 +745,28 @@ function fetchHip3Markets(self::Hyperliquid, params=Dict())
     return markets
 
 end
-function fetchSwapMarkets(self::Hyperliquid, params=Dict())
+"""
+retrieves data on all swap markets for hyperliquid
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchSwapMarkets(self::Hyperliquid; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => "metaAndAssetCtxs"
     );
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    meta = self.safeDict(response, 0, Dict{Symbol, Any}());
-    universe = self.safeList(meta, "universe", []);
-    assetCtxs = self.safeList(response, 1, []);
+    meta = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    universe = self.safeList(meta, "universe", defaultValue = []);
+    assetCtxs = self.safeList(response, 1, defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(universe)))
-        data = extend(self.safeDict(universe, i, Dict{Symbol, Any}()), self.safeDict(assetCtxs, i, Dict{Symbol, Any}()));
+        data = extend(self.safeDict(universe, i, defaultValue = Dict{Symbol, Any}()), self.safeDict(assetCtxs, i, defaultValue = Dict{Symbol, Any}()));
         data[Symbol("baseId")] = i;
         push!(result, data);
         i += 1
@@ -714,6 +774,17 @@ function fetchSwapMarkets(self::Hyperliquid, params=Dict())
     return self.parseMarkets(result)
 
 end
+"""
+Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+
+# Arguments
+- `price`::float: the price to use in the calculation
+- `amountPrecision`::int: the amountPrecision to use in the calculation
+- `maxDecimals`::int: the maxDecimals to use in the calculation
+
+# Returns
+- The calculated price precision
+"""
 function calculatePricePrecision(self::Hyperliquid, price, amountPrecision, maxDecimals)
     pricePrecision = 0;
     priceStr = numberToString(price);
@@ -742,42 +813,52 @@ function calculatePricePrecision(self::Hyperliquid, price, amountPrecision, maxD
     return self.parseToInt(pricePrecision)
 
 end
-function fetchSpotMarkets(self::Hyperliquid, params=Dict())
+"""
+retrieves data on all spot markets for hyperliquid
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchSpotMarkets(self::Hyperliquid; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => "spotMetaAndAssetCtxs"
     );
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    first_var = self.safeDict(response, 0, Dict{Symbol, Any}());
-    second = self.safeList(response, 1, []);
-    meta = self.safeList(first_var, "universe", []);
-    tokens = self.safeList(first_var, "tokens", []);
+    first_var = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    second = self.safeList(response, 1, defaultValue = []);
+    meta = self.safeList(first_var, "universe", defaultValue = []);
+    tokens = self.safeList(first_var, "tokens", defaultValue = []);
     markets = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(meta)))
-        market = self.safeDict(meta, i, Dict{Symbol, Any}());
+        market = self.safeDict(meta, i, defaultValue = Dict{Symbol, Any}());
         index = safeInteger(market, "index");
-        extraData = self.safeDict(second, index, Dict{Symbol, Any}());
+        extraData = self.safeDict(second, index, defaultValue = Dict{Symbol, Any}());
         marketName = safeString(market, "name");
-        fees = self.safeDict(self.fees, "spot", Dict{Symbol, Any}());
+        fees = self.safeDict(self.fees, "spot", defaultValue = Dict{Symbol, Any}());
         taker = self.safeNumber(fees, "taker");
         maker = self.safeNumber(fees, "maker");
-        tokensPos = self.safeList(market, "tokens", []);
+        tokensPos = self.safeList(market, "tokens", defaultValue = []);
         baseTokenPos = safeInteger(tokensPos, 0);
         quoteTokenPos = safeInteger(tokensPos, 1);
-        baseTokenInfo = self.safeDict(tokens, baseTokenPos, Dict{Symbol, Any}());
-        quoteTokenInfo = self.safeDict(tokens, quoteTokenPos, Dict{Symbol, Any}());
+        baseTokenInfo = self.safeDict(tokens, baseTokenPos, defaultValue = Dict{Symbol, Any}());
+        quoteTokenInfo = self.safeDict(tokens, quoteTokenPos, defaultValue = Dict{Symbol, Any}());
         baseName = safeString(baseTokenInfo, "name");
         quoteId = safeString(quoteTokenInfo, "name");
         if functions.ccxtruthy(@functions.ccxt_or(baseName == nothing, quoteId == nothing))
             i += 1; continue
         end
-        spotCurrencyMapping = self.safeDict(self.options, "spotCurrencyMapping", Dict{Symbol, Any}());
+        spotCurrencyMapping = self.safeDict(self.options, "spotCurrencyMapping", defaultValue = Dict{Symbol, Any}());
         mappedBaseName = safeString(spotCurrencyMapping, baseName, baseName);
         mappedQuoteId = safeString(spotCurrencyMapping, quoteId, quoteId);
         mappedBase = self.safeCurrencyCode(mappedBaseName);
         mappedQuote = self.safeCurrencyCode(mappedQuoteId);
         mappedSymbol = string(mappedBase, "/", mappedQuote);
-        innerBaseTokenInfo = self.safeDict(baseTokenInfo, "spec", baseTokenInfo);
+        innerBaseTokenInfo = self.safeDict(baseTokenInfo, "spec", defaultValue = baseTokenInfo);
         amountPrecisionStr = safeString(innerBaseTokenInfo, "szDecimals");
         amountPrecision = ccxt_parseInt(amountPrecisionStr);
         price = self.safeNumber(extraData, "midPx");
@@ -816,8 +897,8 @@ function fetchSpotMarkets(self::Hyperliquid, params=Dict())
             Symbol("strike") => nothing,
             Symbol("optionType") => nothing,
             Symbol("precision") => Dict{Symbol, Any}(
-                Symbol("amount") => self.parseNumber(self.parsePrecision(amountPrecisionStr)),
-                Symbol("price") => self.parseNumber(self.parsePrecision(pricePrecisionStr))
+                Symbol("amount") => self.parseNumber(self.parsePrecision(precision = amountPrecisionStr)),
+                Symbol("price") => self.parseNumber(self.parsePrecision(precision = pricePrecisionStr))
             ),
             Symbol("limits") => Dict{Symbol, Any}(
                 Symbol("leverage") => Dict{Symbol, Any}(
@@ -840,7 +921,7 @@ function fetchSpotMarkets(self::Hyperliquid, params=Dict())
             Symbol("created") => nothing,
             Symbol("info") => extend(extraData, market)
         );
-        push!(markets, self.safeMarketStructure(entry));
+        push!(markets, self.safeMarketStructure(market = entry));
         i += 1
     end
     return markets
@@ -867,12 +948,12 @@ function parseMarket(self::Hyperliquid, market)
             symbol = string(symbol, ":", settle);
         end
     end
-    fees = self.safeDict(self.fees, "swap", Dict{Symbol, Any}());
+    fees = self.safeDict(self.fees, "swap", defaultValue = Dict{Symbol, Any}());
     taker = self.safeNumber(fees, "taker");
     maker = self.safeNumber(fees, "maker");
     amountPrecisionStr = safeString(market, "szDecimals");
     amountPrecision = ccxt_parseInt(amountPrecisionStr);
-    price = self.safeNumber(market, "markPx", 0);
+    price = self.safeNumber(market, "markPx", defaultNumber = 0);
     pricePrecision = 0;
     if functions.ccxtruthy(price != nothing)
         pricePrecision = self.calculatePricePrecision(price, amountPrecision, 6);
@@ -883,7 +964,7 @@ function parseMarket(self::Hyperliquid, market)
     if functions.ccxtruthy(isDelisted != nothing)
         active = !functions.ccxtruthy(isDelisted);
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => baseId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -911,8 +992,8 @@ function parseMarket(self::Hyperliquid, market)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(amountPrecisionStr)),
-        Symbol("price") => self.parseNumber(self.parsePrecision(pricePrecisionStr))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = amountPrecisionStr)),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = pricePrecisionStr))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -941,20 +1022,37 @@ function updateSpotCurrencyCode(self::Hyperliquid, code)
     if functions.ccxtruthy(code == nothing)
             return code
     end
-    spotCurrencyMapping = self.safeDict(self.options, "spotCurrencyMapping", Dict{Symbol, Any}());
+    spotCurrencyMapping = self.safeDict(self.options, "spotCurrencyMapping", defaultValue = Dict{Symbol, Any}());
     return safeString(spotCurrencyMapping, code, code)
 
 end
-function fetchBalance(self::Hyperliquid, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.type`::string, optional: wallet type, ['spot', 'swap'], defaults to swap
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+- `params.dex`::string, optional: for hip3 markets, the dex name, eg: 'xyz'
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.enableUnifiedMargin`::bool, optional: enable unified margin, CCXT tries to auto-detects this value but you can override it
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Hyperliquid; params=Dict())
     shouldRefresh = @functions.ccxt_and((safeString2(params, "user", "address") != nothing), self.safeBool(params, "enableUnifiedMargin") == nothing);
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchBalance", params);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params = params);
     isUnifiedEnabled = nothing;
-    (isUnifiedEnabled, params) = Base.fetch(self.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, params));
+    (isUnifiedEnabled, params) = Base.fetch(self.isUnifiedEnabled("fetchBalance", address = userAddress, shouldRefresh = shouldRefresh, params = params));
     dex = safeString(params, "dex");
     isSpot = @functions.ccxt_and((@functions.ccxt_or((type_var == "spot"), isUnifiedEnabled)), (dex == nothing));
     request = Dict{Symbol, Any}(
@@ -985,7 +1083,7 @@ function fetchBalance(self::Hyperliquid, params=Dict())
 
             return self.safeBalance(spotBalances)
     end
-    data = self.safeDict(response, "marginSummary", Dict{Symbol, Any}());
+    data = self.safeDict(response, "marginSummary", defaultValue = Dict{Symbol, Any}());
     usdcBalance = Dict{Symbol, Any}(
         Symbol("total") => self.safeNumber(data, "accountValue")
     );
@@ -1004,7 +1102,19 @@ function fetchBalance(self::Hyperliquid, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchOrderBook(self::Hyperliquid, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Hyperliquid, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1014,25 +1124,39 @@ function fetchOrderBook(self::Hyperliquid, symbol, limit=nothing, params=Dict())
         Symbol("coin") => functions.ccxtruthy(get(market, Symbol("swap"), nothing)) ? safeString(market, "baseName") : get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    data = self.safeList(response, "levels", []);
+    data = self.safeList(response, "levels", defaultValue = []);
     result = Dict{Symbol, Any}(
-        Symbol("bids") => self.safeList(data, 0, []),
-        Symbol("asks") => self.safeList(data, 1, [])
+        Symbol("bids") => self.safeList(data, 0, defaultValue = []),
+        Symbol("asks") => self.safeList(data, 1, defaultValue = [])
     );
     timestamp = safeInteger(response, "time");
-    return self.parseOrderBook(result, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", "px", "sz")
+    return self.parseOrderBook(result, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "px", amountKey = "sz")
 
 end
-function fetchTickers(self::Hyperliquid, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', by default fetches both
+- `params.hip3`::bool, optional: set to true to fetch hip3 markets only
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Hyperliquid; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = [];
     type_var = safeString(params, "type");
     params = omit(params, "type");
     hip3 = false;
-    (hip3, params) = self.handleOptionAndParams(params, "fetchTickers", "hip3", false);
+    (hip3, params) = self.handleOptionAndParams(params, "fetchTickers", "hip3", defaultValue = false);
     if functions.ccxtruthy(symbols != nothing)
         firstSymbol = safeString(symbols, 0);
         if functions.ccxtruthy(firstSymbol != nothing)
@@ -1044,14 +1168,14 @@ function fetchTickers(self::Hyperliquid, symbols=nothing, params=Dict())
     end
     if functions.ccxtruthy(hip3)
         params = omit(params, "hip3");
-        response = Base.fetch(self.fetchHip3Markets(params));
+        response = Base.fetch(self.fetchHip3Markets(params = params));
     elseif functions.ccxtruthy(type_var == "spot")
-        response = Base.fetch(self.fetchSpotMarkets(params));
+        response = Base.fetch(self.fetchSpotMarkets(params = params));
     else
         if functions.ccxtruthy(type_var == "swap")
-            response = Base.fetch(self.fetchSwapMarkets(params));
+            response = Base.fetch(self.fetchSwapMarkets(params = params));
         else
-            response = Base.fetch(self.fetchMarkets(params));
+            response = Base.fetch(self.fetchMarkets(params = params));
         end
 
     end
@@ -1060,18 +1184,29 @@ function fetchTickers(self::Hyperliquid, symbols=nothing, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         market = get(response, i + 1, nothing);
         info = get(market, Symbol("info"), nothing);
-        ticker = self.parseTicker(info, market);
+        ticker = self.parseTicker(info, market = market);
         symbol = safeString(ticker, "symbol");
         result[Symbol(symbol)] = ticker;
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchFundingRate(self::Hyperliquid, symbol, params=Dict())
+"""
+fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Hyperliquid, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
-    rates = Base.fetch(self.fetchFundingRates([get(market, Symbol("symbol"), nothing)], params));
+    rates = Base.fetch(self.fetchFundingRates(symbols = [get(market, Symbol("symbol"), nothing)], params = params));
     rate = self.safeDict(rates, get(market, Symbol("symbol"), nothing));
     if functions.ccxtruthy(rate == nothing)
         throw(BadSymbol(string(self.id, " fetchFundingRate() could not find a funding rate for ", symbol)));
@@ -1079,28 +1214,39 @@ function fetchFundingRate(self::Hyperliquid, symbol, params=Dict())
     return rate
 
 end
-function fetchFundingRates(self::Hyperliquid, symbols=nothing, params=Dict())
+"""
+retrieves data on all swap markets for hyperliquid
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchFundingRates(self::Hyperliquid; symbols=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => "metaAndAssetCtxs"
     );
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    meta = self.safeDict(response, 0, Dict{Symbol, Any}());
-    universe = self.safeList(meta, "universe", []);
-    assetCtxs = self.safeList(response, 1, []);
+    meta = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    universe = self.safeList(meta, "universe", defaultValue = []);
+    assetCtxs = self.safeList(response, 1, defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(universe)))
-        data = extend(self.safeDict(universe, i, Dict{Symbol, Any}()), self.safeDict(assetCtxs, i, Dict{Symbol, Any}()));
+        data = extend(self.safeDict(universe, i, defaultValue = Dict{Symbol, Any}()), self.safeDict(assetCtxs, i, defaultValue = Dict{Symbol, Any}()));
         push!(result, data);
         i += 1
     end
-    return self.parseFundingRates(result, symbols)
+    return self.parseFundingRates(result, symbols = symbols)
 
 end
-function parseFundingRate(self::Hyperliquid, info, market=nothing)
+function parseFundingRate(self::Hyperliquid, info; market=nothing)
     base = safeString(info, "name");
     marketId = self.coinToMarketId(base);
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     funding = self.safeNumber(info, "funding");
     markPx = self.safeNumber(info, "markPx");
     oraclePx = self.safeNumber(info, "oraclePx");
@@ -1127,10 +1273,10 @@ function parseFundingRate(self::Hyperliquid, info, market=nothing)
 )
 
 end
-function parseTicker(self::Hyperliquid, ticker, market=nothing)
+function parseTicker(self::Hyperliquid, ticker; market=nothing)
     name = safeString(ticker, "name");
     marketId = self.coinToMarketId(name);
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     bidAsk = self.safeList(ticker, "impactPxs");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -1143,10 +1289,25 @@ function parseTicker(self::Hyperliquid, ticker, market=nothing)
     Symbol("ask") => self.safeNumber(bidAsk, 1),
     Symbol("quoteVolume") => self.safeNumber(ticker, "dayNtlVlm"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchOHLCV(self::Hyperliquid, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents, support '1m', '15m', '1h', '1d'
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Hyperliquid, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1181,14 +1342,32 @@ function fetchOHLCV(self::Hyperliquid, symbol, timeframe="1m", since=nothing, li
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         candles = response;
     end
-    return self.parseOHLCVs(candles, market, timeframe, originalSince, limit, useTail)
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = originalSince, limit = limit, tail = useTail)
 
 end
-function parseOHLCV(self::Hyperliquid, ohlcv, market=nothing)
+function parseOHLCV(self::Hyperliquid, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "t"), self.safeNumber(ohlcv, "o"), self.safeNumber(ohlcv, "h"), self.safeNumber(ohlcv, "l"), self.safeNumber(ohlcv, "c"), self.safeNumber(ohlcv, "v")]
 
 end
-function fetchTrades(self::Hyperliquid, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade
+- `params.address`::string, optional: wallet address that made trades
+- `params.user`::string, optional: wallet address that made trades
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchTrades(self::Hyperliquid, symbol; since=nothing, limit=nothing, params=Dict())
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchTrades", params);
     if functions.ccxtruthy(self.markets == nothing)
@@ -1217,7 +1396,7 @@ function fetchTrades(self::Hyperliquid, symbol, since=nothing, limit=nothing, pa
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         fills = response;
     end
-    return self.parseTrades(fills, market, since, limit)
+    return self.parseTrades(fills, market = market, since = since, limit = limit)
 
 end
 function amountToPrecision(self::Hyperliquid, symbol, amount)
@@ -1253,7 +1432,7 @@ function signMessage(self::Hyperliquid, message, privateKey)
     return self.signHash(self.hashMessage(message), functions.ccxt_slice(privateKey, -64))
 
 end
-function constructPhantomAgent(self::Hyperliquid, hash, isTestnet=true)
+function constructPhantomAgent(self::Hyperliquid, hash; isTestnet=true)
     source = functions.ccxtruthy((isTestnet)) ? "b" : "a";
     return Dict{Symbol, Any}(
     Symbol("source") => source,
@@ -1261,7 +1440,7 @@ function constructPhantomAgent(self::Hyperliquid, hash, isTestnet=true)
 )
 
 end
-function actionHash(self::Hyperliquid, action, vaultAddress, nonce, expiresAfter=nothing)
+function actionHash(self::Hyperliquid, action, vaultAddress, nonce; expiresAfter=nothing)
     dataBinary = self.packb(action);
     dataHex = self.binaryToBase16(dataBinary);
     data = dataHex;
@@ -1279,10 +1458,10 @@ function actionHash(self::Hyperliquid, action, vaultAddress, nonce, expiresAfter
     return hash(self.base16ToBinary(data), keccak, "binary")
 
 end
-function signL1Action(self::Hyperliquid, action, nonce, vaultAdress=nothing, expiresAfter=nothing)
-    hash = self.actionHash(action, vaultAdress, nonce, expiresAfter);
-    isTestnet = self.safeBool(self.options, "sandboxMode", false);
-    phantomAgent = self.constructPhantomAgent(hash, isTestnet);
+function signL1Action(self::Hyperliquid, action, nonce; vaultAdress=nothing, expiresAfter=nothing)
+    hash = self.actionHash(action, vaultAdress, nonce, expiresAfter = expiresAfter);
+    isTestnet = self.safeBool(self.options, "sandboxMode", defaultValue = false);
+    phantomAgent = self.constructPhantomAgent(hash, isTestnet = isTestnet);
     zeroAddress = safeString(self.options, "zeroAddress");
     chainId = 1337;
     domain = Dict{Symbol, Any}(
@@ -1434,7 +1613,7 @@ function buildApproveBuilderFeeSig(self::Hyperliquid, message)
 
 end
 function setRef(self::Hyperliquid, )
-    if functions.ccxtruthy(self.safeBool(self.options, "refSet", false))
+    if functions.ccxtruthy(self.safeBool(self.options, "refSet", defaultValue = false))
             return true
     end
     self.options[Symbol("refSet")] = true;
@@ -1462,7 +1641,7 @@ function setRef(self::Hyperliquid, )
 end
 function approveBuilderFee(self::Hyperliquid, builder, maxFeeRate)
     nonce = milliseconds();
-    isSandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    isSandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     payload = Dict{Symbol, Any}(
         Symbol("hyperliquidChain") => functions.ccxtruthy(isSandboxMode) ? "Testnet" : "Mainnet",
         Symbol("maxFeeRate") => maxFeeRate,
@@ -1489,7 +1668,7 @@ function approveBuilderFee(self::Hyperliquid, builder, maxFeeRate)
 end
 function initializeClient(self::Hyperliquid, )
     try
-        Base.fetch(asyncmap(Base.fetch, [self.handleBuilderFeeApproval(), self.setRef(), self.isUnifiedEnabled("fetchBalance", nothing, false, Dict{Symbol, Any}())]));
+        Base.fetch(asyncmap(Base.fetch, [self.handleBuilderFeeApproval(), self.setRef(), self.isUnifiedEnabled("fetchBalance", address = nothing, shouldRefresh = false, params = Dict{Symbol, Any}())]));
     catch e
         return false
 
@@ -1498,8 +1677,8 @@ function initializeClient(self::Hyperliquid, )
 
 end
 function handleBuilderFeeApproval(self::Hyperliquid, )
-    buildFee = self.safeBool(self.options, "builderFee", true);
-    approvedBuilderFee = self.safeBool(self.options, "approvedBuilderFee", false);
+    buildFee = self.safeBool(self.options, "builderFee", defaultValue = true);
+    approvedBuilderFee = self.safeBool(self.options, "approvedBuilderFee", defaultValue = false);
     if functions.ccxtruthy(approvedBuilderFee)
             return true
     end
@@ -1518,7 +1697,20 @@ function handleBuilderFeeApproval(self::Hyperliquid, )
     return true
 
 end
-function isUnifiedEnabled(self::Hyperliquid, method, address=nothing, shouldRefresh=false, params=Dict())
+"""
+returns enableUnifiedMargin so the user can check if unified account is enabled
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
+
+# Arguments
+- `method`::string: the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
+- `address`::string, optional: the wallet address to query; defaults to the configured walletAddress
+- `shouldRefresh`::bool, optional: force a fresh request instead of returning the cached value
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- enableUnifiedMargin
+"""
+function isUnifiedEnabled(self::Hyperliquid, method; address=nothing, shouldRefresh=false, params=Dict())
     userAddress = nothing;
     if functions.ccxtruthy(address != nothing)
         userAddress = address;
@@ -1555,11 +1747,23 @@ function isUnifiedEnabled(self::Hyperliquid, method, address=nothing, shouldRefr
     return [enableUnifiedMargin, params]
 
 end
-function setUserAbstraction(self::Hyperliquid, abstraction, params=Dict())
+"""
+set user abstraction mode
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
+
+# Arguments
+- `abstraction`::string: one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+- `params`::object, optional:
+- `params.type`::string, optional: 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+
+# Returns
+- dictionary response from the exchange
+"""
+function setUserAbstraction(self::Hyperliquid, abstraction; params=Dict())
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("setUserAbstraction", params);
     nonce = milliseconds();
-    isSandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    isSandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     type_var = safeString(params, "type", "userSetAbstraction");
     params = omit(params, "type");
     payload = Dict{Symbol, Any}(
@@ -1586,11 +1790,22 @@ function setUserAbstraction(self::Hyperliquid, abstraction, params=Dict())
     return Base.fetch(self.privatePostExchange(request))
 
 end
-function enableUserDexAbstraction(self::Hyperliquid, enabled, params=Dict())
+"""
+If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+
+# Arguments
+- `enabled`::bool: whether to enable user dex abstraction
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+
+# Returns
+- dictionary response from the exchange
+"""
+function enableUserDexAbstraction(self::Hyperliquid, enabled; params=Dict())
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("enableUserDexAbstraction", params);
     nonce = milliseconds();
-    isSandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    isSandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     type_var = safeString(params, "type", "userDexAbstraction");
     params = omit(params, "type");
     payload = Dict{Symbol, Any}(
@@ -1617,7 +1832,17 @@ function enableUserDexAbstraction(self::Hyperliquid, enabled, params=Dict())
     return Base.fetch(self.privatePostExchange(request))
 
 end
-function setAgentAbstraction(self::Hyperliquid, abstraction, params=Dict())
+"""
+set agent abstraction mode
+
+# Arguments
+- `abstraction`::string: one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+- `params`::object, optional:
+
+# Returns
+- dictionary response from the exchange
+"""
+function setAgentAbstraction(self::Hyperliquid, abstraction; params=Dict())
     nonce = milliseconds();
     request = Dict{Symbol, Any}(
         Symbol("nonce") => nonce
@@ -1633,16 +1858,56 @@ function setAgentAbstraction(self::Hyperliquid, abstraction, params=Dict())
     return response
 
 end
-function createOrder(self::Hyperliquid, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: 'Gtc', 'Ioc', 'Alo'
+- `params.postOnly`::bool, optional: true or false whether the order is post-only
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.clientOrderId`::string, optional: client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+- `params.slippage`::string, optional: the slippage for market order
+- `params.vaultAddress`::string, optional: the vault address for order
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Hyperliquid, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    (order, globalParams) = self.parseCreateEditOrderArgs(nothing, symbol, type_var, side, amount, price, params);
-    orders = Base.fetch(self.createOrders([order], globalParams));
+    (order, globalParams) = self.parseCreateEditOrderArgs(nothing, symbol, type_var, side, amount, price = price, params = params);
+    orders = Base.fetch(self.createOrders([order], params = globalParams));
     return get(orders, 1, nothing)
 
 end
-function createTwapOrder(self::Hyperliquid, symbol, side, amount, duration, params=Dict())
+"""
+create a trade order that is executed as a TWAP order over a specified duration.
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `duration`::int: the duration of the TWAP order in milliseconds
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.randomize`::bool, optional: whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.expiresAfter`::int, optional: time in ms after which the twap order expires
+- `params.vaultAddress`::string, optional: the vault address for order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createTwapOrder(self::Hyperliquid, symbol, side, amount, duration; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1651,16 +1916,16 @@ function createTwapOrder(self::Hyperliquid, symbol, side, amount, duration, para
     nonce = milliseconds();
     isBuy = (side == "BUY");
     vaultAddress = nothing;
-    randomize = self.safeBool(params, "randomize", false);
+    randomize = self.safeBool(params, "randomize", defaultValue = false);
     params = omit(params, "randomize");
     (vaultAddress, params) = self.handleOptionAndParams(params, "createOrder", "vaultAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
     durationMins = floor(duration / 1000 / 60);
     orderObj = Dict{Symbol, Any}(
         Symbol("a") => self.parseToInt(get(market, Symbol("baseId"), nothing)),
         Symbol("b") => isBuy,
         Symbol("s") => self.amountToPrecision(symbol, amount),
-        Symbol("r") => self.safeBool(params, "reduceOnly", false),
+        Symbol("r") => self.safeBool(params, "reduceOnly", defaultValue = false),
         Symbol("m") => durationMins,
         Symbol("t") => randomize
     );
@@ -1668,7 +1933,7 @@ function createTwapOrder(self::Hyperliquid, symbol, side, amount, duration, para
         Symbol("type") => "twapOrder",
         Symbol("twap") => orderObj
     );
-    signature = self.signL1Action(orderAction, nonce, vaultAddress);
+    signature = self.signL1Action(orderAction, nonce, vaultAdress = vaultAddress);
     request = Dict{Symbol, Any}(
         Symbol("action") => orderAction,
         Symbol("nonce") => nonce,
@@ -1684,27 +1949,38 @@ function createTwapOrder(self::Hyperliquid, symbol, side, amount, duration, para
         params = omit(params, "expiresAfter");
     end
     response = Base.fetch(self.privatePostExchange(request));
-    responseObj = self.safeDict(response, "response", Dict{Symbol, Any}());
-    data = self.safeDict(responseObj, "data", Dict{Symbol, Any}());
-    status = self.safeDict(data, "status", Dict{Symbol, Any}());
-    running = self.safeDict(status, "running", Dict{Symbol, Any}());
+    responseObj = self.safeDict(response, "response", defaultValue = Dict{Symbol, Any}());
+    data = self.safeDict(responseObj, "data", defaultValue = Dict{Symbol, Any}());
+    status = self.safeDict(data, "status", defaultValue = Dict{Symbol, Any}());
+    running = self.safeDict(status, "running", defaultValue = Dict{Symbol, Any}());
     orderId = safeString(running, "twapId");
     return self.parseOrder(Dict{Symbol, Any}(
     Symbol("status") => "running",
     Symbol("oid") => orderId
-), market)
+), market = market)
 
 end
-function createOrders(self::Hyperliquid, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Hyperliquid, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.initializeClient());
-    request = self.createOrdersRequest(orders, params);
+    request = self.createOrdersRequest(orders, params = params);
     response = Base.fetch(self.privatePostExchange(request));
-    responseObj = self.safeDict(response, "response", Dict{Symbol, Any}());
-    data = self.safeDict(responseObj, "data", Dict{Symbol, Any}());
-    statuses = self.safeList(data, "statuses", []);
+    responseObj = self.safeDict(response, "response", defaultValue = Dict{Symbol, Any}());
+    data = self.safeDict(responseObj, "data", defaultValue = Dict{Symbol, Any}());
+    statuses = self.safeList(data, "statuses", defaultValue = []);
     ordersToBeParsed = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(statuses)))
@@ -1721,7 +1997,7 @@ function createOrders(self::Hyperliquid, orders, params=Dict())
     return self.parseOrders(ordersToBeParsed)
 
 end
-function createOrderRequest(self::Hyperliquid, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Hyperliquid, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1736,7 +2012,7 @@ function createOrderRequest(self::Hyperliquid, symbol, type_var, side, amount, p
     clientOrderId = safeString2(params, "clientOrderId", "client_id");
     slippage = safeString(params, "slippage");
     defaultTimeInForce = functions.ccxtruthy((isMarket)) ? "ioc" : "gtc";
-    postOnly = self.safeBool(params, "postOnly", false);
+    postOnly = self.safeBool(params, "postOnly", defaultValue = false);
     if functions.ccxtruthy(postOnly)
         defaultTimeInForce = "alo";
     end
@@ -1757,7 +2033,7 @@ function createOrderRequest(self::Hyperliquid, symbol, type_var, side, amount, p
         px = self.priceToPrecision(symbol, price);
     end
     sz = self.amountToPrecision(symbol, amount);
-    reduceOnly = self.safeBool(params, "reduceOnly", false);
+    reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
     orderType = Dict{Symbol, Any}();
     if functions.ccxtruthy(isTrigger)
         isTp = false;
@@ -1793,7 +2069,7 @@ function createOrderRequest(self::Hyperliquid, symbol, type_var, side, amount, p
     return orderObj
 
 end
-function createOrdersRequest(self::Hyperliquid, orders, params=Dict())
+function createOrdersRequest(self::Hyperliquid, orders; params=Dict())
     self.checkRequiredCredentials();
     defaultSlippage = safeString(self.options, "defaultSlippage");
     defaultSlippage = safeString(params, "slippage", defaultSlippage);
@@ -1801,7 +2077,7 @@ function createOrdersRequest(self::Hyperliquid, orders, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
         rawOrder = get(orders, i + 1, nothing);
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         clientOrderId = safeString2(orderParams, "clientOrderId", "client_id");
         if functions.ccxtruthy(clientOrderId != nothing)
             hasClientOrderId = true;
@@ -1812,7 +2088,7 @@ function createOrdersRequest(self::Hyperliquid, orders, params=Dict())
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
             rawOrder = get(orders, i + 1, nothing);
-            orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+            orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
             clientOrderId = safeString2(orderParams, "clientOrderId", "client_id");
             if functions.ccxtruthy(clientOrderId == nothing)
                 throw(ArgumentsRequired(string(self.id, " createOrders() all orders must have clientOrderId if at least one has a clientOrderId")));
@@ -1835,7 +2111,7 @@ function createOrdersRequest(self::Hyperliquid, orders, params=Dict())
         side = safeStringUpper(rawOrder, "side");
         amount = safeString(rawOrder, "amount");
         price = safeString(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         slippage = safeString(orderParams, "slippage", defaultSlippage);
         orderParams[Symbol("slippage")] = slippage;
         stopLoss = safeValue(orderParams, "stopLoss");
@@ -1843,7 +2119,7 @@ function createOrdersRequest(self::Hyperliquid, orders, params=Dict())
         hasStopLoss = (stopLoss != nothing);
         hasTakeProfit = (takeProfit != nothing);
         orderParams = omit(orderParams, ["stopLoss", "takeProfit"]);
-        mainOrderObj = self.createOrderRequest(symbol, type_var, side, amount, price, orderParams);
+        mainOrderObj = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = orderParams);
         if functions.ccxtruthy(@functions.ccxt_or(hasStopLoss, hasTakeProfit))
             stopLossOrderTriggerPrice = safeString2(stopLoss, "triggerPrice", "stopPrice");
             stopLossOrderType = safeString(stopLoss, "type", "limit");
@@ -1869,14 +2145,14 @@ function createOrdersRequest(self::Hyperliquid, orders, params=Dict())
                 triggerOrderSide = "buy";
             end
             if functions.ccxtruthy(hasTakeProfit)
-                orderObj = self.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, extend(orderParams, Dict{Symbol, Any}(
+                orderObj = self.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, price = takeProfitOrderLimitPrice, params = extend(orderParams, Dict{Symbol, Any}(
                     Symbol("takeProfitPrice") => takeProfitOrderTriggerPrice,
                     Symbol("reduceOnly") => true
                 )));
                                 push!(orderReq, orderObj);
             end
             if functions.ccxtruthy(hasStopLoss)
-                orderObj = self.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, extend(orderParams, Dict{Symbol, Any}(
+                orderObj = self.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, price = stopLossOrderLimitPrice, params = extend(orderParams, Dict{Symbol, Any}(
                     Symbol("stopLossPrice") => stopLossOrderTriggerPrice,
                     Symbol("reduceOnly") => true
                 )));
@@ -1889,16 +2165,16 @@ function createOrdersRequest(self::Hyperliquid, orders, params=Dict())
     end
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams(params, "createOrder", "vaultAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
     orderAction = Dict{Symbol, Any}(
         Symbol("type") => "order",
         Symbol("orders") => orderReq,
         Symbol("grouping") => grouping
     );
-    if functions.ccxtruthy(self.safeBool(self.options, "approvedBuilderFee", false))
+    if functions.ccxtruthy(self.safeBool(self.options, "approvedBuilderFee", defaultValue = false))
         wallet = safeStringLower(self.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
         feeInt = safeInteger(self.options, "feeInt", 10);
-        if functions.ccxtruthy(!functions.ccxtruthy(self.safeBool(self.options, "builderFee", true)))
+        if functions.ccxtruthy(!functions.ccxtruthy(self.safeBool(self.options, "builderFee", defaultValue = true)))
             feeInt = 0;
         end
         orderAction[Symbol("builder")] = Dict{Symbol, Any}(
@@ -1906,7 +2182,7 @@ function createOrdersRequest(self::Hyperliquid, orders, params=Dict())
             Symbol("f") => feeInt
         );
     end
-    signature = self.signL1Action(orderAction, nonce, vaultAddress);
+    signature = self.signL1Action(orderAction, nonce, vaultAdress = vaultAddress);
     request = Dict{Symbol, Any}(
         Symbol("action") => orderAction,
         Symbol("nonce") => nonce,
@@ -1919,16 +2195,49 @@ function createOrdersRequest(self::Hyperliquid, orders, params=Dict())
     return request
 
 end
-function cancelOrder(self::Hyperliquid, id, symbol=nothing, params=Dict())
-    if functions.ccxtruthy(self.safeBool(params, "twap", false))
+"""
+cancels an open order
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+- `params.vaultAddress`::string, optional: the vault address for order
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.twap`::bool, optional: whether the order to cancel is a twap order, (default is false)
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Hyperliquid, id; symbol=nothing, params=Dict())
+    if functions.ccxtruthy(self.safeBool(params, "twap", defaultValue = false))
         params = omit(params, "twap");
-            return Base.fetch(self.cancelTwapOrder(id, symbol, params))
+            return Base.fetch(self.cancelTwapOrder(id, symbol = symbol, params = params))
     end
-    orders = Base.fetch(self.cancelOrders([id], symbol, params));
+    orders = Base.fetch(self.cancelOrders([id], symbol = symbol, params = params));
     return self.safeDict(orders, 0)
 
 end
-function cancelOrders(self::Hyperliquid, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::array, optional: client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Hyperliquid, ids; symbol=nothing, params=Dict())
     self.checkRequiredCredentials();
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
@@ -1937,11 +2246,11 @@ function cancelOrders(self::Hyperliquid, ids, symbol=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.initializeClient());
-    request = self.cancelOrdersRequest(ids, symbol, params);
+    request = self.cancelOrdersRequest(ids, symbol = symbol, params = params);
     response = Base.fetch(self.privatePostExchange(request));
     innerResponse = self.safeDict(response, "response");
     data = self.safeDict(innerResponse, "data");
-    statuses = self.safeList(data, "statuses", []);
+    statuses = self.safeList(data, "statuses", defaultValue = []);
     orders = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(statuses)))
@@ -1955,7 +2264,21 @@ function cancelOrders(self::Hyperliquid, ids, symbol=nothing, params=Dict())
     return orders
 
 end
-function cancelTwapOrder(self::Hyperliquid, id, symbol=nothing, params=Dict())
+"""
+cancels a running twap order
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiresAfter`::int, optional: time in ms after which the twap order expires
+- `params.vaultAddress`::string, optional: the vault address for order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelTwapOrder(self::Hyperliquid, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1965,14 +2288,14 @@ function cancelTwapOrder(self::Hyperliquid, id, symbol=nothing, params=Dict())
     market = self.market(symbol);
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams(params, "cancelTwapOrder", "vaultAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
     action = Dict{Symbol, Any}(
         Symbol("type") => "twapCancel",
         Symbol("a") => self.parseToInt(get(market, Symbol("baseId"), nothing)),
         Symbol("t") => self.parseToNumeric(id)
     );
     nonce = milliseconds();
-    signature = self.signL1Action(action, nonce, vaultAddress);
+    signature = self.signL1Action(action, nonce, vaultAdress = vaultAddress);
     request = Dict{Symbol, Any}(
         Symbol("action") => action,
         Symbol("nonce") => nonce,
@@ -1988,16 +2311,16 @@ function cancelTwapOrder(self::Hyperliquid, id, symbol=nothing, params=Dict())
         params = omit(params, "expiresAfter");
     end
     response = Base.fetch(self.privatePostExchange(request));
-    responseObj = self.safeDict(response, "response", Dict{Symbol, Any}());
-    data = self.safeDict(responseObj, "data", Dict{Symbol, Any}());
+    responseObj = self.safeDict(response, "response", defaultValue = Dict{Symbol, Any}());
+    data = self.safeDict(responseObj, "data", defaultValue = Dict{Symbol, Any}());
     status = safeString(data, "status");
     return self.parseOrder(Dict{Symbol, Any}(
     Symbol("status") => status,
     Symbol("oid") => id
-), market)
+), market = market)
 
 end
-function cancelOrdersRequest(self::Hyperliquid, ids, symbol=nothing, params=Dict())
+function cancelOrdersRequest(self::Hyperliquid, ids; symbol=nothing, params=Dict())
     market = self.market(symbol);
     clientOrderId = safeValue2(params, "clientOrderId", "client_id");
     params = omit(params, ["clientOrderId", "client_id"]);
@@ -2040,8 +2363,8 @@ function cancelOrdersRequest(self::Hyperliquid, ids, symbol=nothing, params=Dict
     cancelAction[Symbol("cancels")] = cancelReq;
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams2(params, "cancelOrders", "vaultAddress", "subAccountAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
-    signature = self.signL1Action(cancelAction, nonce, vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
+    signature = self.signL1Action(cancelAction, nonce, vaultAdress = vaultAddress);
     request[Symbol("action")] = cancelAction;
     request[Symbol("signature")] = signature;
     if functions.ccxtruthy(vaultAddress != nothing)
@@ -2051,7 +2374,21 @@ function cancelOrdersRequest(self::Hyperliquid, ids, symbol=nothing, params=Dict
     return request
 
 end
-function cancelOrdersForSymbols(self::Hyperliquid, orders, params=Dict())
+"""
+cancel multiple orders for multiple symbols
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
+# Arguments
+- `orders`::array: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrdersForSymbols(self::Hyperliquid, orders; params=Dict())
     self.checkRequiredCredentials();
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2095,8 +2432,8 @@ function cancelOrdersForSymbols(self::Hyperliquid, orders, params=Dict())
     cancelAction[Symbol("cancels")] = cancelReq;
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams2(params, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
-    signature = self.signL1Action(cancelAction, nonce, vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
+    signature = self.signL1Action(cancelAction, nonce, vaultAdress = vaultAddress);
     request[Symbol("action")] = cancelAction;
     request[Symbol("signature")] = signature;
     if functions.ccxtruthy(vaultAddress != nothing)
@@ -2109,7 +2446,19 @@ function cancelOrdersForSymbols(self::Hyperliquid, orders, params=Dict())
 ))]
 
 end
-function cancelAllOrdersAfter(self::Hyperliquid, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Hyperliquid, timeout; params=Dict())
     self.checkRequiredCredentials();
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2126,8 +2475,8 @@ function cancelAllOrdersAfter(self::Hyperliquid, timeout, params=Dict())
     );
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams2(params, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
-    signature = self.signL1Action(cancelAction, nonce, vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
+    signature = self.signL1Action(cancelAction, nonce, vaultAdress = vaultAddress);
     request[Symbol("action")] = cancelAction;
     request[Symbol("signature")] = signature;
     if functions.ccxtruthy(vaultAddress != nothing)
@@ -2138,13 +2487,13 @@ function cancelAllOrdersAfter(self::Hyperliquid, timeout, params=Dict())
     return response
 
 end
-function editOrdersRequest(self::Hyperliquid, orders, params=Dict())
+function editOrdersRequest(self::Hyperliquid, orders; params=Dict())
     self.checkRequiredCredentials();
     hasClientOrderId = false;
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
         rawOrder = get(orders, i + 1, nothing);
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         clientOrderId = safeString2(orderParams, "clientOrderId", "client_id");
         if functions.ccxtruthy(clientOrderId != nothing)
             hasClientOrderId = true;
@@ -2155,7 +2504,7 @@ function editOrdersRequest(self::Hyperliquid, orders, params=Dict())
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
             rawOrder = get(orders, i + 1, nothing);
-            orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+            orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
             clientOrderId = safeString2(orderParams, "clientOrderId", "client_id");
             if functions.ccxtruthy(clientOrderId == nothing)
                 throw(ArgumentsRequired(string(self.id, " editOrders() all orders must have clientOrderId if at least one has a clientOrderId")));
@@ -2179,11 +2528,11 @@ function editOrdersRequest(self::Hyperliquid, orders, params=Dict())
         isBuy = (side == "BUY");
         amount = safeString(rawOrder, "amount");
         price = safeString(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         defaultSlippage = safeString(self.options, "defaultSlippage");
         slippage = safeString(orderParams, "slippage", defaultSlippage);
         defaultTimeInForce = functions.ccxtruthy((isMarket)) ? "ioc" : "gtc";
-        postOnly = self.safeBool(orderParams, "postOnly", false);
+        postOnly = self.safeBool(orderParams, "postOnly", defaultValue = false);
         if functions.ccxtruthy(postOnly)
             defaultTimeInForce = "alo";
         end
@@ -2194,7 +2543,7 @@ function editOrdersRequest(self::Hyperliquid, orders, params=Dict())
         stopLossPrice = safeString(orderParams, "stopLossPrice", triggerPrice);
         takeProfitPrice = safeString(orderParams, "takeProfitPrice");
         isTrigger = (@functions.ccxt_or(stopLossPrice, takeProfitPrice));
-        reduceOnly = self.safeBool(orderParams, "reduceOnly", false);
+        reduceOnly = self.safeBool(orderParams, "reduceOnly", defaultValue = false);
         orderParams = omit(orderParams, ["slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"]);
         px = numberToString(price);
         if functions.ccxtruthy(isMarket)
@@ -2252,8 +2601,8 @@ function editOrdersRequest(self::Hyperliquid, orders, params=Dict())
     );
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams(params, "editOrder", "vaultAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
-    signature = self.signL1Action(modifyAction, nonce, vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
+    signature = self.signL1Action(modifyAction, nonce, vaultAdress = vaultAddress);
     request = Dict{Symbol, Any}(
         Symbol("action") => modifyAction,
         Symbol("nonce") => nonce,
@@ -2265,32 +2614,78 @@ function editOrdersRequest(self::Hyperliquid, orders, params=Dict())
     return request
 
 end
-function editOrder(self::Hyperliquid, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: 'Gtc', 'Ioc', 'Alo'
+- `params.postOnly`::bool, optional: true or false whether the order is post-only
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.clientOrderId`::string, optional: client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+- `params.vaultAddress`::string, optional: the vault address for order
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Hyperliquid, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     if functions.ccxtruthy(id == nothing)
         throw(ArgumentsRequired(string(self.id, " editOrder() requires an id argument")));
     end
-    (order, globalParams) = self.parseCreateEditOrderArgs(id, symbol, type_var, side, amount, price, params);
-    orders = Base.fetch(self.editOrders([order], globalParams));
+    (order, globalParams) = self.parseCreateEditOrderArgs(id, symbol, type_var, side, amount, price = price, params = params);
+    orders = Base.fetch(self.editOrders([order], params = globalParams));
     return get(orders, 1, nothing)
 
 end
-function editOrders(self::Hyperliquid, orders, params=Dict())
+"""
+edit a list of trade orders
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrders(self::Hyperliquid, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.initializeClient());
-    request = self.editOrdersRequest(orders, params);
+    request = self.editOrdersRequest(orders, params = params);
     response = Base.fetch(self.privatePostExchange(request));
-    responseObject = self.safeDict(response, "response", Dict{Symbol, Any}());
-    dataObject = self.safeDict(responseObject, "data", Dict{Symbol, Any}());
-    statuses = self.safeList(dataObject, "statuses", []);
+    responseObject = self.safeDict(response, "response", defaultValue = Dict{Symbol, Any}());
+    dataObject = self.safeDict(responseObject, "data", defaultValue = Dict{Symbol, Any}());
+    statuses = self.safeList(dataObject, "statuses", defaultValue = []);
     return self.parseOrders(statuses)
 
 end
-function createVault(self::Hyperliquid, name, description, initialUsd, params=Dict())
+"""
+creates a value
+
+# Arguments
+- `name`::string: The name of the vault
+- `description`::string: The description of the vault
+- `initialUsd`::float: The initialUsd of the vault
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+function createVault(self::Hyperliquid, name, description, initialUsd; params=Dict())
     self.checkRequiredCredentials();
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2314,7 +2709,21 @@ function createVault(self::Hyperliquid, name, description, initialUsd, params=Di
     return response
 
 end
-function fetchFundingRateHistory(self::Hyperliquid, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Hyperliquid; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2349,7 +2758,7 @@ function fetchFundingRateHistory(self::Hyperliquid, symbol=nothing, since=nothin
         timestamp = safeInteger(entry, "time");
         push!(result, Dict{Symbol, Any}(
     Symbol("info") => entry,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("fundingRate") => self.safeNumber(entry, "fundingRate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
@@ -2357,7 +2766,7 @@ function fetchFundingRateHistory(self::Hyperliquid, symbol=nothing, since=nothin
         i += 1
     end
     sorted = sortBy(result, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
 function getDexFromHip3Symbol(self::Hyperliquid, market)
@@ -2370,11 +2779,28 @@ function getDexFromHip3Symbol(self::Hyperliquid, market)
     return nothing
 
 end
-function fetchOpenOrders(self::Hyperliquid, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.method`::string, optional: 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.dex`::string, optional: perp dex name. default is null
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Hyperliquid; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchOpenOrders", params);
     method = nothing;
-    (method, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "method", "frontendOpenOrders");
+    (method, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "method", defaultValue = "frontendOpenOrders");
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2406,37 +2832,91 @@ function fetchOpenOrders(self::Hyperliquid, symbol=nothing, since=nothing, limit
         push!(orderWithStatus, extend(order, extendOrder));
         i += 1
     end
-    return self.parseOrders(orderWithStatus, market, since, limit)
+    return self.parseOrders(orderWithStatus, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Hyperliquid, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently closed orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Hyperliquid; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    orders = Base.fetch(self.fetchOrders(symbol, nothing, nothing, params));
-    closedOrders = self.filterByArray(orders, "status", ["closed"], false);
-    return self.filterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = nothing, limit = nothing, params = params));
+    closedOrders = self.filterByArray(orders, "status", values = ["closed"], indexed = false);
+    return self.filterBySymbolSinceLimit(closedOrders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchCanceledOrders(self::Hyperliquid, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all canceled orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Hyperliquid; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    orders = Base.fetch(self.fetchOrders(symbol, nothing, nothing, params));
-    closedOrders = self.filterByArray(orders, "status", ["canceled"], false);
-    return self.filterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = nothing, limit = nothing, params = params));
+    closedOrders = self.filterByArray(orders, "status", values = ["canceled"], indexed = false);
+    return self.filterBySymbolSinceLimit(closedOrders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchCanceledAndClosedOrders(self::Hyperliquid, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all closed and canceled orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Hyperliquid; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    orders = Base.fetch(self.fetchOrders(symbol, nothing, nothing, params));
-    closedOrders = self.filterByArray(orders, "status", ["canceled", "closed", "rejected"], false);
-    return self.filterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = nothing, limit = nothing, params = params));
+    closedOrders = self.filterByArray(orders, "status", values = ["canceled", "closed", "rejected"], indexed = false);
+    return self.filterBySymbolSinceLimit(closedOrders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchOrders(self::Hyperliquid, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.dex`::string, optional: perp dex name. default is null
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Hyperliquid; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchOrders", params);
     if functions.ccxtruthy(self.markets == nothing)
@@ -2482,10 +2962,25 @@ function fetchOrders(self::Hyperliquid, symbol=nothing, since=nothing, limit=not
         i += 1
     end
     deduplicated = objectValues(deduplicatedByOid);
-    return self.parseOrders(deduplicated, market, since, limit)
+    return self.parseOrders(deduplicated, market = market, since = since, limit = limit)
 
 end
-function fetchOrder(self::Hyperliquid, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Hyperliquid, id; symbol=nothing, params=Dict())
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchOrder", params);
     if functions.ccxtruthy(self.markets == nothing)
@@ -2509,10 +3004,10 @@ function fetchOrder(self::Hyperliquid, id, symbol=nothing, params=Dict())
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
     data = self.safeDict(response, "order");
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function parseOrder(self::Hyperliquid, order, market=nothing)
+function parseOrder(self::Hyperliquid, order; market=nothing)
     error = safeString(order, "error");
     if functions.ccxtruthy(error != nothing)
         finalOrder = order;
@@ -2525,16 +3020,16 @@ function parseOrder(self::Hyperliquid, order, market=nothing)
     if functions.ccxtruthy(entry == nothing)
         entry = order;
     end
-    filled = self.safeDict(order, "filled", Dict{Symbol, Any}());
+    filled = self.safeDict(order, "filled", defaultValue = Dict{Symbol, Any}());
     coin = safeString(entry, "coin");
     marketId = nothing;
     if functions.ccxtruthy(coin != nothing)
         marketId = self.coinToMarketId(coin);
     end
     if functions.ccxtruthy(safeString(entry, "id") == nothing)
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
     else
-        market = self.safeMarket(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = market);
     end
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger(entry, "timestamp");
@@ -2588,7 +3083,7 @@ function parseOrder(self::Hyperliquid, order, market=nothing)
     Symbol("status") => self.parseOrderStatus(status),
     Symbol("fee") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Hyperliquid, status)
@@ -2620,7 +3115,23 @@ function parseOrderType(self::Hyperliquid, status)
     return safeString(statuses, status, status)
 
 end
-function fetchMyTrades(self::Hyperliquid, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Hyperliquid; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchMyTrades", params);
     if functions.ccxtruthy(self.markets == nothing)
@@ -2649,16 +3160,16 @@ function fetchMyTrades(self::Hyperliquid, symbol=nothing, since=nothing, limit=n
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         myFills = response;
     end
-    return self.parseTrades(myFills, market, since, limit)
+    return self.parseTrades(myFills, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Hyperliquid, trade, market=nothing)
+function parseTrade(self::Hyperliquid, trade; market=nothing)
     timestamp = safeInteger(trade, "time");
     price = safeString(trade, "px");
     amount = safeString(trade, "sz");
     coin = safeString(trade, "coin");
     marketId = self.coinToMarketId(coin);
-    market = self.safeMarket(marketId);
+    market = self.safeMarket(marketId = marketId);
     symbol = get(market, Symbol("symbol"), nothing);
     id = safeString(trade, "tid");
     side = safeString(trade, "side");
@@ -2693,15 +3204,27 @@ function parseTrade(self::Hyperliquid, trade, market=nothing)
         Symbol("currency") => safeString(trade, "feeToken"),
         Symbol("rate") => nothing
     )
-), market)
+), market = market)
 
 end
-function fetchPosition(self::Hyperliquid, symbol, params=Dict())
-    positions = Base.fetch(self.fetchPositions([symbol], params));
-    return self.safeDict(positions, 0, Dict{Symbol, Any}())
+"""
+fetch data on an open position
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Hyperliquid, symbol; params=Dict())
+    positions = Base.fetch(self.fetchPositions(symbols = [symbol], params = params));
+    return self.safeDict(positions, 0, defaultValue = Dict{Symbol, Any}())
 
 end
-function getDexFromSymbols(self::Hyperliquid, methodName, symbols=nothing)
+function getDexFromSymbols(self::Hyperliquid, methodName; symbols=nothing)
     if functions.ccxtruthy(symbols == nothing)
             return nothing
     end
@@ -2727,39 +3250,53 @@ function getDexFromSymbols(self::Hyperliquid, methodName, symbols=nothing)
     return dexName
 
 end
-function fetchPositions(self::Hyperliquid, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.dex`::string, optional: perp dex name, eg: XYZ
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Hyperliquid; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchPositions", params);
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}(
         Symbol("type") => "clearinghouseState",
         Symbol("user") => userAddress
     );
-    dexName = self.getDexFromSymbols("fetchPositions", symbols);
+    dexName = self.getDexFromSymbols("fetchPositions", symbols = symbols);
     if functions.ccxtruthy(dexName != nothing)
         request[Symbol("dex")] = dexName;
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    data = self.safeList(response, "assetPositions", []);
+    data = self.safeList(response, "assetPositions", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         push!(result, self.parsePosition(get(data, i + 1, nothing)));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function parsePosition(self::Hyperliquid, position, market=nothing)
-    entry = self.safeDict(position, "position", Dict{Symbol, Any}());
+function parsePosition(self::Hyperliquid, position; market=nothing)
+    entry = self.safeDict(position, "position", defaultValue = Dict{Symbol, Any}());
     coin = safeString(entry, "coin");
     marketId = self.coinToMarketId(coin);
-    market = self.safeMarket(marketId);
+    market = self.safeMarket(marketId = marketId);
     symbol = get(market, Symbol("symbol"), nothing);
-    leverage = self.safeDict(entry, "leverage", Dict{Symbol, Any}());
+    leverage = self.safeDict(entry, "leverage", defaultValue = Dict{Symbol, Any}());
     marginMode = safeString(leverage, "type");
     isIsolated = (marginMode == "isolated");
     rawSize = safeString(entry, "szi");
@@ -2806,7 +3343,21 @@ function parsePosition(self::Hyperliquid, position, market=nothing)
 ))
 
 end
-function setMarginMode(self::Hyperliquid, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode (symbol)
+
+# Arguments
+- `marginMode`::string: margin mode must be either [isolated, cross]
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::string, optional: the rate of leverage, is required if setting trade mode (symbol)
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Hyperliquid, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -2835,7 +3386,7 @@ function setMarginMode(self::Hyperliquid, marginMode, symbol=nothing, params=Dic
             vaultAddress = replace(vaultAddress, "0x" => "");
         end
     end
-    signature = self.signL1Action(updateAction, nonce, vaultAddress);
+    signature = self.signL1Action(updateAction, nonce, vaultAdress = vaultAddress);
     request = Dict{Symbol, Any}(
         Symbol("action") => updateAction,
         Symbol("nonce") => nonce,
@@ -2848,7 +3399,19 @@ function setMarginMode(self::Hyperliquid, marginMode, symbol=nothing, params=Dic
     return response
 
 end
-function setLeverage(self::Hyperliquid, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: margin mode must be either [isolated, cross], default is cross
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Hyperliquid, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -2869,8 +3432,8 @@ function setLeverage(self::Hyperliquid, leverage, symbol=nothing, params=Dict())
     );
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams2(params, "setLeverage", "vaultAddress", "subAccountAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
-    signature = self.signL1Action(updateAction, nonce, vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
+    signature = self.signL1Action(updateAction, nonce, vaultAdress = vaultAddress);
     request = Dict{Symbol, Any}(
         Symbol("action") => updateAction,
         Symbol("nonce") => nonce,
@@ -2884,15 +3447,43 @@ function setLeverage(self::Hyperliquid, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function addMargin(self::Hyperliquid, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params))
+"""
+add margin
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Hyperliquid, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params = params))
 
 end
-function reduceMargin(self::Hyperliquid, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params))
+"""
+remove margin from a position
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Hyperliquid, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params = params))
 
 end
-function modifyMarginHelper(self::Hyperliquid, symbol, amount, type_var, params=Dict())
+function modifyMarginHelper(self::Hyperliquid, symbol, amount, type_var; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2911,8 +3502,8 @@ function modifyMarginHelper(self::Hyperliquid, symbol, amount, type_var, params=
     );
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams2(params, "modifyMargin", "vaultAddress", "subAccountAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
-    signature = self.signL1Action(updateAction, nonce, vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
+    signature = self.signL1Action(updateAction, nonce, vaultAdress = vaultAddress);
     request = Dict{Symbol, Any}(
         Symbol("action") => updateAction,
         Symbol("nonce") => nonce,
@@ -2922,15 +3513,15 @@ function modifyMarginHelper(self::Hyperliquid, symbol, amount, type_var, params=
         request[Symbol("vaultAddress")] = vaultAddress;
     end
     response = Base.fetch(self.privatePostExchange(request));
-    return extend(self.parseMarginModification(response, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(response, market = market), Dict{Symbol, Any}(
     Symbol("code") => safeString(response, "status")
 ))
 
 end
-function parseMarginModification(self::Hyperliquid, data, market=nothing)
+function parseMarginModification(self::Hyperliquid, data; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => data,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("type") => nothing,
     Symbol("marginMode") => "isolated",
     Symbol("amount") => nothing,
@@ -2942,7 +3533,22 @@ function parseMarginModification(self::Hyperliquid, data, market=nothing)
 )
 
 end
-function transfer(self::Hyperliquid, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from *spot, swap*
+- `toAccount`::string: account to transfer to *swap, spot or address*
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address for order
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Hyperliquid, code, amount, fromAccount, toAccount; params=Dict())
     self.checkRequiredCredentials();
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2956,7 +3562,7 @@ function transfer(self::Hyperliquid, code, amount, fromAccount, toAccount, param
         strAmount = numberToString(amount);
         vaultAddress = safeString2(params, "vaultAddress", "subAccountAddress");
         if functions.ccxtruthy(vaultAddress != nothing)
-            vaultAddress = self.formatVaultAddress(vaultAddress);
+            vaultAddress = self.formatVaultAddress(address = vaultAddress);
             strAmount = string(strAmount, " subaccount:", vaultAddress);
         end
         strAmountFinal = strAmount;
@@ -2993,7 +3599,7 @@ function transfer(self::Hyperliquid, code, amount, fromAccount, toAccount, param
     else
         throw(NotSupported(string(self.id, " transfer() only support main <> subaccount transfer")));
     end
-    self.checkAddress(subAccountAddress);
+    self.checkAddress(address = subAccountAddress);
     transferType = safeString(params, "type");
     params = omit(params, "type");
     isUsdc = @functions.ccxt_or((code == nothing), (uppercase(code) == "USDC"));
@@ -3018,7 +3624,7 @@ function transfer(self::Hyperliquid, code, amount, fromAccount, toAccount, param
             throw(ArgumentsRequired(string(self.id, " transfer() requires a currency code for spot sub-account transfers")));
         end
         currency = self.currency(code);
-        currencyInfo = self.safeDict(currency, "info", Dict{Symbol, Any}());
+        currencyInfo = self.safeDict(currency, "info", defaultValue = Dict{Symbol, Any}());
         tokenName = safeString(currencyInfo, "name");
         tokenId = safeString(currencyInfo, "tokenId");
         token = string(tokenName, ":", tokenId);
@@ -3040,7 +3646,7 @@ function transfer(self::Hyperliquid, code, amount, fromAccount, toAccount, param
     end
 
 end
-function parseTransfer(self::Hyperliquid, transfer, currency=nothing)
+function parseTransfer(self::Hyperliquid, transfer; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
     Symbol("id") => nothing,
@@ -3054,12 +3660,28 @@ function parseTransfer(self::Hyperliquid, transfer, currency=nothing)
 )
 
 end
-function withdraw(self::Hyperliquid, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal (only support USDC)
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: vault address withdraw from
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Hyperliquid, code, amount, address; tag=nothing, params=Dict())
     self.checkRequiredCredentials();
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(code != nothing)
         code = uppercase(code);
         if functions.ccxtruthy(code != "USDC")
@@ -3068,7 +3690,7 @@ function withdraw(self::Hyperliquid, code, amount, address, tag=nothing, params=
     end
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams(params, "withdraw", "vaultAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
     params = omit(params, "vaultAddress");
     nonce = milliseconds();
     action = Dict{Symbol, Any}();
@@ -3081,7 +3703,7 @@ function withdraw(self::Hyperliquid, code, amount, address, tag=nothing, params=
         );
         sig = self.signL1Action(action, nonce);
     else
-        isSandboxMode = self.safeBool(self.options, "sandboxMode", false);
+        isSandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
         payload = Dict{Symbol, Any}(
             Symbol("hyperliquidChain") => functions.ccxtruthy(isSandboxMode) ? "Testnet" : "Mainnet",
             Symbol("destination") => address,
@@ -3107,9 +3729,9 @@ function withdraw(self::Hyperliquid, code, amount, address, tag=nothing, params=
     return self.parseTransaction(response)
 
 end
-function parseTransaction(self::Hyperliquid, transaction, currency=nothing)
+function parseTransaction(self::Hyperliquid, transaction; currency=nothing)
     timestamp = safeInteger(transaction, "time");
-    delta = self.safeDict(transaction, "delta", Dict{Symbol, Any}());
+    delta = self.safeDict(transaction, "delta", defaultValue = Dict{Symbol, Any}());
     fee = nothing;
     feeCost = safeInteger(delta, "fee");
     if functions.ccxtruthy(feeCost != nothing)
@@ -3147,7 +3769,19 @@ function parseTransaction(self::Hyperliquid, transaction, currency=nothing)
 )
 
 end
-function fetchTradingFee(self::Hyperliquid, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Hyperliquid, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3163,11 +3797,11 @@ function fetchTradingFee(self::Hyperliquid, symbol, params=Dict())
         Symbol("userCrossRate") => safeString(response, "userCrossRate"),
         Symbol("userAddRate") => safeString(response, "userAddRate")
     );
-    return self.parseTradingFee(data, market)
+    return self.parseTradingFee(data, market = market)
 
 end
-function parseTradingFee(self::Hyperliquid, fee, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTradingFee(self::Hyperliquid, fee; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => symbol,
@@ -3178,7 +3812,21 @@ function parseTradingFee(self::Hyperliquid, fee, market=nothing)
 )
 
 end
-function fetchLedger(self::Hyperliquid, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Hyperliquid; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3197,12 +3845,12 @@ function fetchLedger(self::Hyperliquid, code=nothing, since=nothing, limit=nothi
         params = omit(params, ["until"]);
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    return self.parseLedger(response, nothing, since, limit)
+    return self.parseLedger(response, currency = nothing, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Hyperliquid, item, currency=nothing)
+function parseLedgerEntry(self::Hyperliquid, item; currency=nothing)
     timestamp = safeInteger(item, "time");
-    delta = self.safeDict(item, "delta", Dict{Symbol, Any}());
+    delta = self.safeDict(item, "delta", defaultValue = Dict{Symbol, Any}());
     fee = nothing;
     feeCost = safeInteger(delta, "fee");
     if functions.ccxtruthy(feeCost != nothing)
@@ -3229,7 +3877,7 @@ function parseLedgerEntry(self::Hyperliquid, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => nothing,
     Symbol("fee") => fee
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Hyperliquid, type_var)
@@ -3240,7 +3888,22 @@ function parseLedgerEntryType(self::Hyperliquid, type_var)
     return safeString(ledgerType, type_var, type_var)
 
 end
-function fetchDeposits(self::Hyperliquid, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch withdrawals for
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.vaultAddress`::string, optional: vault address
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Hyperliquid; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3266,17 +3929,17 @@ function fetchDeposits(self::Hyperliquid, code=nothing, since=nothing, limit=not
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         depositLedger = response;
     end
-    records = self.extractTypeFromDelta(depositLedger);
+    records = self.extractTypeFromDelta(data = depositLedger);
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams(params, "fetchDepositsWithdrawals", "vaultAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
     deposits = [];
     if functions.ccxtruthy(vaultAddress != nothing)
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(records)))
             record = get(records, i + 1, nothing);
             if functions.ccxtruthy(get(record, Symbol("type"), nothing) == "vaultDeposit")
-                delta = self.safeDict(record, "delta", Dict{Symbol, Any}());
+                delta = self.safeDict(record, "delta", defaultValue = Dict{Symbol, Any}());
                 if functions.ccxtruthy(get(delta, Symbol("vault"), nothing) == string("0x", vaultAddress))
                                         push!(deposits, record);
                 end
@@ -3285,12 +3948,27 @@ function fetchDeposits(self::Hyperliquid, code=nothing, since=nothing, limit=not
         end
 
     else
-        deposits = self.filterByArray(records, "type", ["deposit"], false);
+        deposits = self.filterByArray(records, "type", values = ["deposit"], indexed = false);
     end
-    return self.parseTransactions(deposits, nothing, since, limit)
+    return self.parseTransactions(deposits, currency = nothing, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Hyperliquid, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch withdrawals for
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.vaultAddress`::string, optional: vault address
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Hyperliquid; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3313,17 +3991,17 @@ function fetchWithdrawals(self::Hyperliquid, code=nothing, since=nothing, limit=
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         withdrawalLedger = response;
     end
-    records = self.extractTypeFromDelta(withdrawalLedger);
+    records = self.extractTypeFromDelta(data = withdrawalLedger);
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams(params, "fetchDepositsWithdrawals", "vaultAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
     withdrawals = [];
     if functions.ccxtruthy(vaultAddress != nothing)
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(records)))
             record = get(records, i + 1, nothing);
             if functions.ccxtruthy(get(record, Symbol("type"), nothing) == "vaultWithdraw")
-                delta = self.safeDict(record, "delta", Dict{Symbol, Any}());
+                delta = self.safeDict(record, "delta", defaultValue = Dict{Symbol, Any}());
                 if functions.ccxtruthy(get(delta, Symbol("vault"), nothing) == string("0x", vaultAddress))
                                         push!(withdrawals, record);
                 end
@@ -3332,31 +4010,51 @@ function fetchWithdrawals(self::Hyperliquid, code=nothing, since=nothing, limit=
         end
 
     else
-        withdrawals = self.filterByArray(records, "type", ["withdraw"], false);
+        withdrawals = self.filterByArray(records, "type", values = ["withdraw"], indexed = false);
     end
-    return self.parseTransactions(withdrawals, nothing, since, limit)
+    return self.parseTransactions(withdrawals, currency = nothing, since = since, limit = limit)
 
 end
-function fetchOpenInterests(self::Hyperliquid, symbols=nothing, params=Dict())
+"""
+Retrieves the open interest for a list of symbols
+
+# Arguments
+- `symbols`::array, optional: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterests(self::Hyperliquid; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     swapMarkets = Base.fetch(self.fetchSwapMarkets());
-    return self.parseOpenInterests(swapMarkets, symbols)
+    return self.parseOpenInterests(swapMarkets, symbols = symbols)
 
 end
-function fetchOpenInterest(self::Hyperliquid, symbol, params=Dict())
+"""
+retrieves the open interest of a contract trading pair
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Hyperliquid, symbol; params=Dict())
     symbol = self.symbol(symbol);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    ois = Base.fetch(self.fetchOpenInterests([symbol], params));
+    ois = Base.fetch(self.fetchOpenInterests(symbols = [symbol], params = params));
     return get(ois, Symbol(symbol), nothing)
 
 end
-function parseOpenInterest(self::Hyperliquid, interest, market=nothing)
-    interest = self.safeDict(interest, "info", Dict{Symbol, Any}());
+function parseOpenInterest(self::Hyperliquid, interest; market=nothing)
+    interest = self.safeDict(interest, "info", defaultValue = Dict{Symbol, Any}());
     coin = safeString(interest, "name");
     marketId = nothing;
     if functions.ccxtruthy(coin != nothing)
@@ -3369,10 +4067,23 @@ function parseOpenInterest(self::Hyperliquid, interest, market=nothing)
     Symbol("timestamp") => nothing,
     Symbol("datetime") => nothing,
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchFundingHistory(self::Hyperliquid, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Hyperliquid; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3395,10 +4106,10 @@ function fetchFundingHistory(self::Hyperliquid, symbol=nothing, since=nothing, l
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    return self.parseIncomes(response, market, since, limit)
+    return self.parseIncomes(response, market = market, since = since, limit = limit)
 
 end
-function parseIncome(self::Hyperliquid, income, market=nothing)
+function parseIncome(self::Hyperliquid, income; market=nothing)
     id = safeString(income, "hash");
     timestamp = safeInteger(income, "time");
     delta = self.safeDict(income, "delta");
@@ -3407,7 +4118,7 @@ function parseIncome(self::Hyperliquid, income, market=nothing)
     if functions.ccxtruthy(coin != nothing)
         marketId = self.coinToMarketId(coin);
     end
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     amount = safeString(delta, "usdc");
     code = safeString(market, "settle", "USDC");
     rate = self.safeNumber(delta, "fundingRate");
@@ -3423,7 +4134,17 @@ function parseIncome(self::Hyperliquid, income, market=nothing)
 )
 
 end
-function reserveRequestWeight(self::Hyperliquid, weight, params=Dict())
+"""
+Instead of trading to increase the address based rate limits, this action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
+
+# Arguments
+- `weight`::float: the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a response object
+"""
+function reserveRequestWeight(self::Hyperliquid, weight; params=Dict())
     nonce = milliseconds();
     request = Dict{Symbol, Any}(
         Symbol("nonce") => nonce
@@ -3439,7 +4160,18 @@ function reserveRequestWeight(self::Hyperliquid, weight, params=Dict())
     return response
 
 end
-function createSubAccount(self::Hyperliquid, name, params=Dict())
+"""
+creates a sub-account under the main account
+
+# Arguments
+- `name`::string: the name of the sub-account
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiresAfter`::int, optional: time in ms after which the sub-account will expire
+
+# Returns
+- a response object
+"""
+function createSubAccount(self::Hyperliquid, name; params=Dict())
     nonce = milliseconds();
     request = Dict{Symbol, Any}(
         Symbol("nonce") => nonce
@@ -3453,14 +4185,14 @@ function createSubAccount(self::Hyperliquid, name, params=Dict())
         params = omit(params, "expiresAfter");
         request[Symbol("expiresAfter")] = expiresAfter;
     end
-    signature = self.signL1Action(action, nonce, nothing, expiresAfter);
+    signature = self.signL1Action(action, nonce, vaultAdress = nothing, expiresAfter = expiresAfter);
     request[Symbol("action")] = action;
     request[Symbol("signature")] = signature;
     response = Base.fetch(self.privatePostExchange(extend(request, params)));
     return response
 
 end
-function extractTypeFromDelta(self::Hyperliquid, data=[])
+function extractTypeFromDelta(self::Hyperliquid; data=[])
     records = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -3472,7 +4204,7 @@ function extractTypeFromDelta(self::Hyperliquid, data=[])
     return records
 
 end
-function formatVaultAddress(self::Hyperliquid, address=nothing)
+function formatVaultAddress(self::Hyperliquid; address=nothing)
     if functions.ccxtruthy(address == nothing)
             return nothing
     end
@@ -3486,7 +4218,7 @@ function handlePublicAddress(self::Hyperliquid, methodName, params)
     userAux = nothing;
     (userAux, params) = self.handleOptionAndParams2(params, methodName, "user", "subAccountAddress");
     user = userAux;
-    (user, params) = self.handleOptionAndParams(params, methodName, "address", userAux);
+    (user, params) = self.handleOptionAndParams(params, methodName, "address", defaultValue = userAux);
     if functions.ccxtruthy(@functions.ccxt_and((user != nothing), (user != "")))
             return [user, params]
     end
@@ -3500,7 +4232,7 @@ function coinToMarketId(self::Hyperliquid, coin)
     if functions.ccxtruthy(coin == nothing)
             return nothing
     end
-    hi3TokensByname = self.safeDict(self.options, "hip3TokensByName", Dict{Symbol, Any}());
+    hi3TokensByname = self.safeDict(self.options, "hip3TokensByName", defaultValue = Dict{Symbol, Any}());
     if functions.ccxtruthy(self.safeDict(hi3TokensByname, coin))
         hip3Dict = self.safeDict(hi3TokensByname, coin);
         quote_var = safeString(hip3Dict, "quote", "USDC");
@@ -3531,9 +4263,9 @@ function handleErrors(self::Hyperliquid, code, reason, url, method, headers, bod
         if functions.ccxtruthy(error != nothing)
             message = error;
         else
-            responsePayload = self.safeDict(response, "response", Dict{Symbol, Any}());
-            data = self.safeDict(responsePayload, "data", Dict{Symbol, Any}());
-            statuses = self.safeList(data, "statuses", []);
+            responsePayload = self.safeDict(response, "response", defaultValue = Dict{Symbol, Any}());
+            data = self.safeDict(responsePayload, "data", defaultValue = Dict{Symbol, Any}());
+            statuses = self.safeList(data, "statuses", defaultValue = []);
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(statuses)))
                 message = safeString(get(statuses, i + 1, nothing), "error");
@@ -3543,7 +4275,7 @@ function handleErrors(self::Hyperliquid, code, reason, url, method, headers, bod
                 i += 1
             end
             if functions.ccxtruthy(ccxt_in("status", data))
-                errorStatus = self.safeDict(data, "status", Dict{Symbol, Any}());
+                errorStatus = self.safeDict(data, "status", defaultValue = Dict{Symbol, Any}());
                 errorMsg = safeString(errorStatus, "error");
                 if functions.ccxtruthy(errorStatus != nothing)
                     message = errorMsg;
@@ -3564,7 +4296,7 @@ function handleErrors(self::Hyperliquid, code, reason, url, method, headers, bod
     return nothing
 
 end
-function sign(self::Hyperliquid, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Hyperliquid, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(self.implodeHostname(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing)), "/", path);
     if functions.ccxtruthy(method == "POST")
         headers = Dict{Symbol, Any}(
@@ -3580,7 +4312,7 @@ function sign(self::Hyperliquid, path, api="public", method="GET", params=Dict()
 )
 
 end
-function calculateRateLimiterCost(self::Hyperliquid, api, method, path, params, config=Dict())
+function calculateRateLimiterCost(self::Hyperliquid, api, method, path, params; config=Dict())
     if functions.ccxtruthy(@functions.ccxt_and((ccxt_in("byType", config)), (ccxt_in("type", params))))
         type_var = get(params, Symbol("type"), nothing);
         byType = get(config, Symbol("byType"), nothing);
@@ -3591,11 +4323,11 @@ function calculateRateLimiterCost(self::Hyperliquid, api, method, path, params, 
     return safeValue(config, "cost", 1)
 
 end
-function parseCreateEditOrderArgs(self::Hyperliquid, id, symbol, type_var, side, amount, price=nothing, params=Dict())
+function parseCreateEditOrderArgs(self::Hyperliquid, id, symbol, type_var, side, amount; price=nothing, params=Dict())
     market = self.market(symbol);
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams2(params, "createOrder", "vaultAddress", "subAccountAddress");
-    vaultAddress = self.formatVaultAddress(vaultAddress);
+    vaultAddress = self.formatVaultAddress(address = vaultAddress);
     symbol = get(market, Symbol("symbol"), nothing);
     order = Dict{Symbol, Any}(
         Symbol("symbol") => symbol,
@@ -3622,11 +4354,11 @@ Base.getproperty(self::Hyperliquid, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicPostInfo(self::Hyperliquid, params=Dict(), context=Dict())
-    return request(self, "info", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "info"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostExchange(self::Hyperliquid, params=Dict(), context=Dict())
-    return request(self, "exchange", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "exchange"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Hyperliquid(; kwargs...)
@@ -3690,3 +4422,902 @@ function Hyperliquid(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Hyperliquid_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchStatus
+
+function __ccxt_doc_Hyperliquid_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Hyperliquid_fetchTime
+
+function __ccxt_doc_Hyperliquid_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Hyperliquid_fetchCurrencies
+
+function __ccxt_doc_Hyperliquid_fetchMarkets() end
+"""
+retrieves data on all markets for hyperliquid
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Hyperliquid_fetchMarkets
+
+function __ccxt_doc_Hyperliquid_fetchHip3Markets() end
+"""
+retrieves data on all hip3 markets for hyperliquid
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Hyperliquid_fetchHip3Markets
+
+function __ccxt_doc_Hyperliquid_fetchSwapMarkets() end
+"""
+retrieves data on all swap markets for hyperliquid
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Hyperliquid_fetchSwapMarkets
+
+function __ccxt_doc_Hyperliquid_calculatePricePrecision() end
+"""
+Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+
+# Arguments
+- `price`::float: the price to use in the calculation
+- `amountPrecision`::int: the amountPrecision to use in the calculation
+- `maxDecimals`::int: the maxDecimals to use in the calculation
+
+# Returns
+- The calculated price precision
+"""
+__ccxt_doc_Hyperliquid_calculatePricePrecision
+
+function __ccxt_doc_Hyperliquid_fetchSpotMarkets() end
+"""
+retrieves data on all spot markets for hyperliquid
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Hyperliquid_fetchSpotMarkets
+
+function __ccxt_doc_Hyperliquid_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.type`::string, optional: wallet type, ['spot', 'swap'], defaults to swap
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+- `params.dex`::string, optional: for hip3 markets, the dex name, eg: 'xyz'
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.enableUnifiedMargin`::bool, optional: enable unified margin, CCXT tries to auto-detects this value but you can override it
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchBalance
+
+function __ccxt_doc_Hyperliquid_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchOrderBook
+
+function __ccxt_doc_Hyperliquid_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', by default fetches both
+- `params.hip3`::bool, optional: set to true to fetch hip3 markets only
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchTickers
+
+function __ccxt_doc_Hyperliquid_fetchFundingRate() end
+"""
+fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchFundingRate
+
+function __ccxt_doc_Hyperliquid_fetchFundingRates() end
+"""
+retrieves data on all swap markets for hyperliquid
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Hyperliquid_fetchFundingRates
+
+function __ccxt_doc_Hyperliquid_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents, support '1m', '15m', '1h', '1d'
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Hyperliquid_fetchOHLCV
+
+function __ccxt_doc_Hyperliquid_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade
+- `params.address`::string, optional: wallet address that made trades
+- `params.user`::string, optional: wallet address that made trades
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchTrades
+
+function __ccxt_doc_Hyperliquid_isUnifiedEnabled() end
+"""
+returns enableUnifiedMargin so the user can check if unified account is enabled
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
+
+# Arguments
+- `method`::string: the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
+- `address`::string, optional: the wallet address to query; defaults to the configured walletAddress
+- `shouldRefresh`::bool, optional: force a fresh request instead of returning the cached value
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- enableUnifiedMargin
+"""
+__ccxt_doc_Hyperliquid_isUnifiedEnabled
+
+function __ccxt_doc_Hyperliquid_setUserAbstraction() end
+"""
+set user abstraction mode
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
+
+# Arguments
+- `abstraction`::string: one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+- `params`::object, optional:
+- `params.type`::string, optional: 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+
+# Returns
+- dictionary response from the exchange
+"""
+__ccxt_doc_Hyperliquid_setUserAbstraction
+
+function __ccxt_doc_Hyperliquid_enableUserDexAbstraction() end
+"""
+If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+
+# Arguments
+- `enabled`::bool: whether to enable user dex abstraction
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+
+# Returns
+- dictionary response from the exchange
+"""
+__ccxt_doc_Hyperliquid_enableUserDexAbstraction
+
+function __ccxt_doc_Hyperliquid_setAgentAbstraction() end
+"""
+set agent abstraction mode
+
+# Arguments
+- `abstraction`::string: one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+- `params`::object, optional:
+
+# Returns
+- dictionary response from the exchange
+"""
+__ccxt_doc_Hyperliquid_setAgentAbstraction
+
+function __ccxt_doc_Hyperliquid_createOrder() end
+"""
+create a trade order
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: 'Gtc', 'Ioc', 'Alo'
+- `params.postOnly`::bool, optional: true or false whether the order is post-only
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.clientOrderId`::string, optional: client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+- `params.slippage`::string, optional: the slippage for market order
+- `params.vaultAddress`::string, optional: the vault address for order
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_createOrder
+
+function __ccxt_doc_Hyperliquid_createTwapOrder() end
+"""
+create a trade order that is executed as a TWAP order over a specified duration.
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `duration`::int: the duration of the TWAP order in milliseconds
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.randomize`::bool, optional: whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.expiresAfter`::int, optional: time in ms after which the twap order expires
+- `params.vaultAddress`::string, optional: the vault address for order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_createTwapOrder
+
+function __ccxt_doc_Hyperliquid_createOrders() end
+"""
+create a list of trade orders
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_createOrders
+
+function __ccxt_doc_Hyperliquid_cancelOrder() end
+"""
+cancels an open order
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+- `params.vaultAddress`::string, optional: the vault address for order
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.twap`::bool, optional: whether the order to cancel is a twap order, (default is false)
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_cancelOrder
+
+function __ccxt_doc_Hyperliquid_cancelOrders() end
+"""
+cancel multiple orders
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::array, optional: client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_cancelOrders
+
+function __ccxt_doc_Hyperliquid_cancelTwapOrder() end
+"""
+cancels a running twap order
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiresAfter`::int, optional: time in ms after which the twap order expires
+- `params.vaultAddress`::string, optional: the vault address for order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_cancelTwapOrder
+
+function __ccxt_doc_Hyperliquid_cancelOrdersForSymbols() end
+"""
+cancel multiple orders for multiple symbols
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
+# Arguments
+- `orders`::array: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_cancelOrdersForSymbols
+
+function __ccxt_doc_Hyperliquid_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Hyperliquid_cancelAllOrdersAfter
+
+function __ccxt_doc_Hyperliquid_editOrder() end
+"""
+edit a trade order
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: 'Gtc', 'Ioc', 'Alo'
+- `params.postOnly`::bool, optional: true or false whether the order is post-only
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.clientOrderId`::string, optional: client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+- `params.vaultAddress`::string, optional: the vault address for order
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_editOrder
+
+function __ccxt_doc_Hyperliquid_editOrders() end
+"""
+edit a list of trade orders
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_editOrders
+
+function __ccxt_doc_Hyperliquid_createVault() end
+"""
+creates a value
+
+# Arguments
+- `name`::string: The name of the vault
+- `description`::string: The description of the vault
+- `initialUsd`::float: The initialUsd of the vault
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Hyperliquid_createVault
+
+function __ccxt_doc_Hyperliquid_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchFundingRateHistory
+
+function __ccxt_doc_Hyperliquid_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.method`::string, optional: 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.dex`::string, optional: perp dex name. default is null
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchOpenOrders
+
+function __ccxt_doc_Hyperliquid_fetchClosedOrders() end
+"""
+fetch all unfilled currently closed orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchClosedOrders
+
+function __ccxt_doc_Hyperliquid_fetchCanceledOrders() end
+"""
+fetch all canceled orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchCanceledOrders
+
+function __ccxt_doc_Hyperliquid_fetchCanceledAndClosedOrders() end
+"""
+fetch all closed and canceled orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Hyperliquid_fetchOrders() end
+"""
+fetch all orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.dex`::string, optional: perp dex name. default is null
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchOrders
+
+function __ccxt_doc_Hyperliquid_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchOrder
+
+function __ccxt_doc_Hyperliquid_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchMyTrades
+
+function __ccxt_doc_Hyperliquid_fetchPosition() end
+"""
+fetch data on an open position
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchPosition
+
+function __ccxt_doc_Hyperliquid_fetchPositions() end
+"""
+fetch all open positions
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.dex`::string, optional: perp dex name, eg: XYZ
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchPositions
+
+function __ccxt_doc_Hyperliquid_setMarginMode() end
+"""
+set margin mode (symbol)
+
+# Arguments
+- `marginMode`::string: margin mode must be either [isolated, cross]
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::string, optional: the rate of leverage, is required if setting trade mode (symbol)
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Hyperliquid_setMarginMode
+
+function __ccxt_doc_Hyperliquid_setLeverage() end
+"""
+set the level of leverage for a market
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: margin mode must be either [isolated, cross], default is cross
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Hyperliquid_setLeverage
+
+function __ccxt_doc_Hyperliquid_addMargin() end
+"""
+add margin
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Hyperliquid_addMargin
+
+function __ccxt_doc_Hyperliquid_reduceMargin() end
+"""
+remove margin from a position
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Hyperliquid_reduceMargin
+
+function __ccxt_doc_Hyperliquid_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from *spot, swap*
+- `toAccount`::string: account to transfer to *swap, spot or address*
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address for order
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Hyperliquid_transfer
+
+function __ccxt_doc_Hyperliquid_withdraw() end
+"""
+make a withdrawal (only support USDC)
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
+see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: vault address withdraw from
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hyperliquid_withdraw
+
+function __ccxt_doc_Hyperliquid_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user`::string, optional: user address, will default to this.walletAddress if not provided
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchTradingFee
+
+function __ccxt_doc_Hyperliquid_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchLedger
+
+function __ccxt_doc_Hyperliquid_fetchDeposits() end
+"""
+fetch all deposits made to an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch withdrawals for
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.vaultAddress`::string, optional: vault address
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchDeposits
+
+function __ccxt_doc_Hyperliquid_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch withdrawals for
+- `params.subAccountAddress`::string, optional: sub account user address
+- `params.vaultAddress`::string, optional: vault address
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchWithdrawals
+
+function __ccxt_doc_Hyperliquid_fetchOpenInterests() end
+"""
+Retrieves the open interest for a list of symbols
+
+# Arguments
+- `symbols`::array, optional: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchOpenInterests
+
+function __ccxt_doc_Hyperliquid_fetchOpenInterest() end
+"""
+retrieves the open interest of a contract trading pair
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchOpenInterest
+
+function __ccxt_doc_Hyperliquid_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subAccountAddress`::string, optional: sub account user address
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Hyperliquid_fetchFundingHistory
+
+function __ccxt_doc_Hyperliquid_reserveRequestWeight() end
+"""
+Instead of trading to increase the address based rate limits, this action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
+
+# Arguments
+- `weight`::float: the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a response object
+"""
+__ccxt_doc_Hyperliquid_reserveRequestWeight
+
+function __ccxt_doc_Hyperliquid_createSubAccount() end
+"""
+creates a sub-account under the main account
+
+# Arguments
+- `name`::string: the name of the sub-account
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.expiresAfter`::int, optional: time in ms after which the sub-account will expire
+
+# Returns
+- a response object
+"""
+__ccxt_doc_Hyperliquid_createSubAccount

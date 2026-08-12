@@ -323,9 +323,19 @@ function describe(self::Cryptomus, )
 ))
 
 end
-function fetchMarkets(self::Cryptomus, params=Dict())
+"""
+retrieves data on all markets for the exchange
+see: https://doc.cryptomus.com/personal/market-cap/tickers
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Cryptomus; params=Dict())
     response = Base.fetch(self.publicGetV2UserApiExchangeMarkets(params));
-    result = self.safeList(response, "result", []);
+    result = self.safeList(response, "result", defaultValue = []);
     return self.parseMarkets(result)
 
 end
@@ -340,7 +350,7 @@ function parseMarket(self::Cryptomus, market)
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
     fees = self.safeDict(self.fees, "trading");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -371,8 +381,8 @@ function parseMarket(self::Cryptomus, market)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "quotePrec"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "basePrec")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quotePrec"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "basePrec")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("amount") => Dict{Symbol, Any}(
@@ -397,7 +407,17 @@ function parseMarket(self::Cryptomus, market)
 ))
 
 end
-function fetchCurrencies(self::Cryptomus, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://doc.cryptomus.com/personal/market-cap/assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Cryptomus; params=Dict())
     response = Base.fetch(self.publicGetV1ExchangeMarketAssets(params));
     coins = self.safeList(response, "result");
     groupedById = groupBy(coins, "currency_code");
@@ -417,7 +437,7 @@ function parseCurrency(self::Cryptomus, rawCurrency)
             code = self.safeCurrencyCode(id);
         end
         networkId = safeString(networkEntry, "network_code");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -450,19 +470,30 @@ function parseCurrency(self::Cryptomus, rawCurrency)
 ))
 
 end
-function fetchTickers(self::Cryptomus, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://doc.cryptomus.com/personal/market-cap/tickers
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Cryptomus; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetV1ExchangeMarketTickers(params));
     data = self.safeList(response, "data");
-    return self.parseTickers(data, symbols)
+    return self.parseTickers(data, symbols = symbols)
 
 end
-function parseTicker(self::Cryptomus, ticker, market=nothing)
+function parseTicker(self::Cryptomus, ticker; market=nothing)
     marketId = safeString(ticker, "currency_pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     last_var = safeString(ticker, "last_price");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -486,10 +517,23 @@ function parseTicker(self::Cryptomus, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "base_volume"),
     Symbol("quoteVolume") => safeString(ticker, "quote_volume"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchOrderBook(self::Cryptomus, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://doc.cryptomus.com/personal/market-cap/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.level`::int, optional: 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Cryptomus, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -498,15 +542,28 @@ function fetchOrderBook(self::Cryptomus, symbol, limit=nothing, params=Dict())
         Symbol("currencyPair") => get(market, Symbol("id"), nothing)
     );
     level = 0;
-    (level, params) = self.handleOptionAndParams(params, "fetchOrderBook", "level", level);
+    (level, params) = self.handleOptionAndParams(params, "fetchOrderBook", "level", defaultValue = level);
     request[Symbol("level")] = level;
     response = Base.fetch(self.publicGetV1ExchangeMarketOrderBookCurrencyPair(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeTimestamp(data, "timestamp");
-    return self.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
+    return self.parseOrderBook(data, symbol, timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "quantity")
 
 end
-function fetchTrades(self::Cryptomus, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://doc.cryptomus.com/personal/market-cap/trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (maximum value is 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Cryptomus, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -520,10 +577,10 @@ function fetchTrades(self::Cryptomus, symbol, since=nothing, limit=nothing, para
     if functions.ccxtruthy(data != nothing)
         dataList = data;
     end
-    return self.parseTrades(dataList, market, since, limit)
+    return self.parseTrades(dataList, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Cryptomus, trade, market=nothing)
+function parseTrade(self::Cryptomus, trade; market=nothing)
     timestamp = safeTimestamp(trade, "timestamp");
     return self.safeTrade(Dict{Symbol, Any}(
     Symbol("id") => safeString(trade, "trade_id"),
@@ -542,16 +599,26 @@ function parseTrade(self::Cryptomus, trade, market=nothing)
         Symbol("cost") => nothing
     ),
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchBalance(self::Cryptomus, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://doc.cryptomus.com/personal/converts/balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Cryptomus; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.privateGetV2UserApiExchangeAccountBalance(extend(request, params)));
-    result = self.safeList(response, "result", []);
+    result = self.safeList(response, "result", defaultValue = []);
     return self.parseBalance(result)
 
 end
@@ -575,7 +642,25 @@ function parseBalance(self::Cryptomus, balance)
     return self.safeBalance(result)
 
 end
-function createOrder(self::Cryptomus, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://doc.cryptomus.com/personal/exchange/market-order-creation
+see: https://doc.cryptomus.com/personal/exchange/limit-order-creation
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or for spot
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.clientOrderId`::string, optional: a unique identifier for the order (optional)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Cryptomus, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -598,7 +683,7 @@ function createOrder(self::Cryptomus, symbol, type_var, side, amount, price=noth
     if functions.ccxtruthy(type_var == "market")
         if functions.ccxtruthy(sideBuy)
             createMarketBuyOrderRequiresPrice = true;
-            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
             if functions.ccxtruthy(createMarketBuyOrderRequiresPrice)
                 if functions.ccxtruthy(@functions.ccxt_and((price == nothing), (cost == nothing)))
                     throw(InvalidOrder(string(self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")));
@@ -623,10 +708,22 @@ function createOrder(self::Cryptomus, symbol, type_var, side, amount, price=noth
     else
         throw(ArgumentsRequired(string(self.id, " createOrder() requires a type parameter (limit or market)")));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Cryptomus, id, symbol=nothing, params=Dict())
+"""
+cancels an open limit order
+see: https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in (not used in cryptomus)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Cryptomus, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -638,7 +735,25 @@ function cancelOrder(self::Cryptomus, id, symbol=nothing, params=Dict())
 ))
 
 end
-function fetchCanceledAndClosedOrders(self::Cryptomus, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://doc.cryptomus.com/personal/exchange/history-of-completed-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in (not used in cryptomus)
+- `since`::int, optional: the earliest time in ms to fetch orders for (not used in cryptomus)
+- `limit`::int, optional: the maximum number of order structures to retrieve (not used in cryptomus)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.direction`::string, optional: order direction 'buy' or 'sell'
+- `params.order_id`::string, optional: order id
+- `params.client_order_id`::string, optional: client order id
+- `params.limit`::string, optional: A special parameter that sets the maximum number of records the request will return
+- `params.offset`::string, optional: A special parameter that sets the number of records from the beginning of the list
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Cryptomus; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -652,18 +767,36 @@ function fetchCanceledAndClosedOrders(self::Cryptomus, symbol=nothing, since=not
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetV2UserApiExchangeOrdersHistory(extend(request, params)));
-    result = self.safeList(response, "result", []);
+    result = self.safeList(response, "result", defaultValue = []);
     orders = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
         order = get(result, i + 1, nothing);
-        push!(orders, self.parseOrder(order, market));
+        push!(orders, self.parseOrder(order, market = market));
         i += 1
     end
     return orders
 
 end
-function fetchOpenOrders(self::Cryptomus, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://doc.cryptomus.com/personal/exchange/list-of-active-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for (not used in cryptomus)
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve (not used in cryptomus)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.direction`::string, optional: order direction 'buy' or 'sell'
+- `params.order_id`::string, optional: order id
+- `params.client_order_id`::string, optional: client order id
+- `params.limit`::string, optional: A special parameter that sets the maximum number of records the request will return
+- `params.offset`::string, optional: A special parameter that sets the number of records from the beginning of the list
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Cryptomus; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -676,22 +809,22 @@ function fetchOpenOrders(self::Cryptomus, symbol=nothing, since=nothing, limit=n
         request[Symbol("market")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetV2UserApiExchangeOrders(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseOrders(result, market, nothing, nothing)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOrders(result, market = market, since = nothing, limit = nothing)
 
 end
-function parseOrder(self::Cryptomus, order, market=nothing)
+function parseOrder(self::Cryptomus, order; market=nothing)
     id = safeString2(order, "order_id", "id");
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     dateTime = safeString(order, "createdAt");
     timestamp = self.parse8601(dateTime);
-    deal = self.safeDict(order, "deal", Dict{Symbol, Any}());
+    deal = self.safeDict(order, "deal", defaultValue = Dict{Symbol, Any}());
     averageFilledPrice = self.safeNumber(deal, "averageFilledPrice");
     type_var = safeString(order, "type");
     side = safeString(order, "direction");
     price = self.safeNumber(order, "price");
-    transaction = self.safeList(deal, "transactions", []);
+    transaction = self.safeList(deal, "transactions", defaultValue = []);
     fee = nothing;
     firstTx = self.safeDict(transaction, 0);
     feeCurrency = safeString(firstTx, "feeCurrency");
@@ -706,7 +839,7 @@ function parseOrder(self::Cryptomus, order, market=nothing)
     end
     amount = self.safeNumber(order, "quantity");
     cost = self.safeNumber(order, "value");
-    status = self.parseOrderStatus(safeString(order, "state"));
+    status = self.parseOrderStatus(status = safeString(order, "state"));
     clientOrderId = safeString(order, "clientOrderId");
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -731,10 +864,10 @@ function parseOrder(self::Cryptomus, order, market=nothing)
     Symbol("fee") => fee,
     Symbol("trades") => nothing,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
-function parseOrderStatus(self::Cryptomus, status=nothing)
+function parseOrderStatus(self::Cryptomus; status=nothing)
     statuses = Dict{Symbol, Any}(
         Symbol("active") => "open",
         Symbol("completed") => "closed",
@@ -746,15 +879,25 @@ function parseOrderStatus(self::Cryptomus, status=nothing)
     return safeString(statuses, status, status)
 
 end
-function fetchTradingFees(self::Cryptomus, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Cryptomus; params=Dict())
     response = Base.fetch(self.privateGetV2UserApiExchangeAccountTariffs(params));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    currentFeeTier = self.safeDict(data, "current_tariff_step", Dict{Symbol, Any}());
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    currentFeeTier = self.safeDict(data, "current_tariff_step", defaultValue = Dict{Symbol, Any}());
     makerFee = safeString(currentFeeTier, "maker_percent");
     takerFee = safeString(currentFeeTier, "taker_percent");
     makerFee = stringDiv(makerFee, "100");
     takerFee = stringDiv(takerFee, "100");
-    feeTiers = self.safeList(data, "tariff_steps", []);
+    feeTiers = self.safeList(data, "tariff_steps", defaultValue = []);
     result = Dict{Symbol, Any}();
     tiers = self.parseFeeTiers(feeTiers);
     symbols = self.symbols;
@@ -778,7 +921,7 @@ function fetchTradingFees(self::Cryptomus, params=Dict())
     return result
 
 end
-function parseFeeTiers(self::Cryptomus, feeTiers, market=nothing)
+function parseFeeTiers(self::Cryptomus, feeTiers; market=nothing)
     takerFees = [];
     makerFees = [];
     i = 0
@@ -799,7 +942,7 @@ function parseFeeTiers(self::Cryptomus, feeTiers, market=nothing)
 )
 
 end
-function sign(self::Cryptomus, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Cryptomus, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     endpoint = self.implodeParams(path, params);
     params = omit(params, self.extractParams(path));
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", endpoint);
@@ -863,67 +1006,67 @@ Base.getproperty(self::Cryptomus, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetV2UserApiExchangeMarkets(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/exchange/markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV2UserApiExchangeMarketPrice(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/market/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/exchange/market/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1ExchangeMarketAssets(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/market/assets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/exchange/market/assets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1ExchangeMarketOrderBookCurrencyPair(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/market/order-book/{currencyPair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/exchange/market/order-book/{currencyPair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1ExchangeMarketTickers(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/market/tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/exchange/market/tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV1ExchangeMarketTradesCurrencyPair(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/market/trades/{currencyPair}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/exchange/market/trades/{currencyPair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2UserApiExchangeOrders(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/exchange/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2UserApiExchangeOrdersHistory(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/orders/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/exchange/orders/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2UserApiExchangeAccountBalance(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/account/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/exchange/account/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2UserApiExchangeAccountTariffs(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/account/tariffs", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/exchange/account/tariffs"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2UserApiPaymentServices(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/payment/services", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/payment/services"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2UserApiPayoutServices(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/payout/services", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/payout/services"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2UserApiTransactionList(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/transaction/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/transaction/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2UserApiExchangeOrders(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/exchange/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2UserApiExchangeOrdersMarket(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/orders/market", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/exchange/orders/market"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteV2UserApiExchangeOrdersOrderId(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/orders/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "v2/user-api/exchange/orders/{orderId}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Cryptomus(; kwargs...)
@@ -987,3 +1130,181 @@ function Cryptomus(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Cryptomus_fetchMarkets() end
+"""
+retrieves data on all markets for the exchange
+see: https://doc.cryptomus.com/personal/market-cap/tickers
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Cryptomus_fetchMarkets
+
+function __ccxt_doc_Cryptomus_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://doc.cryptomus.com/personal/market-cap/assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Cryptomus_fetchCurrencies
+
+function __ccxt_doc_Cryptomus_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://doc.cryptomus.com/personal/market-cap/tickers
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Cryptomus_fetchTickers
+
+function __ccxt_doc_Cryptomus_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://doc.cryptomus.com/personal/market-cap/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.level`::int, optional: 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Cryptomus_fetchOrderBook
+
+function __ccxt_doc_Cryptomus_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://doc.cryptomus.com/personal/market-cap/trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (maximum value is 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Cryptomus_fetchTrades
+
+function __ccxt_doc_Cryptomus_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://doc.cryptomus.com/personal/converts/balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Cryptomus_fetchBalance
+
+function __ccxt_doc_Cryptomus_createOrder() end
+"""
+create a trade order
+see: https://doc.cryptomus.com/personal/exchange/market-order-creation
+see: https://doc.cryptomus.com/personal/exchange/limit-order-creation
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or for spot
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.clientOrderId`::string, optional: a unique identifier for the order (optional)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptomus_createOrder
+
+function __ccxt_doc_Cryptomus_cancelOrder() end
+"""
+cancels an open limit order
+see: https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in (not used in cryptomus)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptomus_cancelOrder
+
+function __ccxt_doc_Cryptomus_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://doc.cryptomus.com/personal/exchange/history-of-completed-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in (not used in cryptomus)
+- `since`::int, optional: the earliest time in ms to fetch orders for (not used in cryptomus)
+- `limit`::int, optional: the maximum number of order structures to retrieve (not used in cryptomus)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.direction`::string, optional: order direction 'buy' or 'sell'
+- `params.order_id`::string, optional: order id
+- `params.client_order_id`::string, optional: client order id
+- `params.limit`::string, optional: A special parameter that sets the maximum number of records the request will return
+- `params.offset`::string, optional: A special parameter that sets the number of records from the beginning of the list
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptomus_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Cryptomus_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://doc.cryptomus.com/personal/exchange/list-of-active-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for (not used in cryptomus)
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve (not used in cryptomus)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.direction`::string, optional: order direction 'buy' or 'sell'
+- `params.order_id`::string, optional: order id
+- `params.client_order_id`::string, optional: client order id
+- `params.limit`::string, optional: A special parameter that sets the maximum number of records the request will return
+- `params.offset`::string, optional: A special parameter that sets the number of records from the beginning of the list
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Cryptomus_fetchOpenOrders
+
+function __ccxt_doc_Cryptomus_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Cryptomus_fetchTradingFees

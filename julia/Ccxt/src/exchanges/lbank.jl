@@ -561,9 +561,20 @@ function describe(self::Lbank, )
 ))
 
 end
-function fetchTime(self::Lbank, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.lbank.com/en-US/docs/index.html#get-timestamp
+see: https://www.lbank.com/en-US/docs/contract.html#get-the-current-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Lbank; params=Dict())
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTime", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTime", market = nothing, params = params);
     if functions.ccxtruthy(type_var == "swap")
         response = Base.fetch(self.contractPublicGetCfdOpenApiV1PubGetTime(params));
     else
@@ -572,9 +583,18 @@ function fetchTime(self::Lbank, params=Dict())
     return safeInteger(response, "data")
 
 end
-function fetchCurrencies(self::Lbank, params=Dict())
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Lbank; params=Dict())
     response = Base.fetch(self.spotPublicGetWithdrawConfigs(params));
-    currenciesData = self.safeList(response, "data", []);
+    currenciesData = self.safeList(response, "data", defaultValue = []);
     grouped = groupBy(currenciesData, "assetCode");
     values_var = objectValues(grouped);
     return self.parseCurrencies(values_var)
@@ -592,7 +612,7 @@ function parseCurrency(self::Lbank, rawCurrency)
         if functions.ccxtruthy(networkId == nothing)
             networkId = safeString(networkEntry, "assetCode");
         end
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -611,7 +631,7 @@ function parseCurrency(self::Lbank, rawCurrency)
                 Symbol("deposit") => nothing,
                 Symbol("withdraw") => self.safeBool(networkEntry, "canWithDraw"),
                 Symbol("fee") => self.safeNumber(networkEntry, "fee"),
-                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(networkEntry, "transferAmtScale"))),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(networkEntry, "transferAmtScale"))),
                 Symbol("info") => networkEntry
             );
         end
@@ -642,13 +662,24 @@ function parseCurrency(self::Lbank, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Lbank, params=Dict())
-    marketsPromises = [self.fetchSpotMarkets(params), self.fetchSwapMarkets(params)];
+"""
+retrieves data on all markets for lbank
+see: https://www.lbank.com/en-US/docs/index.html#trading-pairs
+see: https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Lbank; params=Dict())
+    marketsPromises = [self.fetchSpotMarkets(params = params), self.fetchSwapMarkets(params = params)];
     resolvedMarkets = Base.fetch(asyncmap(Base.fetch, marketsPromises));
     return arrayConcat(get(resolvedMarkets, 1, nothing), get(resolvedMarkets, 2, nothing))
 
 end
-function fetchSpotMarkets(self::Lbank, params=Dict())
+function fetchSpotMarkets(self::Lbank; params=Dict())
     response = Base.fetch(self.spotPublicGetAccuracy(params));
     data = safeValue(response, "data", []);
     result = [];
@@ -687,8 +718,8 @@ function fetchSpotMarkets(self::Lbank, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "quantityAccuracy"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "priceAccuracy")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quantityAccuracy"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "priceAccuracy")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -716,7 +747,7 @@ function fetchSpotMarkets(self::Lbank, params=Dict())
     return result
 
 end
-function fetchSwapMarkets(self::Lbank, params=Dict())
+function fetchSwapMarkets(self::Lbank; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("productGroup") => "SwapU"
     );
@@ -788,15 +819,15 @@ function fetchSwapMarkets(self::Lbank, params=Dict())
     return result
 
 end
-function parseTicker(self::Lbank, ticker, market=nothing)
+function parseTicker(self::Lbank, ticker; market=nothing)
     timestamp = safeInteger(ticker, "timestamp");
     if functions.ccxtruthy(timestamp == nothing)
         timestamp = safeTimestamp(ticker, "lastTime");
     end
     marketId = safeString(ticker, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     tickerData = safeValue(ticker, "ticker", Dict{Symbol, Any}());
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     data = functions.ccxtruthy((get(market, Symbol("contract"), nothing))) ? ticker : tickerData;
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -819,16 +850,27 @@ function parseTicker(self::Lbank, ticker, market=nothing)
     Symbol("baseVolume") => safeString2(data, "vol", "volume"),
     Symbol("quoteVolume") => safeString(data, "turnover"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Lbank, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Lbank, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
-        responseForSwap = Base.fetch(self.fetchTickers([get(market, Symbol("symbol"), nothing)], params));
+        responseForSwap = Base.fetch(self.fetchTickers(symbols = [get(market, Symbol("symbol"), nothing)], params = params));
             return safeValue(responseForSwap, get(market, Symbol("symbol"), nothing))
     end
     request = Dict{Symbol, Any}(
@@ -836,17 +878,29 @@ function fetchTicker(self::Lbank, symbol, params=Dict())
     );
     response = Base.fetch(self.spotPublicGetTicker24hr(extend(request, params)));
     data = safeValue(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTicker(first_var, market)
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(first_var, market = market)
 
 end
-function fetchTickers(self::Lbank, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new
+see: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Lbank; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
-        symbols = self.marketSymbols(symbols);
+        symbols = self.marketSymbols(symbols = symbols);
         symbolsLength = length(symbols);
         if functions.ccxtruthy(functions.ccxt_gt(symbolsLength, 0))
             market = self.market(get(symbols, 1, nothing));
@@ -854,7 +908,7 @@ function fetchTickers(self::Lbank, symbols=nothing, params=Dict())
     end
     request = Dict{Symbol, Any}();
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     if functions.ccxtruthy(type_var == "swap")
         request[Symbol("productGroup")] = "SwapU";
         response = Base.fetch(self.contractPublicGetCfdOpenApiV1PubMarketData(extend(request, params)));
@@ -862,11 +916,24 @@ function fetchTickers(self::Lbank, symbols=nothing, params=Dict())
         request[Symbol("symbol")] = "all";
         response = Base.fetch(self.spotPublicGetTicker24hr(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTickers(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(data, symbols = symbols)
 
 end
-function fetchOrderBook(self::Lbank, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.lbank.com/en-US/docs/index.html#query-market-depth
+see: https://www.lbank.com/en-US/docs/contract.html#get-handicap
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Lbank, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -878,7 +945,7 @@ function fetchOrderBook(self::Lbank, symbol, limit=nothing, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOrderBook", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOrderBook", market = market, params = params);
     if functions.ccxtruthy(type_var == "swap")
         request[Symbol("depth")] = limit;
         response = Base.fetch(self.contractPublicGetCfdOpenApiV1PubMarketOrder(extend(request, params)));
@@ -889,12 +956,12 @@ function fetchOrderBook(self::Lbank, symbol, limit=nothing, params=Dict())
     orderbook = safeValue(response, "data", Dict{Symbol, Any}());
     timestamp = milliseconds();
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
-            return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", "price", "volume")
+            return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "volume")
     end
-    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks")
+    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks")
 
 end
-function parseTrade(self::Lbank, trade, market=nothing)
+function parseTrade(self::Lbank, trade; market=nothing)
     timestamp = safeInteger2(trade, "date_ms", "time");
     if functions.ccxtruthy(timestamp == nothing)
         timestamp = safeInteger(trade, "dealTime");
@@ -933,7 +1000,7 @@ function parseTrade(self::Lbank, trade, market=nothing)
         id = safeString(trade, "txUuid");
     end
     order = safeString(trade, "orderUuid");
-    symbol = self.safeSymbol(nothing, market);
+    symbol = self.safeSymbol(nothing, market = market);
     fee = nothing;
     feeCost = safeString(trade, "tradeFee");
     if functions.ccxtruthy(feeCost != nothing)
@@ -958,10 +1025,24 @@ function parseTrade(self::Lbank, trade, market=nothing)
     Symbol("cost") => costString,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Lbank, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.lbank.com/en-US/docs/index.html#query-historical-transactions
+see: https://www.lbank.com/en-US/docs/index.html#recent-transactions-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Lbank, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -986,15 +1067,29 @@ function fetchTrades(self::Lbank, symbol, since=nothing, limit=nothing, params=D
     else
         response = Base.fetch(self.spotPublicGetTrades(extend(request, params)));
     end
-    trades = self.safeList(response, "data", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Lbank, ohlcv, market=nothing)
+function parseOHLCV(self::Lbank, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCV(self::Lbank, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.lbank.com/en-US/docs/index.html#query-k-bar-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Lbank, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1017,8 +1112,8 @@ function fetchOHLCV(self::Lbank, symbol, timeframe="1m", since=nothing, limit=no
         Symbol("size") => parsedLimit
     );
     response = Base.fetch(self.spotPublicGetKline(extend(request, params)));
-    ohlcvs = self.safeList(response, "data", []);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    ohlcvs = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
 function parseBalance(self::Lbank, response)
@@ -1088,9 +1183,9 @@ function parseBalance(self::Lbank, response)
     return self.safeBalance(result)
 
 end
-function parseFundingRate(self::Lbank, ticker, market=nothing)
+function parseFundingRate(self::Lbank, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     markPrice = self.safeNumber(ticker, "markedPrice");
     indexPrice = self.safeNumber(ticker, "underlyingPrice");
     fundingRate = self.safeNumber(ticker, "fundingRate");
@@ -1121,29 +1216,63 @@ function parseFundingRate(self::Lbank, ticker, market=nothing)
 )
 
 end
-function fetchFundingRate(self::Lbank, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Lbank, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    responseForSwap = Base.fetch(self.fetchFundingRates([get(market, Symbol("symbol"), nothing)], params));
+    responseForSwap = Base.fetch(self.fetchFundingRates(symbols = [get(market, Symbol("symbol"), nothing)], params = params));
     return safeValue(responseForSwap, get(market, Symbol("symbol"), nothing))
 
 end
-function fetchFundingRates(self::Lbank, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Lbank; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}(
         Symbol("productGroup") => "SwapU"
     );
     response = Base.fetch(self.contractPublicGetCfdOpenApiV1PubMarketData(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseFundingRates(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseFundingRates(data, symbols = symbols)
 
 end
-function fetchBalance(self::Lbank, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.lbank.com/en-US/docs/index.html#asset-information
+see: https://www.lbank.com/en-US/docs/index.html#account-information
+see: https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Lbank; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1165,7 +1294,7 @@ function fetchBalance(self::Lbank, params=Dict())
     return balanceResult
 
 end
-function parseTradingFee(self::Lbank, fee, market=nothing)
+function parseTradingFee(self::Lbank, fee; market=nothing)
     marketId = safeString(fee, "symbol");
     symbol = self.safeSymbol(marketId);
     return Dict{Symbol, Any}(
@@ -1178,15 +1307,36 @@ function parseTradingFee(self::Lbank, fee, market=nothing)
 )
 
 end
-function fetchTradingFee(self::Lbank, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Lbank, symbol; params=Dict())
     market = self.market(symbol);
-    result = Base.fetch(self.fetchTradingFees(extend(params, Dict{Symbol, Any}(
+    result = Base.fetch(self.fetchTradingFees(params = extend(params, Dict{Symbol, Any}(
         Symbol("category") => get(market, Symbol("id"), nothing)
     ))));
     return self.safeDict(result, symbol)
 
 end
-function fetchTradingFees(self::Lbank, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Lbank; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1204,7 +1354,20 @@ function fetchTradingFees(self::Lbank, params=Dict())
     return result
 
 end
-function createMarketBuyOrderWithCost(self::Lbank, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.lbank.com/en-US/docs/index.html#place-order
+see: https://www.lbank.com/en-US/docs/index.html#place-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Lbank, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1213,16 +1376,32 @@ function createMarketBuyOrderWithCost(self::Lbank, symbol, cost, params=Dict())
         throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
     end
     params[Symbol("createMarketBuyOrderRequiresPrice")] = false;
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = params))
 
 end
-function createOrder(self::Lbank, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.lbank.com/en-US/docs/index.html#place-order
+see: https://www.lbank.com/en-US/docs/index.html#place-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Lbank, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     clientOrderId = safeString2(params, "custom_id", "clientOrderId");
-    postOnly = self.safeBool(params, "postOnly", false);
+    postOnly = self.safeBool(params, "postOnly", defaultValue = false);
     timeInForce = safeStringUpper(params, "timeInForce");
     params = omit(params, ["custom_id", "clientOrderId", "timeInForce", "postOnly"]);
     request = Dict{Symbol, Any}(
@@ -1256,7 +1435,7 @@ function createOrder(self::Lbank, symbol, type_var, side, amount, price=nothing,
             request[Symbol("type")] = string(side, "_", "market");
             quoteAmount = nothing;
             createMarketBuyOrderRequiresPrice = true;
-            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
             cost = self.safeNumber(params, "cost");
             params = omit(params, "cost");
             if functions.ccxtruthy(cost != nothing)
@@ -1292,7 +1471,7 @@ function createOrder(self::Lbank, symbol, type_var, side, amount, price=nothing,
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("id") => safeString(result, "order_id"),
     Symbol("info") => result
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Lbank, status)
@@ -1307,13 +1486,13 @@ function parseOrderStatus(self::Lbank, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Lbank, order, market=nothing)
+function parseOrder(self::Lbank, order; market=nothing)
     id = safeString2(order, "orderId", "order_id");
     clientOrderId = safeString2(order, "clientOrderId", "custom_id");
     timestamp = safeInteger2(order, "time", "create_time");
     rawStatus = safeString(order, "status");
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timeInForce = nothing;
     postOnly = false;
     type_var = "limit";
@@ -1363,10 +1542,23 @@ function parseOrder(self::Lbank, order, market=nothing)
     Symbol("fee") => nothing,
     Symbol("info") => order,
     Symbol("average") => nothing
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Lbank, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://www.lbank.com/en-US/docs/index.html#query-order
+see: https://www.lbank.com/en-US/docs/index.html#query-order-new
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Lbank, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1376,12 +1568,12 @@ function fetchOrder(self::Lbank, id, symbol=nothing, params=Dict())
         method = safeString(options, "method", "fetchOrderSupplement");
     end
     if functions.ccxtruthy(method == "fetchOrderSupplement")
-            return Base.fetch(self.fetchOrderSupplement(id, symbol, params))
+            return Base.fetch(self.fetchOrderSupplement(id, symbol = symbol, params = params))
     end
-    return Base.fetch(self.fetchOrderDefault(id, symbol, params))
+    return Base.fetch(self.fetchOrderDefault(id, symbol = symbol, params = params))
 
 end
-function fetchOrderSupplement(self::Lbank, id, symbol=nothing, params=Dict())
+function fetchOrderSupplement(self::Lbank, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -1394,11 +1586,11 @@ function fetchOrderSupplement(self::Lbank, id, symbol=nothing, params=Dict())
         Symbol("orderId") => id
     );
     response = Base.fetch(self.spotPrivatePostSupplementOrdersInfo(extend(request, params)));
-    result = self.safeDict(response, "data", Dict{Symbol, Any}());
+    result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(result)
 
 end
-function fetchOrderDefault(self::Lbank, id, symbol=nothing, params=Dict())
+function fetchOrderDefault(self::Lbank, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -1420,7 +1612,20 @@ function fetchOrderDefault(self::Lbank, id, symbol=nothing, params=Dict())
     end
 
 end
-function fetchMyTrades(self::Lbank, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.lbank.com/en-US/docs/index.html#past-transaction-details
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Lbank; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -1441,11 +1646,24 @@ function fetchMyTrades(self::Lbank, symbol=nothing, since=nothing, limit=nothing
         request[Symbol("end_date")] = self.ymd(since + 86400000, "-");
     end
     response = Base.fetch(self.spotPrivatePostTransactionHistory(extend(request, params)));
-    trades = self.safeList(response, "data", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchOrders(self::Lbank, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://www.lbank.com/en-US/docs/index.html#query-all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Lbank; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -1463,11 +1681,24 @@ function fetchOrders(self::Lbank, symbol=nothing, since=nothing, limit=nothing, 
     );
     response = Base.fetch(self.spotPrivatePostSupplementOrdersInfoHistory(extend(request, params)));
     result = safeValue(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(result, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(result, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Lbank, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.lbank.com/en-US/docs/index.html#current-pending-order
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Lbank; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument")));
     end
@@ -1485,11 +1716,23 @@ function fetchOpenOrders(self::Lbank, symbol=nothing, since=nothing, limit=nothi
     );
     response = Base.fetch(self.spotPrivatePostSupplementOrdersInfoNoDeal(extend(request, params)));
     result = safeValue(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(result, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(result, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function cancelOrder(self::Lbank, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.lbank.com/en-US/docs/index.html#cancel-order-new
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Lbank, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -1507,11 +1750,22 @@ function cancelOrder(self::Lbank, id, symbol=nothing, params=Dict())
         request[Symbol("origClientOrderId")] = clientOrderId;
     end
     response = Base.fetch(self.spotPrivatePostSupplementCancelOrder(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(data)
 
 end
-function cancelAllOrders(self::Lbank, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://www.lbank.com/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Lbank; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -1523,7 +1777,7 @@ function cancelAllOrders(self::Lbank, symbol=nothing, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.spotPrivatePostSupplementCancelOrderBySymbol(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseOrders(data)
 
 end
@@ -1536,7 +1790,19 @@ function getNetworkCodeForCurrency(self::Lbank, currencyCode, params)
     return network
 
 end
-function fetchDepositAddress(self::Lbank, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.lbank.com/en-US/docs/index.html#get-deposit-address
+see: https://www.lbank.com/en-US/docs/index.html#the-user-obtains-the-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Lbank, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1545,14 +1811,14 @@ function fetchDepositAddress(self::Lbank, code, params=Dict())
     method = safeString(params, "method", defaultMethod);
     params = omit(params, "method");
     if functions.ccxtruthy(method == "fetchDepositAddressSupplement")
-        response = Base.fetch(self.fetchDepositAddressSupplement(code, params));
+        response = Base.fetch(self.fetchDepositAddressSupplement(code, params = params));
     else
-        response = Base.fetch(self.fetchDepositAddressDefault(code, params));
+        response = Base.fetch(self.fetchDepositAddressDefault(code, params = params));
     end
     return response
 
 end
-function fetchDepositAddressDefault(self::Lbank, code, params=Dict())
+function fetchDepositAddressDefault(self::Lbank, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1572,13 +1838,13 @@ function fetchDepositAddressDefault(self::Lbank, code, params=Dict())
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(safeString(result, "netWork"), code),
+    Symbol("network") => self.networkIdToCode(networkId = safeString(result, "netWork"), currencyCode = code),
     Symbol("address") => address,
     Symbol("tag") => tag
 )
 
 end
-function fetchDepositAddressSupplement(self::Lbank, code, params=Dict())
+function fetchDepositAddressSupplement(self::Lbank, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1606,9 +1872,23 @@ function fetchDepositAddressSupplement(self::Lbank, code, params=Dict())
 )
 
 end
-function withdraw(self::Lbank, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://www.lbank.com/en-US/docs/index.html#withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Lbank, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1659,7 +1939,7 @@ function parseTransactionStatus(self::Lbank, status, type_var)
     return safeString(safeValue(statuses, type_var, Dict{Symbol, Any}()), status, status)
 
 end
-function parseTransaction(self::Lbank, transaction, currency=nothing)
+function parseTransaction(self::Lbank, transaction; currency=nothing)
     id = safeString(transaction, "id");
     type_var = nothing;
     if functions.ccxtruthy(id == nothing)
@@ -1679,7 +1959,7 @@ function parseTransaction(self::Lbank, transaction, currency=nothing)
     end
     amount = self.safeNumber(transaction, "amount");
     currencyId = safeString2(transaction, "coin", "coid");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     status = self.parseTransactionStatus(safeString(transaction, "status"), type_var);
     fee = nothing;
     feeCost = self.safeNumber(transaction, "fee");
@@ -1695,7 +1975,7 @@ function parseTransaction(self::Lbank, transaction, currency=nothing)
     Symbol("txid") => txid,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("network") => self.networkIdToCode(safeString(transaction, "networkName"), code),
+    Symbol("network") => self.networkIdToCode(networkId = safeString(transaction, "networkName"), currencyCode = code),
     Symbol("address") => address,
     Symbol("addressTo") => addressTo,
     Symbol("addressFrom") => addressFrom,
@@ -1713,7 +1993,20 @@ function parseTransaction(self::Lbank, transaction, currency=nothing)
 )
 
 end
-function fetchDeposits(self::Lbank, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://www.lbank.com/en-US/docs/index.html#get-recharge-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Lbank; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1728,11 +2021,24 @@ function fetchDeposits(self::Lbank, code=nothing, since=nothing, limit=nothing, 
     end
     response = Base.fetch(self.spotPrivatePostSupplementDepositHistory(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    deposits = self.safeList(data, "depositOrders", []);
-    return self.parseTransactions(deposits, currency, since, limit)
+    deposits = self.safeList(data, "depositOrders", defaultValue = []);
+    return self.parseTransactions(deposits, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Lbank, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://www.lbank.com/en-US/docs/index.html#get-withdrawal-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Lbank; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1747,32 +2053,42 @@ function fetchWithdrawals(self::Lbank, code=nothing, since=nothing, limit=nothin
     end
     response = Base.fetch(self.spotPrivatePostSupplementWithdraws(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    withdraws = self.safeList(data, "withdraws", []);
-    return self.parseTransactions(withdraws, currency, since, limit)
+    withdraws = self.safeList(data, "withdraws", defaultValue = []);
+    return self.parseTransactions(withdraws, currency = currency, since = since, limit = limit)
 
 end
-function fetchTransactionFees(self::Lbank, codes=nothing, params=Dict())
+"""
+please use fetchDepositWithdrawFees instead
+
+# Arguments
+- `codes`::any: not used by fetchTransactionFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTransactionFees(self::Lbank; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    isAuthorized = self.checkRequiredCredentials(false);
+    isAuthorized = self.checkRequiredCredentials(error = false);
     if functions.ccxtruthy(isAuthorized)
         options = safeValue(self.options, "fetchTransactionFees", Dict{Symbol, Any}());
         defaultMethod = safeString(options, "method", "fetchPrivateTransactionFees");
         method = safeString(params, "method", defaultMethod);
         params = omit(params, "method");
         if functions.ccxtruthy(method == "fetchPublicTransactionFees")
-            result = Base.fetch(self.fetchPublicTransactionFees(params));
+            result = Base.fetch(self.fetchPublicTransactionFees(params = params));
         else
-            result = Base.fetch(self.fetchPrivateTransactionFees(params));
+            result = Base.fetch(self.fetchPrivateTransactionFees(params = params));
         end
     else
-        result = Base.fetch(self.fetchPublicTransactionFees(params));
+        result = Base.fetch(self.fetchPublicTransactionFees(params = params));
     end
     return result
 
 end
-function fetchPrivateTransactionFees(self::Lbank, params=Dict())
+function fetchPrivateTransactionFees(self::Lbank; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1793,7 +2109,7 @@ function fetchPrivateTransactionFees(self::Lbank, params=Dict())
             networkEntry = get(networkList, j + 1, nothing);
             fee = self.safeNumber(networkEntry, "withdrawFee");
             if functions.ccxtruthy(fee != nothing)
-                networkCode = self.networkIdToCode(safeString(networkEntry, "name"), code);
+                networkCode = self.networkIdToCode(networkId = safeString(networkEntry, "name"), currencyCode = code);
                 if functions.ccxtruthy(networkCode != nothing)
                     if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (networkCode != nothing)))
                         withdrawFees[Symbol(code)][Symbol(networkCode)] = fee;
@@ -1811,7 +2127,7 @@ function fetchPrivateTransactionFees(self::Lbank, params=Dict())
 )
 
 end
-function fetchPublicTransactionFees(self::Lbank, params=Dict())
+function fetchPublicTransactionFees(self::Lbank; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1832,7 +2148,7 @@ function fetchPublicTransactionFees(self::Lbank, params=Dict())
         if functions.ccxtruthy(canWithdraw == "true")
             currencyId = safeString(item, "assetCode");
             codeInner = self.safeCurrencyCode(currencyId);
-            network = self.networkIdToCode(safeString(item, "chain"), codeInner);
+            network = self.networkIdToCode(networkId = safeString(item, "chain"), currencyCode = codeInner);
             if functions.ccxtruthy(network == nothing)
                 network = codeInner;
             end
@@ -1855,47 +2171,59 @@ function fetchPublicTransactionFees(self::Lbank, params=Dict())
 )
 
 end
-function fetchDepositWithdrawFees(self::Lbank, codes=nothing, params=Dict())
+"""
+when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
+see: https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
+see: https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
+
+# Arguments
+- `codes`::array, optional: array of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Lbank; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    isAuthorized = self.checkRequiredCredentials(false);
+    isAuthorized = self.checkRequiredCredentials(error = false);
     if functions.ccxtruthy(isAuthorized)
         options = safeValue(self.options, "fetchDepositWithdrawFees", Dict{Symbol, Any}());
         defaultMethod = safeString(options, "method", "fetchPrivateDepositWithdrawFees");
         method = safeString(params, "method", defaultMethod);
         params = omit(params, "method");
         if functions.ccxtruthy(method == "fetchPublicDepositWithdrawFees")
-            response = Base.fetch(self.fetchPublicDepositWithdrawFees(codes, params));
+            response = Base.fetch(self.fetchPublicDepositWithdrawFees(codes = codes, params = params));
         else
-            response = Base.fetch(self.fetchPrivateDepositWithdrawFees(codes, params));
+            response = Base.fetch(self.fetchPrivateDepositWithdrawFees(codes = codes, params = params));
         end
     else
-        response = Base.fetch(self.fetchPublicDepositWithdrawFees(codes, params));
+        response = Base.fetch(self.fetchPublicDepositWithdrawFees(codes = codes, params = params));
     end
     return response
 
 end
-function fetchPrivateDepositWithdrawFees(self::Lbank, codes=nothing, params=Dict())
+function fetchPrivateDepositWithdrawFees(self::Lbank; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.spotPrivatePostSupplementUserInfo(params));
-    data = self.safeList(response, "data", []);
-    return self.parseDepositWithdrawFees(data, codes, "coin")
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseDepositWithdrawFees(data, codes = codes, currencyIdKey = "coin")
 
 end
-function fetchPublicDepositWithdrawFees(self::Lbank, codes=nothing, params=Dict())
+function fetchPublicDepositWithdrawFees(self::Lbank; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.spotPublicGetWithdrawConfigs(extend(request, params)));
     data = safeValue(response, "data", []);
-    return self.parsePublicDepositWithdrawFees(data, codes)
+    return self.parsePublicDepositWithdrawFees(data, codes = codes)
 
 end
-function parsePublicDepositWithdrawFees(self::Lbank, response, codes=nothing)
+function parsePublicDepositWithdrawFees(self::Lbank, response; codes=nothing)
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
@@ -1914,7 +2242,7 @@ function parsePublicDepositWithdrawFees(self::Lbank, response, codes=nothing)
                         resultCodeInfo = get(get(result, Symbol(code), nothing), Symbol("info"), nothing);
                         push!(resultCodeInfo, fee);
                     end
-                    networkCode = self.networkIdToCode(safeString(fee, "chain"), code);
+                    networkCode = self.networkIdToCode(networkId = safeString(fee, "chain"), currencyCode = code);
                     if functions.ccxtruthy(networkCode != nothing)
                         result[Symbol(code)][Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                             Symbol("withdraw") => Dict{Symbol, Any}(
@@ -1940,14 +2268,14 @@ function parsePublicDepositWithdrawFees(self::Lbank, response, codes=nothing)
     return result
 
 end
-function parseDepositWithdrawFee(self::Lbank, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Lbank, fee; currency=nothing)
     result = self.depositWithdrawFee(fee);
     code = safeString(currency, "code");
     networkList = safeValue(fee, "networkList", []);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkList)))
         networkEntry = get(networkList, j + 1, nothing);
-        networkCode = self.networkIdToCode(safeString(networkEntry, "name"), code);
+        networkCode = self.networkIdToCode(networkId = safeString(networkEntry, "name"), currencyCode = code);
         withdrawFee = self.safeNumber(networkEntry, "withdrawFee");
         isDefault = safeValue(networkEntry, "isDefault");
         if functions.ccxtruthy(withdrawFee != nothing)
@@ -1975,7 +2303,7 @@ function parseDepositWithdrawFee(self::Lbank, fee, currency=nothing)
     return result
 
 end
-function sign(self::Lbank, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Lbank, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     query = omit(params, self.extractParams(path));
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol("rest"), nothing), "/", self.version, "/", self.implodeParams(path, params));
     if functions.ccxtruthy(get(api, 1, nothing) == "spot")
@@ -2011,7 +2339,7 @@ function sign(self::Lbank, path, api="public", method="GET", params=Dict(), head
         uppercaseHash = uppercase(hash);
         sign_var = nothing;
         if functions.ccxtruthy(signatureMethod == "RSA")
-            cacheSecretAsPem = self.safeBool(self.options, "cacheSecretAsPem", true);
+            cacheSecretAsPem = self.safeBool(self.options, "cacheSecretAsPem", defaultValue = true);
             pem = nothing;
             if functions.ccxtruthy(cacheSecretAsPem)
                 pem = safeValue(self.options, "pem");
@@ -2181,235 +2509,235 @@ Base.getproperty(self::Lbank, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function spotPublicGetCurrencyPairs(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "currencyPairs", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "currencyPairs"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetAccuracy(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "accuracy", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "accuracy"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetUsdToCny(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "usdToCny", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "usdToCny"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetAssetConfigs(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "assetConfigs", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assetConfigs"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetWithdrawConfigs(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "withdrawConfigs", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawConfigs"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetTimestamp(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "timestamp", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "timestamp"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetTicker24hr(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/24hr"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetTicker(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "ticker", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetDepth(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "depth", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetIncrDepth(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "incrDepth", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "incrDepth"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetTrades(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "trades", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetKline(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "kline", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "kline"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetSupplementSystemPing(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/system_ping", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "supplement/system_ping"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetSupplementIncrDepth(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/incrDepth", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "supplement/incrDepth"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetSupplementTrades(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/trades", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "supplement/trades"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetSupplementTickerPrice(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/ticker/price", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "supplement/ticker/price"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetSupplementTickerBookTicker(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/ticker/bookTicker", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "supplement/ticker/bookTicker"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicPostSupplementSystemStatus(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/system_status", ["spot", "public"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/system_status"; api=["spot", "public"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostUserInfo(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "user_info", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user_info"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSubscribeGetKey(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "subscribe/get_key", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "subscribe/get_key"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSubscribeRefreshKey(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "subscribe/refresh_key", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "subscribe/refresh_key"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSubscribeDestroyKey(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "subscribe/destroy_key", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "subscribe/destroy_key"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostGetDepositAddress(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "get_deposit_address", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "get_deposit_address"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostDepositHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "deposit_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "deposit_history"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostCreateOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "create_order", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "create_order"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostBatchCreateOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "batch_create_order", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "batch_create_order"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostCancelOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cancel_order", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_order"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostCancelClientOrders(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cancel_clientOrders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_clientOrders"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostOrdersInfo(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "orders_info", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "orders_info"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostOrdersInfoHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "orders_info_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "orders_info_history"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostOrderTransactionDetail(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "order_transaction_detail", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order_transaction_detail"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostTransactionHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "transaction_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "transaction_history"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostOrdersInfoNoDeal(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "orders_info_no_deal", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "orders_info_no_deal"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostWithdraw(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "withdraw", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostWithdrawCancel(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "withdrawCancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawCancel"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostWithdraws(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "withdraws", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraws"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementUserInfo(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/user_info", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/user_info"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementWithdraw(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/withdraw", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/withdraw"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementDepositHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/deposit_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/deposit_history"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementWithdraws(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/withdraws", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/withdraws"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementGetDepositAddress(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/get_deposit_address", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/get_deposit_address"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementAssetDetail(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/asset_detail", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/asset_detail"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementCustomerTradeFee(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/customer_trade_fee", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/customer_trade_fee"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementApiRestrictions(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/api_Restrictions", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/api_Restrictions"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementSystemPing(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/system_ping", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/system_ping"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementCreateOrderTest(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/create_order_test", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/create_order_test"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementCreateOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/create_order", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/create_order"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementCancelOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/cancel_order", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/cancel_order"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementCancelOrderBySymbol(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/cancel_order_by_symbol", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/cancel_order_by_symbol"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementOrdersInfo(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/orders_info", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/orders_info"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementOrdersInfoNoDeal(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/orders_info_no_deal", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/orders_info_no_deal"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementOrdersInfoHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/orders_info_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/orders_info_history"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementUserInfoAccount(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/user_info_account", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/user_info_account"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostSupplementTransactionHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/transaction_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "supplement/transaction_history"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetCfdOpenApiV1PubGetTime(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cfd/openApi/v1/pub/getTime", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "cfd/openApi/v1/pub/getTime"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetCfdOpenApiV1PubInstrument(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cfd/openApi/v1/pub/instrument", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "cfd/openApi/v1/pub/instrument"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetCfdOpenApiV1PubMarketData(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cfd/openApi/v1/pub/marketData", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "cfd/openApi/v1/pub/marketData"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetCfdOpenApiV1PubMarketOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cfd/openApi/v1/pub/marketOrder", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "cfd/openApi/v1/pub/marketOrder"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Lbank(; kwargs...)
@@ -2473,3 +2801,414 @@ function Lbank(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Lbank_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.lbank.com/en-US/docs/index.html#get-timestamp
+see: https://www.lbank.com/en-US/docs/contract.html#get-the-current-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Lbank_fetchTime
+
+function __ccxt_doc_Lbank_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Lbank_fetchCurrencies
+
+function __ccxt_doc_Lbank_fetchMarkets() end
+"""
+retrieves data on all markets for lbank
+see: https://www.lbank.com/en-US/docs/index.html#trading-pairs
+see: https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Lbank_fetchMarkets
+
+function __ccxt_doc_Lbank_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Lbank_fetchTicker
+
+function __ccxt_doc_Lbank_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new
+see: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Lbank_fetchTickers
+
+function __ccxt_doc_Lbank_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.lbank.com/en-US/docs/index.html#query-market-depth
+see: https://www.lbank.com/en-US/docs/contract.html#get-handicap
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Lbank_fetchOrderBook
+
+function __ccxt_doc_Lbank_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.lbank.com/en-US/docs/index.html#query-historical-transactions
+see: https://www.lbank.com/en-US/docs/index.html#recent-transactions-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Lbank_fetchTrades
+
+function __ccxt_doc_Lbank_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.lbank.com/en-US/docs/index.html#query-k-bar-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Lbank_fetchOHLCV
+
+function __ccxt_doc_Lbank_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Lbank_fetchFundingRate
+
+function __ccxt_doc_Lbank_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Lbank_fetchFundingRates
+
+function __ccxt_doc_Lbank_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.lbank.com/en-US/docs/index.html#asset-information
+see: https://www.lbank.com/en-US/docs/index.html#account-information
+see: https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Lbank_fetchBalance
+
+function __ccxt_doc_Lbank_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Lbank_fetchTradingFee
+
+function __ccxt_doc_Lbank_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Lbank_fetchTradingFees
+
+function __ccxt_doc_Lbank_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.lbank.com/en-US/docs/index.html#place-order
+see: https://www.lbank.com/en-US/docs/index.html#place-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lbank_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Lbank_createOrder() end
+"""
+create a trade order
+see: https://www.lbank.com/en-US/docs/index.html#place-order
+see: https://www.lbank.com/en-US/docs/index.html#place-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lbank_createOrder
+
+function __ccxt_doc_Lbank_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://www.lbank.com/en-US/docs/index.html#query-order
+see: https://www.lbank.com/en-US/docs/index.html#query-order-new
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lbank_fetchOrder
+
+function __ccxt_doc_Lbank_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.lbank.com/en-US/docs/index.html#past-transaction-details
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Lbank_fetchMyTrades
+
+function __ccxt_doc_Lbank_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://www.lbank.com/en-US/docs/index.html#query-all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lbank_fetchOrders
+
+function __ccxt_doc_Lbank_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.lbank.com/en-US/docs/index.html#current-pending-order
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lbank_fetchOpenOrders
+
+function __ccxt_doc_Lbank_cancelOrder() end
+"""
+cancels an open order
+see: https://www.lbank.com/en-US/docs/index.html#cancel-order-new
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lbank_cancelOrder
+
+function __ccxt_doc_Lbank_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://www.lbank.com/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Lbank_cancelAllOrders
+
+function __ccxt_doc_Lbank_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.lbank.com/en-US/docs/index.html#get-deposit-address
+see: https://www.lbank.com/en-US/docs/index.html#the-user-obtains-the-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Lbank_fetchDepositAddress
+
+function __ccxt_doc_Lbank_withdraw() end
+"""
+make a withdrawal
+see: https://www.lbank.com/en-US/docs/index.html#withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Lbank_withdraw
+
+function __ccxt_doc_Lbank_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://www.lbank.com/en-US/docs/index.html#get-recharge-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Lbank_fetchDeposits
+
+function __ccxt_doc_Lbank_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://www.lbank.com/en-US/docs/index.html#get-withdrawal-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Lbank_fetchWithdrawals
+
+function __ccxt_doc_Lbank_fetchTransactionFees() end
+"""
+please use fetchDepositWithdrawFees instead
+
+# Arguments
+- `codes`::any: not used by fetchTransactionFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Lbank_fetchTransactionFees
+
+function __ccxt_doc_Lbank_fetchDepositWithdrawFees() end
+"""
+when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
+see: https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
+see: https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
+
+# Arguments
+- `codes`::array, optional: array of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Lbank_fetchDepositWithdrawFees

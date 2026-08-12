@@ -552,12 +552,22 @@ function describe(self::Luno, )
 ))
 
 end
-function fetchCurrencies(self::Luno, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(false)))
+"""
+fetches all available currencies on an exchange
+see: https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Luno; params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(error = false)))
             return Dict{Symbol, Any}()
     end
     response = Base.fetch(self.privateGetSendNetworks(params));
-    currenciesData = self.safeList(response, "data", []);
+    currenciesData = self.safeList(response, "data", defaultValue = []);
     grouped = groupBy(currenciesData, "native_currency");
     values_var = objectValues(grouped);
     return self.parseCurrencies(values_var)
@@ -571,7 +581,7 @@ function parseCurrency(self::Luno, rawCurrency)
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rawCurrency)))
         networkEntry = get(rawCurrency, i + 1, nothing);
         networkId = safeString(networkEntry, "name");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -621,7 +631,17 @@ function parseCurrency(self::Luno, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Luno, params=Dict())
+"""
+retrieves data on all markets for luno
+see: https://www.luno.com/en/developers/api#tag/Market/operation/Markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Luno; params=Dict())
     response = Base.fetch(self.exchangeGetMarkets(params));
     result = [];
     markets = safeValue(response, "markets", []);
@@ -678,8 +698,8 @@ function fetchMarkets(self::Luno, params=Dict())
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "volume_scale"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "price_scale")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "volume_scale"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "price_scale")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -707,7 +727,17 @@ function fetchMarkets(self::Luno, params=Dict())
     return result
 
 end
-function fetchAccounts(self::Luno, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Luno; params=Dict())
     response = Base.fetch(self.privateGetBalance(params));
     wallets = safeValue(response, "balance", []);
     result = [];
@@ -759,7 +789,17 @@ function parseBalance(self::Luno, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Luno, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Luno; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -767,7 +807,20 @@ function fetchBalance(self::Luno, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Luno, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBookFull
+see: https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Luno, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -782,7 +835,7 @@ function fetchOrderBook(self::Luno, symbol, limit=nothing, params=Dict())
         response = Base.fetch(self.publicGetOrderbook(extend(request, params)));
     end
     timestamp = safeInteger(response, "timestamp");
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", "price", "volume")
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "volume")
 
 end
 function parseOrderStatus(self::Luno, status)
@@ -792,7 +845,7 @@ function parseOrderStatus(self::Luno, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Luno, order, market=nothing)
+function parseOrder(self::Luno, order; market=nothing)
     timestamp = safeInteger(order, "creation_timestamp");
     status = self.parseOrderStatus(safeString(order, "state"));
     status = functions.ccxtruthy((status == "open")) ? status : status;
@@ -804,7 +857,7 @@ function parseOrder(self::Luno, order, market=nothing)
         side = "buy";
     end
     marketId = safeString(order, "pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     price = safeString(order, "limit_price");
     amount = safeString(order, "limit_volume");
     quoteFee = self.safeNumber(order, "fee_counter");
@@ -846,10 +899,22 @@ function parseOrder(self::Luno, order, market=nothing)
     Symbol("fee") => fee,
     Symbol("info") => order,
     Symbol("average") => nothing
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Luno, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by luno fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Luno, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -860,7 +925,7 @@ function fetchOrder(self::Luno, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOrdersByState(self::Luno, state, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrdersByState(self::Luno, state; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -874,26 +939,65 @@ function fetchOrdersByState(self::Luno, state, symbol=nothing, since=nothing, li
         request[Symbol("pair")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetListorders(extend(request, params)));
-    orders = self.safeList(response, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(response, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOrders(self::Luno, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByState(nothing, symbol, since, limit, params))
+"""
+fetches information on multiple orders made by the user
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Luno; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByState(nothing, symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOpenOrders(self::Luno, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByState("PENDING", symbol, since, limit, params))
+"""
+fetch all unfilled currently open orders
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Luno; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByState("PENDING", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchClosedOrders(self::Luno, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByState("COMPLETE", symbol, since, limit, params))
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Luno; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByState("COMPLETE", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function parseTicker(self::Luno, ticker, market=nothing)
+function parseTicker(self::Luno, ticker; market=nothing)
     timestamp = safeInteger(ticker, "timestamp");
     marketId = safeString(ticker, "pair");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     last_var = safeString(ticker, "last_trade");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -916,32 +1020,54 @@ function parseTicker(self::Luno, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "rolling_24_hour_volume"),
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Luno, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Luno; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetTickers(params));
-    rawTickers = self.safeList(response, "tickers", []);
+    rawTickers = self.safeList(response, "tickers", defaultValue = []);
     tickers = indexBy(rawTickers, "pair");
     ids = objectKeys(tickers);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(ids)))
         id = get(ids, i + 1, nothing);
-        market = self.safeMarket(id);
+        market = self.safeMarket(marketId = id);
         symbol = get(market, Symbol("symbol"), nothing);
         ticker = get(tickers, Symbol(id), nothing);
-        result[Symbol(symbol)] = self.parseTicker(ticker, market);
+        result[Symbol(symbol)] = self.parseTicker(ticker, market = market);
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchTicker(self::Luno, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Luno, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -950,10 +1076,10 @@ function fetchTicker(self::Luno, symbol, params=Dict())
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTicker(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function parseTrade(self::Luno, trade, market=nothing)
+function parseTrade(self::Luno, trade; market=nothing)
     orderId = safeString(trade, "order_id");
     id = safeString(trade, "sequence");
     takerOrMaker = nothing;
@@ -1008,10 +1134,23 @@ function parseTrade(self::Luno, trade, market=nothing)
         Symbol("cost") => feeCost,
         Symbol("currency") => feeCurrency
     )
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Luno, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.luno.com/en/developers/api#tag/Market/operation/ListTrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Luno, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1023,11 +1162,25 @@ function fetchTrades(self::Luno, symbol, since=nothing, limit=nothing, params=Di
         request[Symbol("since")] = since;
     end
     response = Base.fetch(self.publicGetTrades(extend(request, params)));
-    trades = self.safeList(response, "trades", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "trades", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchOHLCV(self::Luno, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Luno, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1043,15 +1196,28 @@ function fetchOHLCV(self::Luno, symbol, timeframe="1m", since=nothing, limit=not
         request[Symbol("since")] = milliseconds() - duration;
     end
     response = Base.fetch(self.exchangePrivateGetCandles(extend(request, params)));
-    ohlcvs = self.safeList(response, "candles", []);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    ohlcvs = self.safeList(response, "candles", defaultValue = []);
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Luno, ohlcv, market=nothing)
+function parseOHLCV(self::Luno, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "timestamp"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchMyTrades(self::Luno, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListUserTrades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Luno; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -1069,11 +1235,22 @@ function fetchMyTrades(self::Luno, symbol=nothing, since=nothing, limit=nothing,
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetListtrades(extend(request, params)));
-    trades = self.safeList(response, "trades", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "trades", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFee(self::Luno, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Luno, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1092,7 +1269,23 @@ function fetchTradingFee(self::Luno, symbol, params=Dict())
 )
 
 end
-function createOrder(self::Luno, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/PostMarketOrder
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/PostLimitOrder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Luno, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1124,10 +1317,22 @@ function createOrder(self::Luno, symbol, type_var, side, amount, price=nothing, 
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("id") => get(response, Symbol("order_id"), nothing)
-), market)
+), market = market)
 
 end
-function cancelOrder(self::Luno, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/StopOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Luno, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1140,7 +1345,7 @@ function cancelOrder(self::Luno, id, symbol=nothing, params=Dict())
 ))
 
 end
-function fetchLedgerByEntries(self::Luno, code=nothing, entry=nothing, limit=nothing, params=Dict())
+function fetchLedgerByEntries(self::Luno; code=nothing, entry=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(entry == nothing)
         entry = -1;
     end
@@ -1152,10 +1357,23 @@ function fetchLedgerByEntries(self::Luno, code=nothing, entry=nothing, limit=not
         Symbol("min_row") => entry,
         Symbol("max_row") => self.sum(entry, limit)
     );
-    return Base.fetch(self.fetchLedger(code, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchLedger(code = code, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchLedger(self::Luno, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Luno; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1199,7 +1417,7 @@ function fetchLedger(self::Luno, code=nothing, since=nothing, limit=nothing, par
     );
     response = Base.fetch(self.privateGetAccountsIdTransactions(extend(params, request)));
     entries = safeValue(response, "transactions", []);
-    return self.parseLedger(entries, currency, since, limit)
+    return self.parseLedger(entries, currency = currency, since = since, limit = limit)
 
 end
 function parseLedgerComment(self::Luno, comment)
@@ -1234,13 +1452,13 @@ function parseLedgerComment(self::Luno, comment)
 )
 
 end
-function parseLedgerEntry(self::Luno, entry, currency=nothing)
+function parseLedgerEntry(self::Luno, entry; currency=nothing)
     id = safeString(entry, "row_index");
     account_id = safeString(entry, "account_id");
     timestamp = safeInteger(entry, "timestamp");
     currencyId = safeString(entry, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     available_delta = safeString(entry, "available_delta");
     balance_delta = safeString(entry, "balance_delta");
     after = safeString(entry, "balance");
@@ -1287,10 +1505,24 @@ function parseLedgerEntry(self::Luno, entry, currency=nothing)
     Symbol("after") => self.parseToNumeric(after),
     Symbol("status") => status,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
-function createDepositAddress(self::Luno, code, params=Dict())
+"""
+create a currency deposit address
+see: https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.name`::string, optional: an optional name for the new address
+- `params.account_id`::int, optional: an optional account id for the new address
+- `params.network`::int, optional: the blockchain network id to use
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Luno, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1299,10 +1531,23 @@ function createDepositAddress(self::Luno, code, params=Dict())
         Symbol("asset") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privatePostFundingAddress(extend(request, params)));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function fetchDepositAddress(self::Luno, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: a specific cryptocurrency address to retrieve
+- `params.network`::int, optional: the blockchain network id to use
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Luno, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1311,12 +1556,12 @@ function fetchDepositAddress(self::Luno, code, params=Dict())
         Symbol("asset") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetFundingAddress(extend(request, params)));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function parseDepositAddress(self::Luno, depositAddress, currency=nothing)
+function parseDepositAddress(self::Luno, depositAddress; currency=nothing)
     currencyId = safeStringUpper(depositAddress, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
@@ -1326,7 +1571,19 @@ function parseDepositAddress(self::Luno, depositAddress, currency=nothing)
 )
 
 end
-function fetchDepositWithdrawFee(self::Luno, code, params=Dict())
+"""
+fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+see: https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string: the destination address luno should quote the send fee for (required by the exchange)
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFee(self::Luno, code; params=Dict())
     address = safeString(params, "address");
     if functions.ccxtruthy(address == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")));
@@ -1340,10 +1597,10 @@ function fetchDepositWithdrawFee(self::Luno, code, params=Dict())
     result = self.depositWithdrawFee(response);
     result[Symbol("withdraw")][Symbol("fee")] = self.safeNumber(response, "fee");
     result[Symbol("withdraw")][Symbol("percentage")] = false;
-    return self.assignDefaultDepositWithdrawFees(result, currency)
+    return self.assignDefaultDepositWithdrawFees(result, currency = currency)
 
 end
-function sign(self::Luno, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Luno, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", self.version, "/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
     if functions.ccxtruthy(length(objectKeys(query)))
@@ -1385,163 +1642,163 @@ Base.getproperty(self::Luno, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function exchangeGetMarkets(self::Luno, params=Dict(), context=Dict())
-    return request(self, "markets", "exchange", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets"; api="exchange", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function exchangePrivateGetCandles(self::Luno, params=Dict(), context=Dict())
-    return request(self, "candles", "exchangePrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles"; api="exchangePrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function exchangePrivateGetMove(self::Luno, params=Dict(), context=Dict())
-    return request(self, "move", "exchangePrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "move"; api="exchangePrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function exchangePrivateGetMoveListMoves(self::Luno, params=Dict(), context=Dict())
-    return request(self, "move/list_moves", "exchangePrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "move/list_moves"; api="exchangePrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function exchangePrivateGetTransfers(self::Luno, params=Dict(), context=Dict())
-    return request(self, "transfers", "exchangePrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers"; api="exchangePrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function exchangePrivatePostConvert(self::Luno, params=Dict(), context=Dict())
-    return request(self, "convert", "exchangePrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "convert"; api="exchangePrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function exchangePrivatePostMove(self::Luno, params=Dict(), context=Dict())
-    return request(self, "move", "exchangePrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "move"; api="exchangePrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbook(self::Luno, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbookTop(self::Luno, params=Dict(), context=Dict())
-    return request(self, "orderbook_top", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook_top"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Luno, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickers(self::Luno, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrades(self::Luno, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsIdPending(self::Luno, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/{id}/pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsIdTransactions(self::Luno, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/transactions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/{id}/transactions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBalance(self::Luno, params=Dict(), context=Dict())
-    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBeneficiaries(self::Luno, params=Dict(), context=Dict())
-    return request(self, "beneficiaries", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "beneficiaries"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSendNetworks(self::Luno, params=Dict(), context=Dict())
-    return request(self, "send/networks", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "send/networks"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFeeInfo(self::Luno, params=Dict(), context=Dict())
-    return request(self, "fee_info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fee_info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFundingAddress(self::Luno, params=Dict(), context=Dict())
-    return request(self, "funding_address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding_address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetListorders(self::Luno, params=Dict(), context=Dict())
-    return request(self, "listorders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "listorders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetListtrades(self::Luno, params=Dict(), context=Dict())
-    return request(self, "listtrades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "listtrades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSendFee(self::Luno, params=Dict(), context=Dict())
-    return request(self, "send_fee", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "send_fee"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersId(self::Luno, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawals(self::Luno, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawalsId(self::Luno, params=Dict(), context=Dict())
-    return request(self, "withdrawals/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransfers(self::Luno, params=Dict(), context=Dict())
-    return request(self, "transfers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersLinked(self::Luno, params=Dict(), context=Dict())
-    return request(self, "users/linked", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/linked"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccounts(self::Luno, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "accounts"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAddressValidate(self::Luno, params=Dict(), context=Dict())
-    return request(self, "address/validate", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "address/validate"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPostorder(self::Luno, params=Dict(), context=Dict())
-    return request(self, "postorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "postorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarketorder(self::Luno, params=Dict(), context=Dict())
-    return request(self, "marketorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "marketorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostStoporder(self::Luno, params=Dict(), context=Dict())
-    return request(self, "stoporder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "stoporder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFundingAddress(self::Luno, params=Dict(), context=Dict())
-    return request(self, "funding_address", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "funding_address"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawals(self::Luno, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSend(self::Luno, params=Dict(), context=Dict())
-    return request(self, "send", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "send"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOauth2Grant(self::Luno, params=Dict(), context=Dict())
-    return request(self, "oauth2/grant", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "oauth2/grant"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBeneficiaries(self::Luno, params=Dict(), context=Dict())
-    return request(self, "beneficiaries", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "beneficiaries"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutAccountsIdName(self::Luno, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/name", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "accounts/{id}/name"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteWithdrawalsId(self::Luno, params=Dict(), context=Dict())
-    return request(self, "withdrawals/{id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteBeneficiariesId(self::Luno, params=Dict(), context=Dict())
-    return request(self, "beneficiaries/{id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "beneficiaries/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Luno(; kwargs...)
@@ -1605,3 +1862,325 @@ function Luno(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Luno_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Luno_fetchCurrencies
+
+function __ccxt_doc_Luno_fetchMarkets() end
+"""
+retrieves data on all markets for luno
+see: https://www.luno.com/en/developers/api#tag/Market/operation/Markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Luno_fetchMarkets
+
+function __ccxt_doc_Luno_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Luno_fetchAccounts
+
+function __ccxt_doc_Luno_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Luno_fetchBalance
+
+function __ccxt_doc_Luno_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBookFull
+see: https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Luno_fetchOrderBook
+
+function __ccxt_doc_Luno_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by luno fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Luno_fetchOrder
+
+function __ccxt_doc_Luno_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Luno_fetchOrders
+
+function __ccxt_doc_Luno_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Luno_fetchOpenOrders
+
+function __ccxt_doc_Luno_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Luno_fetchClosedOrders
+
+function __ccxt_doc_Luno_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Luno_fetchTickers
+
+function __ccxt_doc_Luno_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Luno_fetchTicker
+
+function __ccxt_doc_Luno_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.luno.com/en/developers/api#tag/Market/operation/ListTrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Luno_fetchTrades
+
+function __ccxt_doc_Luno_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Luno_fetchOHLCV
+
+function __ccxt_doc_Luno_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListUserTrades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Luno_fetchMyTrades
+
+function __ccxt_doc_Luno_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Luno_fetchTradingFee
+
+function __ccxt_doc_Luno_createOrder() end
+"""
+create a trade order
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/PostMarketOrder
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/PostLimitOrder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Luno_createOrder
+
+function __ccxt_doc_Luno_cancelOrder() end
+"""
+cancels an open order
+see: https://www.luno.com/en/developers/api#tag/Orders/operation/StopOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Luno_cancelOrder
+
+function __ccxt_doc_Luno_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Luno_fetchLedger
+
+function __ccxt_doc_Luno_createDepositAddress() end
+"""
+create a currency deposit address
+see: https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.name`::string, optional: an optional name for the new address
+- `params.account_id`::int, optional: an optional account id for the new address
+- `params.network`::int, optional: the blockchain network id to use
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Luno_createDepositAddress
+
+function __ccxt_doc_Luno_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: a specific cryptocurrency address to retrieve
+- `params.network`::int, optional: the blockchain network id to use
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Luno_fetchDepositAddress
+
+function __ccxt_doc_Luno_fetchDepositWithdrawFee() end
+"""
+fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+see: https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string: the destination address luno should quote the send fee for (required by the exchange)
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Luno_fetchDepositWithdrawFee

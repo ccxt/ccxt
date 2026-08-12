@@ -7,7 +7,7 @@ include("Precise.jl")
 include("Errors.jl")
 include("functions.jl")
 using .functions
-using .functions: objectAssign, objectKeys, objectValues, objectEntries, ccxt_then, ccxtruthy, concat, getOwnPropertyNames, ccxt_unCamelCaseProperties, ccxt_Object, ccxt_Object_prototype, getPrototypeOf, ccxt_getOwnPropertyNames, ccxt_toNumber, ccxt_in, ccxt_lt, ccxt_gt, ccxt_le, ccxt_ge, ccxt_isArray, ccxt_parseInt, ccxt_find, ccxt_splice, ccxt_indexOf
+using .functions: objectAssign, objectKeys, objectValues, objectEntries, ccxt_then, ccxtruthy, concat, getOwnPropertyNames, ccxt_unCamelCaseProperties, ccxt_Object, ccxt_Object_prototype, getPrototypeOf, ccxt_getOwnPropertyNames, ccxt_toNumber, ccxt_in, ccxt_lt, ccxt_gt, ccxt_le, ccxt_ge, ccxt_isArray, ccxt_parseInt, ccxt_find, ccxt_splice, ccxt_indexOf, setTimeout, clearTimeout, AbortController, abort
 export functions
 # JS `a + b` is overloaded: string concatenation when either operand is a
 # string, numeric addition otherwise. The transpiler emits `+` for both, so the

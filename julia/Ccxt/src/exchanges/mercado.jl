@@ -341,7 +341,16 @@ function describe(self::Mercado, )
 ))
 
 end
-function fetchMarkets(self::Mercado, params=Dict())
+"""
+retrieves data on all markets for mercado
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Mercado; params=Dict())
     response = Base.fetch(self.publicGetCoins(params));
     result = [];
     amountLimits = safeValue(self.options, "limits", Dict{Symbol, Any}());
@@ -411,7 +420,18 @@ function fetchMarkets(self::Mercado, params=Dict())
     return result
 
 end
-function fetchOrderBook(self::Mercado, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Mercado, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -423,8 +443,8 @@ function fetchOrderBook(self::Mercado, symbol, limit=nothing, params=Dict())
     return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing))
 
 end
-function parseTicker(self::Mercado, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Mercado, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     timestamp = safeTimestamp(ticker, "date");
     last_var = safeString(ticker, "last");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -448,10 +468,20 @@ function parseTicker(self::Mercado, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "vol"),
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Mercado, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Mercado, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -461,12 +491,12 @@ function fetchTicker(self::Mercado, symbol, params=Dict())
     );
     response = Base.fetch(self.publicGetCoinTicker(extend(request, params)));
     ticker = safeValue(response, "ticker", Dict{Symbol, Any}());
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
-function parseTrade(self::Mercado, trade, market=nothing)
+function parseTrade(self::Mercado, trade; market=nothing)
     timestamp = safeTimestamp2(trade, "date", "executed_timestamp");
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     id = safeString2(trade, "tid", "operation_id");
     type_var = nothing;
     side = safeString(trade, "type");
@@ -494,10 +524,22 @@ function parseTrade(self::Mercado, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Mercado, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Mercado, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -515,7 +557,7 @@ function fetchTrades(self::Mercado, symbol, since=nothing, limit=nothing, params
         method += "To";
     end
     response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
 function parseBalance(self::Mercado, response)
@@ -543,7 +585,16 @@ function parseBalance(self::Mercado, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Mercado, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Mercado; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -551,7 +602,21 @@ function fetchBalance(self::Mercado, params=Dict())
     return self.parseBalance(response)
 
 end
-function createOrder(self::Mercado, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Mercado, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -582,10 +647,21 @@ function createOrder(self::Mercado, symbol, type_var, side, amount, price=nothin
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("id") => string(get(get(get(response, Symbol("response_data"), nothing), Symbol("order"), nothing), Symbol("order_id"), nothing))
-), market)
+), market = market)
 
 end
-function cancelOrder(self::Mercado, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Mercado, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -599,8 +675,8 @@ function cancelOrder(self::Mercado, id, symbol=nothing, params=Dict())
     );
     response = Base.fetch(self.privatePostCancelOrder(extend(request, params)));
     responseData = safeValue(response, "response_data", Dict{Symbol, Any}());
-    order = self.safeDict(responseData, "order", Dict{Symbol, Any}());
-    return self.parseOrder(order, market)
+    order = self.safeDict(responseData, "order", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(order, market = market)
 
 end
 function parseOrderStatus(self::Mercado, status)
@@ -612,7 +688,7 @@ function parseOrderStatus(self::Mercado, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Mercado, order, market=nothing)
+function parseOrder(self::Mercado, order; market=nothing)
     id = safeString(order, "order_id");
     order_type = safeString(order, "order_type");
     side = nothing;
@@ -621,7 +697,7 @@ function parseOrder(self::Mercado, order, market=nothing)
     end
     status = self.parseOrderStatus(safeString(order, "status"));
     marketId = safeString(order, "coin_pair");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeTimestamp(order, "created_timestamp");
     fee = Dict{Symbol, Any}(
         Symbol("cost") => safeString(order, "fee"),
@@ -656,10 +732,21 @@ function parseOrder(self::Mercado, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => fee,
     Symbol("trades") => rawTrades
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Mercado, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Mercado, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -674,12 +761,25 @@ function fetchOrder(self::Mercado, id, symbol=nothing, params=Dict())
     response = Base.fetch(self.privatePostGetOrder(extend(request, params)));
     responseData = safeValue(response, "response_data", Dict{Symbol, Any}());
     order = self.safeDict(responseData, "order");
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function withdraw(self::Mercado, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Mercado, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -712,11 +812,11 @@ function withdraw(self::Mercado, code, amount, address, tag=nothing, params=Dict
     response = Base.fetch(self.privatePostWithdrawCoin(extend(request, params)));
     responseData = safeValue(response, "response_data", Dict{Symbol, Any}());
     withdrawal = self.safeDict(responseData, "withdrawal");
-    return self.parseTransaction(withdrawal, currency)
+    return self.parseTransaction(withdrawal, currency = currency)
 
 end
-function parseTransaction(self::Mercado, transaction, currency=nothing)
-    currency = self.safeCurrency(nothing, currency);
+function parseTransaction(self::Mercado, transaction; currency=nothing)
+    currency = self.safeCurrency(nothing, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("id") => safeString(transaction, "id"),
     Symbol("txid") => nothing,
@@ -741,11 +841,24 @@ function parseTransaction(self::Mercado, transaction, currency=nothing)
 )
 
 end
-function parseOHLCV(self::Mercado, ohlcv, market=nothing)
+function parseOHLCV(self::Mercado, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCV(self::Mercado, symbol, timeframe="15m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Mercado, symbol; timeframe="15m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -765,10 +878,22 @@ function fetchOHLCV(self::Mercado, symbol, timeframe="15m", since=nothing, limit
         request[Symbol("from")] = get(request, Symbol("to"), nothing) - (limit * self.parseTimeframe(timeframe));
     end
     response = Base.fetch(self.v4PublicNetGetCandles(extend(request, params)));
-    return self.parseTradingViewOHLCV(response, market, timeframe, since, limit)
+    return self.parseTradingViewOHLCV(response, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchOrders(self::Mercado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Mercado; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -781,11 +906,23 @@ function fetchOrders(self::Mercado, symbol=nothing, since=nothing, limit=nothing
     );
     response = Base.fetch(self.privatePostListOrders(extend(request, params)));
     responseData = safeValue(response, "response_data", Dict{Symbol, Any}());
-    orders = self.safeList(responseData, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(responseData, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Mercado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Mercado; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument")));
     end
@@ -799,11 +936,23 @@ function fetchOpenOrders(self::Mercado, symbol=nothing, since=nothing, limit=not
     );
     response = Base.fetch(self.privatePostListOrders(extend(request, params)));
     responseData = safeValue(response, "response_data", Dict{Symbol, Any}());
-    orders = self.safeList(responseData, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(responseData, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Mercado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Mercado; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -818,9 +967,9 @@ function fetchMyTrades(self::Mercado, symbol=nothing, since=nothing, limit=nothi
     response = Base.fetch(self.privatePostListOrders(extend(request, params)));
     responseData = safeValue(response, "response_data", Dict{Symbol, Any}());
     ordersRaw = safeValue(responseData, "orders", []);
-    orders = self.parseOrders(ordersRaw, market, since, limit);
+    orders = self.parseOrders(ordersRaw, market = market, since = since, limit = limit);
     trades = self.ordersToTrades(orders);
-    return self.filterBySymbolSinceLimit(trades, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(trades, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
 function ordersToTrades(self::Mercado, orders)
@@ -838,7 +987,7 @@ function ordersToTrades(self::Mercado, orders)
     return result
 
 end
-function sign(self::Mercado, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Mercado, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/");
     query = omit(params, self.extractParams(path));
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((api == "public"), (api == "v4Public")), (api == "v4PublicNet")))
@@ -887,87 +1036,87 @@ Base.getproperty(self::Mercado, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetCoins(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "coins", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "coins"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCoinOrderbook(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "{coin}/orderbook/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{coin}/orderbook/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCoinTicker(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "{coin}/ticker/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{coin}/ticker/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCoinTrades(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "{coin}/trades/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{coin}/trades/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCoinTradesFrom(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "{coin}/trades/{from}/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{coin}/trades/{from}/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCoinTradesFromTo(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "{coin}/trades/{from}/{to}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{coin}/trades/{from}/{to}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCoinDaySummaryYearMonthDay(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "{coin}/day-summary/{year}/{month}/{day}/", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{coin}/day-summary/{year}/{month}/{day}/"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelOrder(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "cancel_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cancel_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetAccountInfo(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "get_account_info", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_account_info"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOrder(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "get_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetWithdrawal(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "get_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "get_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostListSystemMessages(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "list_system_messages", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "list_system_messages"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostListOrders(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "list_orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "list_orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostListOrderbook(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "list_orderbook", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "list_orderbook"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPlaceBuyOrder(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "place_buy_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "place_buy_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPlaceSellOrder(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "place_sell_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "place_sell_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPlaceMarketBuyOrder(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "place_market_buy_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "place_market_buy_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPlaceMarketSellOrder(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "place_market_sell_order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "place_market_sell_order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawCoin(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "withdraw_coin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw_coin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v4PublicGetCoinCandle(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "{coin}/candle/", "v4Public", "GET", params, nothing, nothing, Dict())
+    return request(self, "{coin}/candle/"; api="v4Public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v4PublicNetGetCandles(self::Mercado, params=Dict(), context=Dict())
-    return request(self, "candles", "v4PublicNet", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles"; api="v4PublicNet", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Mercado(; kwargs...)
@@ -1031,3 +1180,193 @@ function Mercado(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Mercado_fetchMarkets() end
+"""
+retrieves data on all markets for mercado
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Mercado_fetchMarkets
+
+function __ccxt_doc_Mercado_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Mercado_fetchOrderBook
+
+function __ccxt_doc_Mercado_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Mercado_fetchTicker
+
+function __ccxt_doc_Mercado_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Mercado_fetchTrades
+
+function __ccxt_doc_Mercado_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Mercado_fetchBalance
+
+function __ccxt_doc_Mercado_createOrder() end
+"""
+create a trade order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mercado_createOrder
+
+function __ccxt_doc_Mercado_cancelOrder() end
+"""
+cancels an open order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mercado_cancelOrder
+
+function __ccxt_doc_Mercado_fetchOrder() end
+"""
+fetches information on an order made by the user
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mercado_fetchOrder
+
+function __ccxt_doc_Mercado_withdraw() end
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Mercado_withdraw
+
+function __ccxt_doc_Mercado_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Mercado_fetchOHLCV
+
+function __ccxt_doc_Mercado_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mercado_fetchOrders
+
+function __ccxt_doc_Mercado_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Mercado_fetchOpenOrders
+
+function __ccxt_doc_Mercado_fetchMyTrades() end
+"""
+fetch all trades made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Mercado_fetchMyTrades

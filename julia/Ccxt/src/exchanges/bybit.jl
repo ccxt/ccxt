@@ -2668,6 +2668,13 @@ function describe(self::Bybit, )
 ))
 
 end
+"""
+enables or disables demo trading mode
+see: https://bybit-exchange.github.io/docs/v5/demo
+
+# Arguments
+- `enable`::bool, optional: true if demo trading should be enabled, false otherwise
+"""
 function enableDemoTrading(self::Bybit, enable)
     if functions.ccxtruthy(self.isSandboxModeEnabled)
         throw(NotSupported(string(self.id, " demo trading does not support in sandbox environment")));
@@ -2688,8 +2695,8 @@ function nonce(self::Bybit, )
 
 end
 function addPaginationCursorToResult(self::Bybit, response)
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeListN(result, ["list", "rows", "data", "dataList"], []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeListN(result, ["list", "rows", "data", "dataList"], defaultValue = []);
     paginationCursor = safeString2(result, "nextPageCursor", "cursor");
     dataLength = length(data);
     if functions.ccxtruthy(@functions.ccxt_and((paginationCursor != nothing), (functions.ccxt_gt(dataLength, 0))))
@@ -2700,7 +2707,18 @@ function addPaginationCursorToResult(self::Bybit, response)
     return data
 
 end
-function isUnifiedEnabled(self::Bybit, params=Dict())
+"""
+returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+see: https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+see: https://bybit-exchange.github.io/docs/v5/account/account-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- [enableUnifiedMargin, enableUnifiedAccount]
+"""
+function isUnifiedEnabled(self::Bybit; params=Dict())
     enableUnifiedMargin = self.safeBool(self.options, "enableUnifiedMargin");
     enableUnifiedAccount = self.safeBool(self.options, "enableUnifiedAccount");
     if functions.ccxtruthy(@functions.ccxt_or(enableUnifiedMargin == nothing, enableUnifiedAccount == nothing))
@@ -2714,8 +2732,8 @@ function isUnifiedEnabled(self::Bybit, params=Dict())
         promises = Base.fetch(asyncmap(Base.fetch, rawPromises));
         response = get(promises, 1, nothing);
         accountInfo = get(promises, 2, nothing);
-        result = self.safeDict(response, "result", Dict{Symbol, Any}());
-        accountResult = self.safeDict(accountInfo, "result", Dict{Symbol, Any}());
+        result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+        accountResult = self.safeDict(accountInfo, "result", defaultValue = Dict{Symbol, Any}());
         self.options[Symbol("enableUnifiedMargin")] = safeInteger(result, "unified") == 1;
         self.options[Symbol("enableUnifiedAccount")] = safeInteger(result, "uta") == 1;
         self.options[Symbol("unifiedMarginStatus")] = safeInteger(accountResult, "unifiedMarginStatus", 6);
@@ -2723,7 +2741,17 @@ function isUnifiedEnabled(self::Bybit, params=Dict())
     return [get(self.options, Symbol("enableUnifiedMargin"), nothing), get(self.options, Symbol("enableUnifiedAccount"), nothing)]
 
 end
-function upgradeUnifiedTradeAccount(self::Bybit, params=Dict())
+"""
+upgrades the account to unified trade account *warning* this is irreversible
+see: https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- nothing
+"""
+function upgradeUnifiedTradeAccount(self::Bybit; params=Dict())
     return Base.fetch(self.privatePostV5AccountUpgradeToUta(params))
 
 end
@@ -2823,19 +2851,19 @@ function createExpiredOptionMarket(self::Bybit, symbol)
 )
 
 end
-function safeMarket(self::Bybit, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
+function safeMarket(self::Bybit; marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = @functions.ccxt_and((marketId != nothing), (@functions.ccxt_or((findfirst("-C", marketId) !== nothing), (findfirst("-P", marketId) !== nothing))));
     if functions.ccxtruthy(@functions.ccxt_and(isOption, (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
-    return safeMarket(self.parent, marketId, market, delimiter, marketType)
+    return safeMarket(self.parent, marketId = marketId, market = market, delimiter = delimiter, marketType = marketType)
 
 end
-function getBybitType(self::Bybit, method, market, params=Dict())
+function getBybitType(self::Bybit, method, market; params=Dict())
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams(method, market, params);
+    (type_var, params) = self.handleMarketTypeAndParams(method, market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams(method, market, params);
+    (subType, params) = self.handleSubTypeAndParams(method, market = market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or(type_var == "option", type_var == "spot"))
             return [type_var, params]
     end
@@ -2873,10 +2901,20 @@ function getCost(self::Bybit, symbol, cost)
     return cost
 
 end
-function fetchStatus(self::Bybit, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://bybit-exchange.github.io/docs/v5/system-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+"""
+function fetchStatus(self::Bybit; params=Dict())
     response = Base.fetch(self.publicGetV5SystemStatus(params));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    list = self.safeList(result, "list", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    list = self.safeList(result, "list", defaultValue = []);
     status = "ok";
     eta = nothing;
     url = nothing;
@@ -2904,21 +2942,41 @@ function fetchStatus(self::Bybit, params=Dict())
 )
 
 end
-function fetchTime(self::Bybit, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://bybit-exchange.github.io/docs/v5/market/time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Bybit; params=Dict())
     response = Base.fetch(self.publicGetV5MarketTime(params));
     return safeInteger(response, "time")
 
 end
-function fetchCurrencies(self::Bybit, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(false)))
+"""
+fetches all available currencies on an exchange
+see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bybit; params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(error = false)))
             return Dict{Symbol, Any}()
     end
     if functions.ccxtruthy(get(self.options, Symbol("enableDemoTrading"), nothing))
             return Dict{Symbol, Any}()
     end
     response = Base.fetch(self.privateGetV5AssetCoinQueryInfo(params));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
     return self.parseCurrencies(rows)
 
 end
@@ -2926,13 +2984,13 @@ function parseCurrency(self::Bybit, currency)
     currencyId = safeString(currency, "coin");
     code = self.safeCurrencyCode(currencyId);
     name = safeString(currency, "name");
-    chains = self.safeList(currency, "chains", []);
+    chains = self.safeList(currency, "chains", defaultValue = []);
     networks = Dict{Symbol, Any}();
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "chain");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("info") => chain,
@@ -2942,7 +3000,7 @@ function parseCurrency(self::Bybit, currency)
                 Symbol("deposit") => safeInteger(chain, "chainDeposit") == 1,
                 Symbol("withdraw") => safeInteger(chain, "chainWithdraw") == 1,
                 Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
-                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chain, "minAccuracy"))),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(chain, "minAccuracy"))),
                 Symbol("limits") => Dict{Symbol, Any}(
                     Symbol("withdraw") => Dict{Symbol, Any}(
                         Symbol("min") => self.safeNumber(chain, "withdrawMin"),
@@ -2986,7 +3044,17 @@ function parseCurrency(self::Bybit, currency)
 ))
 
 end
-function fetchMarkets(self::Bybit, params=Dict())
+"""
+retrieves data on all markets for bybit
+see: https://bybit-exchange.github.io/docs/v5/market/instrument
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bybit; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
@@ -2995,9 +3063,9 @@ function fetchMarkets(self::Bybit, params=Dict())
     defaultTypes = ["spot", "linear", "inverse", "option"];
     fetchMarketsOptions = self.safeDict(self.options, "fetchMarkets");
     if functions.ccxtruthy(fetchMarketsOptions != nothing)
-        types = self.safeList(fetchMarketsOptions, "types", defaultTypes);
+        types = self.safeList(fetchMarketsOptions, "types", defaultValue = defaultTypes);
     else
-        types = self.safeList(self.options, "fetchMarkets", defaultTypes);
+        types = self.safeList(self.options, "fetchMarkets", defaultValue = defaultTypes);
     end
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(types)))
@@ -3005,16 +3073,16 @@ function fetchMarkets(self::Bybit, params=Dict())
         if functions.ccxtruthy(marketType == "spot")
                         push!(promisesUnresolved, self.fetchSpotMarkets(params));
         elseif functions.ccxtruthy(marketType == "linear")
-            push!(promisesUnresolved, self.fetchFutureMarkets(Dict{Symbol, Any}(
+            push!(promisesUnresolved, self.fetchFutureMarkets(params = Dict{Symbol, Any}(
     Symbol("category") => "linear"
 )));
         else
             if functions.ccxtruthy(marketType == "inverse")
-                                push!(promisesUnresolved, self.fetchFutureMarkets(Dict{Symbol, Any}(
+                                push!(promisesUnresolved, self.fetchFutureMarkets(params = Dict{Symbol, Any}(
     Symbol("category") => "inverse"
 )));
             elseif functions.ccxtruthy(marketType == "option")
-                optionsCurrencies = self.safeList(fetchMarketsOptions, "options", ["BTC", "ETH", "SOL"]);
+                optionsCurrencies = self.safeList(fetchMarketsOptions, "options", defaultValue = ["BTC", "ETH", "SOL"]);
                 j = 0
                 while functions.ccxtruthy(functions.ccxt_lt(j, length(optionsCurrencies)))
                     currency = get(optionsCurrencies, j + 1, nothing);
@@ -3045,14 +3113,14 @@ function fetchSpotMarkets(self::Bybit, params)
     request = Dict{Symbol, Any}(
         Symbol("category") => "spot"
     );
-    usePrivateInstrumentsInfo = self.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
+    usePrivateInstrumentsInfo = self.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", defaultValue = false);
     if functions.ccxtruthy(usePrivateInstrumentsInfo)
         response = Base.fetch(self.privateGetV5MarketInstrumentsInfo(extend(request, params)));
     else
         response = Base.fetch(self.publicGetV5MarketInstrumentsInfo(extend(request, params)));
     end
-    responseResult = self.safeDict(response, "result", Dict{Symbol, Any}());
-    markets = self.safeList(responseResult, "list", []);
+    responseResult = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    markets = self.safeList(responseResult, "list", defaultValue = []);
     result = [];
     takerFee = self.parseNumber("0.001");
     makerFee = self.parseNumber("0.001");
@@ -3072,7 +3140,7 @@ function fetchSpotMarkets(self::Bybit, params)
         quotePrecision = self.safeNumber(lotSizeFilter, "quotePrecision");
         marginTrading = safeString(market, "marginTrading", "none");
         allowsMargin = marginTrading != "none";
-        push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -3100,7 +3168,7 @@ function fetchSpotMarkets(self::Bybit, params)
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
         Symbol("amount") => self.safeNumber(lotSizeFilter, "basePrecision"),
-        Symbol("price") => self.safeNumber(priceFilter, "tickSize", quotePrecision)
+        Symbol("price") => self.safeNumber(priceFilter, "tickSize", defaultNumber = quotePrecision)
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -3128,11 +3196,11 @@ function fetchSpotMarkets(self::Bybit, params)
     return result
 
 end
-function fetchFutureMarkets(self::Bybit, params=Dict())
+function fetchFutureMarkets(self::Bybit; params=Dict())
     params = extend(params, Dict{Symbol, Any}());
     params[Symbol("limit")] = 1000;
     preLaunchMarkets = [];
-    usePrivateInstrumentsInfo = self.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
+    usePrivateInstrumentsInfo = self.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", defaultValue = false);
     response = nothing;
     if functions.ccxtruthy(usePrivateInstrumentsInfo)
         response = Base.fetch(self.privateGetV5MarketInstrumentsInfo(params));
@@ -3141,11 +3209,11 @@ function fetchFutureMarkets(self::Bybit, params=Dict())
             Symbol("status") => "PreLaunch"
         )))];
         promises = Base.fetch(asyncmap(Base.fetch, linearPromises));
-        response = self.safeDict(promises, 0, Dict{Symbol, Any}());
-        preLaunchMarkets = self.safeDict(promises, 1, Dict{Symbol, Any}());
+        response = self.safeDict(promises, 0, defaultValue = Dict{Symbol, Any}());
+        preLaunchMarkets = self.safeDict(promises, 1, defaultValue = Dict{Symbol, Any}());
     end
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    markets = self.safeList(data, "list", []);
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    markets = self.safeList(data, "list", defaultValue = []);
     paginationCursor = safeString(data, "nextPageCursor");
     if functions.ccxtruthy(paginationCursor != nothing)
         while functions.ccxtruthy(paginationCursor != nothing)
@@ -3156,8 +3224,8 @@ function fetchFutureMarkets(self::Bybit, params=Dict())
             else
                 responseInner = Base.fetch(self.publicGetV5MarketInstrumentsInfo(params));
             end
-            dataNew = self.safeDict(responseInner, "result", Dict{Symbol, Any}());
-            rawMarkets = self.safeList(dataNew, "list", []);
+            dataNew = self.safeDict(responseInner, "result", defaultValue = Dict{Symbol, Any}());
+            rawMarkets = self.safeList(dataNew, "list", defaultValue = []);
             rawMarketsLength = length(rawMarkets);
             if functions.ccxtruthy(rawMarketsLength == 0)
                 break
@@ -3167,8 +3235,8 @@ function fetchFutureMarkets(self::Bybit, params=Dict())
         end
 
     end
-    preLaunchData = self.safeDict(preLaunchMarkets, "result", Dict{Symbol, Any}());
-    preLaunchMarketsList = self.safeList(preLaunchData, "list", []);
+    preLaunchData = self.safeDict(preLaunchMarkets, "result", defaultValue = Dict{Symbol, Any}());
+    preLaunchMarketsList = self.safeList(preLaunchData, "list", defaultValue = []);
     markets = arrayConcat(markets, preLaunchMarketsList);
     result = [];
     category = safeString(data, "category");
@@ -3199,9 +3267,9 @@ function fetchFutureMarkets(self::Bybit, params=Dict())
             settle = self.safeCurrencyCode(settleId);
         end
         symbol = string(base, "/", quote_var);
-        lotSizeFilter = self.safeDict(market, "lotSizeFilter", Dict{Symbol, Any}());
-        priceFilter = self.safeDict(market, "priceFilter", Dict{Symbol, Any}());
-        leverage = self.safeDict(market, "leverageFilter", Dict{Symbol, Any}());
+        lotSizeFilter = self.safeDict(market, "lotSizeFilter", defaultValue = Dict{Symbol, Any}());
+        priceFilter = self.safeDict(market, "priceFilter", defaultValue = Dict{Symbol, Any}());
+        leverage = self.safeDict(market, "leverageFilter", defaultValue = Dict{Symbol, Any}());
         status = safeString(market, "status");
         swap = @functions.ccxt_or(linearPerpetual, inversePerpetual);
         future = @functions.ccxt_or(inverseFutures, linearFutures);
@@ -3224,7 +3292,7 @@ function fetchFutureMarkets(self::Bybit, params=Dict())
             symbol = string(symbol, "-", self.yymmdd(expiry));
         end
         contractSize = functions.ccxtruthy(inverse) ? self.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty") : self.parseNumber("1");
-        parsedMarket = self.safeMarketStructure(Dict{Symbol, Any}(
+        parsedMarket = self.safeMarketStructure(market = Dict{Symbol, Any}(
             Symbol("id") => id,
             Symbol("symbol") => symbol,
             Symbol("base") => base,
@@ -3243,8 +3311,8 @@ function fetchFutureMarkets(self::Bybit, params=Dict())
             Symbol("contract") => true,
             Symbol("linear") => linear,
             Symbol("inverse") => inverse,
-            Symbol("taker") => self.safeNumber(market, "takerFee", self.parseNumber("0.0006")),
-            Symbol("maker") => self.safeNumber(market, "makerFee", self.parseNumber("0.0001")),
+            Symbol("taker") => self.safeNumber(market, "takerFee", defaultNumber = self.parseNumber("0.0006")),
+            Symbol("maker") => self.safeNumber(market, "makerFee", defaultNumber = self.parseNumber("0.0001")),
             Symbol("contractSize") => contractSize,
             Symbol("expiry") => expiry,
             Symbol("expiryDatetime") => expiryDatetime,
@@ -3285,14 +3353,14 @@ function fetchOptionMarkets(self::Bybit, params)
     request = Dict{Symbol, Any}(
         Symbol("category") => "option"
     );
-    usePrivateInstrumentsInfo = self.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
+    usePrivateInstrumentsInfo = self.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", defaultValue = false);
     if functions.ccxtruthy(usePrivateInstrumentsInfo)
         response = Base.fetch(self.privateGetV5MarketInstrumentsInfo(extend(request, params)));
     else
         response = Base.fetch(self.publicGetV5MarketInstrumentsInfo(extend(request, params)));
     end
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    markets = self.safeList(data, "list", []);
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    markets = self.safeList(data, "list", defaultValue = []);
     loadAllOptions = self.handleOption("fetchMarkets", "loadAllOptions");
     if functions.ccxtruthy(loadAllOptions)
         request[Symbol("limit")] = 1000;
@@ -3306,8 +3374,8 @@ function fetchOptionMarkets(self::Bybit, params)
                 else
                     responseInner = Base.fetch(self.publicGetV5MarketInstrumentsInfo(extend(request, params)));
                 end
-                dataNew = self.safeDict(responseInner, "result", Dict{Symbol, Any}());
-                rawMarkets = self.safeList(dataNew, "list", []);
+                dataNew = self.safeDict(responseInner, "result", defaultValue = Dict{Symbol, Any}());
+                rawMarkets = self.safeList(dataNew, "list", defaultValue = []);
                 rawMarketsLength = length(rawMarkets);
                 if functions.ccxtruthy(rawMarketsLength == 0)
                     break
@@ -3329,8 +3397,8 @@ function fetchOptionMarkets(self::Bybit, params)
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
         settle = self.safeCurrencyCode(settleId);
-        lotSizeFilter = self.safeDict(market, "lotSizeFilter", Dict{Symbol, Any}());
-        priceFilter = self.safeDict(market, "priceFilter", Dict{Symbol, Any}());
+        lotSizeFilter = self.safeDict(market, "lotSizeFilter", defaultValue = Dict{Symbol, Any}());
+        priceFilter = self.safeDict(market, "priceFilter", defaultValue = Dict{Symbol, Any}());
         status = safeString(market, "status");
         expiry = safeInteger(market, "deliveryTime");
         if functions.ccxtruthy(id == nothing)
@@ -3343,7 +3411,7 @@ function fetchOptionMarkets(self::Bybit, params)
         isInverse = base == settle;
         loadExpiredOptions = self.handleOption("fetchMarkets", "loadExpiredOptions");
         if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(isActive, loadAllOptions), loadExpiredOptions))
-                        push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
+                        push!(result, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var, ":", settle, "-", self.yymmdd(expiry), "-", strike, "-", optionLetter),
     Symbol("base") => base,
@@ -3363,8 +3431,8 @@ function fetchOptionMarkets(self::Bybit, params)
     Symbol("contract") => true,
     Symbol("linear") => !functions.ccxtruthy(isInverse),
     Symbol("inverse") => isInverse,
-    Symbol("taker") => self.safeNumber(market, "takerFee", self.parseNumber("0.0006")),
-    Symbol("maker") => self.safeNumber(market, "makerFee", self.parseNumber("0.0001")),
+    Symbol("taker") => self.safeNumber(market, "takerFee", defaultNumber = self.parseNumber("0.0006")),
+    Symbol("maker") => self.safeNumber(market, "makerFee", defaultNumber = self.parseNumber("0.0001")),
     Symbol("contractSize") => self.parseNumber("1"),
     Symbol("expiry") => expiry,
     Symbol("expiryDatetime") => self.iso8601(expiry),
@@ -3401,13 +3469,13 @@ function fetchOptionMarkets(self::Bybit, params)
     return result
 
 end
-function parseTicker(self::Bybit, ticker, market=nothing)
+function parseTicker(self::Bybit, ticker; market=nothing)
     isSpot = safeString(ticker, "openInterestValue") == nothing;
     timestamp = safeInteger(ticker, "time");
     marketId = safeString(ticker, "symbol");
     type_var = functions.ccxtruthy(isSpot) ? "spot" : "contract";
-    market = self.safeMarket(marketId, market, nothing, type_var);
-    symbol = self.safeSymbol(marketId, market, nothing, type_var);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = type_var);
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = type_var);
     last_var = safeString(ticker, "lastPrice");
     open = safeString(ticker, "prevPrice24h");
     percentage = safeString(ticker, "price24hPcnt");
@@ -3441,10 +3509,21 @@ function parseTicker(self::Bybit, ticker, market=nothing)
     Symbol("markPrice") => safeString(ticker, "markPrice"),
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bybit, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bybit, symbol; params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchTicker() requires a symbol argument")));
     end
@@ -3456,16 +3535,29 @@ function fetchTicker(self::Bybit, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     category = nothing;
-    (category, params) = self.getBybitType("fetchTicker", market, params);
+    (category, params) = self.getBybitType("fetchTicker", market, params = params);
     request[Symbol("category")] = category;
     response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    tickers = self.safeList(result, "list", []);
-    rawTicker = self.safeDict(tickers, 0, Dict{Symbol, Any}());
-    return self.parseTicker(rawTicker, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    tickers = self.safeList(result, "list", defaultValue = []);
+    rawTicker = self.safeDict(tickers, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(rawTicker, market = market)
 
 end
-function fetchTickers(self::Bybit, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `symbols`::array: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: *contract only* 'linear', 'inverse'
+- `params.baseCoin`::string, optional: *option only* base coin, default is 'BTC'
+
+# Returns
+- an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bybit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3474,7 +3566,7 @@ function fetchTickers(self::Bybit, symbols=nothing, params=Dict())
     parsedSymbols = nothing;
     if functions.ccxtruthy(symbols != nothing)
         parsedSymbols = [];
-        marketTypeInfo = self.handleMarketTypeAndParams("fetchTickers", nothing, params);
+        marketTypeInfo = self.handleMarketTypeAndParams("fetchTickers", market = nothing, params = params);
         defaultType = get(marketTypeInfo, 1, nothing);
         currentType = nothing;
         i = 0
@@ -3482,7 +3574,7 @@ function fetchTickers(self::Bybit, symbols=nothing, params=Dict())
             symbol = get(symbols, i + 1, nothing);
             isExchangeSpecificSymbol = (findfirst("/", symbol) === nothing);
             if functions.ccxtruthy(isExchangeSpecificSymbol)
-                market = self.safeMarket(symbol, nothing, nothing, defaultType);
+                market = self.safeMarket(marketId = symbol, market = nothing, delimiter = nothing, marketType = defaultType);
             else
                 market = self.market(symbol);
             end
@@ -3507,7 +3599,7 @@ function fetchTickers(self::Bybit, symbols=nothing, params=Dict())
     end
     request = Dict{Symbol, Any}();
     category = nothing;
-    (category, params) = self.getBybitType("fetchTickers", market, params);
+    (category, params) = self.getBybitType("fetchTickers", market, params = params);
     request[Symbol("category")] = category;
     if functions.ccxtruthy(category == "option")
         request[Symbol("category")] = "option";
@@ -3517,22 +3609,54 @@ function fetchTickers(self::Bybit, symbols=nothing, params=Dict())
         request[Symbol("baseCoin")] = code;
     end
     response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    tickerList = self.safeList(result, "list", []);
-    return self.parseTickers(tickerList, parsedSymbols)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    tickerList = self.safeList(result, "list", defaultValue = []);
+    return self.parseTickers(tickerList, symbols = parsedSymbols)
 
 end
-function fetchBidsAsks(self::Bybit, symbols=nothing, params=Dict())
-    return Base.fetch(self.fetchTickers(symbols, params))
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: *contract only* 'linear', 'inverse'
+- `params.baseCoin`::string, optional: *option only* base coin, default is 'BTC'
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchBidsAsks(self::Bybit; symbols=nothing, params=Dict())
+    return Base.fetch(self.fetchTickers(symbols = symbols, params = params))
 
 end
-function parseOHLCV(self::Bybit, ohlcv, market=nothing)
+function parseOHLCV(self::Bybit, ohlcv; market=nothing)
     isInverse = self.safeBool(market, "inverse");
     volumeIndex = functions.ccxtruthy((isInverse)) ? 6 : 5;
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, volumeIndex)]
 
 end
-function fetchOHLCV(self::Bybit, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://bybit-exchange.github.io/docs/v5/market/kline
+see: https://bybit-exchange.github.io/docs/v5/market/mark-kline
+see: https://bybit-exchange.github.io/docs/v5/market/index-kline
+see: https://bybit-exchange.github.io/docs/v5/market/preimum-index-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bybit, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOHLCV() requires a symbol argument")));
     end
@@ -3542,7 +3666,7 @@ function fetchOHLCV(self::Bybit, symbol, timeframe="1m", since=nothing, limit=no
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 1000))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -3587,21 +3711,21 @@ function fetchOHLCV(self::Bybit, symbol, timeframe="1m", since=nothing, limit=no
 
         end
     end
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    ohlcvs = self.safeList(result, "list", []);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    ohlcvs = self.safeList(result, "list", defaultValue = []);
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseFundingRate(self::Bybit, ticker, market=nothing)
+function parseFundingRate(self::Bybit, ticker; market=nothing)
     timestamp = safeInteger(ticker, "timestamp");
     ticker = omit(ticker, "timestamp");
     marketId = safeString(ticker, "symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, "swap");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap");
     fundingRate = self.safeNumber(ticker, "fundingRate");
     fundingTimestamp = safeInteger(ticker, "nextFundingTime");
     markPrice = self.safeNumber(ticker, "markPrice");
     indexPrice = self.safeNumber(ticker, "indexPrice");
-    info = self.safeDict(self.safeMarket(marketId, market, nothing, "swap"), "info");
+    info = self.safeDict(self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "swap"), "info");
     fundingInterval = safeInteger(info, "fundingInterval");
     intervalString = nothing;
     if functions.ccxtruthy(fundingInterval != nothing)
@@ -3630,14 +3754,25 @@ function parseFundingRate(self::Bybit, ticker, market=nothing)
 )
 
 end
-function fetchFundingRates(self::Bybit, symbols=nothing, params=Dict())
+"""
+fetches funding rates for multiple markets
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `symbols`::array: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRates(self::Bybit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = nothing;
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
-        symbols = self.marketSymbols(symbols);
+        symbols = self.marketSymbols(symbols = symbols);
         market = self.market(get(symbols, 1, nothing));
         symbolsLength = length(symbols);
         if functions.ccxtruthy(symbolsLength == 1)
@@ -3645,27 +3780,42 @@ function fetchFundingRates(self::Bybit, symbols=nothing, params=Dict())
         end
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchFundingRates", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchFundingRates", market = market, params = params);
     if functions.ccxtruthy(type_var != "swap")
         throw(NotSupported(string(self.id, " fetchFundingRates() does not support ", type_var, " markets")));
     else
         subType = nothing;
-        (subType, params) = self.handleSubTypeAndParams("fetchFundingRates", market, params, "linear");
+        (subType, params) = self.handleSubTypeAndParams("fetchFundingRates", market = market, params = params, defaultValue = "linear");
         request[Symbol("category")] = subType;
     end
     response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    tickerList = self.safeList(data, "list", []);
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    tickerList = self.safeList(data, "list", defaultValue = []);
     timestamp = safeInteger(response, "time");
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickerList)))
         tickerList[i + 1][Symbol("timestamp")] = timestamp;
         i += 1
     end
-    return self.parseFundingRates(tickerList, symbols)
+    return self.parseFundingRates(tickerList, symbols = symbols)
 
 end
-function fetchFundingRateHistory(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -3675,7 +3825,7 @@ function fetchFundingRateHistory(self::Bybit, symbol=nothing, since=nothing, lim
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, params, 200))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 200))
     end
     if functions.ccxtruthy(limit == nothing)
         limit = 200;
@@ -3688,7 +3838,7 @@ function fetchFundingRateHistory(self::Bybit, symbol=nothing, since=nothing, lim
     symbol = get(market, Symbol("symbol"), nothing);
     request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchFundingRateHistory", market, params);
+    (type_var, params) = self.getBybitType("fetchFundingRateHistory", market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or(type_var == "spot", type_var == "option"))
         throw(NotSupported(string(self.id, " fetchFundingRateHistory() only support linear and inverse market")));
     end
@@ -3713,14 +3863,14 @@ function fetchFundingRateHistory(self::Bybit, symbol=nothing, since=nothing, lim
     response = Base.fetch(self.publicGetV5MarketFundingHistory(extend(request, params)));
     rates = [];
     result = self.safeDict(response, "result");
-    resultList = self.safeList(result, "list", []);
+    resultList = self.safeList(result, "list", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(resultList)))
         entry = get(resultList, i + 1, nothing);
         timestamp = safeInteger(entry, "fundingRateTimestamp");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
-    Symbol("symbol") => self.safeSymbol(safeString(entry, "symbol"), nothing, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(safeString(entry, "symbol"), market = nothing, delimiter = nothing, marketType = "swap"),
     Symbol("fundingRate") => self.safeNumber(entry, "fundingRate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
@@ -3728,10 +3878,10 @@ function fetchFundingRateHistory(self::Bybit, symbol=nothing, since=nothing, lim
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function parseTrade(self::Bybit, trade, market=nothing)
+function parseTrade(self::Bybit, trade; market=nothing)
     id = safeStringN(trade, ["execId", "id", "tradeId"]);
     marketId = safeString(trade, "symbol");
     marketType = functions.ccxtruthy((ccxt_in("createType", trade))) ? "contract" : "spot";
@@ -3742,7 +3892,7 @@ function parseTrade(self::Bybit, trade, market=nothing)
     if functions.ccxtruthy(market != nothing)
         marketType = get(market, Symbol("type"), nothing);
     end
-    market = self.safeMarket(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
     symbol = get(market, Symbol("symbol"), nothing);
     amountString = safeStringN(trade, ["execQty", "orderQty", "size"]);
     priceString = safeStringN(trade, ["execPrice", "orderPrice", "price"]);
@@ -3818,10 +3968,25 @@ function parseTrade(self::Bybit, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bybit, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://bybit-exchange.github.io/docs/v5/market/recent-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bybit, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchTrades() requires a symbol argument")));
     end
@@ -3836,15 +4001,27 @@ function fetchTrades(self::Bybit, symbol, since=nothing, limit=nothing, params=D
         request[Symbol("limit")] = limit;
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchTrades", market, params);
+    (type_var, params) = self.getBybitType("fetchTrades", market, params = params);
     request[Symbol("category")] = type_var;
     response = Base.fetch(self.publicGetV5MarketRecentTrade(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    trades = self.safeList(result, "list", []);
-    return self.parseTrades(trades, market, since, limit)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    trades = self.safeList(result, "list", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchOrderBook(self::Bybit, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://bybit-exchange.github.io/docs/v5/market/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bybit, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrderBook() requires a symbol argument")));
     end
@@ -3873,9 +4050,9 @@ function fetchOrderBook(self::Bybit, symbol, limit=nothing, params=Dict())
     end
     request[Symbol("limit")] = functions.ccxtruthy((limit != nothing)) ? limit : defaultLimit;
     response = Base.fetch(self.publicGetV5MarketOrderbook(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(result, "ts");
-    return self.parseOrderBook(result, symbol, timestamp, "b", "a")
+    return self.parseOrderBook(result, symbol, timestamp = timestamp, bidsKey = "b", asksKey = "a")
 
 end
 function parseBalance(self::Bybit, response)
@@ -3885,7 +4062,7 @@ function parseBalance(self::Bybit, response)
         Symbol("timestamp") => timestamp,
         Symbol("datetime") => self.iso8601(timestamp)
     );
-    responseResult = self.safeDict(response, "result", Dict{Symbol, Any}());
+    responseResult = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     currencyList = self.safeListN(responseResult, ["loanAccountList", "list", "balance"]);
     if functions.ccxtruthy(currencyList == nothing)
         code = "USDC";
@@ -3899,7 +4076,7 @@ function parseBalance(self::Bybit, response)
             entry = get(currencyList, i + 1, nothing);
             accountType = safeString(entry, "accountType");
             if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(accountType == "UNIFIED", accountType == "CONTRACT"), accountType == "SPOT"))
-                coins = self.safeList(entry, "coin", []);
+                coins = self.safeList(entry, "coin", defaultValue = []);
                 j = 0
                 while functions.ccxtruthy(functions.ccxt_lt(j, length(coins)))
                     account = self.account();
@@ -3951,7 +4128,20 @@ function parseBalance(self::Bybit, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bybit, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
+see: https://bybit-exchange.github.io/docs/v5/asset/all-balance
+see: https://bybit-exchange.github.io/docs/v5/account/wallet-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: wallet type, ['spot', 'swap', 'funding']
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bybit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3959,9 +4149,9 @@ function fetchBalance(self::Bybit, params=Dict())
     (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchBalance", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchBalance", market = nothing, params = params);
     if functions.ccxtruthy(@functions.ccxt_or((type_var == "swap"), (type_var == "future")))
         type_var = subType;
     end
@@ -3986,10 +4176,10 @@ function fetchBalance(self::Bybit, params=Dict())
             type_var = "contract";
         end
     end
-    accountTypes = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountTypes = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     unifiedType = safeStringUpper(accountTypes, type_var, type_var);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params = params);
     if functions.ccxtruthy(@functions.ccxt_and(isSpot, (marginMode != nothing)))
         response = Base.fetch(self.privateGetV5SpotCrossMarginTradeAccount(extend(request, params)));
     elseif functions.ccxtruthy(isFunding)
@@ -4038,7 +4228,7 @@ function parseTimeInForce(self::Bybit, timeInForce)
     return safeString(timeInForces, timeInForce, timeInForce)
 
 end
-function parseOrder(self::Bybit, order, market=nothing)
+function parseOrder(self::Bybit, order; market=nothing)
     code = safeString(order, "code");
     if functions.ccxtruthy(code != nothing)
         if functions.ccxtruthy(code != "0")
@@ -4049,7 +4239,7 @@ function parseOrder(self::Bybit, order, market=nothing)
     Symbol("status") => "rejected",
     Symbol("id") => safeString(order, "orderId"),
     Symbol("clientOrderId") => safeString(order, "orderLinkId"),
-    Symbol("symbol") => self.safeSymbol(safeString(order, "symbol"), nothing, nothing, inferredMarketType)
+    Symbol("symbol") => self.safeSymbol(safeString(order, "symbol"), market = nothing, delimiter = nothing, marketType = inferredMarketType)
 ))
         end
     end
@@ -4061,7 +4251,7 @@ function parseOrder(self::Bybit, order, market=nothing)
     else
         marketType = functions.ccxtruthy(isContract) ? "contract" : "spot";
     end
-    market = self.safeMarket(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger2(order, "createdTime", "createdAt");
     marketUnit = safeString(order, "marketUnit");
@@ -4084,7 +4274,7 @@ function parseOrder(self::Bybit, order, market=nothing)
     rawStatus = safeString(order, "orderStatus");
     status = self.parseOrderStatus(rawStatus);
     fee = nothing;
-    cumFeeDetail = self.safeDict(order, "cumFeeDetail", Dict{Symbol, Any}());
+    cumFeeDetail = self.safeDict(order, "cumFeeDetail", defaultValue = Dict{Symbol, Any}());
     feeCoins = objectKeys(cumFeeDetail);
     feeCoinId = safeString(feeCoins, 0);
     if functions.ccxtruthy(feeCoinId != nothing)
@@ -4149,10 +4339,22 @@ function parseOrder(self::Bybit, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => fee,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function createMarketBuyOrderWithCost(self::Bybit, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://bybit-exchange.github.io/docs/v5/order/create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Bybit, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4163,10 +4365,22 @@ function createMarketBuyOrderWithCost(self::Bybit, symbol, cost, params=Dict())
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return Base.fetch(self.createOrder(symbol, "market", "buy", -1, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", -1, price = nothing, params = extend(req, params)))
 
 end
-function createMarketSellOrderWithCost(self::Bybit, symbol, cost, params=Dict())
+"""
+create a market sell order by providing the symbol and cost
+see: https://bybit-exchange.github.io/docs/v5/order/create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketSellOrderWithCost(self::Bybit, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4182,10 +4396,47 @@ function createMarketSellOrderWithCost(self::Bybit, symbol, cost, params=Dict())
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return Base.fetch(self.createOrder(symbol, "market", "sell", -1, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", "sell", -1, price = nothing, params = extend(req, params)))
 
 end
-function createOrder(self::Bybit, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://bybit-exchange.github.io/docs/v5/order/create-order
+see: https://bybit-exchange.github.io/docs/v5/position/trading-stop
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: "GTC", "IOC", "FOK"
+- `params.postOnly`::bool, optional: true or false whether the order is post-only
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.positionIdx`::string, optional: *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
+- `params.hedged`::bool, optional: *contracts only* true for hedged mode, false for one way mode, default is false
+- `params.isLeverage`::int, optional: *unified spot only* false then spot trading true then margin trading
+- `params.tpslMode`::string, optional: *contract only* 'Full' or 'Partial'
+- `params.mmp`::string, optional: *option only* market maker protection
+- `params.triggerDirection`::string, optional: *contract only* the direction for trigger orders, 'ascending' or 'descending'
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: The price at which a stop loss order is triggered at
+- `params.stopLossLimitPrice`::float, optional: The limit price for a stoploss order (only when used in OCO with takeProfitPrice)
+- `params.takeProfitPrice`::float, optional: The price at which a take profit order is triggered at
+- `params.takeProfitLimitPrice`::float, optional: The limit price for a takeprofit order (only when used in OCO combination with stopLossPrice)
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.trailingAmount`::string, optional: the quote amount to trail away from the current market price
+- `params.trailingTriggerPrice`::string, optional: the price to trigger a trailing order, default uses the price argument
+- `params.tradingStopEndpoint`::bool, optional: whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bybit, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4195,8 +4446,8 @@ function createOrder(self::Bybit, symbol, type_var, side, amount, price=nothing,
     isTrailingOrder = safeString2(params, "trailingAmount", "trailingStop") != nothing;
     isStopLossOrder = safeString(params, "stopLossPrice") != nothing;
     isTakeProfitOrder = safeString(params, "takeProfitPrice") != nothing;
-    orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price, params, enableUnifiedAccount);
-    switchToOco = @functions.ccxt_or((@functions.ccxt_and(isStopLossOrder, isTakeProfitOrder)), self.safeBool(params, "tradingStopEndpoint", false));
+    orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params, isUTA = enableUnifiedAccount);
+    switchToOco = @functions.ccxt_or((@functions.ccxt_and(isStopLossOrder, isTakeProfitOrder)), self.safeBool(params, "tradingStopEndpoint", defaultValue = false));
     defaultMethod = nothing;
     if functions.ccxtruthy(@functions.ccxt_and((@functions.ccxt_or(isTrailingOrder, switchToOco)), !functions.ccxtruthy(get(market, Symbol("spot"), nothing))))
         defaultMethod = "privatePostV5PositionTradingStop";
@@ -4204,17 +4455,17 @@ function createOrder(self::Bybit, symbol, type_var, side, amount, price=nothing,
         defaultMethod = "privatePostV5OrderCreate";
     end
     method = nothing;
-    (method, params) = self.handleOptionAndParams(params, "createOrder", "method", defaultMethod);
+    (method, params) = self.handleOptionAndParams(params, "createOrder", "method", defaultValue = defaultMethod);
     if functions.ccxtruthy(method == "privatePostV5PositionTradingStop")
         response = Base.fetch(self.privatePostV5PositionTradingStop(orderRequest));
     else
         response = Base.fetch(self.privatePostV5OrderCreate(orderRequest));
     end
-    order = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(order, market)
+    order = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(order, market = market)
 
 end
-function createOrderRequest(self::Bybit, symbol, type_var, side, amount, price=nothing, params=Dict(), isUTA=true)
+function createOrderRequest(self::Bybit, symbol, type_var, side, amount; price=nothing, params=Dict(), isUTA=true)
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -4227,7 +4478,7 @@ function createOrderRequest(self::Bybit, symbol, type_var, side, amount, price=n
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    hedged = self.safeBool(params, "hedged", false);
+    hedged = self.safeBool(params, "hedged", defaultValue = false);
     reduceOnly = self.safeBool(params, "reduceOnly");
     triggerPrice = safeValue2(params, "triggerPrice", "stopPrice");
     stopLossTriggerPrice = safeValue(params, "stopLossPrice");
@@ -4245,7 +4496,7 @@ function createOrderRequest(self::Bybit, symbol, type_var, side, amount, price=n
     isMarket = lowerCaseType == "market";
     isLimit = lowerCaseType == "limit";
     isBuy = side == "buy";
-    switchToOco = @functions.ccxt_or((@functions.ccxt_and(isStopLossOrder, isTakeProfitOrder)), self.safeBool(params, "tradingStopEndpoint", false));
+    switchToOco = @functions.ccxt_or((@functions.ccxt_and(isStopLossOrder, isTakeProfitOrder)), self.safeBool(params, "tradingStopEndpoint", defaultValue = false));
     defaultMethod = nothing;
     if functions.ccxtruthy(@functions.ccxt_or(isTrailingOrder, switchToOco))
         defaultMethod = "privatePostV5PositionTradingStop";
@@ -4253,7 +4504,7 @@ function createOrderRequest(self::Bybit, symbol, type_var, side, amount, price=n
         defaultMethod = "privatePostV5OrderCreate";
     end
     method = nothing;
-    (method, params) = self.handleOptionAndParams(params, "createOrder", "method", defaultMethod);
+    (method, params) = self.handleOptionAndParams(params, "createOrder", "method", defaultValue = defaultMethod);
     endpointIsTradingStop = method == "privatePostV5PositionTradingStop";
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((price == nothing), (lowerCaseType == "limit")), !functions.ccxtruthy(endpointIsTradingStop)))
         throw(ArgumentsRequired(string(self.id, " createOrder requires a price argument for limit orders")));
@@ -4321,7 +4572,7 @@ function createOrderRequest(self::Bybit, symbol, type_var, side, amount, price=n
         request[Symbol("orderType")] = capitalize(lowerCaseType);
         timeInForce = safeStringLower(params, "timeInForce");
         postOnly = nothing;
-        (postOnly, params) = self.handlePostOnly(isMarket, timeInForce == "postonly", params);
+        (postOnly, params) = self.handlePostOnly(isMarket, timeInForce == "postonly", params = params);
         if functions.ccxtruthy(postOnly)
             request[Symbol("timeInForce")] = "PostOnly";
         elseif functions.ccxtruthy(timeInForce == "gtc")
@@ -4352,7 +4603,7 @@ function createOrderRequest(self::Bybit, symbol, type_var, side, amount, price=n
         end
     end
     category = nothing;
-    (category, params) = self.getBybitType("createOrderRequest", market, params);
+    (category, params) = self.getBybitType("createOrderRequest", market, params = params);
     request[Symbol("category")] = category;
     cost = safeString(params, "cost");
     params = omit(params, "cost");
@@ -4478,7 +4729,18 @@ function createOrderRequest(self::Bybit, symbol, type_var, side, amount, price=n
     return extend(request, params)
 
 end
-function createOrders(self::Bybit, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://bybit-exchange.github.io/docs/v5/order/batch-place
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Bybit, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4495,17 +4757,17 @@ function createOrders(self::Bybit, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, orderParams, isUta);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams, isUTA = isUta);
         delete!(orderRequest, :category);
         push!(ordersRequests, orderRequest);
         i += 1
     end
-    symbols = self.marketSymbols(orderSymbols, nothing, false, true, true);
+    symbols = self.marketSymbols(symbols = orderSymbols, type_var = nothing, allowEmpty = false, sameTypeOnly = true, sameSubTypeOnly = true);
     market = self.market(get(symbols, 1, nothing));
     unifiedMarginStatus = safeInteger(self.options, "unifiedMarginStatus", 6);
     category = nothing;
-    (category, params) = self.getBybitType("createOrders", market, params);
+    (category, params) = self.getBybitType("createOrders", market, params = params);
     if functions.ccxtruthy(@functions.ccxt_and((category == "inverse"), (functions.ccxt_lt(unifiedMarginStatus, 5))))
         throw(NotSupported(string(self.id, " createOrders does not allow inverse orders for non UTA2.0 account")));
     end
@@ -4514,10 +4776,10 @@ function createOrders(self::Bybit, orders, params=Dict())
         Symbol("request") => ordersRequests
     );
     response = Base.fetch(self.privatePostV5OrderCreateBatch(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "list", []);
-    retInfo = self.safeDict(response, "retExtInfo", Dict{Symbol, Any}());
-    codes = self.safeList(retInfo, "list", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "list", defaultValue = []);
+    retInfo = self.safeDict(response, "retExtInfo", defaultValue = Dict{Symbol, Any}());
+    codes = self.safeList(retInfo, "list", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(codes)))
         code = get(codes, i + 1, nothing);
@@ -4530,7 +4792,7 @@ function createOrders(self::Bybit, orders, params=Dict())
     return self.parseOrders(data)
 
 end
-function editOrderRequest(self::Bybit, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+function editOrderRequest(self::Bybit, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -4548,7 +4810,7 @@ function editOrderRequest(self::Bybit, id, symbol, type_var, side, amount=nothin
         request[Symbol("orderLinkId")] = clientOrderId;
     end
     category = nothing;
-    (category, params) = self.getBybitType("editOrderRequest", market, params);
+    (category, params) = self.getBybitType("editOrderRequest", market, params = params);
     request[Symbol("category")] = category;
     if functions.ccxtruthy(amount != nothing)
         request[Symbol("qty")] = self.getAmount(symbol, amount);
@@ -4594,7 +4856,36 @@ function editOrderRequest(self::Bybit, id, symbol, type_var, side, amount=nothin
     return request
 
 end
-function editOrder(self::Bybit, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://bybit-exchange.github.io/docs/v5/order/amend-order
+see: https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+see: https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: unique client order id
+- `params.triggerPrice`::float, optional: The price that a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: The price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price that a take profit order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.triggerBy`::string, optional: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+- `params.slTriggerBy`::string, optional: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+- `params.tpTriggerby`::string, optional: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Bybit, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4602,17 +4893,28 @@ function editOrder(self::Bybit, id, symbol, type_var, side, amount=nothing, pric
         throw(ArgumentsRequired(string(self.id, " editOrder() requires a symbol argument")));
     end
     market = self.market(symbol);
-    request = self.editOrderRequest(id, symbol, type_var, side, amount, price, params);
+    request = self.editOrderRequest(id, symbol, type_var, side, amount = amount, price = price, params = params);
     response = Base.fetch(self.privatePostV5OrderAmend(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("id") => safeString(result, "orderId"),
     Symbol("clientOrderId") => safeString(result, "orderLinkId")
-), market)
+), market = market)
 
 end
-function editOrders(self::Bybit, orders, params=Dict())
+"""
+edit a list of trade orders
+see: https://bybit-exchange.github.io/docs/v5/order/batch-amend
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrders(self::Bybit, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4628,17 +4930,17 @@ function editOrders(self::Bybit, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.editOrderRequest(id, symbol, type_var, side, amount, price, orderParams);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.editOrderRequest(id, symbol, type_var, side, amount = amount, price = price, params = orderParams);
         delete!(orderRequest, :category);
         push!(ordersRequests, orderRequest);
         i += 1
     end
-    orderSymbols = self.marketSymbols(orderSymbols, nothing, false, true, true);
+    orderSymbols = self.marketSymbols(symbols = orderSymbols, type_var = nothing, allowEmpty = false, sameTypeOnly = true, sameSubTypeOnly = true);
     market = self.market(get(orderSymbols, 1, nothing));
     unifiedMarginStatus = safeInteger(self.options, "unifiedMarginStatus", 6);
     category = nothing;
-    (category, params) = self.getBybitType("editOrders", market, params);
+    (category, params) = self.getBybitType("editOrders", market, params = params);
     if functions.ccxtruthy(@functions.ccxt_and((category == "inverse"), (functions.ccxt_lt(unifiedMarginStatus, 5))))
         throw(NotSupported(string(self.id, " editOrders does not allow inverse orders for non UTA2.0 account")));
     end
@@ -4647,10 +4949,10 @@ function editOrders(self::Bybit, orders, params=Dict())
         Symbol("request") => ordersRequests
     );
     response = Base.fetch(self.privatePostV5OrderAmendBatch(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "list", []);
-    retInfo = self.safeDict(response, "retExtInfo", Dict{Symbol, Any}());
-    codes = self.safeList(retInfo, "list", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "list", defaultValue = []);
+    retInfo = self.safeDict(response, "retExtInfo", defaultValue = Dict{Symbol, Any}());
+    codes = self.safeList(retInfo, "list", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(codes)))
         code = get(codes, i + 1, nothing);
@@ -4663,13 +4965,13 @@ function editOrders(self::Bybit, orders, params=Dict())
     return self.parseOrders(data)
 
 end
-function cancelOrderRequest(self::Bybit, id, symbol=nothing, params=Dict())
+function cancelOrderRequest(self::Bybit, id; symbol=nothing, params=Dict())
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-        isTrigger = self.safeBool2(params, "stop", "trigger", false);
+        isTrigger = self.safeBool2(params, "stop", "trigger", defaultValue = false);
         params = omit(params, ["stop", "trigger"]);
         request[Symbol("orderFilter")] = functions.ccxtruthy(isTrigger) ? "StopOrder" : "Order";
     end
@@ -4677,12 +4979,27 @@ function cancelOrderRequest(self::Bybit, id, symbol=nothing, params=Dict())
         request[Symbol("orderId")] = id;
     end
     category = nothing;
-    (category, params) = self.getBybitType("cancelOrderRequest", market, params);
+    (category, params) = self.getBybitType("cancelOrderRequest", market, params = params);
     request[Symbol("category")] = category;
     return extend(request, params)
 
 end
-function cancelOrder(self::Bybit, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://bybit-exchange.github.io/docs/v5/order/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *spot only* whether the order is a trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.orderFilter`::string, optional: *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bybit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -4690,13 +5007,26 @@ function cancelOrder(self::Bybit, id, symbol=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    requestExtended = self.cancelOrderRequest(id, symbol, params);
+    requestExtended = self.cancelOrderRequest(id, symbol = symbol, params = params);
     response = Base.fetch(self.privatePostV5OrderCancel(requestExtended));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(result, market = market)
 
 end
-function cancelOrders(self::Bybit, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Bybit, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -4710,12 +5040,12 @@ function cancelOrders(self::Bybit, ids, symbol=nothing, params=Dict())
         throw(NotSupported(string(self.id, " cancelOrders() supports UTA accounts only")));
     end
     category = nothing;
-    (category, params) = self.getBybitType("cancelOrders", market, params);
+    (category, params) = self.getBybitType("cancelOrders", market, params = params);
     if functions.ccxtruthy(category == "inverse")
         throw(NotSupported(string(self.id, " cancelOrders does not allow inverse orders")));
     end
     ordersRequests = [];
-    clientOrderIds = self.safeList2(params, "clientOrderIds", "clientOids", []);
+    clientOrderIds = self.safeList2(params, "clientOrderIds", "clientOids", defaultValue = []);
     params = omit(params, ["clientOrderIds", "clientOids"]);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(clientOrderIds)))
@@ -4738,12 +5068,24 @@ function cancelOrders(self::Bybit, ids, symbol=nothing, params=Dict())
         Symbol("request") => ordersRequests
     );
     response = Base.fetch(self.privatePostV5OrderCancelBatch(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    row = self.safeList(result, "list", []);
-    return self.parseOrders(row, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    row = self.safeList(result, "list", defaultValue = []);
+    return self.parseOrders(row, market = market)
 
 end
-function cancelAllOrdersAfter(self::Bybit, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://bybit-exchange.github.io/docs/v5/order/dcp
+
+# Arguments
+- `timeout`::float: time in milliseconds
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.product`::string, optional: OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Bybit, timeout; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4754,7 +5096,7 @@ function cancelAllOrdersAfter(self::Bybit, timeout, params=Dict())
         Symbol("timeWindow") => self.parseToInt(timeout / 1000)
     );
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("cancelAllOrdersAfter", nothing, params, "swap");
+    (type_var, params) = self.handleMarketTypeAndParams("cancelAllOrdersAfter", market = nothing, params = params, defaultValue = "swap");
     productMap = Dict{Symbol, Any}(
         Symbol("spot") => "SPOT",
         Symbol("swap") => "DERIVATIVES",
@@ -4766,7 +5108,18 @@ function cancelAllOrdersAfter(self::Bybit, timeout, params=Dict())
     return response
 
 end
-function cancelOrdersForSymbols(self::Bybit, orders, params=Dict())
+"""
+cancel multiple orders for multiple symbols
+see: https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+
+# Arguments
+- `orders`::array: list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrdersForSymbols(self::Bybit, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4783,7 +5136,7 @@ function cancelOrdersForSymbols(self::Bybit, orders, params=Dict())
         symbol = safeString(order, "symbol");
         market = self.market(symbol);
         currentCategory = nothing;
-        (currentCategory, params) = self.getBybitType("cancelOrders", market, params);
+        (currentCategory, params) = self.getBybitType("cancelOrders", market, params = params);
         if functions.ccxtruthy(currentCategory == "inverse")
             throw(NotSupported(string(self.id, " cancelOrdersForSymbols does not allow inverse orders")));
         end
@@ -4809,12 +5162,29 @@ function cancelOrdersForSymbols(self::Bybit, orders, params=Dict())
         Symbol("request") => ordersRequests
     );
     response = Base.fetch(self.privatePostV5OrderCancelBatch(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    row = self.safeList(result, "list", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    row = self.safeList(result, "list", defaultValue = []);
     return self.parseOrders(row)
 
 end
-function cancelAllOrders(self::Bybit, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://bybit-exchange.github.io/docs/v5/order/cancel-all
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.baseCoin`::string, optional: Base coin. Supports linear, inverse & option
+- `params.settleCoin`::string, optional: Settle coin. Supports linear, inverse & option
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bybit; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4827,7 +5197,7 @@ function cancelAllOrders(self::Bybit, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("cancelAllOrders", market, params);
+    (type_var, params) = self.getBybitType("cancelAllOrders", market, params = params);
     request[Symbol("category")] = type_var;
     if functions.ccxtruthy(@functions.ccxt_and((type_var == "option"), !functions.ccxtruthy(isUnifiedAccount)))
         throw(NotSupported(string(self.id, " cancelAllOrders() Normal Account not support ", type_var, " market")));
@@ -4839,23 +5209,35 @@ function cancelAllOrders(self::Bybit, symbol=nothing, params=Dict())
             request[Symbol("settleCoin")] = safeString(params, "settleCoin", defaultSettle);
         end
     end
-    isTrigger = self.safeBool2(params, "stop", "trigger", false);
+    isTrigger = self.safeBool2(params, "stop", "trigger", defaultValue = false);
     params = omit(params, ["stop", "trigger"]);
     if functions.ccxtruthy(isTrigger)
         request[Symbol("orderFilter")] = "StopOrder";
     end
     response = Base.fetch(self.privatePostV5OrderCancelAll(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     orders = self.safeList(result, "list");
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(orders)))
             return [self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response
 ))]
     end
-    return self.parseOrders(orders, market)
+    return self.parseOrders(orders, market = market)
 
 end
-function fetchOrderClassic(self::Bybit, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user *classic accounts only*
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrderClassic(self::Bybit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -4869,10 +5251,10 @@ function fetchOrderClassic(self::Bybit, id, symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    result = Base.fetch(self.fetchOrders(symbol, nothing, nothing, extend(request, params)));
+    result = Base.fetch(self.fetchOrders(symbol = symbol, since = nothing, limit = nothing, params = extend(request, params)));
     len = length(result);
     if functions.ccxtruthy(len == 0)
-        isTrigger = self.safeBool2(params, "trigger", "stop", false);
+        isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
         extra = functions.ccxtruthy(isTrigger) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
         throw(OrderNotFound(string("Order ", id, " was not found.", extra)));
     end
@@ -4882,14 +5264,27 @@ function fetchOrderClassic(self::Bybit, id, symbol=nothing, params=Dict())
     return safeValue(result, 0)
 
 end
-function fetchOrder(self::Bybit, id, symbol=nothing, params=Dict())
+"""
+*classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.acknowledged`::object, optional: to suppress the warning, set to true
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bybit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     if functions.ccxtruthy(!functions.ccxtruthy(isUnifiedAccount))
-            return Base.fetch(self.fetchOrderClassic(id, symbol, params))
+            return Base.fetch(self.fetchOrderClassic(id, symbol = symbol, params = params))
     end
     acknowledge = false;
     (acknowledge, params) = self.handleOptionAndParams(params, "fetchOrder", "acknowledged");
@@ -4898,46 +5293,66 @@ function fetchOrder(self::Bybit, id, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     marketType = nothing;
-    (marketType, params) = self.getBybitType("fetchOrder", market, params);
+    (marketType, params) = self.getBybitType("fetchOrder", market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("orderId") => id,
         Symbol("category") => marketType
     );
     isTrigger = nothing;
-    (isTrigger, params) = self.handleParamBool2(params, "trigger", "stop", false);
+    (isTrigger, params) = self.handleParamBool2(params, "trigger", "stop", defaultValue = false);
     if functions.ccxtruthy(isTrigger)
         request[Symbol("orderFilter")] = "StopOrder";
     end
     response = Base.fetch(self.privateGetV5OrderRealtime(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    innerList = self.safeList(result, "list", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    innerList = self.safeList(result, "list", defaultValue = []);
     innerListLength = length(innerList);
     if functions.ccxtruthy(innerListLength == 0)
         extra = functions.ccxtruthy(isTrigger) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
         throw(OrderNotFound(string("Order ", id, " was not found.", extra)));
     end
-    order = self.safeDict(innerList, 0, Dict{Symbol, Any}());
-    return self.parseOrder(order, market)
+    order = self.safeDict(innerList, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(order, market = market)
 
 end
-function fetchOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrders(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     res = Base.fetch(self.isUnifiedEnabled());
     enableUnifiedAccount = self.safeBool(res, 1);
     if functions.ccxtruthy(enableUnifiedAccount)
         throw(NotSupported(string(self.id, " fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders")));
     end
-    return Base.fetch(self.fetchOrdersClassic(symbol, since, limit, params))
+    return Base.fetch(self.fetchOrdersClassic(symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOrdersClassic(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user *classic accounts only*
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrdersClassic(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOrders", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -4946,12 +5361,12 @@ function fetchOrdersClassic(self::Bybit, symbol=nothing, since=nothing, limit=no
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchOrders", market, params);
+    (type_var, params) = self.getBybitType("fetchOrders", market, params = params);
     if functions.ccxtruthy(type_var == "spot")
         throw(NotSupported(string(self.id, " fetchOrders() is not supported for spot markets")));
     end
     request[Symbol("category")] = type_var;
-    isTrigger = self.safeBool2(params, "trigger", "stop", false);
+    isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     params = omit(params, ["trigger", "stop"]);
     if functions.ccxtruthy(isTrigger)
         request[Symbol("orderFilter")] = "StopOrder";
@@ -4970,20 +5385,37 @@ function fetchOrdersClassic(self::Bybit, symbol=nothing, since=nothing, limit=no
     end
     response = Base.fetch(self.privateGetV5OrderHistory(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
-    return self.parseOrders(data, market, since, limit)
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrder(self::Bybit, id, symbol=nothing, params=Dict())
+"""
+fetches information on a closed order made by the user
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching a closed trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrder(self::Bybit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    result = Base.fetch(self.fetchClosedOrders(symbol, nothing, nothing, extend(request, params)));
+    result = Base.fetch(self.fetchClosedOrders(symbol = symbol, since = nothing, limit = nothing, params = extend(request, params)));
     len = length(result);
     if functions.ccxtruthy(len == 0)
-        isTrigger = self.safeBool2(params, "trigger", "stop", false);
+        isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
         extra = functions.ccxtruthy(isTrigger) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
         throw(OrderNotFound(string("Order ", id, " was not found.", extra)));
     end
@@ -4993,17 +5425,36 @@ function fetchClosedOrder(self::Bybit, id, symbol=nothing, params=Dict())
     return safeValue(result, 0)
 
 end
-function fetchOpenOrder(self::Bybit, id, symbol=nothing, params=Dict())
+"""
+fetches information on an open order made by the user
+see: https://bybit-exchange.github.io/docs/v5/order/open-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching an open trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.baseCoin`::string, optional: Base coin. Supports linear, inverse & option
+- `params.settleCoin`::string, optional: Settle coin. Supports linear, inverse & option
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrder(self::Bybit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    result = Base.fetch(self.fetchOpenOrders(symbol, nothing, nothing, extend(request, params)));
+    result = Base.fetch(self.fetchOpenOrders(symbol = symbol, since = nothing, limit = nothing, params = extend(request, params)));
     len = length(result);
     if functions.ccxtruthy(len == 0)
-        isTrigger = self.safeBool2(params, "trigger", "stop", false);
+        isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
         extra = functions.ccxtruthy(isTrigger) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
         throw(OrderNotFound(string("Order ", id, " was not found.", extra)));
     end
@@ -5013,14 +5464,34 @@ function fetchOpenOrder(self::Bybit, id, symbol=nothing, params=Dict())
     return safeValue(result, 0)
 
 end
-function fetchCanceledAndClosedOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled and closed orders made by the user
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -5029,9 +5500,9 @@ function fetchCanceledAndClosedOrders(self::Bybit, symbol=nothing, since=nothing
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchCanceledAndClosedOrders", market, params);
+    (type_var, params) = self.getBybitType("fetchCanceledAndClosedOrders", market, params = params);
     request[Symbol("category")] = type_var;
-    isTrigger = self.safeBool2(params, "trigger", "stop", false);
+    isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     params = omit(params, ["trigger", "stop"]);
     if functions.ccxtruthy(isTrigger)
         request[Symbol("orderFilter")] = "StopOrder";
@@ -5050,37 +5521,98 @@ function fetchCanceledAndClosedOrders(self::Bybit, symbol=nothing, since=nothing
     end
     response = Base.fetch(self.privateGetV5OrderHistory(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
-    return self.parseOrders(data, market, since, limit)
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching closed trigger orders
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderStatus") => "Filled"
     );
-    return Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchCanceledOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderStatus") => "Cancelled"
     );
-    return Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchOpenOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://bybit-exchange.github.io/docs/v5/order/open-order
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching open trigger orders
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.baseCoin`::string, optional: Base coin. Supports linear, inverse & option
+- `params.settleCoin`::string, optional: Settle coin. Supports linear, inverse & option
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOpenOrders", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -5089,7 +5621,7 @@ function fetchOpenOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothi
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchOpenOrders", market, params);
+    (type_var, params) = self.getBybitType("fetchOpenOrders", market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or(type_var == "linear", type_var == "inverse"))
         baseCoin = safeString(params, "baseCoin");
         if functions.ccxtruthy(@functions.ccxt_and(symbol == nothing, baseCoin == nothing))
@@ -5099,7 +5631,7 @@ function fetchOpenOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothi
         end
     end
     request[Symbol("category")] = type_var;
-    isTrigger = self.safeBool2(params, "stop", "trigger", false);
+    isTrigger = self.safeBool2(params, "stop", "trigger", defaultValue = false);
     params = omit(params, ["stop", "trigger"]);
     if functions.ccxtruthy(isTrigger)
         request[Symbol("orderFilter")] = "StopOrder";
@@ -5109,10 +5641,24 @@ function fetchOpenOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothi
     end
     response = Base.fetch(self.privateGetV5OrderRealtime(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
-    return self.parseOrders(data, market, since, limit)
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchOrderTrades(self::Bybit, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://bybit-exchange.github.io/docs/v5/position/execution
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Bybit, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}();
     clientOrderId = safeString2(params, "clientOrderId", "orderLinkId");
     if functions.ccxtruthy(clientOrderId != nothing)
@@ -5121,17 +5667,33 @@ function fetchOrderTrades(self::Bybit, id, symbol=nothing, since=nothing, limit=
         request[Symbol("orderId")] = id;
     end
     params = omit(params, ["clientOrderId", "orderLinkId"]);
-    return Base.fetch(self.fetchMyTrades(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchMyTrades(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchMyTrades(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     request = Dict{Symbol, Any}(
         Symbol("execType") => "Trade"
@@ -5142,7 +5704,7 @@ function fetchMyTrades(self::Bybit, symbol=nothing, since=nothing, limit=nothing
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchMyTrades", market, params);
+    (type_var, params) = self.getBybitType("fetchMyTrades", market, params = params);
     request[Symbol("category")] = type_var;
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
@@ -5153,24 +5715,35 @@ function fetchMyTrades(self::Bybit, symbol=nothing, since=nothing, limit=nothing
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.privateGetV5ExecutionList(extend(request, params)));
     trades = self.addPaginationCursorToResult(response);
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseDepositAddress(self::Bybit, depositAddress, currency=nothing)
+function parseDepositAddress(self::Bybit, depositAddress; currency=nothing)
     address = safeString(depositAddress, "addressDeposit");
     tag = safeString(depositAddress, "tagDeposit");
     code = safeString(currency, "code");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(safeString(depositAddress, "chain"), code),
+    Symbol("network") => self.networkIdToCode(networkId = safeString(depositAddress, "chain"), currencyCode = code),
     Symbol("address") => address,
     Symbol("tag") => tag
 )
 
 end
-function fetchDepositAddressesByNetwork(self::Bybit, code, params=Dict())
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+function fetchDepositAddressesByNetwork(self::Bybit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5181,38 +5754,65 @@ function fetchDepositAddressesByNetwork(self::Bybit, code, params=Dict())
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("chainType")] = self.networkCodeToId(networkCode, code);
+        request[Symbol("chainType")] = self.networkCodeToId(networkCode, currencyCode = code);
     end
     response = Base.fetch(self.privateGetV5AssetDepositQueryAddress(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    chains = self.safeList(result, "chains", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    chains = self.safeList(result, "chains", defaultValue = []);
     coin = safeString(result, "coin");
     currencyFromResponse = self.currency(coin);
-    parsed = self.parseDepositAddresses(chains, [get(currencyFromResponse, Symbol("code"), nothing)], false, Dict{Symbol, Any}(
+    parsed = self.parseDepositAddresses(chains, codes = [get(currencyFromResponse, Symbol("code"), nothing)], indexed = false, params = Dict{Symbol, Any}(
         Symbol("currency") => get(currencyFromResponse, Symbol("code"), nothing)
     ));
     return indexBy(parsed, "network")
 
 end
-function fetchDepositAddress(self::Bybit, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bybit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     (networkCode, paramsOmited) = self.handleNetworkCodeAndParams(params);
-    indexedAddresses = Base.fetch(self.fetchDepositAddressesByNetwork(code, paramsOmited));
+    indexedAddresses = Base.fetch(self.fetchDepositAddressesByNetwork(code, params = paramsOmited));
     selectedNetworkCode = self.selectNetworkCodeFromUnifiedNetworks(get(currency, Symbol("code"), nothing), networkCode, indexedAddresses);
     return safeValue(indexedAddresses, selectedNetworkCode)
 
 end
-function fetchDeposits(self::Bybit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://bybit-exchange.github.io/docs/v5/asset/deposit-record
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for, default = 30 days before the current time
+- `limit`::int, optional: the maximum number of deposits structures to retrieve, default = 50, max = 50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch deposits for, default = 30 days after since EXCHANGE SPECIFIC PARAMETERS
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.cursor`::string, optional: used for pagination
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bybit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", symbol = code, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -5229,17 +5829,32 @@ function fetchDeposits(self::Bybit, code=nothing, since=nothing, limit=nothing, 
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.privateGetV5AssetDepositQueryRecord(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
-    return self.parseTransactions(data, currency, since, limit)
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Bybit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bybit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", symbol = code, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -5256,7 +5871,7 @@ function fetchWithdrawals(self::Bybit, code=nothing, since=nothing, limit=nothin
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.privateGetV5AssetWithdrawQueryRecord(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
-    return self.parseTransactions(data, currency, since, limit)
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
 function parseTransactionStatus(self::Bybit, status)
@@ -5277,9 +5892,9 @@ function parseTransactionStatus(self::Bybit, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Bybit, transaction, currency=nothing)
+function parseTransaction(self::Bybit, transaction; currency=nothing)
     currencyId = safeString(transaction, "coin");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeInteger2(transaction, "createTime", "successAt");
     updated = safeInteger(transaction, "updateTime");
     status = self.parseTransactionStatus(safeString(transaction, "status"));
@@ -5299,7 +5914,7 @@ function parseTransaction(self::Bybit, transaction, currency=nothing)
     Symbol("txid") => safeString(transaction, "txID"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("network") => self.networkIdToCode(safeString(transaction, "chain"), code),
+    Symbol("network") => self.networkIdToCode(networkId = safeString(transaction, "chain"), currencyCode = code),
     Symbol("address") => nothing,
     Symbol("addressTo") => toAddress,
     Symbol("addressFrom") => nothing,
@@ -5317,14 +5932,30 @@ function parseTransaction(self::Bybit, transaction, currency=nothing)
 )
 
 end
-function fetchLedger(self::Bybit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://bybit-exchange.github.io/docs/v5/account/transaction-log
+see: https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.subType`::string, optional: if inverse will use v5/account/contract-transaction-log
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Bybit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchLedger", symbol = code, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     request = Dict{Symbol, Any}();
     enableUnified = Base.fetch(self.isUnifiedEnabled());
@@ -5348,7 +5979,7 @@ function fetchLedger(self::Bybit, code=nothing, since=nothing, limit=nothing, pa
         request[Symbol("limit")] = limit;
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchLedger", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchLedger", market = nothing, params = params);
     if functions.ccxtruthy(get(enableUnified, 2, nothing))
         unifiedMarginStatus = safeInteger(self.options, "unifiedMarginStatus", 5);
         if functions.ccxtruthy(@functions.ccxt_and(subType == "inverse", (functions.ccxt_lt(unifiedMarginStatus, 5))))
@@ -5360,13 +5991,13 @@ function fetchLedger(self::Bybit, code=nothing, since=nothing, limit=nothing, pa
         response = Base.fetch(self.privateGetV5AccountContractTransactionLog(extend(request, params)));
     end
     data = self.addPaginationCursorToResult(response);
-    return self.parseLedger(data, currency, since, limit)
+    return self.parseLedger(data, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Bybit, item, currency=nothing)
+function parseLedgerEntry(self::Bybit, item; currency=nothing)
     currencyId = safeString2(item, "coin", "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     amountString = safeString2(item, "amount", "change");
     afterString = safeString2(item, "wallet_balance", "cashBalance");
     direction = functions.ccxtruthy(stringLt(amountString, "0")) ? "out" : "in";
@@ -5402,7 +6033,7 @@ function parseLedgerEntry(self::Bybit, item, currency=nothing)
         Symbol("currency") => code,
         Symbol("cost") => self.safeNumber(item, "fee")
     )
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Bybit, type_var)
@@ -5430,7 +6061,22 @@ function parseLedgerEntryType(self::Bybit, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function withdraw(self::Bybit, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://bybit-exchange.github.io/docs/v5/asset/withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bybit, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     accountType = nothing;
     accounts = Base.fetch(self.isUnifiedEnabled());
@@ -5442,7 +6088,7 @@ function withdraw(self::Bybit, code, amount, address, tag=nothing, params=Dict()
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("coin") => get(currency, Symbol("id"), nothing),
@@ -5455,16 +6101,27 @@ function withdraw(self::Bybit, code, amount, address, tag=nothing, params=Dict()
         request[Symbol("tag")] = tag;
     end
     (networkCode, query) = self.handleNetworkCodeAndParams(params);
-    networkId = self.networkCodeToId(networkCode, code);
+    networkId = self.networkCodeToId(networkCode, currencyCode = code);
     if functions.ccxtruthy(networkId != nothing)
         request[Symbol("chain")] =         uppercase(networkId);
     end
     response = Base.fetch(self.privatePostV5AssetWithdrawCreate(extend(request, query)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTransaction(result, currency)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(result, currency = currency)
 
 end
-function fetchPosition(self::Bybit, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://bybit-exchange.github.io/docs/v5/position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Bybit, symbol; params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchPosition() requires a symbol argument")));
     end
@@ -5477,27 +6134,43 @@ function fetchPosition(self::Bybit, symbol, params=Dict())
     );
     response = nothing;
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchPosition", market, params);
+    (type_var, params) = self.getBybitType("fetchPosition", market, params = params);
     request[Symbol("category")] = type_var;
     response = Base.fetch(self.privateGetV5PositionList(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    positions = self.safeList2(result, "list", "dataList", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    positions = self.safeList2(result, "list", "dataList", defaultValue = []);
     timestamp = safeInteger(response, "time");
-    first_var = self.safeDict(positions, 0, Dict{Symbol, Any}());
-    position = self.parsePosition(first_var, market);
+    first_var = self.safeDict(positions, 0, defaultValue = Dict{Symbol, Any}());
+    position = self.parsePosition(first_var, market = market);
     position[Symbol("timestamp")] = timestamp;
     position[Symbol("datetime")] = self.iso8601(timestamp);
     return position
 
 end
-function fetchPositions(self::Bybit, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://bybit-exchange.github.io/docs/v5/position
+
+# Arguments
+- `symbols`::array: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.baseCoin`::string, optional: Base coin. Supports linear, inverse & option
+- `params.settleCoin`::string, optional: Settle coin. Supports linear, inverse & option
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Bybit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchPositions", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchPositions", symbols, nothing, nothing, params, "nextPageCursor", "cursor", nothing, 200))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchPositions", symbol = symbols, since = nothing, limit = nothing, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 200))
     end
     symbol = nothing;
     if functions.ccxtruthy(@functions.ccxt_and((symbols != nothing), functions.ccxt_isArray(symbols)))
@@ -5507,7 +6180,7 @@ function fetchPositions(self::Bybit, symbols=nothing, params=Dict())
         elseif functions.ccxtruthy(symbolsLength == 1)
             symbol = get(symbols, 1, nothing);
         end
-        symbols = self.marketSymbols(symbols);
+        symbols = self.marketSymbols(symbols = symbols);
     elseif functions.ccxtruthy(symbols != nothing)
         symbol = symbols;
         symbols = [self.symbol(symbol)];
@@ -5520,7 +6193,7 @@ function fetchPositions(self::Bybit, symbols=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchPositions", market, params);
+    (type_var, params) = self.getBybitType("fetchPositions", market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or(type_var == "linear", type_var == "inverse"))
         baseCoin = safeString(params, "baseCoin");
         if functions.ccxtruthy(type_var == "linear")
@@ -5552,14 +6225,14 @@ function fetchPositions(self::Bybit, symbols=nothing, params=Dict())
         push!(results, self.parsePosition(rawPosition));
         i += 1
     end
-    return self.filterByArrayPositions(results, "symbol", symbols, false)
+    return self.filterByArrayPositions(results, "symbol", values = symbols, indexed = false)
 
 end
-function parsePosition(self::Bybit, position, market=nothing)
+function parsePosition(self::Bybit, position; market=nothing)
     closedSize = safeString(position, "closedSize");
     isHistory = (closedSize != nothing);
     contract = safeString(position, "symbol");
-    market = self.safeMarket(contract, market, nothing, "contract");
+    market = self.safeMarket(marketId = contract, market = market, delimiter = nothing, marketType = "contract");
     size_var = stringAbs(safeString2(position, "size", "qty"));
     side = safeString(position, "side");
     positionIdx = safeString(position, "positionIdx");
@@ -5600,7 +6273,7 @@ function parsePosition(self::Bybit, position, market=nothing)
     leverage = safeString(position, "leverage");
     if functions.ccxtruthy(liquidationPrice != nothing)
         if functions.ccxtruthy(get(market, Symbol("settle"), nothing) == "USDC")
-            price = functions.ccxtruthy(self.safeBool(self.options, "useMarkPriceForPositionCollateral", false)) ? markPrice : entryPrice;
+            price = functions.ccxtruthy(self.safeBool(self.options, "useMarkPriceForPositionCollateral", defaultValue = false)) ? markPrice : entryPrice;
             difference = stringAbs(stringSub(price, liquidationPrice));
             collateralString = stringAdd(stringAdd(stringMul(difference, size_var), maintenanceMarginString), unrealisedPnl);
         else
@@ -5655,28 +6328,53 @@ function parsePosition(self::Bybit, position, market=nothing)
 ))
 
 end
-function fetchLeverage(self::Bybit, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://bybit-exchange.github.io/docs/v5/position
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Bybit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    position = Base.fetch(self.fetchPosition(symbol, params));
-    return self.parseLeverage(position, market)
+    position = Base.fetch(self.fetchPosition(symbol, params = params));
+    return self.parseLeverage(position, market = market)
 
 end
-function parseLeverage(self::Bybit, leverage, market=nothing)
+function parseLeverage(self::Bybit, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
     leverageValue = safeInteger(leverage, "leverage");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => safeStringLower(leverage, "marginMode"),
     Symbol("longLeverage") => leverageValue,
     Symbol("shortLeverage") => leverageValue
 )
 
 end
-function setMarginMode(self::Bybit, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode (account) or trade mode (symbol)
+see: https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+see: https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+
+# Arguments
+- `marginMode`::string: account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::string, optional: the rate of leverage, is required if setting trade mode (symbol)
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Bybit, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5720,7 +6418,7 @@ function setMarginMode(self::Bybit, marginMode, symbol=nothing, params=Dict())
             response = Base.fetch(self.privatePostV5AccountSetMarginMode(extend(request, params)));
         else
             type_var = nothing;
-            (type_var, params) = self.getBybitType("setPositionMode", market, params);
+            (type_var, params) = self.getBybitType("setPositionMode", market, params = params);
             tradeMode = nothing;
             if functions.ccxtruthy(marginMode == "cross")
                 tradeMode = 0;
@@ -5763,7 +6461,21 @@ function setMarginMode(self::Bybit, marginMode, symbol=nothing, params=Dict())
     return response
 
 end
-function setLeverage(self::Bybit, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://bybit-exchange.github.io/docs/v5/position/leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.buyLeverage`::string, optional: leverage for buy side
+- `params.sellLeverage`::string, optional: leverage for sell side
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Bybit, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -5790,7 +6502,19 @@ function setLeverage(self::Bybit, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function setPositionMode(self::Bybit, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://bybit-exchange.github.io/docs/v5/position/position-mode
+
+# Arguments
+- `hedged`::bool:
+- `symbol`::string: used for unified account with inverse market
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Bybit, hedged; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5816,7 +6540,7 @@ function setPositionMode(self::Bybit, hedged, symbol=nothing, params=Dict())
         request[Symbol("category")] = functions.ccxtruthy(self.safeBool(market, "linear")) ? "linear" : "inverse";
     else
         type_var = nothing;
-        (type_var, params) = self.getBybitType("setPositionMode", market, params);
+        (type_var, params) = self.getBybitType("setPositionMode", market, params = params);
         request[Symbol("category")] = type_var;
     end
     params = omit(params, "type");
@@ -5824,7 +6548,7 @@ function setPositionMode(self::Bybit, hedged, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchDerivativesOpenInterestHistory(self::Bybit, symbol, timeframe="1h", since=nothing, limit=nothing, params=Dict())
+function fetchDerivativesOpenInterestHistory(self::Bybit, symbol; timeframe="1h", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5853,14 +6577,27 @@ function fetchDerivativesOpenInterestHistory(self::Bybit, symbol, timeframe="1h"
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetV5MarketOpenInterest(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     data = self.addPaginationCursorToResult(response);
     id = safeString(result, "symbol");
-    safeMarketObj = self.safeMarket(id, market, nothing, "contract");
-    return self.parseOpenInterestsHistory(data, safeMarketObj, since, limit)
+    safeMarketObj = self.safeMarket(marketId = id, market = market, delimiter = nothing, marketType = "contract");
+    return self.parseOpenInterestsHistory(data, market = safeMarketObj, since = since, limit = limit)
 
 end
-function fetchOpenInterest(self::Bybit, symbol, params=Dict())
+"""
+Retrieves the open interest of a derivative trading pair
+see: https://bybit-exchange.github.io/docs/v5/market/open-interest
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+- `params.interval`::string, optional: 5m, 15m, 30m, 1h, 4h, 1d
+- `params.category`::string, optional: "linear" or "inverse"
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Bybit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5882,14 +6619,29 @@ function fetchOpenInterest(self::Bybit, symbol, params=Dict())
         Symbol("category") => category
     );
     response = Base.fetch(self.publicGetV5MarketOpenInterest(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     id = safeString(result, "symbol");
-    safeMarketObj = self.safeMarket(id, market, nothing, "contract");
+    safeMarketObj = self.safeMarket(marketId = id, market = market, delimiter = nothing, marketType = "contract");
     data = self.addPaginationCursorToResult(response);
-    return self.parseOpenInterest(get(data, 1, nothing), safeMarketObj)
+    return self.parseOpenInterest(get(data, 1, nothing), market = safeMarketObj)
 
 end
-function fetchOpenInterestHistory(self::Bybit, symbol, timeframe="1h", since=nothing, limit=nothing, params=Dict())
+"""
+Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+see: https://bybit-exchange.github.io/docs/v5/market/open-interest
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `timeframe`::string: "5m", 15m, 30m, 1h, 4h, 1d
+- `since`::int, optional: Not used by Bybit
+- `limit`::int, optional: The number of open interest structures to return. Max 200, default 50
+- `params`::object, optional: Exchange specific parameters
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- An array of open interest structures
+"""
+function fetchOpenInterestHistory(self::Bybit, symbol; timeframe="1h", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(timeframe == "1m")
         throw(BadRequest(string(self.id, " fetchOpenInterestHistory cannot use the 1m timeframe")));
     end
@@ -5900,7 +6652,7 @@ function fetchOpenInterestHistory(self::Bybit, symbol, timeframe="1h", since=not
     if functions.ccxtruthy(paginate)
         params = omit(params, "paginate");
         params[Symbol("timeframe")] = timeframe;
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 200))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 200))
     end
     market = self.market(symbol);
     if functions.ccxtruthy(@functions.ccxt_or(get(market, Symbol("spot"), nothing), get(market, Symbol("option"), nothing)))
@@ -5912,10 +6664,10 @@ function fetchOpenInterestHistory(self::Bybit, symbol, timeframe="1h", since=not
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    return Base.fetch(self.fetchDerivativesOpenInterestHistory(symbol, timeframe, since, limit, params))
+    return Base.fetch(self.fetchDerivativesOpenInterestHistory(symbol, timeframe = timeframe, since = since, limit = limit, params = params))
 
 end
-function parseOpenInterest(self::Bybit, interest, market=nothing)
+function parseOpenInterest(self::Bybit, interest; market=nothing)
     timestamp = safeInteger(interest, "timestamp");
     openInterest = self.safeNumber2(interest, "open_interest", "openInterest");
     amount = functions.ccxtruthy(self.safeBool(market, "linear")) ? openInterest : nothing;
@@ -5927,10 +6679,21 @@ function parseOpenInterest(self::Bybit, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchCrossBorrowRate(self::Bybit, code, params=Dict())
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchCrossBorrowRate(self::Bybit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5940,19 +6703,19 @@ function fetchCrossBorrowRate(self::Bybit, code, params=Dict())
     );
     response = Base.fetch(self.privateGetV5SpotCrossMarginTradeLoanInfo(extend(request, params)));
     timestamp = safeInteger(response, "time");
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     data[Symbol("timestamp")] = timestamp;
-    return self.parseBorrowRate(data, currency)
+    return self.parseBorrowRate(data, currency = currency)
 
 end
-function parseBorrowRate(self::Bybit, info, currency=nothing)
+function parseBorrowRate(self::Bybit, info; currency=nothing)
     timestamp = safeInteger(info, "timestamp");
     currencyId = safeString2(info, "coin", "currency");
     hourlyBorrowRate = self.safeNumber(info, "hourlyBorrowRate");
     period = functions.ccxtruthy((hourlyBorrowRate != nothing)) ? 3600000 : 86400000;
     return Dict{Symbol, Any}(
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
-    Symbol("rate") => self.safeNumber(info, "interestRate", hourlyBorrowRate),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
+    Symbol("rate") => self.safeNumber(info, "interestRate", defaultNumber = hourlyBorrowRate),
     Symbol("period") => period,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -5960,19 +6723,47 @@ function parseBorrowRate(self::Bybit, info, currency=nothing)
 )
 
 end
-function fetchBorrowInterest(self::Bybit, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
+
+# Arguments
+- `code`::string: unified currency code
+- `symbol`::string: unified market symbol when fetch interest in isolated markets
+- `since`::float, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::float, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+function fetchBorrowInterest(self::Bybit; code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.privateGetV5SpotCrossMarginTradeAccount(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    rows = self.safeList(data, "loanAccountList", []);
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "loanAccountList", defaultValue = []);
     interest = self.parseBorrowInterests(rows);
-    return self.filterByCurrencySinceLimit(interest, code, since, limit)
+    return self.filterByCurrencySinceLimit(interest, code = code, since = since, limit = limit)
 
 end
-function fetchBorrowRateHistory(self::Bybit, code, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves a history of a currencies borrow interest rate at specific time slots
+see: https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: timestamp for the earliest borrow rate
+- `limit`::int, optional: the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchBorrowRateHistory(self::Bybit, code; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5992,11 +6783,11 @@ function fetchBorrowRateHistory(self::Bybit, code, since=nothing, limit=nothing,
     request[Symbol("endTime")] = endTime;
     response = Base.fetch(self.privateGetV5SpotMarginTradeInterestRateHistory(extend(request, params)));
     data = self.safeDict(response, "result");
-    rows = self.safeList(data, "list", []);
+    rows = self.safeList(data, "list", defaultValue = []);
     return self.parseBorrowRateHistory(rows, code, since, limit)
 
 end
-function parseBorrowInterest(self::Bybit, info, market=nothing)
+function parseBorrowInterest(self::Bybit, info; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => info,
     Symbol("symbol") => nothing,
@@ -6010,12 +6801,27 @@ function parseBorrowInterest(self::Bybit, info, market=nothing)
 )
 
 end
-function transfer(self::Bybit, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transferId`::string, optional: UUID, which is unique across the platform
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Bybit, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     transferId = safeString(params, "transferId", uuid());
-    accountTypes = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountTypes = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(accountTypes, fromAccount, fromAccount);
     toId = safeString(accountTypes, toAccount, toAccount);
     currency = self.currency(code);
@@ -6029,10 +6835,10 @@ function transfer(self::Bybit, code, amount, fromAccount, toAccount, params=Dict
     );
     response = Base.fetch(self.privatePostV5AssetTransferInterTransfer(extend(request, params)));
     timestamp = safeInteger(response, "time");
-    transfer = self.safeDict(response, "result", Dict{Symbol, Any}());
+    transfer = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     statusRaw = safeString2(response, "retCode", "retMsg");
     status = self.parseTransferStatus(statusRaw);
-    return extend(self.parseTransfer(transfer, currency), Dict{Symbol, Any}(
+    return extend(self.parseTransfer(transfer, currency = currency), Dict{Symbol, Any}(
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("amount") => self.parseNumber(amountToPrecision),
@@ -6042,14 +6848,29 @@ function transfer(self::Bybit, code, amount, fromAccount, toAccount, params=Dict
 ))
 
 end
-function fetchTransfers(self::Bybit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Bybit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransfers", symbol = code, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     currency = nothing;
     request = Dict{Symbol, Any}();
@@ -6066,10 +6887,22 @@ function fetchTransfers(self::Bybit, code=nothing, since=nothing, limit=nothing,
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.privateGetV5AssetTransferQueryInterTransferList(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
-    return self.parseTransfers(data, currency, since, limit)
+    return self.parseTransfers(data, currency = currency, since = since, limit = limit)
 
 end
-function borrowCrossMargin(self::Bybit, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://bybit-exchange.github.io/docs/v5/account/borrow
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowCrossMargin(self::Bybit, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6079,11 +6912,23 @@ function borrowCrossMargin(self::Bybit, code, amount, params=Dict())
         Symbol("amount") => self.currencyToPrecision(code, amount)
     );
     response = Base.fetch(self.privatePostV5AccountBorrow(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseMarginLoan(result, currency)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginLoan(result, currency = currency)
 
 end
-function repayCrossMargin(self::Bybit, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayCrossMargin(self::Bybit, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6093,18 +6938,18 @@ function repayCrossMargin(self::Bybit, code, amount, params=Dict())
         Symbol("amount") => numberToString(amount)
     );
     response = Base.fetch(self.privatePostV5AccountNoConvertRepay(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    transaction = self.parseMarginLoan(result, currency);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    transaction = self.parseMarginLoan(result, currency = currency);
     return extend(transaction, Dict{Symbol, Any}(
     Symbol("amount") => amount
 ))
 
 end
-function parseMarginLoan(self::Bybit, info, currency=nothing)
+function parseMarginLoan(self::Bybit, info; currency=nothing)
     currencyId = safeString(info, "coin");
     return Dict{Symbol, Any}(
     Symbol("id") => nothing,
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(info, "amount"),
     Symbol("symbol") => nothing,
     Symbol("timestamp") => nothing,
@@ -6122,12 +6967,12 @@ function parseTransferStatus(self::Bybit, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransfer(self::Bybit, transfer, currency=nothing)
+function parseTransfer(self::Bybit, transfer; currency=nothing)
     currencyId = safeString(transfer, "coin");
     timestamp = safeInteger(transfer, "timestamp");
     fromAccountId = safeString(transfer, "fromAccountType");
     toAccountId = safeString(transfer, "toAccountType");
-    accountIds = self.safeDict(self.options, "accountsById", Dict{Symbol, Any}());
+    accountIds = self.safeDict(self.options, "accountsById", defaultValue = Dict{Symbol, Any}());
     fromAccount = safeString(accountIds, fromAccountId, fromAccountId);
     toAccount = safeString(accountIds, toAccountId, toAccountId);
     return Dict{Symbol, Any}(
@@ -6135,7 +6980,7 @@ function parseTransfer(self::Bybit, transfer, currency=nothing)
     Symbol("id") => safeString(transfer, "transferId"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(transfer, "amount"),
     Symbol("fromAccount") => fromAccount,
     Symbol("toAccount") => toAccount,
@@ -6143,7 +6988,7 @@ function parseTransfer(self::Bybit, transfer, currency=nothing)
 )
 
 end
-function fetchDerivativesMarketLeverageTiers(self::Bybit, symbol, params=Dict())
+function fetchDerivativesMarketLeverageTiers(self::Bybit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6159,10 +7004,21 @@ function fetchDerivativesMarketLeverageTiers(self::Bybit, symbol, params=Dict())
     response = Base.fetch(self.publicGetV5MarketRiskLimit(extend(request, params)));
     result = self.safeDict(response, "result");
     tiers = self.safeList(result, "list");
-    return self.parseMarketLeverageTiers(tiers, market)
+    return self.parseMarketLeverageTiers(tiers, market = market)
 
 end
-function fetchMarketLeverageTiers(self::Bybit, symbol, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+function fetchMarketLeverageTiers(self::Bybit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6173,13 +7029,13 @@ function fetchMarketLeverageTiers(self::Bybit, symbol, params=Dict())
         throw(BadRequest(string(self.id, " fetchMarketLeverageTiers() symbol does not support market ", symbol)));
     end
     request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
-    return Base.fetch(self.fetchDerivativesMarketLeverageTiers(symbol, params))
+    return Base.fetch(self.fetchDerivativesMarketLeverageTiers(symbol, params = params))
 
 end
-function parseTradingFee(self::Bybit, fee, market=nothing)
+function parseTradingFee(self::Bybit, fee; market=nothing)
     marketId = safeString(fee, "symbol");
     defaultType = functions.ccxtruthy((market != nothing)) ? get(market, Symbol("type"), nothing) : "contract";
-    symbol = self.safeSymbol(marketId, market, nothing, defaultType);
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = defaultType);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => symbol,
@@ -6190,7 +7046,18 @@ function parseTradingFee(self::Bybit, fee, market=nothing)
 )
 
 end
-function fetchTradingFee(self::Bybit, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Bybit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6199,27 +7066,38 @@ function fetchTradingFee(self::Bybit, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     category = nothing;
-    (category, params) = self.getBybitType("fetchTradingFee", market, params);
+    (category, params) = self.getBybitType("fetchTradingFee", market, params = params);
     request[Symbol("category")] = category;
     response = Base.fetch(self.privateGetV5AccountFeeRate(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    fees = self.safeList(result, "list", []);
-    first_var = self.safeDict(fees, 0, Dict{Symbol, Any}());
-    return self.parseTradingFee(first_var, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    fees = self.safeList(result, "list", defaultValue = []);
+    first_var = self.safeDict(fees, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTradingFee(first_var, market = market)
 
 end
-function fetchTradingFees(self::Bybit, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Bybit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleOptionAndParams(params, "fetchTradingFees", "type", "future");
+    (type_var, params) = self.handleOptionAndParams(params, "fetchTradingFees", "type", defaultValue = "future");
     if functions.ccxtruthy(type_var == "spot")
         throw(NotSupported(string(self.id, " fetchTradingFees() is not supported for spot market")));
     end
     response = Base.fetch(self.privateGetV5AccountFeeRate(params));
-    fees = self.safeDict(response, "result", Dict{Symbol, Any}());
-    fees = self.safeList(fees, "list", []);
+    fees = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    fees = self.safeList(fees, "list", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fees)))
@@ -6233,8 +7111,8 @@ function fetchTradingFees(self::Bybit, params=Dict())
     return result
 
 end
-function parseDepositWithdrawFee(self::Bybit, fee, currency=nothing)
-    chains = self.safeList(fee, "chains", []);
+function parseDepositWithdrawFee(self::Bybit, fee; currency=nothing)
+    chains = self.safeList(fee, "chains", defaultValue = []);
     chainsLength = length(chains);
     result = Dict{Symbol, Any}(
         Symbol("info") => fee,
@@ -6254,7 +7132,7 @@ function parseDepositWithdrawFee(self::Bybit, fee, currency=nothing)
             chain = get(chains, i + 1, nothing);
             networkId = safeString(chain, "chain");
             currencyCode = safeString(currency, "code");
-            networkCode = self.networkIdToCode(networkId, currencyCode);
+            networkCode = self.networkIdToCode(networkId = networkId, currencyCode = currencyCode);
             if functions.ccxtruthy(networkCode != nothing)
                 result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                     Symbol("deposit") => Dict{Symbol, Any}(
@@ -6278,18 +7156,44 @@ function parseDepositWithdrawFee(self::Bybit, fee, currency=nothing)
     return result
 
 end
-function fetchDepositWithdrawFees(self::Bybit, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
+
+# Arguments
+- `codes`::array: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Bybit; codes=nothing, params=Dict())
     self.checkRequiredCredentials();
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetV5AssetCoinQueryInfo(params));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseDepositWithdrawFees(rows, codes, "coin")
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseDepositWithdrawFees(rows, codes = codes, currencyIdKey = "coin")
 
 end
-function fetchSettlementHistory(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records
+see: https://bybit-exchange.github.io/docs/v5/market/delivery-price
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+
+# Returns
+- a list of [settlement history objects]
+"""
+function fetchSettlementHistory(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6300,7 +7204,7 @@ function fetchSettlementHistory(self::Bybit, symbol=nothing, since=nothing, limi
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchSettlementHistory", market, params);
+    (type_var, params) = self.getBybitType("fetchSettlementHistory", market, params = params);
     if functions.ccxtruthy(type_var == "spot")
         throw(NotSupported(string(self.id, " fetchSettlementHistory() is not supported for spot market")));
     end
@@ -6309,14 +7213,29 @@ function fetchSettlementHistory(self::Bybit, symbol=nothing, since=nothing, limi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetV5MarketDeliveryPrice(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "list", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "list", defaultValue = []);
     settlements = self.parseSettlements(data, market);
     sorted = sortBy(settlements, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, safeString(market, "symbol"), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = safeString(market, "symbol"), since = since, limit = limit)
 
 end
-function fetchMySettlementHistory(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records of the user
+see: https://bybit-exchange.github.io/docs/v5/asset/delivery
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+
+# Returns
+- a list of [settlement history objects]
+"""
+function fetchMySettlementHistory(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6327,7 +7246,7 @@ function fetchMySettlementHistory(self::Bybit, symbol=nothing, since=nothing, li
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchMySettlementHistory", market, params);
+    (type_var, params) = self.getBybitType("fetchMySettlementHistory", market, params = params);
     if functions.ccxtruthy(type_var == "spot")
         throw(NotSupported(string(self.id, " fetchMySettlementHistory() is not supported for spot market")));
     end
@@ -6336,11 +7255,11 @@ function fetchMySettlementHistory(self::Bybit, symbol=nothing, since=nothing, li
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetV5AssetDeliveryRecord(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "list", []);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "list", defaultValue = []);
     settlements = self.parseSettlements(data, market);
     sorted = sortBy(settlements, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, safeString(market, "symbol"), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = safeString(market, "symbol"), since = since, limit = limit)
 
 end
 function parseSettlement(self::Bybit, settlement, market)
@@ -6348,7 +7267,7 @@ function parseSettlement(self::Bybit, settlement, market)
     marketId = safeString(settlement, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => settlement,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("price") => self.safeNumber(settlement, "deliveryPrice"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
@@ -6365,7 +7284,19 @@ function parseSettlements(self::Bybit, settlements, market)
     return result
 
 end
-function fetchVolatilityHistory(self::Bybit, code, params=Dict())
+"""
+fetch the historical volatility of an option market based on an underlying asset
+see: https://bybit-exchange.github.io/docs/v5/market/iv
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.period`::int, optional: the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
+
+# Returns
+- a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
+"""
+function fetchVolatilityHistory(self::Bybit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6375,7 +7306,7 @@ function fetchVolatilityHistory(self::Bybit, code, params=Dict())
         Symbol("baseCoin") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetV5MarketHistoricalVolatility(extend(request, params)));
-    volatility = self.safeList(response, "result", []);
+    volatility = self.safeList(response, "result", defaultValue = []);
     return self.parseVolatilityHistory(volatility)
 
 end
@@ -6396,7 +7327,18 @@ function parseVolatilityHistory(self::Bybit, volatility)
     return result
 
 end
-function fetchGreeks(self::Bybit, symbol, params=Dict())
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchGreeks(self::Bybit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6407,20 +7349,32 @@ function fetchGreeks(self::Bybit, symbol, params=Dict())
     );
     response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
     timestamp = safeInteger(response, "time");
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "list", []);
-    greeks = self.parseGreeks(get(data, 1, nothing), market);
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "list", defaultValue = []);
+    greeks = self.parseGreeks(get(data, 1, nothing), market = market);
     return extend(greeks, Dict{Symbol, Any}(
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 ))
 
 end
-function fetchAllGreeks(self::Bybit, symbols=nothing, params=Dict())
+"""
+fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.baseCoin`::string, optional: the baseCoin of the symbol, default is BTC
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchAllGreeks(self::Bybit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     baseCoin = safeString(params, "baseCoin", "BTC");
     request = Dict{Symbol, Any}(
         Symbol("category") => "option",
@@ -6435,14 +7389,14 @@ function fetchAllGreeks(self::Bybit, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "list", []);
-    return self.parseAllGreeks(data, symbols)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "list", defaultValue = []);
+    return self.parseAllGreeks(data, symbols = symbols)
 
 end
-function parseGreeks(self::Bybit, greeks, market=nothing)
+function parseGreeks(self::Bybit, greeks; market=nothing)
     marketId = safeString(greeks, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => nothing,
@@ -6466,14 +7420,30 @@ function parseGreeks(self::Bybit, greeks, market=nothing)
 )
 
 end
-function fetchMyLiquidations(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the users liquidated positions
+see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
+# Arguments
+- `symbol`::string, optional: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchMyLiquidations(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyLiquidations", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyLiquidations", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     request = Dict{Symbol, Any}(
         Symbol("execType") => "BustTrade"
@@ -6484,7 +7454,7 @@ function fetchMyLiquidations(self::Bybit, symbol=nothing, since=nothing, limit=n
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchMyLiquidations", market, params);
+    (type_var, params) = self.getBybitType("fetchMyLiquidations", market, params = params);
     request[Symbol("category")] = type_var;
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
@@ -6495,10 +7465,10 @@ function fetchMyLiquidations(self::Bybit, symbol=nothing, since=nothing, limit=n
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.privateGetV5ExecutionList(extend(request, params)));
     liquidations = self.addPaginationCursorToResult(response);
-    return self.parseLiquidations(liquidations, market, since, limit)
+    return self.parseLiquidations(liquidations, market = market, since = since, limit = limit)
 
 end
-function parseLiquidation(self::Bybit, liquidation, market=nothing)
+function parseLiquidation(self::Bybit, liquidation; market=nothing)
     marketId = safeString(liquidation, "symbol");
     timestamp = safeInteger(liquidation, "execTime");
     contractsString = safeString(liquidation, "execQty");
@@ -6508,7 +7478,7 @@ function parseLiquidation(self::Bybit, liquidation, market=nothing)
     quoteValueString = stringMul(baseValueString, priceString);
     return self.safeLiquidation(Dict{Symbol, Any}(
     Symbol("info") => liquidation,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("contracts") => self.parseNumber(contractsString),
     Symbol("contractSize") => self.parseNumber(contractSizeString),
     Symbol("price") => self.parseNumber(priceString),
@@ -6519,7 +7489,7 @@ function parseLiquidation(self::Bybit, liquidation, market=nothing)
 ))
 
 end
-function getLeverageTiersPaginated(self::Bybit, symbol=nothing, params=Dict())
+function getLeverageTiersPaginated(self::Bybit; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6530,10 +7500,10 @@ function getLeverageTiersPaginated(self::Bybit, symbol=nothing, params=Dict())
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "getLeverageTiersPaginated", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, nothing, nothing, params, "nextPageCursor", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol = symbol, since = nothing, limit = nothing, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("getLeverageTiersPaginated", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("getLeverageTiersPaginated", market = market, params = params, defaultValue = "linear");
     request = Dict{Symbol, Any}(
         Symbol("category") => subType
     );
@@ -6542,7 +7512,7 @@ function getLeverageTiersPaginated(self::Bybit, symbol=nothing, params=Dict())
     first_var = self.safeDict(result, 0);
     total = length(result);
     lastIndex = total - 1;
-    last_var = self.safeDict(result, lastIndex, Dict{Symbol, Any}());
+    last_var = self.safeDict(result, lastIndex, defaultValue = Dict{Symbol, Any}());
     cursorValue = safeString(first_var, "nextPageCursor");
     last_var[Symbol("info")] = Dict{Symbol, Any}(
         Symbol("nextPageCursor") => cursorValue
@@ -6551,7 +7521,20 @@ function getLeverageTiersPaginated(self::Bybit, symbol=nothing, params=Dict())
     return result
 
 end
-function fetchLeverageTiers(self::Bybit, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, for different trade sizes
+see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: market subType, ['linear', 'inverse'], default is 'linear'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Bybit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6564,19 +7547,19 @@ function fetchLeverageTiers(self::Bybit, symbols=nothing, params=Dict())
         end
         symbol = get(market, Symbol("symbol"), nothing);
     end
-    data = Base.fetch(self.getLeverageTiersPaginated(symbol, extend(Dict{Symbol, Any}(
+    data = Base.fetch(self.getLeverageTiersPaginated(symbol = symbol, params = extend(Dict{Symbol, Any}(
         Symbol("paginate") => true,
         Symbol("paginationCalls") => 50
     ), params)));
-    symbols = self.marketSymbols(symbols);
-    return self.parseLeverageTiers(data, symbols, "symbol")
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.parseLeverageTiers(data, symbols = symbols, marketIdKey = "symbol")
 
 end
-function parseLeverageTiers(self::Bybit, response, symbols=nothing, marketIdKey=nothing)
+function parseLeverageTiers(self::Bybit, response; symbols=nothing, marketIdKey=nothing)
     tiers = Dict{Symbol, Any}();
-    marketIds = self.marketIds(symbols);
+    marketIds = self.marketIds(symbols = symbols);
     idKey = functions.ccxtruthy((marketIdKey == nothing)) ? "symbol" : marketIdKey;
-    filteredResults = self.filterByArray(response, idKey, marketIds, false);
+    filteredResults = self.filterByArray(response, idKey, values = marketIds, indexed = false);
     grouped = groupBy(filteredResults, idKey);
     keys_var = objectKeys(grouped);
     i = 0
@@ -6589,28 +7572,28 @@ function parseLeverageTiers(self::Bybit, response, symbols=nothing, marketIdKey=
             entry[j + 1][Symbol("id")] = id;
             j += 1
         end
-        market = self.safeMarket(marketId, nothing, nothing, "contract");
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = "contract");
         symbol = get(market, Symbol("symbol"), nothing);
-        tiers[Symbol(symbol)] = self.parseMarketLeverageTiers(sortBy(entry, "id"), market);
+        tiers[Symbol(symbol)] = self.parseMarketLeverageTiers(sortBy(entry, "id"), market = market);
         i += 1
     end
     return tiers
 
 end
-function parseMarketLeverageTiers(self::Bybit, info, market=nothing)
+function parseMarketLeverageTiers(self::Bybit, info; market=nothing)
     tiers = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(info)))
         tier = get(info, i + 1, nothing);
         marketId = safeString(info, "symbol");
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
         minNotional = self.parseNumber("0");
         if functions.ccxtruthy(i != 0)
             minNotional = self.safeNumber(get(info, i - 1 + 1, nothing), "riskLimitValue");
         end
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => safeInteger(tier, "id"),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("currency") => get(market, Symbol("settle"), nothing),
     Symbol("minNotional") => minNotional,
     Symbol("maxNotional") => self.safeNumber(tier, "riskLimitValue"),
@@ -6623,14 +7606,28 @@ function parseMarketLeverageTiers(self::Bybit, info, market=nothing)
     return tiers
 
 end
-function fetchFundingHistory(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Bybit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "nextPageCursor", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     request = Dict{Symbol, Any}(
         Symbol("execType") => "Funding"
@@ -6641,7 +7638,7 @@ function fetchFundingHistory(self::Bybit, symbol=nothing, since=nothing, limit=n
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchFundingHistory", market, params);
+    (type_var, params) = self.getBybitType("fetchFundingHistory", market, params = params);
     request[Symbol("category")] = type_var;
     if functions.ccxtruthy(symbol != nothing)
         request[Symbol("symbol")] = safeString(market, "id");
@@ -6657,12 +7654,12 @@ function fetchFundingHistory(self::Bybit, symbol=nothing, since=nothing, limit=n
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.privateGetV5ExecutionList(extend(request, params)));
     fundings = self.addPaginationCursorToResult(response);
-    return self.parseIncomes(fundings, market, since, limit)
+    return self.parseIncomes(fundings, market = market, since = since, limit = limit)
 
 end
-function parseIncome(self::Bybit, income, market=nothing)
+function parseIncome(self::Bybit, income; market=nothing)
     marketId = safeString(income, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
     code = "USDT";
     if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
         code = get(market, Symbol("quote"), nothing);
@@ -6670,7 +7667,7 @@ function parseIncome(self::Bybit, income, market=nothing)
     timestamp = safeInteger(income, "execTime");
     return Dict{Symbol, Any}(
     Symbol("info") => income,
-    Symbol("symbol") => self.safeSymbol(marketId, market, "-", "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = "-", marketType = "swap"),
     Symbol("code") => code,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -6680,7 +7677,18 @@ function parseIncome(self::Bybit, income, market=nothing)
 )
 
 end
-function fetchOption(self::Bybit, symbol, params=Dict())
+"""
+fetches option data that is commonly found in an option chain
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+function fetchOption(self::Bybit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6690,13 +7698,24 @@ function fetchOption(self::Bybit, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    resultList = self.safeList(result, "list", []);
-    chain = self.safeDict(resultList, 0, Dict{Symbol, Any}());
-    return self.parseOption(chain, nothing, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    resultList = self.safeList(result, "list", defaultValue = []);
+    chain = self.safeDict(resultList, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOption(chain, currency = nothing, market = market)
 
 end
-function fetchOptionChain(self::Bybit, code, params=Dict())
+"""
+fetches data for an underlying asset that is commonly found in an option chain
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `code`::string: base currency to fetch an option chain for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+function fetchOptionChain(self::Bybit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6706,14 +7725,14 @@ function fetchOptionChain(self::Bybit, code, params=Dict())
         Symbol("baseCoin") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    resultList = self.safeList(result, "list", []);
-    return self.parseOptionChain(resultList, nothing, "symbol")
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    resultList = self.safeList(result, "list", defaultValue = []);
+    return self.parseOptionChain(resultList, currencyKey = nothing, symbolKey = "symbol")
 
 end
-function parseOption(self::Bybit, chain, currency=nothing, market=nothing)
+function parseOption(self::Bybit, chain; currency=nothing, market=nothing)
     marketId = safeString(chain, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => chain,
     Symbol("currency") => nothing,
@@ -6735,7 +7754,22 @@ function parseOption(self::Bybit, chain, currency=nothing, market=nothing)
 )
 
 end
-function fetchPositionsHistory(self::Bybit, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://bybit-exchange.github.io/docs/v5/position/close-pnl
+
+# Arguments
+- `symbols`::array: a list of unified market symbols
+- `since`::int, optional: timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
+- `limit`::int, optional: the maximum amount of records to fetch, default=50, max=100
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
+- `params.subType`::string, optional: 'linear' or 'inverse'
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsHistory(self::Bybit; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6749,7 +7783,7 @@ function fetchPositionsHistory(self::Bybit, symbols=nothing, since=nothing, limi
         end
     end
     until = safeInteger(params, "until");
-    (subType, params) = self.handleSubTypeAndParams("fetchPositionsHistory", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchPositionsHistory", market = market, params = params, defaultValue = "linear");
     params = omit(params, "until");
     request = Dict{Symbol, Any}(
         Symbol("category") => subType
@@ -6773,11 +7807,22 @@ function fetchPositionsHistory(self::Bybit, symbols=nothing, since=nothing, limi
     if functions.ccxtruthy(rawPositions != nothing)
         rawPositionsList = rawPositions;
     end
-    positions = self.parsePositions(rawPositionsList, symbols, params);
-    return self.filterBySinceLimit(positions, since, limit)
+    positions = self.parsePositions(rawPositionsList, symbols = symbols, params = params);
+    return self.filterBySinceLimit(positions, since = since, limit = limit)
 
 end
-function fetchConvertCurrencies(self::Bybit, params=Dict())
+"""
+fetches all available currencies that can be converted
+see: https://bybit-exchange.github.io/docs/v5/asset/convert/convert-coin-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchConvertCurrencies(self::Bybit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6785,14 +7830,14 @@ function fetchConvertCurrencies(self::Bybit, params=Dict())
     (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     accountTypeDefault = functions.ccxtruthy(isUnifiedAccount) ? "eb_convert_uta" : "eb_convert_spot";
-    (accountType, params) = self.handleOptionAndParams(params, "fetchConvertCurrencies", "accountType", accountTypeDefault);
+    (accountType, params) = self.handleOptionAndParams(params, "fetchConvertCurrencies", "accountType", defaultValue = accountTypeDefault);
     request = Dict{Symbol, Any}(
         Symbol("accountType") => accountType
     );
     response = Base.fetch(self.privateGetV5AssetExchangeQueryCoinList(extend(request, params)));
     result = Dict{Symbol, Any}();
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    coins = self.safeList(data, "coins", []);
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    coins = self.safeList(data, "coins", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(coins)))
         entry = get(coins, i + 1, nothing);
@@ -6836,7 +7881,21 @@ function fetchConvertCurrencies(self::Bybit, params=Dict())
     return result
 
 end
-function fetchConvertQuote(self::Bybit, fromCode, toCode, amount=nothing, params=Dict())
+"""
+fetch a quote for converting from one currency to another
+see: https://bybit-exchange.github.io/docs/v5/asset/convert/apply-quote
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertQuote(self::Bybit, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6844,7 +7903,7 @@ function fetchConvertQuote(self::Bybit, fromCode, toCode, amount=nothing, params
     (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     accountTypeDefault = functions.ccxtruthy(isUnifiedAccount) ? "eb_convert_uta" : "eb_convert_spot";
-    (accountType, params) = self.handleOptionAndParams(params, "fetchConvertQuote", "accountType", accountTypeDefault);
+    (accountType, params) = self.handleOptionAndParams(params, "fetchConvertQuote", "accountType", defaultValue = accountTypeDefault);
     request = Dict{Symbol, Any}(
         Symbol("fromCoin") => fromCode,
         Symbol("toCoin") => toCode,
@@ -6853,15 +7912,29 @@ function fetchConvertQuote(self::Bybit, fromCode, toCode, amount=nothing, params
         Symbol("accountType") => accountType
     );
     response = Base.fetch(self.privatePostV5AssetExchangeQuoteApply(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     fromCurrencyId = safeString(data, "fromCoin", fromCode);
     fromCurrency = self.currency(fromCurrencyId);
     toCurrencyId = safeString(data, "toCoin", toCode);
     toCurrency = self.currency(toCurrencyId);
-    return self.parseConversion(data, fromCurrency, toCurrency)
+    return self.parseConversion(data, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function createConvertTrade(self::Bybit, id, fromCode, toCode, amount=nothing, params=Dict())
+"""
+convert from one currency to another
+see: https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function createConvertTrade(self::Bybit, id, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6869,11 +7942,24 @@ function createConvertTrade(self::Bybit, id, fromCode, toCode, amount=nothing, p
         Symbol("quoteTxId") => id
     );
     response = Base.fetch(self.privatePostV5AssetExchangeConvertExecute(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return self.parseConversion(data)
 
 end
-function fetchConvertTrade(self::Bybit, id, code=nothing, params=Dict())
+"""
+fetch the data for a conversion trade
+see: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-result
+
+# Arguments
+- `id`::string: the id of the trade that you want to fetch
+- `code`::string, optional: the unified currency code of the conversion trade
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTrade(self::Bybit, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6881,14 +7967,14 @@ function fetchConvertTrade(self::Bybit, id, code=nothing, params=Dict())
     (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     accountTypeDefault = functions.ccxtruthy(isUnifiedAccount) ? "eb_convert_uta" : "eb_convert_spot";
-    (accountType, params) = self.handleOptionAndParams(params, "fetchConvertTrade", "accountType", accountTypeDefault);
+    (accountType, params) = self.handleOptionAndParams(params, "fetchConvertTrade", "accountType", defaultValue = accountTypeDefault);
     request = Dict{Symbol, Any}(
         Symbol("quoteTxId") => id,
         Symbol("accountType") => accountType
     );
     response = Base.fetch(self.privateGetV5AssetExchangeConvertResultQuery(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    result = self.safeDict(data, "result", Dict{Symbol, Any}());
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    result = self.safeDict(data, "result", defaultValue = Dict{Symbol, Any}());
     fromCurrencyId = safeString(result, "fromCoin");
     toCurrencyId = safeString(result, "toCoin");
     fromCurrency = nothing;
@@ -6899,10 +7985,24 @@ function fetchConvertTrade(self::Bybit, id, code=nothing, params=Dict())
     if functions.ccxtruthy(toCurrencyId != nothing)
         toCurrency = self.currency(toCurrencyId);
     end
-    return self.parseConversion(result, fromCurrency, toCurrency)
+    return self.parseConversion(result, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function fetchConvertTradeHistory(self::Bybit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the users history of conversion trades
+see: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTradeHistory(self::Bybit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6911,17 +8011,17 @@ function fetchConvertTradeHistory(self::Bybit, code=nothing, since=nothing, limi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetV5AssetExchangeQueryConvertHistory(extend(request, params)));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    dataList = self.safeList(data, "list", []);
-    return self.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit)
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    dataList = self.safeList(data, "list", defaultValue = []);
+    return self.parseConversions(dataList, code = code, fromCurrencyKey = "fromCoin", toCurrencyKey = "toCoin", since = since, limit = limit)
 
 end
-function parseConversion(self::Bybit, conversion, fromCurrency=nothing, toCurrency=nothing)
+function parseConversion(self::Bybit, conversion; fromCurrency=nothing, toCurrency=nothing)
     timestamp = safeInteger2(conversion, "expiredTime", "createdAt");
     fromCoin = safeString(conversion, "fromCoin");
-    fromCode = self.safeCurrencyCode(fromCoin, fromCurrency);
+    fromCode = self.safeCurrencyCode(fromCoin, currency = fromCurrency);
     to = safeString(conversion, "toCoin");
-    toCode = self.safeCurrencyCode(to, toCurrency);
+    toCode = self.safeCurrencyCode(to, currency = toCurrency);
     return Dict{Symbol, Any}(
     Symbol("info") => conversion,
     Symbol("timestamp") => timestamp,
@@ -6936,13 +8036,27 @@ function parseConversion(self::Bybit, conversion, fromCurrency=nothing, toCurren
 )
 
 end
-function fetchLongShortRatioHistory(self::Bybit, symbol=nothing, timeframe=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches the long short ratio history for a unified market symbol
+see: https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the long short ratio for
+- `timeframe`::string, optional: the period for the ratio, default is 24 hours
+- `since`::int, optional: the earliest time in ms to fetch ratios for
+- `limit`::int, optional: the maximum number of long short ratio structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
+"""
+function fetchLongShortRatioHistory(self::Bybit; symbol=nothing, timeframe=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchLongShortRatioHistory", market, params);
+    (type_var, params) = self.getBybitType("fetchLongShortRatioHistory", market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or(type_var == "spot", type_var == "option"))
         throw(NotSupported(string(self.id, " fetchLongShortRatioHistory() only support linear and inverse markets")));
     end
@@ -6958,19 +8072,19 @@ function fetchLongShortRatioHistory(self::Bybit, symbol=nothing, timeframe=nothi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.publicGetV5MarketAccountRatio(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    data = self.safeList(result, "list", []);
-    return self.parseLongShortRatioHistory(data, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    data = self.safeList(result, "list", defaultValue = []);
+    return self.parseLongShortRatioHistory(data, market = market)
 
 end
-function parseLongShortRatio(self::Bybit, info, market=nothing)
+function parseLongShortRatio(self::Bybit, info; market=nothing)
     marketId = safeString(info, "symbol");
     timestamp = self.safeIntegerOmitZero(info, "timestamp");
     longString = safeString(info, "buyRatio");
     shortString = safeString(info, "sellRatio");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("timeframe") => nothing,
@@ -6978,34 +8092,45 @@ function parseLongShortRatio(self::Bybit, info, market=nothing)
 )
 
 end
-function fetchPositionsADLRank(self::Bybit, symbols=nothing, params=Dict())
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://bybit-exchange.github.io/docs/v5/position#response-parameters
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+function fetchPositionsADLRank(self::Bybit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(symbols == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchPositionsADLRank() requires a symbols argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(market != nothing)
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.getBybitType("fetchPositionsADLRank", market, params);
+    (type_var, params) = self.getBybitType("fetchPositionsADLRank", market, params = params);
     request[Symbol("category")] = type_var;
     response = Base.fetch(self.privateGetV5PositionList(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    ranks = self.safeList(result, "list", []);
-    return self.parseADLRanks(ranks, symbols)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    ranks = self.safeList(result, "list", defaultValue = []);
+    return self.parseADLRanks(ranks, symbols = symbols)
 
 end
-function parseADLRank(self::Bybit, info, market=nothing)
+function parseADLRank(self::Bybit, info; market=nothing)
     marketId = safeString(info, "symbol");
     timestamp = safeInteger(info, "updatedTime");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("rank") => safeInteger(info, "adlRankIndicator"),
     Symbol("rating") => nothing,
     Symbol("percentage") => nothing,
@@ -7014,21 +8139,32 @@ function parseADLRank(self::Bybit, info, market=nothing)
 )
 
 end
-function fetchMarginMode(self::Bybit, symbol, params=Dict())
+"""
+fetches the margin mode of the trading pair
+see: https://bybit-exchange.github.io/docs/v5/account/account-info
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Bybit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     response = Base.fetch(self.privateGetV5AccountInfo(params));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseMarginMode(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginMode(result, market = market)
 
 end
-function parseMarginMode(self::Bybit, marginMode, market=nothing)
+function parseMarginMode(self::Bybit, marginMode; market=nothing)
     marginType = safeString(marginMode, "marginMode");
     return Dict{Symbol, Any}(
     Symbol("info") => marginMode,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("marginMode") => self.parseMarginModeType(marginType)
 )
 
@@ -7042,7 +8178,7 @@ function parseMarginModeType(self::Bybit, marginMode)
     return safeString(marginModes, marginMode, marginMode)
 
 end
-function sign(self::Bybit, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bybit, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(self.implodeHostname(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing)), "/", path);
     if functions.ccxtruthy(api == "public")
         if functions.ccxtruthy(length(objectKeys(params)))
@@ -7180,1619 +8316,1619 @@ Base.getproperty(self::Bybit, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetSpotV3PublicSymbols(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/symbols", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/symbols"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicQuoteDepth(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/quote/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicQuoteDepthMerged(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/depth/merged", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/quote/depth/merged"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicQuoteTrades(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/quote/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicQuoteKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/quote/kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicQuoteTicker24hr(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/quote/ticker/24hr"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicQuoteTickerPrice(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/ticker/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/quote/ticker/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicQuoteTickerBookTicker(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/quote/ticker/bookTicker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicServerTime(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/server-time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/server-time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/infos", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/infos"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicMarginProductInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/margin-product-infos", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/margin-product-infos"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSpotV3PublicMarginEnsureTokens(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/margin-ensure-tokens", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/public/margin-ensure-tokens"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV3PublicTime(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v3/public/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/public/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetContractV3PublicCopytradingSymbolList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/public/copytrading/symbol/list", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/public/copytrading/symbol/list"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicOrderBookL2(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/order-book/L2", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/order-book/L2"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicTickers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicInstrumentsInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/instruments-info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/instruments-info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicMarkPriceKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/mark-price-kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/mark-price-kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicIndexPriceKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/index-price-kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/index-price-kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicFundingHistoryFundingRate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/funding/history-funding-rate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/funding/history-funding-rate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicRiskLimitList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/risk-limit/list", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/risk-limit/list"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicDeliveryPrice(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/delivery-price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/delivery-price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicRecentTrade(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/recent-trade", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/recent-trade"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicOpenInterest(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/open-interest", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/open-interest"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDerivativesV3PublicInsurance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/insurance", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "derivatives/v3/public/insurance"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5AnnouncementsIndex(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/announcements/index", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/announcements/index"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5SystemStatus(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/system/status", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/system/status"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketTime(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketMarkPriceKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/mark-price-kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/mark-price-kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketIndexPriceKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/index-price-kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/index-price-kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketPremiumIndexPriceKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/premium-index-price-kline", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/premium-index-price-kline"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketInstrumentsInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/instruments-info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/instruments-info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketOrderbook(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketRpiOrderbook(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/rpi_orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/rpi_orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketFullOrderbook(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/full_orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/full_orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketTickers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketFundingHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/funding/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/funding/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketRecentTrade(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/recent-trade", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/recent-trade"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketOpenInterest(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/open-interest", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/open-interest"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketHistoricalVolatility(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/historical-volatility", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/historical-volatility"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketInsurance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/insurance", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/insurance"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketRiskLimit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/risk-limit", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/risk-limit"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketDeliveryPrice(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/delivery-price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/delivery-price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketNewDeliveryPrice(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/new-delivery-price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/new-delivery-price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketAccountRatio(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/account-ratio", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/account-ratio"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketIndexPriceComponents(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/index-price-components", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/index-price-components"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketPriceLimit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/price-limit", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/price-limit"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketAdlAlert(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/adlAlert", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/adlAlert"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5MarketFeeGroupInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/fee-group-info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/fee-group-info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5SpotLeverTokenInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-lever-token/info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-lever-token/info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5SpotLeverTokenReference(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-lever-token/reference", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-lever-token/reference"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5SpotMarginTradeData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/data", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/data"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5SpotMarginTradeCollateral(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/collateral", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/collateral"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5SpotCrossMarginTradeData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/data", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-cross-margin-trade/data"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5SpotCrossMarginTradePledgeToken(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/pledge-token", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-cross-margin-trade/pledge-token"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5SpotCrossMarginTradeBorrowToken(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/borrow-token", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-cross-margin-trade/borrow-token"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5CryptoLoanCollateralData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/collateral-data", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/collateral-data"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5CryptoLoanLoanableData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/loanable-data", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/loanable-data"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5CryptoLoanCommonLoanableData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/loanable-data", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-common/loanable-data"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5CryptoLoanCommonCollateralData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/collateral-data", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-common/collateral-data"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5CryptoLoanFixedSupplyOrderQuote(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/supply-order-quote", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/supply-order-quote"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5CryptoLoanFixedBorrowOrderQuote(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/borrow-order-quote", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/borrow-order-quote"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5InsLoanProductInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/product-infos", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/product-infos"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5InsLoanEnsureTokensConvert(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/ensure-tokens-convert", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/ensure-tokens-convert"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetV5EarnProduct(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/product", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/earn/product"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5MarketInstrumentsInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/instruments-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/instruments-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV2PrivateWalletFundRecords(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v2/private/wallet/fund/records", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/private/wallet/fund/records"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateOpenOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/open-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/open-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateHistoryOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/history-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/history-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateMyTrades(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/my-trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/my-trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateReference(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/reference", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/reference"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateCrossMarginOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/cross-margin-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateCrossMarginAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/cross-margin-account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateCrossMarginLoanInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-loan-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/cross-margin-loan-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateCrossMarginRepayHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-repay-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/cross-margin-repay-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateMarginLoanInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/margin-loan-infos", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/margin-loan-infos"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateMarginRepaidInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/margin-repaid-infos", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/margin-repaid-infos"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSpotV3PrivateMarginLtv(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/margin-ltv", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/margin-ltv"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateTransferInterTransferListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/inter-transfer/list/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/inter-transfer/list/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateTransferSubMemberListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/sub-member/list/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/sub-member/list/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateTransferSubMemberTransferListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/sub-member-transfer/list/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/sub-member-transfer/list/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateTransferUniversalTransferListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/universal-transfer/list/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/universal-transfer/list/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateCoinInfoQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/coin-info/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/coin-info/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateDepositAddressQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/deposit/address/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/deposit/address/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivateCopytradingOrderList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/order/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/copytrading/order/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivateCopytradingPositionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/position/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/copytrading/position/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivateCopytradingWalletBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/wallet/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/copytrading/wallet/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivatePositionLimitInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/limit-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/position/limit-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivateOrderUnfilledOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/unfilled-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/order/unfilled-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivateOrderList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/order/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivatePositionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/position/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivateExecutionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/execution/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/execution/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivatePositionClosedPnl(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/closed-pnl", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/position/closed-pnl"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivateAccountWalletBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/account/wallet/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/account/wallet/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivateAccountFeeRate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/account/fee-rate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/account/fee-rate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetContractV3PrivateAccountWalletFundRecords(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/account/wallet/fund-records", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/account/wallet/fund-records"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivateOrderUnfilledOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/unfilled-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/order/unfilled-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivateOrderList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/order/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivatePositionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/position/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/position/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivateExecutionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/execution/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/execution/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivateDeliveryRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/delivery-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/delivery-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivateSettlementRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/settlement-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/settlement-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivateAccountWalletBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/wallet/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/account/wallet/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivateAccountTransactionLog(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/transaction-log", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/account/transaction-log"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivateAccountBorrowHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/borrow-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/account/borrow-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivateAccountBorrowRate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/borrow-rate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/account/borrow-rate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUnifiedV3PrivateAccountInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/account/info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserV3PrivateFrozenSubMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/frozen-sub-member", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v3/private/frozen-sub-member"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserV3PrivateQuerySubMembers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/query-sub-members", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v3/private/query-sub-members"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserV3PrivateQueryApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/query-api", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v3/private/query-api"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserV3PrivateGetMemberType(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/get-member-type", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v3/private/get-member-type"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateTransferTransferCoinListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/transfer-coin/list/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/transfer-coin/list/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateTransferAccountCoinBalanceQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/account-coin/balance/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/account-coin/balance/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/account-coins/balance/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/account-coins/balance/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateTransferAssetInfoQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/asset-info/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/asset-info/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PublicDepositAllowedDepositListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/public/deposit/allowed-deposit-list/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/public/deposit/allowed-deposit-list/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateDepositRecordQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/deposit/record/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/deposit/record/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAssetV3PrivateWithdrawRecordQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/withdraw/record/query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/withdraw/record/query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5OrderRealtime(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/realtime", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/order/realtime"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5OrderHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/order/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5OrderSpotBorrowCheck(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/spot-borrow-check", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/order/spot-borrow-check"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PositionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/position/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5ExecutionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/execution/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/execution/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PositionClosedPnl(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/closed-pnl", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/position/closed-pnl"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PositionGetClosedPositions(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/get-closed-positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/position/get-closed-positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PositionMoveHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/move-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/position/move-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PositionSymbolInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/symbol-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/position/symbol-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PreUpgradeOrderHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/order/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/pre-upgrade/order/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PreUpgradeExecutionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/execution/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/pre-upgrade/execution/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PreUpgradePositionClosedPnl(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/position/closed-pnl", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/pre-upgrade/position/closed-pnl"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PreUpgradeAccountTransactionLog(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/account/transaction-log", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/pre-upgrade/account/transaction-log"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PreUpgradeAssetDeliveryRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/asset/delivery-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/pre-upgrade/asset/delivery-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5PreUpgradeAssetSettlementRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/asset/settlement-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/pre-upgrade/asset/settlement-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountWalletBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/wallet-balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/wallet-balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountBorrowHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/borrow-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/borrow-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountInstrumentsInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/instruments-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/instruments-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountCollateralInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/collateral-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/collateral-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountOptionAssetInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/option-asset-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/option-asset-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetCoinGreeks(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/coin-greeks", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/coin-greeks"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountFeeRate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/fee-rate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/fee-rate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountTransactionLog(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/transaction-log", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/transaction-log"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountContractTransactionLog(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/contract-transaction-log", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/contract-transaction-log"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountQueryDcpInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/query-dcp-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/query-dcp-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountUserSettingConfig(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/user-setting-config", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/user-setting-config"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountPayInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/pay-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/pay-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountTradeInfoForAnalysis(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/trade-info-for-analysis", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/trade-info-for-analysis"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountSmpGroup(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/smp-group", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/smp-group"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountMmpState(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/mmp-state", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/mmp-state"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AccountWithdrawal(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/withdrawal", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/withdrawal"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetAssetOverview(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/asset-overview", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/asset-overview"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetExchangeQueryCoinList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/query-coin-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/exchange/query-coin-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetExchangeConvertResultQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/convert-result-query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/exchange/convert-result-query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetExchangeQueryConvertHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/query-convert-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/exchange/query-convert-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetExchangeOrderRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/order-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/exchange/order-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetFundinghistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/fundinghistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/fundinghistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetPortfolioMargin(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/portfolio-margin", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/portfolio-margin"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetTotalMembersAssets(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/total-members-assets", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/total-members-assets"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetDeliveryRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/delivery-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/delivery-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetSettlementRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/settlement-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/settlement-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetTransferQueryAssetInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-asset-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/transfer/query-asset-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetTransferQueryAccountCoinsBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-account-coins-balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/transfer/query-account-coins-balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetTransferQueryAccountCoinBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-account-coin-balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/transfer/query-account-coin-balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetTransferQueryTransferCoinList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-transfer-coin-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/transfer/query-transfer-coin-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetTransferQueryInterTransferList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-inter-transfer-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/transfer/query-inter-transfer-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetTransferQuerySubMemberList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-sub-member-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/transfer/query-sub-member-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetTransferQueryUniversalTransferList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-universal-transfer-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/transfer/query-universal-transfer-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetDepositQueryAllowedList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-allowed-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/deposit/query-allowed-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetDepositQueryRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/deposit/query-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetDepositQuerySubMemberRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-sub-member-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/deposit/query-sub-member-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetDepositQueryInternalRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-internal-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/deposit/query-internal-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetDepositQueryAddress(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/deposit/query-address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetDepositQuerySubMemberAddress(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-sub-member-address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/deposit/query-sub-member-address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetCoinQueryInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/coin/query-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/coin/query-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetWithdrawQueryAddress(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/query-address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/withdraw/query-address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetWithdrawQueryRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/query-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/withdraw/query-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetWithdrawWithdrawableAmount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/withdrawable-amount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/withdraw/withdrawable-amount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetWithdrawVaspList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/vasp/list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/withdraw/vasp/list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetCovertSmallBalanceList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/covert/small-balance-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/covert/small-balance-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetCovertSmallBalanceHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/covert/small-balance-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/covert/small-balance-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetConvertSmallBalanceList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/convert/small-balance-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/convert/small-balance-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AssetConvertSmallBalanceHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/convert/small-balance-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/convert/small-balance-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5FiatQueryCoinList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/query-coin-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/fiat/query-coin-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5FiatReferencePrice(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/reference-price", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/fiat/reference-price"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5FiatTradeQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/trade-query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/fiat/trade-query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5FiatQueryTradeHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/query-trade-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/fiat/query-trade-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5FiatBalanceQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/balance-query", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/fiat/balance-query"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5UserQuerySubMembers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/query-sub-members", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/user/query-sub-members"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5UserQueryApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/query-api", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/user/query-api"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5UserSubApikeys(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/sub-apikeys", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/user/sub-apikeys"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5UserGetMemberType(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/get-member-type", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/user/get-member-type"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5UserAffCustomerInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/aff-customer-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/user/aff-customer-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5UserDelSubmember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/del-submember", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/user/del-submember"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5UserSubmembers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/submembers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/user/submembers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5UserEscrowSubMembers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/escrow_sub_members", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/user/escrow_sub_members"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5UserInvitationReferrals(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/invitation/referrals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/user/invitation/referrals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AffiliateAffUserList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/affiliate/aff-user-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/affiliate/aff-user-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5AffiliateAffiliateSubList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/affiliate/affiliate-sub-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/affiliate/affiliate-sub-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotLeverTokenOrderRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-lever-token/order-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-lever-token/order-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeFlexibleAvailableInventory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/flexible-available-inventory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/flexible-available-inventory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeInterestRateHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/interest-rate-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/interest-rate-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeState(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/state", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/state"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeMaxBorrowable(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/max-borrowable", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/max-borrowable"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradePositionTiers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/position-tiers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/position-tiers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeCoinstate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/coinstate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/coinstate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeCurrencyData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/currency-data", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/currency-data"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeFixedborrowContractInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/fixedborrow-contract-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/fixedborrow-contract-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeFixedborrowOrderInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/fixedborrow-order-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/fixedborrow-order-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeFixedborrowOrderQuote(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/fixedborrow-order-quote", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/fixedborrow-order-quote"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeLiability(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/liability", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/liability"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeRepaymentAvailableAmount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/repayment-available-amount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/repayment-available-amount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotMarginTradeGetAutoRepayMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/get-auto-repay-mode", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/get-auto-repay-mode"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotCrossMarginTradeLoanInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/loan-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-cross-margin-trade/loan-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotCrossMarginTradeAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-cross-margin-trade/account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotCrossMarginTradeOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-cross-margin-trade/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5SpotCrossMarginTradeRepayHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/repay-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-cross-margin-trade/repay-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanBorrowableCollateralisableNumber(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/borrowable-collateralisable-number", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/borrowable-collateralisable-number"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanOngoingOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/ongoing-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/ongoing-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanRepaymentHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/repayment-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/repayment-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanBorrowHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/borrow-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/borrow-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanMaxCollateralAmount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/max-collateral-amount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/max-collateral-amount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanAdjustmentHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/adjustment-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/adjustment-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanCommonMaxCollateralAmount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/max-collateral-amount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-common/max-collateral-amount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanCommonAdjustmentHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/adjustment-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-common/adjustment-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanCommonPosition(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/position", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-common/position"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanFlexibleOngoingCoin(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/ongoing-coin", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-flexible/ongoing-coin"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanFlexibleBorrowHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/borrow-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-flexible/borrow-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanFlexibleRepaymentHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/repayment-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-flexible/repayment-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanFixedBorrowContractInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/borrow-contract-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/borrow-contract-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanFixedSupplyContractInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/supply-contract-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/supply-contract-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanFixedBorrowOrderInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/borrow-order-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/borrow-order-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanFixedRenewInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/renew-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/renew-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanFixedSupplyOrderInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/supply-order-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/supply-order-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5CryptoLoanFixedRepaymentHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/repayment-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/repayment-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5InsLoanProductInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/product-infos", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/product-infos"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5InsLoanEnsureTokens(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/ensure-tokens", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/ensure-tokens"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5InsLoanEnsureTokensConvert(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/ensure-tokens-convert", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/ensure-tokens-convert"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5InsLoanLoanOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/loan-order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/loan-order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5InsLoanRepaidHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/repaid-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/repaid-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5InsLoanLtv(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/ltv", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/ltv"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5InsLoanLtvConvert(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/ltv-convert", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/ltv-convert"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5InsLoanCoinDeltaAmount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/coin-delta-amount", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/coin-delta-amount"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5LendingInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/lending/info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5LendingHistoryOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/history-order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/lending/history-order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5LendingAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/lending/account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5BrokerEarningRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/earning-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/broker/earning-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5BrokerEarningsInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/earnings-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/broker/earnings-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5BrokerAccountInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/account-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/broker/account-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5BrokerAssetQuerySubMemberDepositRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/asset/query-sub-member-deposit-record", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/broker/asset/query-sub-member-deposit-record"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5EarnProduct(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/product", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/earn/product"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5EarnOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/earn/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5EarnPosition(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/position", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/earn/position"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5EarnYield(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/yield", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/earn/yield"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetV5EarnHourlyYield(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/hourly-yield", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/earn/hourly-yield"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSpotV3PrivateOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSpotV3PrivateCancelOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cancel-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/cancel-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSpotV3PrivateCancelOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cancel-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/cancel-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSpotV3PrivateCancelOrdersByIds(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cancel-orders-by-ids", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/cancel-orders-by-ids"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSpotV3PrivatePurchase(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/purchase", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/purchase"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSpotV3PrivateRedeem(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/redeem", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/redeem"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSpotV3PrivateCrossMarginLoan(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-loan", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/cross-margin-loan"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSpotV3PrivateCrossMarginRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v3/private/cross-margin-repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetV3PrivateTransferInterTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/inter-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/inter-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetV3PrivateWithdrawCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/withdraw/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/withdraw/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetV3PrivateWithdrawCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/withdraw/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/withdraw/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetV3PrivateTransferSubMemberTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/sub-member-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/sub-member-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetV3PrivateTransferTransferSubMemberSave(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/transfer-sub-member-save", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/transfer-sub-member-save"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAssetV3PrivateTransferUniversalTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/universal-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/v3/private/transfer/universal-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserV3PrivateCreateSubMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/create-sub-member", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v3/private/create-sub-member"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserV3PrivateCreateSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/create-sub-api", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v3/private/create-sub-api"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserV3PrivateUpdateApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/update-api", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v3/private/update-api"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserV3PrivateDeleteApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/delete-api", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v3/private/delete-api"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserV3PrivateUpdateSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/update-sub-api", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v3/private/update-sub-api"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserV3PrivateDeleteSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/delete-sub-api", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v3/private/delete-sub-api"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateCopytradingOrderCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/order/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/copytrading/order/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateCopytradingOrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/order/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/copytrading/order/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateCopytradingOrderClose(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/order/close", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/copytrading/order/close"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateCopytradingPositionClose(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/position/close", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/copytrading/position/close"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateCopytradingPositionSetLeverage(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/position/set-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/copytrading/position/set-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateCopytradingWalletTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/wallet/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/copytrading/wallet/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateCopytradingOrderTradingStop(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/order/trading-stop", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/copytrading/order/trading-stop"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateOrderCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/order/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateOrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/order/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateOrderCancelAll(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/cancel-all", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/order/cancel-all"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateOrderReplace(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/replace", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/order/replace"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivatePositionSetAutoAddMargin(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/set-auto-add-margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/position/set-auto-add-margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivatePositionSwitchIsolated(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/switch-isolated", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/position/switch-isolated"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivatePositionSwitchMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/switch-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/position/switch-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivatePositionSwitchTpslMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/switch-tpsl-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/position/switch-tpsl-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivatePositionSetLeverage(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/set-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/position/set-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivatePositionTradingStop(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/trading-stop", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/position/trading-stop"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivatePositionSetRiskLimit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/set-risk-limit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/position/set-risk-limit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostContractV3PrivateAccountSetMarginMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/account/setMarginMode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/v3/private/account/setMarginMode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/order/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderReplace(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/replace", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/order/replace"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/order/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderCreateBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/create-batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/order/create-batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderReplaceBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/replace-batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/order/replace-batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderCancelBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/cancel-batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/order/cancel-batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderCancelAll(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/cancel-all", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/order/cancel-all"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivatePositionSetLeverage(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/position/set-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/position/set-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivatePositionTpslSwitchMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/position/tpsl/switch-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/position/tpsl/switch-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivatePositionSetRiskLimit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/position/set-risk-limit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/position/set-risk-limit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivatePositionTradingStop(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/position/trading-stop", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/position/trading-stop"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/upgrade-unified-account", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/account/upgrade-unified-account"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUnifiedV3PrivateAccountSetMarginMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/setMarginMode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "unified/v3/private/account/setMarginMode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFhtComplianceTaxV3PrivateRegistertime(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "fht/compliance/tax/v3/private/registertime", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "fht/compliance/tax/v3/private/registertime"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFhtComplianceTaxV3PrivateCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "fht/compliance/tax/v3/private/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "fht/compliance/tax/v3/private/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFhtComplianceTaxV3PrivateStatus(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "fht/compliance/tax/v3/private/status", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "fht/compliance/tax/v3/private/status"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFhtComplianceTaxV3PrivateUrl(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "fht/compliance/tax/v3/private/url", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "fht/compliance/tax/v3/private/url"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5OrderCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/order/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5OrderAmend(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/amend", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/order/amend"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5OrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/order/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5OrderCancelAll(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/cancel-all", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/order/cancel-all"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5OrderCreateBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/create-batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/order/create-batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5OrderAmendBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/amend-batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/order/amend-batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5OrderCancelBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/cancel-batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/order/cancel-batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5OrderDisconnectedCancelAll(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/disconnected-cancel-all", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/order/disconnected-cancel-all"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5OrderPreCheck(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/pre-check", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/order/pre-check"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5PositionSetLeverage(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/set-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/set-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5PositionSwitchIsolated(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/switch-isolated", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/switch-isolated"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5PositionSetTpslMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/set-tpsl-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/set-tpsl-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5PositionSwitchMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/switch-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/switch-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5PositionSetRiskLimit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/set-risk-limit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/set-risk-limit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5PositionTradingStop(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/trading-stop", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/trading-stop"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5PositionSetAutoAddMargin(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/set-auto-add-margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/set-auto-add-margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5PositionAddMargin(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/add-margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/add-margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5PositionMovePositions(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/move-positions", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/move-positions"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5PositionConfirmPendingMmr(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/confirm-pending-mmr", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/confirm-pending-mmr"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountUpgradeToUta(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/upgrade-to-uta", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/upgrade-to-uta"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountQuickRepayment(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/quick-repayment", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/quick-repayment"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountSetMarginMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-margin-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/set-margin-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountSetHedgingMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-hedging-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/set-hedging-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountMmpModify(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/mmp-modify", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/mmp-modify"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountMmpReset(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/mmp-reset", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/mmp-reset"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountBorrow(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/borrow", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/borrow"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountNoConvertRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/no-convert-repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/no-convert-repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountSetLimitPxAction(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-limit-px-action", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/set-limit-px-action"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountSetDeltaMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-delta-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/set-delta-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetExchangeQuoteApply(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/quote-apply", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/exchange/quote-apply"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetExchangeConvertExecute(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/convert-execute", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/exchange/convert-execute"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetTransferInterTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/inter-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/transfer/inter-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetTransferSaveTransferSubMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/save-transfer-sub-member", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/transfer/save-transfer-sub-member"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetTransferUniversalTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/universal-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/transfer/universal-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetDepositDepositToAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/deposit-to-account", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/deposit/deposit-to-account"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetTravelRuleDepositSubmit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/travel-rule/deposit/submit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/travel-rule/deposit/submit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetWithdrawCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/withdraw/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetWithdrawCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/withdraw/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetCovertGetQuote(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/covert/get-quote", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/covert/get-quote"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AssetCovertSmallBalanceExecute(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/covert/small-balance-execute", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/asset/covert/small-balance-execute"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5FiatQuoteApply(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/quote-apply", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/fiat/quote-apply"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5FiatTradeExecute(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/trade-execute", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/fiat/trade-execute"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5UserCreateSubMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/create-sub-member", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/user/create-sub-member"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5UserCreateSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/create-sub-api", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/user/create-sub-api"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5UserFrozenSubMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/frozen-sub-member", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/user/frozen-sub-member"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5UserUpdateApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/update-api", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/user/update-api"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5UserUpdateSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/update-sub-api", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/user/update-sub-api"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5UserDeleteApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/delete-api", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/user/delete-api"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5UserDeleteSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/delete-sub-api", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/user/delete-sub-api"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5UserAgreement(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/agreement", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/user/agreement"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5UserCreateDemoMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/create-demo-member", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/user/create-demo-member"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5SpotLeverTokenPurchase(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-lever-token/purchase", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-lever-token/purchase"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5SpotLeverTokenRedeem(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-lever-token/redeem", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-lever-token/redeem"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5SpotMarginTradeSwitchMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/switch-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/switch-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5SpotMarginTradeSetLeverage(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/set-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/set-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5SpotMarginTradeSetAutoRepayMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/set-auto-repay-mode", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/set-auto-repay-mode"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5SpotMarginTradeFixedborrow(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/fixedborrow", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/fixedborrow"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5SpotMarginTradeFixedborrowRenew(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/fixedborrow-renew", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-margin-trade/fixedborrow-renew"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5SpotCrossMarginTradeLoan(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/loan", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-cross-margin-trade/loan"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5SpotCrossMarginTradeRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-cross-margin-trade/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5SpotCrossMarginTradeSwitch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/switch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/spot-cross-margin-trade/switch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanBorrow(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/borrow", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/borrow"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanAdjustLtv(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/adjust-ltv", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan/adjust-ltv"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanCommonAdjustLtv(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/adjust-ltv", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-common/adjust-ltv"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanCommonMaxLoan(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/max-loan", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-common/max-loan"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanFlexibleBorrow(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/borrow", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-flexible/borrow"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanFlexibleRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-flexible/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanFlexibleRepayCollateral(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/repay-collateral", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-flexible/repay-collateral"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanFixedBorrow(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/borrow", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/borrow"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanFixedRenew(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/renew", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/renew"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanFixedSupply(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/supply", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/supply"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanFixedBorrowOrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/borrow-order-cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/borrow-order-cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanFixedSupplyOrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/supply-order-cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/supply-order-cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanFixedFullyRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/fully-repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/fully-repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5CryptoLoanFixedRepayCollateral(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/repay-collateral", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/crypto-loan-fixed/repay-collateral"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5InsLoanAssociationUid(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/association-uid", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/association-uid"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5InsLoanRepayLoan(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/repay-loan", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/ins-loan/repay-loan"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5LendingPurchase(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/purchase", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/lending/purchase"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5LendingRedeem(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/redeem", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/lending/redeem"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5LendingRedeemCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/redeem-cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/lending/redeem-cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountSetCollateralSwitch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-collateral-switch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/set-collateral-switch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountSetCollateralSwitchBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-collateral-switch-batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/set-collateral-switch-batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5AccountDemoApplyMoney(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/demo-apply-money", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/demo-apply-money"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5BrokerAwardInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/award/info", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/broker/award/info"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5BrokerAwardDistributeAward(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/award/distribute-award", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/broker/award/distribute-award"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5BrokerAwardDistributionRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/award/distribution-record", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/broker/award/distribution-record"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV5EarnPlaceOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/place-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/earn/place-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bybit(; kwargs...)
@@ -8856,3 +9992,1387 @@ function Bybit(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bybit_enableDemoTrading() end
+"""
+enables or disables demo trading mode
+see: https://bybit-exchange.github.io/docs/v5/demo
+
+# Arguments
+- `enable`::bool, optional: true if demo trading should be enabled, false otherwise
+"""
+__ccxt_doc_Bybit_enableDemoTrading
+
+function __ccxt_doc_Bybit_isUnifiedEnabled() end
+"""
+returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+see: https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+see: https://bybit-exchange.github.io/docs/v5/account/account-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- [enableUnifiedMargin, enableUnifiedAccount]
+"""
+__ccxt_doc_Bybit_isUnifiedEnabled
+
+function __ccxt_doc_Bybit_upgradeUnifiedTradeAccount() end
+"""
+upgrades the account to unified trade account *warning* this is irreversible
+see: https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- nothing
+"""
+__ccxt_doc_Bybit_upgradeUnifiedTradeAccount
+
+function __ccxt_doc_Bybit_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://bybit-exchange.github.io/docs/v5/system-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+"""
+__ccxt_doc_Bybit_fetchStatus
+
+function __ccxt_doc_Bybit_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://bybit-exchange.github.io/docs/v5/market/time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Bybit_fetchTime
+
+function __ccxt_doc_Bybit_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bybit_fetchCurrencies
+
+function __ccxt_doc_Bybit_fetchMarkets() end
+"""
+retrieves data on all markets for bybit
+see: https://bybit-exchange.github.io/docs/v5/market/instrument
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bybit_fetchMarkets
+
+function __ccxt_doc_Bybit_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bybit_fetchTicker
+
+function __ccxt_doc_Bybit_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `symbols`::array: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: *contract only* 'linear', 'inverse'
+- `params.baseCoin`::string, optional: *option only* base coin, default is 'BTC'
+
+# Returns
+- an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bybit_fetchTickers
+
+function __ccxt_doc_Bybit_fetchBidsAsks() end
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: *contract only* 'linear', 'inverse'
+- `params.baseCoin`::string, optional: *option only* base coin, default is 'BTC'
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bybit_fetchBidsAsks
+
+function __ccxt_doc_Bybit_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://bybit-exchange.github.io/docs/v5/market/kline
+see: https://bybit-exchange.github.io/docs/v5/market/mark-kline
+see: https://bybit-exchange.github.io/docs/v5/market/index-kline
+see: https://bybit-exchange.github.io/docs/v5/market/preimum-index-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bybit_fetchOHLCV
+
+function __ccxt_doc_Bybit_fetchFundingRates() end
+"""
+fetches funding rates for multiple markets
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `symbols`::array: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Bybit_fetchFundingRates
+
+function __ccxt_doc_Bybit_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Bybit_fetchFundingRateHistory
+
+function __ccxt_doc_Bybit_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://bybit-exchange.github.io/docs/v5/market/recent-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bybit_fetchTrades
+
+function __ccxt_doc_Bybit_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://bybit-exchange.github.io/docs/v5/market/orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bybit_fetchOrderBook
+
+function __ccxt_doc_Bybit_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
+see: https://bybit-exchange.github.io/docs/v5/asset/all-balance
+see: https://bybit-exchange.github.io/docs/v5/account/wallet-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: wallet type, ['spot', 'swap', 'funding']
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bybit_fetchBalance
+
+function __ccxt_doc_Bybit_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://bybit-exchange.github.io/docs/v5/order/create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Bybit_createMarketSellOrderWithCost() end
+"""
+create a market sell order by providing the symbol and cost
+see: https://bybit-exchange.github.io/docs/v5/order/create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_createMarketSellOrderWithCost
+
+function __ccxt_doc_Bybit_createOrder() end
+"""
+create a trade order
+see: https://bybit-exchange.github.io/docs/v5/order/create-order
+see: https://bybit-exchange.github.io/docs/v5/position/trading-stop
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: "GTC", "IOC", "FOK"
+- `params.postOnly`::bool, optional: true or false whether the order is post-only
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.positionIdx`::string, optional: *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
+- `params.hedged`::bool, optional: *contracts only* true for hedged mode, false for one way mode, default is false
+- `params.isLeverage`::int, optional: *unified spot only* false then spot trading true then margin trading
+- `params.tpslMode`::string, optional: *contract only* 'Full' or 'Partial'
+- `params.mmp`::string, optional: *option only* market maker protection
+- `params.triggerDirection`::string, optional: *contract only* the direction for trigger orders, 'ascending' or 'descending'
+- `params.triggerPrice`::float, optional: The price at which a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: The price at which a stop loss order is triggered at
+- `params.stopLossLimitPrice`::float, optional: The limit price for a stoploss order (only when used in OCO with takeProfitPrice)
+- `params.takeProfitPrice`::float, optional: The price at which a take profit order is triggered at
+- `params.takeProfitLimitPrice`::float, optional: The limit price for a takeprofit order (only when used in OCO combination with stopLossPrice)
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.trailingAmount`::string, optional: the quote amount to trail away from the current market price
+- `params.trailingTriggerPrice`::string, optional: the price to trigger a trailing order, default uses the price argument
+- `params.tradingStopEndpoint`::bool, optional: whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_createOrder
+
+function __ccxt_doc_Bybit_createOrders() end
+"""
+create a list of trade orders
+see: https://bybit-exchange.github.io/docs/v5/order/batch-place
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_createOrders
+
+function __ccxt_doc_Bybit_editOrder() end
+"""
+edit a trade order
+see: https://bybit-exchange.github.io/docs/v5/order/amend-order
+see: https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+see: https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: unique client order id
+- `params.triggerPrice`::float, optional: The price that a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: The price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: The price that a take profit order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.triggerBy`::string, optional: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+- `params.slTriggerBy`::string, optional: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+- `params.tpTriggerby`::string, optional: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_editOrder
+
+function __ccxt_doc_Bybit_editOrders() end
+"""
+edit a list of trade orders
+see: https://bybit-exchange.github.io/docs/v5/order/batch-amend
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_editOrders
+
+function __ccxt_doc_Bybit_cancelOrder() end
+"""
+cancels an open order
+see: https://bybit-exchange.github.io/docs/v5/order/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *spot only* whether the order is a trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.orderFilter`::string, optional: *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_cancelOrder
+
+function __ccxt_doc_Bybit_cancelOrders() end
+"""
+cancel multiple orders
+see: https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_cancelOrders
+
+function __ccxt_doc_Bybit_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://bybit-exchange.github.io/docs/v5/order/dcp
+
+# Arguments
+- `timeout`::float: time in milliseconds
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.product`::string, optional: OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Bybit_cancelAllOrdersAfter
+
+function __ccxt_doc_Bybit_cancelOrdersForSymbols() end
+"""
+cancel multiple orders for multiple symbols
+see: https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+
+# Arguments
+- `orders`::array: list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_cancelOrdersForSymbols
+
+function __ccxt_doc_Bybit_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://bybit-exchange.github.io/docs/v5/order/cancel-all
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.baseCoin`::string, optional: Base coin. Supports linear, inverse & option
+- `params.settleCoin`::string, optional: Settle coin. Supports linear, inverse & option
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_cancelAllOrders
+
+function __ccxt_doc_Bybit_fetchOrderClassic() end
+"""
+fetches information on an order made by the user *classic accounts only*
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_fetchOrderClassic
+
+function __ccxt_doc_Bybit_fetchOrder() end
+"""
+*classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.acknowledged`::object, optional: to suppress the warning, set to true
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_fetchOrder
+
+function __ccxt_doc_Bybit_fetchOrdersClassic() end
+"""
+fetches information on multiple orders made by the user *classic accounts only*
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_fetchOrdersClassic
+
+function __ccxt_doc_Bybit_fetchClosedOrder() end
+"""
+fetches information on a closed order made by the user
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching a closed trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_fetchClosedOrder
+
+function __ccxt_doc_Bybit_fetchOpenOrder() end
+"""
+fetches information on an open order made by the user
+see: https://bybit-exchange.github.io/docs/v5/order/open-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching an open trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.baseCoin`::string, optional: Base coin. Supports linear, inverse & option
+- `params.settleCoin`::string, optional: Settle coin. Supports linear, inverse & option
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_fetchOpenOrder
+
+function __ccxt_doc_Bybit_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple canceled and closed orders made by the user
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Bybit_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching closed trigger orders
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_fetchClosedOrders
+
+function __ccxt_doc_Bybit_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: true if trigger order
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_fetchCanceledOrders
+
+function __ccxt_doc_Bybit_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://bybit-exchange.github.io/docs/v5/order/open-order
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching open trigger orders
+- `params.stop`::bool, optional: alias for trigger
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.baseCoin`::string, optional: Base coin. Supports linear, inverse & option
+- `params.settleCoin`::string, optional: Settle coin. Supports linear, inverse & option
+- `params.orderFilter`::string, optional: 'Order' or 'StopOrder' or 'tpslOrder'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bybit_fetchOpenOrders
+
+function __ccxt_doc_Bybit_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://bybit-exchange.github.io/docs/v5/position/execution
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bybit_fetchOrderTrades
+
+function __ccxt_doc_Bybit_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bybit_fetchMyTrades
+
+function __ccxt_doc_Bybit_fetchDepositAddressesByNetwork() end
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+__ccxt_doc_Bybit_fetchDepositAddressesByNetwork
+
+function __ccxt_doc_Bybit_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bybit_fetchDepositAddress
+
+function __ccxt_doc_Bybit_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://bybit-exchange.github.io/docs/v5/asset/deposit-record
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for, default = 30 days before the current time
+- `limit`::int, optional: the maximum number of deposits structures to retrieve, default = 50, max = 50
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch deposits for, default = 30 days after since EXCHANGE SPECIFIC PARAMETERS
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.cursor`::string, optional: used for pagination
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bybit_fetchDeposits
+
+function __ccxt_doc_Bybit_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bybit_fetchWithdrawals
+
+function __ccxt_doc_Bybit_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://bybit-exchange.github.io/docs/v5/account/transaction-log
+see: https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.subType`::string, optional: if inverse will use v5/account/contract-transaction-log
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Bybit_fetchLedger
+
+function __ccxt_doc_Bybit_withdraw() end
+"""
+make a withdrawal
+see: https://bybit-exchange.github.io/docs/v5/asset/withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bybit_withdraw
+
+function __ccxt_doc_Bybit_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://bybit-exchange.github.io/docs/v5/position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bybit_fetchPosition
+
+function __ccxt_doc_Bybit_fetchPositions() end
+"""
+fetch all open positions
+see: https://bybit-exchange.github.io/docs/v5/position
+
+# Arguments
+- `symbols`::array: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.baseCoin`::string, optional: Base coin. Supports linear, inverse & option
+- `params.settleCoin`::string, optional: Settle coin. Supports linear, inverse & option
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bybit_fetchPositions
+
+function __ccxt_doc_Bybit_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://bybit-exchange.github.io/docs/v5/position
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Bybit_fetchLeverage
+
+function __ccxt_doc_Bybit_setMarginMode() end
+"""
+set margin mode (account) or trade mode (symbol)
+see: https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+see: https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+
+# Arguments
+- `marginMode`::string: account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::string, optional: the rate of leverage, is required if setting trade mode (symbol)
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bybit_setMarginMode
+
+function __ccxt_doc_Bybit_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://bybit-exchange.github.io/docs/v5/position/leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.buyLeverage`::string, optional: leverage for buy side
+- `params.sellLeverage`::string, optional: leverage for sell side
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bybit_setLeverage
+
+function __ccxt_doc_Bybit_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://bybit-exchange.github.io/docs/v5/position/position-mode
+
+# Arguments
+- `hedged`::bool:
+- `symbol`::string: used for unified account with inverse market
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bybit_setPositionMode
+
+function __ccxt_doc_Bybit_fetchOpenInterest() end
+"""
+Retrieves the open interest of a derivative trading pair
+see: https://bybit-exchange.github.io/docs/v5/market/open-interest
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+- `params.interval`::string, optional: 5m, 15m, 30m, 1h, 4h, 1d
+- `params.category`::string, optional: "linear" or "inverse"
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Bybit_fetchOpenInterest
+
+function __ccxt_doc_Bybit_fetchOpenInterestHistory() end
+"""
+Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+see: https://bybit-exchange.github.io/docs/v5/market/open-interest
+
+# Arguments
+- `symbol`::string: Unified market symbol
+- `timeframe`::string: "5m", 15m, 30m, 1h, 4h, 1d
+- `since`::int, optional: Not used by Bybit
+- `limit`::int, optional: The number of open interest structures to return. Max 200, default 50
+- `params`::object, optional: Exchange specific parameters
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- An array of open interest structures
+"""
+__ccxt_doc_Bybit_fetchOpenInterestHistory
+
+function __ccxt_doc_Bybit_fetchCrossBorrowRate() end
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Bybit_fetchCrossBorrowRate
+
+function __ccxt_doc_Bybit_fetchBorrowInterest() end
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
+
+# Arguments
+- `code`::string: unified currency code
+- `symbol`::string: unified market symbol when fetch interest in isolated markets
+- `since`::float, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::float, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+__ccxt_doc_Bybit_fetchBorrowInterest
+
+function __ccxt_doc_Bybit_fetchBorrowRateHistory() end
+"""
+retrieves a history of a currencies borrow interest rate at specific time slots
+see: https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: timestamp for the earliest borrow rate
+- `limit`::int, optional: the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Bybit_fetchBorrowRateHistory
+
+function __ccxt_doc_Bybit_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.transferId`::string, optional: UUID, which is unique across the platform
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bybit_transfer
+
+function __ccxt_doc_Bybit_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bybit_fetchTransfers
+
+function __ccxt_doc_Bybit_borrowCrossMargin() end
+"""
+create a loan to borrow margin
+see: https://bybit-exchange.github.io/docs/v5/account/borrow
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Bybit_borrowCrossMargin
+
+function __ccxt_doc_Bybit_repayCrossMargin() end
+"""
+repay borrowed margin and interest
+see: https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Bybit_repayCrossMargin
+
+function __ccxt_doc_Bybit_fetchMarketLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+__ccxt_doc_Bybit_fetchMarketLeverageTiers
+
+function __ccxt_doc_Bybit_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bybit_fetchTradingFee
+
+function __ccxt_doc_Bybit_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Bybit_fetchTradingFees
+
+function __ccxt_doc_Bybit_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
+
+# Arguments
+- `codes`::array: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bybit_fetchDepositWithdrawFees
+
+function __ccxt_doc_Bybit_fetchSettlementHistory() end
+"""
+fetches historical settlement records
+see: https://bybit-exchange.github.io/docs/v5/market/delivery-price
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+
+# Returns
+- a list of [settlement history objects]
+"""
+__ccxt_doc_Bybit_fetchSettlementHistory
+
+function __ccxt_doc_Bybit_fetchMySettlementHistory() end
+"""
+fetches historical settlement records of the user
+see: https://bybit-exchange.github.io/docs/v5/asset/delivery
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+
+# Returns
+- a list of [settlement history objects]
+"""
+__ccxt_doc_Bybit_fetchMySettlementHistory
+
+function __ccxt_doc_Bybit_fetchVolatilityHistory() end
+"""
+fetch the historical volatility of an option market based on an underlying asset
+see: https://bybit-exchange.github.io/docs/v5/market/iv
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.period`::int, optional: the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
+
+# Returns
+- a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
+"""
+__ccxt_doc_Bybit_fetchVolatilityHistory
+
+function __ccxt_doc_Bybit_fetchGreeks() end
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Bybit_fetchGreeks
+
+function __ccxt_doc_Bybit_fetchAllGreeks() end
+"""
+fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.baseCoin`::string, optional: the baseCoin of the symbol, default is BTC
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Bybit_fetchAllGreeks
+
+function __ccxt_doc_Bybit_fetchMyLiquidations() end
+"""
+retrieves the users liquidated positions
+see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
+# Arguments
+- `symbol`::string, optional: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the exchange API endpoint
+- `params.type`::string, optional: market type, ['swap', 'option', 'spot']
+- `params.subType`::string, optional: market subType, ['linear', 'inverse']
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Bybit_fetchMyLiquidations
+
+function __ccxt_doc_Bybit_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, for different trade sizes
+see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: market subType, ['linear', 'inverse'], default is 'linear'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Bybit_fetchLeverageTiers
+
+function __ccxt_doc_Bybit_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Bybit_fetchFundingHistory
+
+function __ccxt_doc_Bybit_fetchOption() end
+"""
+fetches option data that is commonly found in an option chain
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+__ccxt_doc_Bybit_fetchOption
+
+function __ccxt_doc_Bybit_fetchOptionChain() end
+"""
+fetches data for an underlying asset that is commonly found in an option chain
+see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+# Arguments
+- `code`::string: base currency to fetch an option chain for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+__ccxt_doc_Bybit_fetchOptionChain
+
+function __ccxt_doc_Bybit_fetchPositionsHistory() end
+"""
+fetches historical positions
+see: https://bybit-exchange.github.io/docs/v5/position/close-pnl
+
+# Arguments
+- `symbols`::array: a list of unified market symbols
+- `since`::int, optional: timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
+- `limit`::int, optional: the maximum amount of records to fetch, default=50, max=100
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
+- `params.subType`::string, optional: 'linear' or 'inverse'
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bybit_fetchPositionsHistory
+
+function __ccxt_doc_Bybit_fetchConvertCurrencies() end
+"""
+fetches all available currencies that can be converted
+see: https://bybit-exchange.github.io/docs/v5/asset/convert/convert-coin-list
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bybit_fetchConvertCurrencies
+
+function __ccxt_doc_Bybit_fetchConvertQuote() end
+"""
+fetch a quote for converting from one currency to another
+see: https://bybit-exchange.github.io/docs/v5/asset/convert/apply-quote
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Bybit_fetchConvertQuote
+
+function __ccxt_doc_Bybit_createConvertTrade() end
+"""
+convert from one currency to another
+see: https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Bybit_createConvertTrade
+
+function __ccxt_doc_Bybit_fetchConvertTrade() end
+"""
+fetch the data for a conversion trade
+see: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-result
+
+# Arguments
+- `id`::string: the id of the trade that you want to fetch
+- `code`::string, optional: the unified currency code of the conversion trade
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Bybit_fetchConvertTrade
+
+function __ccxt_doc_Bybit_fetchConvertTradeHistory() end
+"""
+fetch the users history of conversion trades
+see: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.accountType`::string, optional: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Bybit_fetchConvertTradeHistory
+
+function __ccxt_doc_Bybit_fetchLongShortRatioHistory() end
+"""
+fetches the long short ratio history for a unified market symbol
+see: https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the long short ratio for
+- `timeframe`::string, optional: the period for the ratio, default is 24 hours
+- `since`::int, optional: the earliest time in ms to fetch ratios for
+- `limit`::int, optional: the maximum number of long short ratio structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
+"""
+__ccxt_doc_Bybit_fetchLongShortRatioHistory
+
+function __ccxt_doc_Bybit_fetchPositionsADLRank() end
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://bybit-exchange.github.io/docs/v5/position#response-parameters
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+__ccxt_doc_Bybit_fetchPositionsADLRank
+
+function __ccxt_doc_Bybit_fetchMarginMode() end
+"""
+fetches the margin mode of the trading pair
+see: https://bybit-exchange.github.io/docs/v5/account/account-info
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Bybit_fetchMarginMode

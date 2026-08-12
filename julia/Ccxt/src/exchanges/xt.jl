@@ -1304,13 +1304,33 @@ function nonce(self::Xt, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function fetchTime(self::Xt, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the xt server
+see: https://doc.xt.com/docs/spot/Market/GetServerTime
+
+# Arguments
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the xt server
+"""
+function fetchTime(self::Xt; params=Dict())
     response = Base.fetch(self.publicSpotGetTime(params));
     data = safeValue(response, "result");
     return safeInteger(data, "serverTime")
 
 end
-function fetchCurrencies(self::Xt, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetSupportedCurrencies
+
+# Arguments
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Xt; params=Dict())
     promisesRaw = [self.publicSpotGetWalletSupportCurrency(params), self.publicSpotGetCurrencies(params)];
     (chainsResponse, currenciesResponse) = (Base.fetch(asyncmap(Base.fetch, promisesRaw)));
     chainsData = safeValue(chainsResponse, "result", []);
@@ -1330,7 +1350,7 @@ function fetchCurrencies(self::Xt, params=Dict())
         while functions.ccxtruthy(functions.ccxt_lt(j, length(rawNetworks)))
             rawNetwork = get(rawNetworks, j + 1, nothing);
             networkId = safeString(rawNetwork, "chain");
-            networkCode = self.networkIdToCode(networkId, code);
+            networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
             if functions.ccxtruthy(networkCode != nothing)
                 networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                     Symbol("info") => rawNetwork,
@@ -1375,7 +1395,7 @@ function fetchCurrencies(self::Xt, params=Dict())
     Symbol("name") => safeString(entry, "fullName"),
     Symbol("active") => nothing,
     Symbol("fee") => nothing,
-    Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(entry, "maxPrecision"))),
+    Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(entry, "maxPrecision"))),
     Symbol("deposit") => safeString(entry, "depositStatus") == "1",
     Symbol("withdraw") => safeString(entry, "withdrawStatus") == "1",
     Symbol("networks") => networks,
@@ -1401,25 +1421,36 @@ function fetchCurrencies(self::Xt, params=Dict())
     return result
 
 end
-function fetchMarkets(self::Xt, params=Dict())
+"""
+retrieves data on all markets for xt
+see: https://doc.xt.com/docs/spot/Market/GetSymbolInformation
+see: https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols
+
+# Arguments
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Xt; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
-    promisesUnresolved = [self.fetchSpotMarkets(params), self.fetchSwapAndFutureMarkets(params)];
+    promisesUnresolved = [self.fetchSpotMarkets(params = params), self.fetchSwapAndFutureMarkets(params = params)];
     promises = Base.fetch(asyncmap(Base.fetch, promisesUnresolved));
     spotMarkets = get(promises, 1, nothing);
     swapAndFutureMarkets = get(promises, 2, nothing);
     return arrayConcat(spotMarkets, swapAndFutureMarkets)
 
 end
-function fetchSpotMarkets(self::Xt, params=Dict())
+function fetchSpotMarkets(self::Xt; params=Dict())
     response = Base.fetch(self.publicSpotGetSymbol(params));
     data = safeValue(response, "result", Dict{Symbol, Any}());
     symbols = safeValue(data, "symbols", []);
     return self.parseMarkets(symbols)
 
 end
-function fetchSwapAndFutureMarkets(self::Xt, params=Dict())
+function fetchSwapAndFutureMarkets(self::Xt; params=Dict())
     markets = Base.fetch(asyncmap(Base.fetch, [self.publicLinearGetFutureMarketV1PublicSymbolList(params), self.publicInverseGetFutureMarketV1PublicSymbolList(params)]));
     swapAndFutureMarkets = arrayConcat(safeValue(get(markets, 1, nothing), "result", []), safeValue(get(markets, 2, nothing), "result", []));
     return self.parseMarkets(swapAndFutureMarkets)
@@ -1470,7 +1501,7 @@ function parseMarket(self::Xt, market)
         i += 1
     end
     if functions.ccxtruthy(amountPrecision == nothing)
-        amountPrecision = self.parseNumber(self.parsePrecision(safeString(market, "quantityPrecision")));
+        amountPrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "quantityPrecision")));
     end
     underlyingType = safeString(market, "underlyingType");
     linear = nothing;
@@ -1523,7 +1554,7 @@ function parseMarket(self::Xt, market)
             isActive = true;
         end
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -1550,10 +1581,10 @@ function parseMarket(self::Xt, market)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "pricePrecision"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "pricePrecision"))),
         Symbol("amount") => amountPrecision,
-        Symbol("base") => self.parseNumber(self.parsePrecision(safeString(market, "baseCoinPrecision"))),
-        Symbol("quote") => self.parseNumber(self.parsePrecision(safeString(market, "quoteCoinPrecision")))
+        Symbol("base") => self.parseNumber(self.parsePrecision(precision = safeString(market, "baseCoinPrecision"))),
+        Symbol("quote") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quoteCoinPrecision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -1577,14 +1608,31 @@ function parseMarket(self::Xt, market)
 ))
 
 end
-function fetchOHLCV(self::Xt, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://doc.xt.com/docs/spot/Market/GetKlineData
+see: https://doc.xt.com/docs/futures/MarketData/get-trading-pair-information-of-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Xt, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 1000))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1619,16 +1667,29 @@ function fetchOHLCV(self::Xt, symbol, timeframe="1m", since=nothing, limit=nothi
         response = Base.fetch(self.publicSpotGetKline(extend(request, params)));
     end
     ohlcvs = safeValue(response, "result", []);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Xt, ohlcv, market=nothing)
+function parseOHLCV(self::Xt, ohlcv; market=nothing)
     isInverse = self.safeBool(market, "inverse");
     volumeIndex = functions.ccxtruthy((isInverse)) ? "v" : "a";
     return [safeInteger(ohlcv, "t"), self.safeNumber(ohlcv, "o"), self.safeNumber(ohlcv, "h"), self.safeNumber(ohlcv, "l"), self.safeNumber(ohlcv, "c"), self.safeNumber2(ohlcv, "q", volumeIndex)]
 
 end
-function fetchOrderBook(self::Xt, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://doc.xt.com/docs/spot/Market/GetDepthData
+see: https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs
+
+# Arguments
+- `symbol`::string: unified market symbol to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+"""
+function fetchOrderBook(self::Xt, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1657,16 +1718,28 @@ function fetchOrderBook(self::Xt, symbol, limit=nothing, params=Dict())
     orderBook = safeValue(response, "result", Dict{Symbol, Any}());
     timestamp = safeInteger2(orderBook, "timestamp", "t");
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-        ob = self.parseOrderBook(orderBook, symbol, timestamp);
+        ob = self.parseOrderBook(orderBook, symbol, timestamp = timestamp);
         ob[Symbol("nonce")] = safeInteger(orderBook, "lastUpdateId");
             return ob
     end
-    swapOb = self.parseOrderBook(orderBook, symbol, timestamp, "b", "a");
+    swapOb = self.parseOrderBook(orderBook, symbol, timestamp = timestamp, bidsKey = "b", asksKey = "a");
     swapOb[Symbol("nonce")] = safeInteger2(orderBook, "u", "lastUpdateId");
     return swapOb
 
 end
-function fetchTicker(self::Xt, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+see: https://doc.xt.com/docs/futures/MarketData/get-aggregated-market-information-for-specific-trading-pair
+
+# Arguments
+- `symbol`::string: unified market symbol to fetch the ticker for
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+"""
+function fetchTicker(self::Xt, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1684,26 +1757,38 @@ function fetchTicker(self::Xt, symbol, params=Dict())
     end
     ticker = safeValue(response, "result");
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            return self.parseTicker(get(ticker, 1, nothing), market)
+            return self.parseTicker(get(ticker, 1, nothing), market = market)
     end
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
-function fetchTickers(self::Xt, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+see: https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+see: https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs
+
+# Arguments
+- `symbols`::string, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+"""
+function fetchTickers(self::Xt; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
-        symbols = self.marketSymbols(symbols);
+        symbols = self.marketSymbols(symbols = symbols);
         market = self.market(get(symbols, 1, nothing));
     end
     request = Dict{Symbol, Any}();
     type_var = nothing;
     subType = nothing;
     response = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchTickers", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchTickers", market = market, params = params);
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.publicInverseGetFutureMarketV1PublicQAggTickers(extend(request, params)));
     elseif functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((subType == "linear"), (type_var == "swap")), (type_var == "future")))
@@ -1715,21 +1800,33 @@ function fetchTickers(self::Xt, symbols=nothing, params=Dict())
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
-        ticker = self.parseTicker(get(tickers, i + 1, nothing), market);
+        ticker = self.parseTicker(get(tickers, i + 1, nothing), market = market);
         symbol = get(ticker, Symbol("symbol"), nothing);
         if functions.ccxtruthy(symbol != nothing)
             result[Symbol(symbol)] = ticker;
         end
         i += 1
     end
-    return self.filterByArray(result, "symbol", symbols)
+    return self.filterByArray(result, "symbol", values = symbols)
 
 end
-function fetchBidsAsks(self::Xt, symbols=nothing, params=Dict())
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+see: https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+"""
+function fetchBidsAsks(self::Xt; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
@@ -1737,8 +1834,8 @@ function fetchBidsAsks(self::Xt, symbols=nothing, params=Dict())
     end
     type_var = nothing;
     subType = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBidsAsks", market, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchBidsAsks", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBidsAsks", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchBidsAsks", market = market, params = params);
     isInverse = (subType == "inverse");
     isLinear = @functions.ccxt_or(@functions.ccxt_or((subType == "linear"), (type_var == "swap")), (type_var == "future"));
     isContract = @functions.ccxt_or(isInverse, isLinear);
@@ -1750,32 +1847,32 @@ function fetchBidsAsks(self::Xt, symbols=nothing, params=Dict())
     else
         response = Base.fetch(self.publicSpotGetTickerBook(extend(request, params)));
     end
-    tickers = self.safeList(response, "result", []);
+    tickers = self.safeList(response, "result", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
         rawTicker = get(tickers, i + 1, nothing);
         marketId = safeString(rawTicker, "s");
         marketType = functions.ccxtruthy(isContract) ? "contract" : "spot";
-        marketInner = self.safeMarket(marketId, market, "_", marketType);
-        ticker = self.parseTicker(rawTicker, marketInner);
+        marketInner = self.safeMarket(marketId = marketId, market = market, delimiter = "_", marketType = marketType);
+        ticker = self.parseTicker(rawTicker, market = marketInner);
         symbol = get(ticker, Symbol("symbol"), nothing);
         if functions.ccxtruthy(symbol != nothing)
             result[Symbol(symbol)] = ticker;
         end
         i += 1
     end
-    return self.filterByArray(result, "symbol", symbols)
+    return self.filterByArray(result, "symbol", values = symbols)
 
 end
-function parseTicker(self::Xt, ticker, market=nothing)
+function parseTicker(self::Xt, ticker; market=nothing)
     marketId = safeString(ticker, "s");
     marketType = functions.ccxtruthy((market != nothing)) ? get(market, Symbol("type"), nothing) : nothing;
     hasSpotKeys = @functions.ccxt_or((ccxt_in("cv", ticker)), (ccxt_in("aq", ticker)));
     if functions.ccxtruthy(marketType == nothing)
         marketType = functions.ccxtruthy(hasSpotKeys) ? "spot" : "contract";
     end
-    market = self.safeMarket(marketId, market, "_", marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_", marketType = marketType);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger(ticker, "t");
     percentage = safeString2(ticker, "cr", "r");
@@ -1803,10 +1900,24 @@ function parseTicker(self::Xt, ticker, market=nothing)
     Symbol("baseVolume") => self.safeNumber2(ticker, "a", "q"),
     Symbol("quoteVolume") => self.safeNumber(ticker, "v"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Xt, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://doc.xt.com/docs/spot/Market/QueryRecentTransactions
+see: https://doc.xt.com/docs/futures/MarketData/get-latest-transaction-information-of-trading-pairs
+
+# Arguments
+- `symbol`::string: unified market symbol to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+"""
+function fetchTrades(self::Xt, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1831,10 +1942,24 @@ function fetchTrades(self::Xt, symbol, since=nothing, limit=nothing, params=Dict
         end
     end
     trades = safeValue(response, "result", []);
-    return self.parseTrades(trades, market)
+    return self.parseTrades(trades, market = market)
 
 end
-function fetchMyTrades(self::Xt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://doc.xt.com/docs/spot/Trade/QueryTrade
+see: https://doc.xt.com/docs/futures/Order/see-transaction-details
+
+# Arguments
+- `symbol`::string, optional: unified market symbol to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+"""
+function fetchMyTrades(self::Xt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1850,8 +1975,8 @@ function fetchMyTrades(self::Xt, symbol=nothing, since=nothing, limit=nothing, p
     type_var = nothing;
     subType = nothing;
     response = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchMyTrades", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchMyTrades", market = market, params = params);
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((subType != nothing), (type_var == "swap")), (type_var == "future")))
         if functions.ccxtruthy(limit != nothing)
             request[Symbol("size")] = limit;
@@ -1863,7 +1988,7 @@ function fetchMyTrades(self::Xt, symbol=nothing, since=nothing, limit=nothing, p
         end
     else
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params);
+        (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params = params);
         marginOrSpotRequest = functions.ccxtruthy((marginMode != nothing)) ? "LEVER" : "SPOT";
         request[Symbol("bizType")] = marginOrSpotRequest;
         if functions.ccxtruthy(limit != nothing)
@@ -1873,17 +1998,17 @@ function fetchMyTrades(self::Xt, symbol=nothing, since=nothing, limit=nothing, p
     end
     data = safeValue(response, "result", Dict{Symbol, Any}());
     trades = safeValue(data, "items", []);
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Xt, trade, market=nothing)
+function parseTrade(self::Xt, trade; market=nothing)
     marketId = safeString2(trade, "s", "symbol");
     marketType = functions.ccxtruthy((market != nothing)) ? get(market, Symbol("type"), nothing) : nothing;
     hasSpotKeys = @functions.ccxt_or(@functions.ccxt_or((ccxt_in("b", trade)), (ccxt_in("bizType", trade))), (ccxt_in("oi", trade)));
     if functions.ccxtruthy(marketType == nothing)
         marketType = functions.ccxtruthy(hasSpotKeys) ? "spot" : "contract";
     end
-    market = self.safeMarket(marketId, market, "_", marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_", marketType = marketType);
     side = nothing;
     takerOrMaker = nothing;
     isBuyerMaker = self.safeBool(trade, "b");
@@ -1939,18 +2064,29 @@ function parseTrade(self::Xt, trade, market=nothing)
         Symbol("currency") => self.safeCurrencyCode(safeString2(trade, "feeCurrency", "feeCoin")),
         Symbol("cost") => safeString(trade, "fee")
     )
-), market)
+), market = market)
 
 end
-function fetchBalance(self::Xt, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://doc.xt.com/docs/spot/Balance/GetBalances
+see: https://doc.xt.com/docs/futures/User/GetUserFunds
+
+# Arguments
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+"""
+function fetchBalance(self::Xt; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
     subType = nothing;
     response = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchBalance", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchBalance", market = nothing, params = params);
     isContractWallet = (@functions.ccxt_or((type_var == "swap"), (type_var == "future")));
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.privateInverseGetFutureUserV1BalanceList(params));
@@ -1997,7 +2133,19 @@ function parseBalance(self::Xt, response)
     return self.safeBalance(result)
 
 end
-function createMarketBuyOrderWithCost(self::Xt, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://doc.xt.com/docs/spot/Order/SubmitOrder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Xt, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2005,23 +2153,48 @@ function createMarketBuyOrderWithCost(self::Xt, symbol, cost, params=Dict())
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
         throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
     end
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, 1, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = 1, params = params))
 
 end
-function createOrder(self::Xt, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://doc.xt.com/docs/spot/Order/SubmitOrder
+see: https://doc.xt.com/docs/futures/Order/Create%20Orders
+see: https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price to fulfill the order, in units of the quote currency, can be ignored in market orders
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK' or 'GTX'
+- `params.entrustType`::string, optional: 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
+- `params.triggerPriceType`::string, optional: 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
+- `params.triggerPrice`::float, optional: price to trigger a stop order
+- `params.stopPrice`::float, optional: alias for triggerPrice
+- `params.stopLoss`::float, optional: price to set a stop-loss on an open position
+- `params.takeProfit`::float, optional: price to set a take-profit on an open position
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+function createOrder(self::Xt, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     symbol = get(market, Symbol("symbol"), nothing);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            return Base.fetch(self.createSpotOrder(symbol, type_var, side, amount, price, params))
+            return Base.fetch(self.createSpotOrder(symbol, type_var, side, amount, price = price, params = params))
     else
-        return Base.fetch(self.createContractOrder(symbol, type_var, side, amount, price, params))
+        return Base.fetch(self.createContractOrder(symbol, type_var, side, amount, price = price, params = params))
     end
 
 end
-function createSpotOrder(self::Xt, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createSpotOrder(self::Xt, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2033,7 +2206,7 @@ function createSpotOrder(self::Xt, symbol, type_var, side, amount, price=nothing
     );
     timeInForce = nothing;
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
     marginOrSpotRequest = functions.ccxtruthy((marginMode != nothing)) ? "LEVER" : "SPOT";
     request[Symbol("bizType")] = marginOrSpotRequest;
     if functions.ccxtruthy(type_var == "market")
@@ -2041,7 +2214,7 @@ function createSpotOrder(self::Xt, symbol, type_var, side, amount, price=nothing
         if functions.ccxtruthy(side == "buy")
             cost = safeString(params, "cost");
             params = omit(params, "cost");
-            createMarketBuyOrderRequiresPrice = self.safeBool(self.options, "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = self.safeBool(self.options, "createMarketBuyOrderRequiresPrice", defaultValue = true);
             if functions.ccxtruthy(createMarketBuyOrderRequiresPrice)
                 if functions.ccxtruthy(@functions.ccxt_and(price == nothing, (cost == nothing)))
                     throw(InvalidOrder(string(self.id, " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")));
@@ -2071,10 +2244,10 @@ function createSpotOrder(self::Xt, symbol, type_var, side, amount, price=nothing
     request[Symbol("timeInForce")] = timeInForce;
     response = Base.fetch(self.privateSpotPostOrder(extend(request, params)));
     order = safeValue(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function createContractOrder(self::Xt, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createContractOrder(self::Xt, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2141,10 +2314,27 @@ function createContractOrder(self::Xt, symbol, type_var, side, amount, price=not
             response = Base.fetch(self.privateInversePostFutureTradeV1OrderCreate(extend(request, params)));
         end
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOrder(self::Xt, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://doc.xt.com/docs/spot/Order/GetSingleOrder
+see: https://doc.xt.com/docs/futures/Order/see-orders-by-id
+see: https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
+see: https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+function fetchOrder(self::Xt, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2156,8 +2346,8 @@ function fetchOrder(self::Xt, id, symbol=nothing, params=Dict())
     type_var = nothing;
     subType = nothing;
     response = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOrder", market, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchOrder", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOrder", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchOrder", market = market, params = params);
     trigger = safeValue(params, "stop");
     stopLossTakeProfit = safeValue(params, "stopLossTakeProfit");
     if functions.ccxtruthy(trigger)
@@ -2192,10 +2382,26 @@ function fetchOrder(self::Xt, id, symbol=nothing, params=Dict())
 
     end
     order = safeValue(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function fetchOrders(self::Xt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+see: https://doc.xt.com/docs/futures/Order/see-order-history
+see: https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market the orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+function fetchOrders(self::Xt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2214,8 +2420,8 @@ function fetchOrders(self::Xt, symbol=nothing, since=nothing, limit=nothing, par
     type_var = nothing;
     subType = nothing;
     response = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOrders", market, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchOrders", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOrders", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchOrders", market = market, params = params);
     trigger = safeValue2(params, "trigger", "stop");
     if functions.ccxtruthy(trigger)
         params = omit(params, ["trigger", "stop"]);
@@ -2231,7 +2437,7 @@ function fetchOrders(self::Xt, symbol=nothing, since=nothing, limit=nothing, par
             response = Base.fetch(self.privateLinearGetFutureTradeV1OrderListHistory(extend(request, params)));
         else
             marginMode = nothing;
-            (marginMode, params) = self.handleMarginModeAndParams("fetchOrders", params);
+            (marginMode, params) = self.handleMarginModeAndParams("fetchOrders", params = params);
             marginOrSpotRequest = functions.ccxtruthy((marginMode != nothing)) ? "LEVER" : "SPOT";
             request[Symbol("bizType")] = marginOrSpotRequest;
             response = Base.fetch(self.privateSpotGetHistoryOrder(extend(request, params)));
@@ -2240,10 +2446,10 @@ function fetchOrders(self::Xt, symbol=nothing, since=nothing, limit=nothing, par
     end
     data = safeValue(response, "result", Dict{Symbol, Any}());
     orders = safeValue(data, "items", []);
-    return self.parseOrders(orders, market, since, limit)
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOrdersByStatus(self::Xt, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrdersByStatus(self::Xt, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2262,8 +2468,8 @@ function fetchOrdersByStatus(self::Xt, status, symbol=nothing, since=nothing, li
     type_var = nothing;
     subType = nothing;
     response = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOrdersByStatus", market, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchOrdersByStatus", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOrdersByStatus", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchOrdersByStatus", market = market, params = params);
     trigger = self.safeBool2(params, "stop", "trigger");
     stopLossTakeProfit = safeValue(params, "stopLossTakeProfit");
     if functions.ccxtruthy(status == "open")
@@ -2321,7 +2527,7 @@ function fetchOrdersByStatus(self::Xt, status, symbol=nothing, since=nothing, li
             end
         else
             marginMode = nothing;
-            (marginMode, params) = self.handleMarginModeAndParams("fetchOrdersByStatus", params);
+            (marginMode, params) = self.handleMarginModeAndParams("fetchOrdersByStatus", params = params);
             marginOrSpotRequest = functions.ccxtruthy((marginMode != nothing)) ? "LEVER" : "SPOT";
             request[Symbol("bizType")] = marginOrSpotRequest;
             if functions.ccxtruthy(status != "open")
@@ -2342,26 +2548,97 @@ function fetchOrdersByStatus(self::Xt, status, symbol=nothing, since=nothing, li
     orders = [];
     resultDict = self.safeDict(response, "result");
     if functions.ccxtruthy(resultDict != nothing)
-        orders = self.safeList(resultDict, "items", []);
+        orders = self.safeList(resultDict, "items", defaultValue = []);
     else
-        orders = self.safeList(response, "result", []);
+        orders = self.safeList(response, "result", defaultValue = []);
     end
-    return self.parseOrders(orders, market, since, limit)
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Xt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStatus("open", symbol, since, limit, params))
+"""
+fetch all unfilled currently open orders
+see: https://doc.xt.com/docs/spot/Order/QueryOpenOrders
+see: https://doc.xt.com/docs/futures/Order/see-orders
+see: https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market the orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+function fetchOpenOrders(self::Xt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStatus("open", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchClosedOrders(self::Xt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStatus("closed", symbol, since, limit, params))
+"""
+fetches information on multiple closed orders made by the user
+see: https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+see: https://doc.xt.com/docs/futures/Order/see-orders
+see: https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market the orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+function fetchClosedOrders(self::Xt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStatus("closed", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchCanceledOrders(self::Xt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStatus("canceled", symbol, since, limit, params))
+"""
+fetches information on multiple canceled orders made by the user
+see: https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+see: https://doc.xt.com/docs/futures/Order/see-orders
+see: https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market the orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+function fetchCanceledOrders(self::Xt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStatus("canceled", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function cancelOrder(self::Xt, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://doc.xt.com/docs/spot/Order/CancelOrder
+see: https://doc.xt.com/docs/futures/Order/cancel-orders
+see: https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+function cancelOrder(self::Xt, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2373,8 +2650,8 @@ function cancelOrder(self::Xt, id, symbol=nothing, params=Dict())
     type_var = nothing;
     subType = nothing;
     response = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("cancelOrder", market, params);
-    (subType, params) = self.handleSubTypeAndParams("cancelOrder", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("cancelOrder", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("cancelOrder", market = market, params = params);
     trigger = safeValue2(params, "trigger", "stop");
     stopLossTakeProfit = safeValue(params, "stopLossTakeProfit");
     if functions.ccxtruthy(trigger)
@@ -2410,10 +2687,26 @@ function cancelOrder(self::Xt, id, symbol=nothing, params=Dict())
     end
     isContractResponse = (@functions.ccxt_or(@functions.ccxt_or((subType != nothing), (type_var == "swap")), (type_var == "future")));
     order = functions.ccxtruthy(isContractResponse) ? response : safeValue(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function cancelAllOrders(self::Xt, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://doc.xt.com/docs/spot/Order/CancelCurrentPendingOrder
+see: https://doc.xt.com/docs/futures/Order/cancel-all-orders
+see: https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+function cancelAllOrders(self::Xt; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2426,8 +2719,8 @@ function cancelAllOrders(self::Xt, symbol=nothing, params=Dict())
     type_var = nothing;
     subType = nothing;
     response = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("cancelAllOrders", market, params);
-    (subType, params) = self.handleSubTypeAndParams("cancelAllOrders", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("cancelAllOrders", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("cancelAllOrders", market = market, params = params);
     trigger = safeValue2(params, "trigger", "stop");
     stopLossTakeProfit = safeValue(params, "stopLossTakeProfit");
     if functions.ccxtruthy(trigger)
@@ -2451,7 +2744,7 @@ function cancelAllOrders(self::Xt, symbol=nothing, params=Dict())
             response = Base.fetch(self.privateLinearPostFutureTradeV1OrderCancelAll(extend(request, params)));
         else
             marginMode = nothing;
-            (marginMode, params) = self.handleMarginModeAndParams("cancelAllOrders", params);
+            (marginMode, params) = self.handleMarginModeAndParams("cancelAllOrders", params = params);
             marginOrSpotRequest = functions.ccxtruthy((marginMode != nothing)) ? "LEVER" : "SPOT";
             request[Symbol("bizType")] = marginOrSpotRequest;
             response = Base.fetch(self.privateSpotDeleteOpenOrder(extend(request, params)));
@@ -2461,7 +2754,19 @@ function cancelAllOrders(self::Xt, symbol=nothing, params=Dict())
     return [self.safeOrder(response)]
 
 end
-function cancelOrders(self::Xt, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://doc.xt.com/docs/spot/Order/CancelBatchOrder
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+function cancelOrders(self::Xt, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2473,7 +2778,7 @@ function cancelOrders(self::Xt, ids, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("cancelOrders", market, params);
+    (subType, params) = self.handleSubTypeAndParams("cancelOrders", market = market, params = params);
     if functions.ccxtruthy(subType != nothing)
         throw(NotSupported(string(self.id, " cancelOrders() does not support swap and future orders, only spot orders are accepted")));
     end
@@ -2481,11 +2786,11 @@ function cancelOrders(self::Xt, ids, symbol=nothing, params=Dict())
     return [self.safeOrder(response)]
 
 end
-function parseOrder(self::Xt, order, market=nothing)
+function parseOrder(self::Xt, order; market=nothing)
     marketId = safeString(order, "symbol");
     marketType = functions.ccxtruthy(@functions.ccxt_or((ccxt_in("result", order)), (ccxt_in("positionSide", order)))) ? "contract" : "spot";
-    market = self.safeMarket(marketId, market, nothing, marketType);
-    symbol = self.safeSymbol(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = marketType);
     timestamp = safeInteger2(order, "time", "createdTime");
     quantity = self.safeNumber(order, "origQty");
     amount = functions.ccxtruthy((marketType == "spot")) ? quantity : stringMul(numberToString(quantity), numberToString(get(market, Symbol("contractSize"), nothing)));
@@ -2531,7 +2836,7 @@ function parseOrder(self::Xt, order, market=nothing)
         Symbol("cost") => self.safeNumber(order, "fee")
     ),
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Xt, status)
@@ -2553,7 +2858,20 @@ function parseOrderStatus(self::Xt, status)
     return safeString(statuses, status, status)
 
 end
-function fetchLedger(self::Xt, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://doc.xt.com/docs/futures/User/Get%20User's%20Account%20Flow%20Information
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+"""
+function fetchLedger(self::Xt; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2571,8 +2889,8 @@ function fetchLedger(self::Xt, code=nothing, since=nothing, limit=nothing, param
     type_var = nothing;
     subType = nothing;
     response = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchLedger", nothing, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchLedger", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchLedger", market = nothing, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchLedger", market = nothing, params = params);
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.privateInverseGetFutureUserV1BalanceBills(extend(request, params)));
     elseif functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((subType == "linear"), (type_var == "swap")), (type_var == "future")))
@@ -2582,14 +2900,14 @@ function fetchLedger(self::Xt, code=nothing, since=nothing, limit=nothing, param
     end
     data = safeValue(response, "result", Dict{Symbol, Any}());
     ledger = safeValue(data, "items", []);
-    return self.parseLedger(ledger, currency, since, limit)
+    return self.parseLedger(ledger, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Xt, item, currency=nothing)
+function parseLedgerEntry(self::Xt, item; currency=nothing)
     side = safeString(item, "side");
     direction = functions.ccxtruthy((side == "ADD")) ? "in" : "out";
     currencyId = safeString(item, "coin");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     timestamp = safeInteger(item, "createdTime");
     return self.safeLedgerEntry(Dict{Symbol, Any}(
     Symbol("info") => item,
@@ -2599,7 +2917,7 @@ function parseLedgerEntry(self::Xt, item, currency=nothing)
     Symbol("referenceId") => nothing,
     Symbol("referenceAccount") => nothing,
     Symbol("type") => self.parseLedgerEntryType(safeString(item, "type")),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(item, "amount"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -2610,7 +2928,7 @@ function parseLedgerEntry(self::Xt, item, currency=nothing)
         Symbol("currency") => nothing,
         Symbol("cost") => nothing
     )
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Xt, type_var)
@@ -2627,14 +2945,26 @@ function parseLedgerEntryType(self::Xt, type_var)
     return safeString(ledgerType, type_var, type_var)
 
 end
-function fetchDepositAddress(self::Xt, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.network`::string: required network id
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+"""
+function fetchDepositAddress(self::Xt, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     currency = self.currency(code);
-    networkId = self.networkCodeToId(networkCode, code);
+    networkId = self.networkCodeToId(networkCode, currencyCode = code);
     self.checkRequiredArgument("fetchDepositAddress", networkId, "network");
     request = Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("id"), nothing),
@@ -2642,22 +2972,35 @@ function fetchDepositAddress(self::Xt, code, params=Dict())
     );
     response = Base.fetch(self.privateSpotGetDepositAddress(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    return self.parseDepositAddress(result, currency)
+    return self.parseDepositAddress(result, currency = currency)
 
 end
-function parseDepositAddress(self::Xt, depositAddress, currency=nothing)
+function parseDepositAddress(self::Xt, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
-    Symbol("currency") => self.safeCurrencyCode(nothing, currency),
+    Symbol("currency") => self.safeCurrencyCode(nothing, currency = currency),
     Symbol("network") => nothing,
     Symbol("address") => address,
     Symbol("tag") => safeString(depositAddress, "memo")
 )
 
 end
-function fetchDeposits(self::Xt, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositHistory
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of transaction structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+"""
+function fetchDeposits(self::Xt; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2676,10 +3019,23 @@ function fetchDeposits(self::Xt, code=nothing, since=nothing, limit=nothing, par
     response = Base.fetch(self.privateSpotGetDepositHistory(extend(request, params)));
     data = safeValue(response, "result", Dict{Symbol, Any}());
     deposits = safeValue(data, "items", []);
-    return self.parseTransactions(deposits, currency, since, limit, params)
+    return self.parseTransactions(deposits, currency = currency, since = since, limit = limit, params = params)
 
 end
-function fetchWithdrawals(self::Xt, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://doc.xt.com/docs/spot/Deposit&Withdrawal/WithdrawHistory
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of transaction structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+"""
+function fetchWithdrawals(self::Xt; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2698,11 +3054,25 @@ function fetchWithdrawals(self::Xt, code=nothing, since=nothing, limit=nothing, 
     response = Base.fetch(self.privateSpotGetWithdrawHistory(extend(request, params)));
     data = safeValue(response, "result", Dict{Symbol, Any}());
     withdrawals = safeValue(data, "items", []);
-    return self.parseTransactions(withdrawals, currency, since, limit, params)
+    return self.parseTransactions(withdrawals, currency = currency, since = since, limit = limit, params = params)
 
 end
-function withdraw(self::Xt, code, amount, address, tag=nothing, params=Dict())
-    self.checkAddress(address);
+"""
+make a withdrawal
+see: https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string, optional:
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+"""
+function withdraw(self::Xt, code, amount, address; tag=nothing, params=Dict())
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2723,15 +3093,15 @@ function withdraw(self::Xt, code, amount, address, tag=nothing, params=Dict())
     end
     response = Base.fetch(self.privateSpotPostWithdraw(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    return self.parseTransaction(result, currency)
+    return self.parseTransaction(result, currency = currency)
 
 end
-function parseTransaction(self::Xt, transaction, currency=nothing)
+function parseTransaction(self::Xt, transaction; currency=nothing)
     type_var = functions.ccxtruthy((ccxt_in("fromAddr", transaction))) ? "deposit" : "withdraw";
     timestamp = safeInteger(transaction, "createdTime");
     address = safeString(transaction, "address");
     memo = safeString(transaction, "memo");
-    currencyCode = self.safeCurrencyCode(safeString(transaction, "currency"), currency);
+    currencyCode = self.safeCurrencyCode(safeString(transaction, "currency"), currency = currency);
     fee = self.safeNumber(transaction, "fee");
     feeCurrency = functions.ccxtruthy((fee != nothing)) ? currencyCode : nothing;
     networkId = safeString(transaction, "chain");
@@ -2751,7 +3121,7 @@ function parseTransaction(self::Xt, transaction, currency=nothing)
     Symbol("type") => type_var,
     Symbol("amount") => self.safeNumber(transaction, "amount"),
     Symbol("currency") => currencyCode,
-    Symbol("network") => self.networkIdToCode(networkId, currencyCode),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = currencyCode),
     Symbol("status") => self.parseTransactionStatus(safeString(transaction, "status")),
     Symbol("comment") => memo,
     Symbol("fee") => Dict{Symbol, Any}(
@@ -2776,12 +3146,25 @@ function parseTransactionStatus(self::Xt, status)
     return safeString(statuses, status, status)
 
 end
-function setLeverage(self::Xt, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://doc.xt.com/docs/futures/User/Adjust%20Leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string: 'LONG' or 'SHORT'
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Xt, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
     positionSide = safeString(params, "positionSide");
-    self.checkRequiredArgument("setLeverage", positionSide, "positionSide", ["LONG", "SHORT"]);
+    self.checkRequiredArgument("setLeverage", positionSide, "positionSide", options = ["LONG", "SHORT"]);
     if functions.ccxtruthy(@functions.ccxt_or((functions.ccxt_lt(leverage, 1)), (functions.ccxt_gt(leverage, 125))))
         throw(BadRequest(string(self.id, " setLeverage() leverage should be between 1 and 125")));
     end
@@ -2798,7 +3181,7 @@ function setLeverage(self::Xt, leverage, symbol=nothing, params=Dict())
         Symbol("leverage") => leverage
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("setLeverage", market, params);
+    (subType, params) = self.handleSubTypeAndParams("setLeverage", market = market, params = params);
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.privateInversePostFutureUserV1PositionAdjustLeverage(extend(request, params)));
     else
@@ -2807,18 +3190,44 @@ function setLeverage(self::Xt, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function addMargin(self::Xt, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "ADD", params))
+"""
+add margin to a position
+see: https://doc.xt.com/docs/futures/User/Alter%20Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string: 'LONG' or 'SHORT'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Xt, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "ADD", params = params))
 
 end
-function reduceMargin(self::Xt, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "SUB", params))
+"""
+remove margin from a position
+see: https://doc.xt.com/docs/futures/User/Alter%20Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string: 'LONG' or 'SHORT'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Xt, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "SUB", params = params))
 
 end
-function modifyMarginHelper(self::Xt, symbol, amount, addOrReduce, params=Dict())
+function modifyMarginHelper(self::Xt, symbol, amount, addOrReduce; params=Dict())
     positionSide = safeString(params, "positionSide");
     methodName = functions.ccxtruthy((addOrReduce == "ADD")) ? "addMargin" : "reduceMargin";
-    self.checkRequiredArgument(methodName, positionSide, "positionSide", ["LONG", "SHORT"]);
+    self.checkRequiredArgument(methodName, positionSide, "positionSide", options = ["LONG", "SHORT"]);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2830,23 +3239,23 @@ function modifyMarginHelper(self::Xt, symbol, amount, addOrReduce, params=Dict()
         Symbol("positionSide") => positionSide
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("modifyMarginHelper", market, params);
+    (subType, params) = self.handleSubTypeAndParams("modifyMarginHelper", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.privateInversePostFutureUserV1PositionMargin(extend(request, params)));
     else
         response = Base.fetch(self.privateLinearPostFutureUserV1PositionMargin(extend(request, params)));
     end
-    return self.parseMarginModification(response, market)
+    return self.parseMarginModification(response, market = market)
 
 end
-function parseMarginModification(self::Xt, data, market=nothing)
+function parseMarginModification(self::Xt, data; market=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => data,
     Symbol("type") => nothing,
     Symbol("amount") => nothing,
     Symbol("code") => nothing,
-    Symbol("symbol") => self.safeSymbol(nothing, market),
+    Symbol("symbol") => self.safeSymbol(nothing, market = market),
     Symbol("status") => nothing,
     Symbol("marginMode") => nothing,
     Symbol("total") => nothing,
@@ -2855,12 +3264,23 @@ function parseMarginModification(self::Xt, data, market=nothing)
 )
 
 end
-function fetchLeverageTiers(self::Xt, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage for different trade sizes
+see: https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
+
+# Arguments
+- `symbols`::string, optional: a list of unified market symbols
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+function fetchLeverageTiers(self::Xt; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchLeverageTiers", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchLeverageTiers", market = nothing, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.publicInverseGetFutureMarketV1PublicLeverageBracketList(params));
@@ -2868,31 +3288,42 @@ function fetchLeverageTiers(self::Xt, symbols=nothing, params=Dict())
         response = Base.fetch(self.publicLinearGetFutureMarketV1PublicLeverageBracketList(params));
     end
     data = safeValue(response, "result", []);
-    symbols = self.marketSymbols(symbols);
-    return self.parseLeverageTiers(data, symbols, "symbol")
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.parseLeverageTiers(data, symbols = symbols, marketIdKey = "symbol")
 
 end
-function parseLeverageTiers(self::Xt, response, symbols=nothing, marketIdKey=nothing)
+function parseLeverageTiers(self::Xt, response; symbols=nothing, marketIdKey=nothing)
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         entry = get(response, i + 1, nothing);
         marketId = safeString(entry, "symbol");
-        market = self.safeMarket(marketId, nothing, "_", "contract");
-        symbol = self.safeSymbol(marketId, market);
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = "_", marketType = "contract");
+        symbol = self.safeSymbol(marketId, market = market);
         if functions.ccxtruthy(symbols != nothing)
             if functions.ccxtruthy(inArray(symbol, symbols))
-                result[Symbol(symbol)] = self.parseMarketLeverageTiers(entry, market);
+                result[Symbol(symbol)] = self.parseMarketLeverageTiers(entry, market = market);
             end
         else
-            result[Symbol(symbol)] = self.parseMarketLeverageTiers(get(response, i + 1, nothing), market);
+            result[Symbol(symbol)] = self.parseMarketLeverageTiers(get(response, i + 1, nothing), market = market);
         end
         i += 1
     end
     return result
 
 end
-function fetchMarketLeverageTiers(self::Xt, symbol, params=Dict())
+"""
+retrieve information on the maximum leverage for different trade sizes of a single market
+see: https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+function fetchMarketLeverageTiers(self::Xt, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2901,7 +3332,7 @@ function fetchMarketLeverageTiers(self::Xt, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMarketLeverageTiers", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchMarketLeverageTiers", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.publicInverseGetFutureMarketV1PublicLeverageBracketDetail(extend(request, params)));
@@ -2909,21 +3340,21 @@ function fetchMarketLeverageTiers(self::Xt, symbol, params=Dict())
         response = Base.fetch(self.publicLinearGetFutureMarketV1PublicLeverageBracketDetail(extend(request, params)));
     end
     data = safeValue(response, "result", Dict{Symbol, Any}());
-    return self.parseMarketLeverageTiers(data, market)
+    return self.parseMarketLeverageTiers(data, market = market)
 
 end
-function parseMarketLeverageTiers(self::Xt, info, market=nothing)
+function parseMarketLeverageTiers(self::Xt, info; market=nothing)
     tiers = [];
     brackets = safeValue(info, "leverageBrackets", []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(brackets)))
         tier = get(brackets, i + 1, nothing);
         marketId = safeString(info, "symbol");
-        market = self.safeMarket(marketId, market, "_", "contract");
-        minNotional = self.safeNumber(get(brackets, i - 1 + 1, nothing), "maxNominalValue", 0);
+        market = self.safeMarket(marketId = marketId, market = market, delimiter = "_", marketType = "contract");
+        minNotional = self.safeNumber(get(brackets, i - 1 + 1, nothing), "maxNominalValue", defaultNumber = 0);
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => safeInteger(tier, "bracket"),
-    Symbol("symbol") => self.safeSymbol(marketId, market, "_", "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = "_", marketType = "contract"),
     Symbol("currency") => get(market, Symbol("settle"), nothing),
     Symbol("minNotional") => minNotional,
     Symbol("maxNotional") => self.safeNumber(tier, "maxNominalValue"),
@@ -2936,7 +3367,21 @@ function parseMarketLeverageTiers(self::Xt, info, market=nothing)
     return tiers
 
 end
-function fetchFundingRateHistory(self::Xt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rates
+see: https://doc.xt.com/docs/futures/MarketData/get-funding-rate-records
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures] to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool: true/false whether to use the pagination helper to aumatically paginate through the results
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Xt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -2946,7 +3391,7 @@ function fetchFundingRateHistory(self::Xt, symbol=nothing, since=nothing, limit=
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "id", "id", 1, 200))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "id", cursorSent = "id", cursorIncrement = 1, maxEntriesPerRequest = 200))
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
@@ -2961,7 +3406,7 @@ function fetchFundingRateHistory(self::Xt, symbol=nothing, since=nothing, limit=
         request[Symbol("limit")] = 200;
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchFundingRateHistory", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchFundingRateHistory", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.publicInverseGetFutureMarketV1PublicQFundingRateRecord(extend(request, params)));
@@ -2975,7 +3420,7 @@ function fetchFundingRateHistory(self::Xt, symbol=nothing, since=nothing, limit=
     while functions.ccxtruthy(functions.ccxt_lt(i, length(items)))
         entry = get(items, i + 1, nothing);
         marketId = safeString(entry, "symbol");
-        symbolInner = self.safeSymbol(marketId, market);
+        symbolInner = self.safeSymbol(marketId, market = market);
         timestamp = safeInteger(entry, "createdTime");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
@@ -2987,14 +3432,36 @@ function fetchFundingRateHistory(self::Xt, symbol=nothing, since=nothing, limit=
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function fetchFundingInterval(self::Xt, symbol, params=Dict())
-    return Base.fetch(self.fetchFundingRate(symbol, params))
+"""
+fetch the current funding rate interval
+see: https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingInterval(self::Xt, symbol; params=Dict())
+    return Base.fetch(self.fetchFundingRate(symbol, params = params))
 
 end
-function fetchFundingRate(self::Xt, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Xt, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3006,7 +3473,7 @@ function fetchFundingRate(self::Xt, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchFundingRate", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchFundingRate", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.publicInverseGetFutureMarketV1PublicQFundingRate(extend(request, params)));
@@ -3014,12 +3481,12 @@ function fetchFundingRate(self::Xt, symbol, params=Dict())
         response = Base.fetch(self.publicLinearGetFutureMarketV1PublicQFundingRate(extend(request, params)));
     end
     result = safeValue(response, "result", Dict{Symbol, Any}());
-    return self.parseFundingRate(result, market)
+    return self.parseFundingRate(result, market = market)
 
 end
-function parseFundingRate(self::Xt, contract, market=nothing)
+function parseFundingRate(self::Xt, contract; market=nothing)
     marketId = safeString(contract, "symbol");
-    symbol = self.safeSymbol(marketId, market, "_", "swap");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_", marketType = "swap");
     timestamp = safeInteger(contract, "nextCollectionTime");
     interval = safeString(contract, "collectionInternal");
     if functions.ccxtruthy(interval != nothing)
@@ -3047,7 +3514,18 @@ function parseFundingRate(self::Xt, contract, market=nothing)
 )
 
 end
-function fetchOpenInterest(self::Xt, symbol, params=Dict())
+"""
+retrieves the open interest of a contract trading pair
+see: https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Xt, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
@@ -3057,20 +3535,20 @@ function fetchOpenInterest(self::Xt, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchOpenInterest", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchOpenInterest", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.publicInverseGetFutureMarketV1PublicContractOpenInterest(extend(request, params)));
     else
         response = Base.fetch(self.publicLinearGetFutureMarketV1PublicContractOpenInterest(extend(request, params)));
     end
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOpenInterest(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOpenInterest(result, market = market)
 
 end
-function parseOpenInterest(self::Xt, interest, market=nothing)
+function parseOpenInterest(self::Xt, interest; market=nothing)
     marketId = safeString(interest, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
     timestamp = safeInteger(interest, "time");
     return self.safeOpenInterest(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -3079,10 +3557,23 @@ function parseOpenInterest(self::Xt, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchFundingHistory(self::Xt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the funding history
+see: https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the starting timestamp in milliseconds
+- `limit`::int, optional: the number of entries to return
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Xt; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3100,7 +3591,7 @@ function fetchFundingHistory(self::Xt, symbol=nothing, since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchFundingHistory", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchFundingHistory", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.privateInverseGetFutureUserV1BalanceFundingRateList(extend(request, params)));
@@ -3113,16 +3604,16 @@ function fetchFundingHistory(self::Xt, symbol=nothing, since=nothing, limit=noth
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(items)))
         entry = get(items, i + 1, nothing);
-        push!(result, self.parseFundingHistory(entry, market));
+        push!(result, self.parseFundingHistory(entry, market = market));
         i += 1
     end
     sorted = sortBy(result, "timestamp");
-    return self.filterBySinceLimit(sorted, since, limit)
+    return self.filterBySinceLimit(sorted, since = since, limit = limit)
 
 end
-function parseFundingHistory(self::Xt, contract, market=nothing)
+function parseFundingHistory(self::Xt, contract; market=nothing)
     marketId = safeString(contract, "symbol");
-    symbol = self.safeSymbol(marketId, market, "_", "swap");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_", marketType = "swap");
     currencyId = safeString(contract, "coin");
     code = self.safeCurrencyCode(currencyId);
     timestamp = safeInteger(contract, "createdTime");
@@ -3137,6 +3628,11 @@ function parseFundingHistory(self::Xt, contract, market=nothing)
 )
 
 end
+"""
+
+# Arguments
+- `breakList`::array: the "result" array of a position/break-list response
+"""
 function indexPositionBreakList(self::Xt, breakList)
     breakBySymbolSide = Dict{Symbol, Any}();
     i = 0
@@ -3149,6 +3645,12 @@ function indexPositionBreakList(self::Xt, breakList)
     return breakBySymbolSide
 
 end
+"""
+
+# Arguments
+- `entry`::object: a single entry from a position/list response
+- `breakBySymbolSide`::object: the result of indexPositionBreakList()
+"""
 function mergePositionBreakInfo(self::Xt, entry, breakBySymbolSide)
     marketId = safeString(entry, "symbol");
     key = string(marketId, "_", safeString(entry, "positionSide"));
@@ -3162,7 +3664,19 @@ function mergePositionBreakInfo(self::Xt, entry, breakBySymbolSide)
 ))
 
 end
-function fetchPosition(self::Xt, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+see: https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Xt, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3171,7 +3685,7 @@ function fetchPosition(self::Xt, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchPosition", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchPosition", market = market, params = params);
     promisesUnresolved = [];
     if functions.ccxtruthy(subType == "inverse")
                 push!(promisesUnresolved, self.privateInverseGetFutureUserV1PositionList(extend(request, params)));
@@ -3181,29 +3695,41 @@ function fetchPosition(self::Xt, symbol, params=Dict())
         push!(promisesUnresolved, self.privateLinearGetFutureUserV1PositionBreakList(extend(request, params)));
     end
     (response, breakResponse) = (Base.fetch(asyncmap(Base.fetch, promisesUnresolved)));
-    positions = self.safeList(response, "result", []);
-    breakBySymbolSide = self.indexPositionBreakList(self.safeList(breakResponse, "result", []));
+    positions = self.safeList(response, "result", defaultValue = []);
+    breakBySymbolSide = self.indexPositionBreakList(self.safeList(breakResponse, "result", defaultValue = []));
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         entry = get(positions, i + 1, nothing);
         marketId = safeString(entry, "symbol");
-        marketInner = self.safeMarket(marketId, nothing, nothing, "contract");
+        marketInner = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = "contract");
         positionSize = safeString(entry, "positionSize");
         if functions.ccxtruthy(positionSize != "0")
             merged = self.mergePositionBreakInfo(entry, breakBySymbolSide);
-                return self.parsePosition(merged, marketInner)
+                return self.parsePosition(merged, market = marketInner)
         end
         i += 1
     end
     throw(NullResponse(string(self.id, " fetchPosition() could not find a position for ", symbol)));
 
 end
-function fetchPositions(self::Xt, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+see: https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
+
+# Arguments
+- `symbols`::string, optional: list of unified market symbols, not supported with xt
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Xt; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchPositions", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchPositions", market = nothing, params = params);
     promisesUnresolved = [];
     if functions.ccxtruthy(subType == "inverse")
                 push!(promisesUnresolved, self.privateInverseGetFutureUserV1PositionList(params));
@@ -3213,24 +3739,38 @@ function fetchPositions(self::Xt, symbols=nothing, params=Dict())
         push!(promisesUnresolved, self.privateLinearGetFutureUserV1PositionBreakList(params));
     end
     (response, breakResponse) = (Base.fetch(asyncmap(Base.fetch, promisesUnresolved)));
-    positions = self.safeList(response, "result", []);
-    breakBySymbolSide = self.indexPositionBreakList(self.safeList(breakResponse, "result", []));
+    positions = self.safeList(response, "result", defaultValue = []);
+    breakBySymbolSide = self.indexPositionBreakList(self.safeList(breakResponse, "result", defaultValue = []));
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         entry = get(positions, i + 1, nothing);
         marketId = safeString(entry, "symbol");
-        marketInner = self.safeMarket(marketId, nothing, nothing, "contract");
+        marketInner = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = "contract");
         merged = self.mergePositionBreakInfo(entry, breakBySymbolSide);
-        push!(result, self.parsePosition(merged, marketInner));
+        push!(result, self.parsePosition(merged, market = marketInner));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function fetchPositionsHistory(self::Xt, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical closed positions
+see: https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+
+# Arguments
+- `symbols`::array, optional: unified market symbols, all closed positions are returned if not assigned
+- `since`::int, optional: timestamp in ms of the earliest position to fetch
+- `limit`::int, optional: the maximum amount of records to fetch, default=10
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsHistory(self::Xt; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
@@ -3248,23 +3788,23 @@ function fetchPositionsHistory(self::Xt, symbols=nothing, since=nothing, limit=n
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchPositionsHistory", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchPositionsHistory", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.privateInverseGetFutureTradeV1PositionListHistory(extend(request, params)));
     else
         response = Base.fetch(self.privateLinearGetFutureTradeV1PositionListHistory(extend(request, params)));
     end
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    items = self.safeList(result, "items", []);
-    positions = self.parsePositions(items, symbols);
-    return self.filterBySinceLimit(positions, since, limit)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    items = self.safeList(result, "items", defaultValue = []);
+    positions = self.parsePositions(items, symbols = symbols);
+    return self.filterBySinceLimit(positions, since = since, limit = limit)
 
 end
-function parsePosition(self::Xt, position, market=nothing)
+function parsePosition(self::Xt, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "contract");
-    symbol = self.safeSymbol(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract");
     positionType = safeString(position, "positionType");
     isCross = @functions.ccxt_or((positionType == "CROSSED"), (positionType == "1"));
     marginMode = functions.ccxtruthy((isCross)) ? "cross" : "isolated";
@@ -3300,7 +3840,21 @@ function parsePosition(self::Xt, position, market=nothing)
 ))
 
 end
-function transfer(self::Xt, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from -  spot, swap, leverage, finance
+- `toAccount`::string: account to transfer to - spot, swap, leverage, finance
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Xt, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3317,10 +3871,10 @@ function transfer(self::Xt, code, amount, fromAccount, toAccount, params=Dict())
         Symbol("to") => toAccountId
     );
     response = Base.fetch(self.privateSpotPostBalanceTransfer(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function parseTransfer(self::Xt, transfer, currency=nothing)
+function parseTransfer(self::Xt, transfer; currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
     Symbol("id") => safeString(transfer, "result"),
@@ -3334,7 +3888,20 @@ function parseTransfer(self::Xt, transfer, currency=nothing)
 )
 
 end
-function setMarginMode(self::Xt, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://doc.xt.com/docs/futures/User/Change%20Position%20Type
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string, optional: required
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string, optional: *required* "long" or "short"
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Xt, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -3355,7 +3922,7 @@ function setMarginMode(self::Xt, marginMode, symbol=nothing, params=Dict())
         marginMode = "ISOLATED";
     end
     posSide = safeStringUpper(params, "positionSide");
-    self.checkRequiredArgument("setMarginMode", posSide, "positionSide", ["LONG", "SHORT"]);
+    self.checkRequiredArgument("setMarginMode", posSide, "positionSide", options = ["LONG", "SHORT"]);
     params = omit(params, "positionSide");
     request = Dict{Symbol, Any}(
         Symbol("positionType") => marginMode,
@@ -3363,7 +3930,7 @@ function setMarginMode(self::Xt, marginMode, symbol=nothing, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("setMarginMode", market, params);
+    (subType, params) = self.handleSubTypeAndParams("setMarginMode", market = market, params = params);
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.privateInversePostFutureUserV1PositionChangeType(extend(request, params)));
     else
@@ -3372,7 +3939,27 @@ function setMarginMode(self::Xt, marginMode, symbol=nothing, params=Dict())
     return response
 
 end
-function editOrder(self::Xt, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+cancels an order and places a new order
+see: https://doc.xt.com/docs/spot/Order/UpdateOrderLimit
+see: https://doc.xt.com/docs/futures/Order/update-orders
+see: https://doc.xt.com/docs/futures/Entrust/AlterStopLimit
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.stopLoss`::float, optional: price to set a stop-loss on an open position
+- `params.takeProfit`::float, optional: price to set a take-profit on an open position
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Xt, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(amount == nothing)
         throw(ArgumentsRequired(string(self.id, " editOrder() requires an amount argument")));
     end
@@ -3402,7 +3989,7 @@ function editOrder(self::Xt, id, symbol, type_var, side, amount=nothing, price=n
             request[Symbol("origQty")] = self.amountToPrecision(symbol, amount);
         end
         subType = nothing;
-        (subType, params) = self.handleSubTypeAndParams("editOrder", market, params);
+        (subType, params) = self.handleSubTypeAndParams("editOrder", market = market, params = params);
         if functions.ccxtruthy(subType == "inverse")
             if functions.ccxtruthy(@functions.ccxt_or(isStopLoss, isTakeProfit))
                 response = Base.fetch(self.privateInversePostFutureTradeV1EntrustUpdateProfitStop(extend(request, params)));
@@ -3420,8 +4007,8 @@ function editOrder(self::Xt, id, symbol, type_var, side, amount=nothing, price=n
         request[Symbol("quantity")] = self.amountToPrecision(symbol, amount);
         response = Base.fetch(self.privateSpotPutOrderOrderId(extend(request, params)));
     end
-    result = functions.ccxtruthy((get(market, Symbol("swap"), nothing))) ? response : self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(result, market)
+    result = functions.ccxtruthy((get(market, Symbol("swap"), nothing))) ? response : self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(result, market = market)
 
 end
 function handleErrors(self::Xt, code, reason, url, method, headers, body, response, requestHeaders, requestBody)
@@ -3440,7 +4027,7 @@ function handleErrors(self::Xt, code, reason, url, method, headers, body, respon
     return nothing
 
 end
-function sign(self::Xt, path, api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Xt, path; api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
     signed = get(api, 1, nothing) == "private";
     endpoint = get(api, 2, nothing);
     request = string("/", self.implodeParams(path, params));
@@ -3537,643 +4124,643 @@ Base.getproperty(self::Xt, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicSpotGetCurrencies(self::Xt, params=Dict(), context=Dict())
-    return request(self, "currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetDepth(self::Xt, params=Dict(), context=Dict())
-    return request(self, "depth", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetKline(self::Xt, params=Dict(), context=Dict())
-    return request(self, "kline", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "kline"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSymbol(self::Xt, params=Dict(), context=Dict())
-    return request(self, "symbol", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "symbol"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTicker(self::Xt, params=Dict(), context=Dict())
-    return request(self, "ticker", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTickerBook(self::Xt, params=Dict(), context=Dict())
-    return request(self, "ticker/book", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/book"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTickerPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "ticker/price", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTicker24h(self::Xt, params=Dict(), context=Dict())
-    return request(self, "ticker/24h", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/24h"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTime(self::Xt, params=Dict(), context=Dict())
-    return request(self, "time", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTradeHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "trade/history", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/history"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetTradeRecent(self::Xt, params=Dict(), context=Dict())
-    return request(self, "trade/recent", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/recent"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetWalletSupportCurrency(self::Xt, params=Dict(), context=Dict())
-    return request(self, "wallet/support/currency", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/support/currency"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicContractRiskBalance(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/contract/risk-balance", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/contract/risk-balance"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicContractOpenInterest(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/contract/open-interest", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/contract/open-interest"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicLeverageBracketDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/leverage/bracket/detail", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/leverage/bracket/detail"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicLeverageBracketList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/leverage/bracket/list", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/leverage/bracket/list"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQAggTicker(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/agg-ticker", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/agg-ticker"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQAggTickers(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/agg-tickers", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/agg-tickers"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQDeal(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/deal", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/deal"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQDepth(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/depth", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/depth"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQFundingRate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/funding-rate", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/funding-rate"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQFundingRateRecord(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/funding-rate-record", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/funding-rate-record"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQIndexPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/index-price", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/index-price"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQKline(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/kline", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/kline"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQMarkPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/mark-price", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/mark-price"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQSymbolIndexPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/symbol-index-price", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/symbol-index-price"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQSymbolMarkPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/symbol-mark-price", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/symbol-mark-price"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQTicker(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/ticker", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/ticker"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQTickerBooks(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/ticker/books", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/ticker/books"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQTickers(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/tickers", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/tickers"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicSymbolCoins(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/coins", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/symbol/coins"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicSymbolDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/detail", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/symbol/detail"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicSymbolList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/list", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/symbol/list"; api=["public", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicContractRiskBalance(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/contract/risk-balance", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/contract/risk-balance"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicContractOpenInterest(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/contract/open-interest", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/contract/open-interest"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicLeverageBracketDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/leverage/bracket/detail", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/leverage/bracket/detail"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicLeverageBracketList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/leverage/bracket/list", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/leverage/bracket/list"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQAggTicker(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/agg-ticker", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/agg-ticker"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQAggTickers(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/agg-tickers", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/agg-tickers"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQDeal(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/deal", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/deal"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQDepth(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/depth", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/depth"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQFundingRate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/funding-rate", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/funding-rate"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQFundingRateRecord(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/funding-rate-record", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/funding-rate-record"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQIndexPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/index-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/index-price"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQKline(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/kline", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/kline"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQMarkPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/mark-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/mark-price"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQSymbolIndexPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/symbol-index-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/symbol-index-price"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQSymbolMarkPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/symbol-mark-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/symbol-mark-price"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQTicker(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/ticker", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/ticker"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQTickerBooks(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/ticker/books", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/ticker/books"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQTickers(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/tickers", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/q/tickers"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicSymbolCoins(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/coins", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/symbol/coins"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicSymbolDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/detail", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/symbol/detail"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicSymbolList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/list", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/market/v1/public/symbol/list"; api=["public", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetBalance(self::Xt, params=Dict(), context=Dict())
-    return request(self, "balance", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetBalances(self::Xt, params=Dict(), context=Dict())
-    return request(self, "balances", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "balances"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetBatchOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "batch-order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "batch-order"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetDepositAddress(self::Xt, params=Dict(), context=Dict())
-    return request(self, "deposit/address", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit/address"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetDepositHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "deposit/history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit/history"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetHistoryOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "history-order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "history-order"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetOpenOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "open-order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "open-order"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetOrderOrderId(self::Xt, params=Dict(), context=Dict())
-    return request(self, "order/{orderId}", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/{orderId}"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetTrade(self::Xt, params=Dict(), context=Dict())
-    return request(self, "trade", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetWithdrawHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "withdraw/history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraw/history"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostWithdraw(self::Xt, params=Dict(), context=Dict())
-    return request(self, "withdraw", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostBalanceTransfer(self::Xt, params=Dict(), context=Dict())
-    return request(self, "balance/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "balance/transfer"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostBalanceAccountTransfer(self::Xt, params=Dict(), context=Dict())
-    return request(self, "balance/account/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "balance/account/transfer"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostWsToken(self::Xt, params=Dict(), context=Dict())
-    return request(self, "ws-token", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ws-token"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotDeleteBatchOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "batch-order", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "batch-order"; api=["private", "spot"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotDeleteOpenOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "open-order", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "open-order"; api=["private", "spot"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotDeleteOrderOrderId(self::Xt, params=Dict(), context=Dict())
-    return request(self, "order/{orderId}", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order/{orderId}"; api=["private", "spot"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPutOrderOrderId(self::Xt, params=Dict(), context=Dict())
-    return request(self, "order/{orderId}", ["private", "spot"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "order/{orderId}"; api=["private", "spot"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureTradeV1EntrustPlanDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-detail", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/plan-detail"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureTradeV1EntrustPlanList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/plan-list"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureTradeV1EntrustPlanListHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-list-history", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/plan-list-history"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureTradeV1EntrustProfitDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/profit-detail", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/profit-detail"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureTradeV1EntrustProfitList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/profit-list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/profit-list"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureTradeV1OrderDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/detail", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/detail"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureTradeV1OrderList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/list"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureTradeV1OrderListHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/list-history", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/list-history"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureTradeV1PositionListHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/position/list-history", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/position/list-history"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureTradeV1OrderTradeList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/trade-list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/trade-list"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureUserV1AccountInfo(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/account/info", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/account/info"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureUserV1BalanceBills(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/bills", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/balance/bills"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureUserV1BalanceDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/detail", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/balance/detail"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureUserV1BalanceFundingRateList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/funding-rate-list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/balance/funding-rate-list"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureUserV1BalanceList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/balance/list"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureUserV1PositionAdl(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/adl", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/adl"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureUserV1PositionBreakList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/break-list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/break-list"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureUserV1PositionList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/list"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureUserV1UserCollectionList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/user/collection/list"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearGetFutureUserV1UserListenKey(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/listen-key", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/user/listen-key"; api=["private", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCancelAllPlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-all-plan", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/cancel-all-plan"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-all-profit-stop", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/cancel-all-profit-stop"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCancelPlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-plan", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/cancel-plan"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCancelProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-profit-stop", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/cancel-profit-stop"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCreatePlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/create-plan", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/create-plan"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCreateProfit(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/create-profit", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/create-profit"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustUpdateProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/update-profit-stop", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/update-profit-stop"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1OrderCancel(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/cancel", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/cancel"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1OrderCancelAll(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/cancel-all", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/cancel-all"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1OrderCreate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/create", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/create"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1OrderCreateBatch(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/create-batch", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/create-batch"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureTradeV1OrderUpdate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/update", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/update"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureUserV1AccountOpen(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/account/open", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/account/open"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureUserV1PositionAdjustLeverage(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/adjust-leverage", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/adjust-leverage"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureUserV1PositionAutoMargin(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/auto-margin", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/auto-margin"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureUserV1PositionCloseAll(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/close-all", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/close-all"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureUserV1PositionMargin(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/margin", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/margin"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureUserV1UserCollectionAdd(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/add", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/user/collection/add"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureUserV1UserCollectionCancel(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/cancel", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/user/collection/cancel"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateLinearPostFutureUserV1PositionChangeType(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/change-type", ["private", "linear"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/change-type"; api=["private", "linear"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureTradeV1EntrustPlanDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/plan-detail"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureTradeV1EntrustPlanList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/plan-list"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureTradeV1EntrustPlanListHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-list-history", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/plan-list-history"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureTradeV1EntrustProfitDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/profit-detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/profit-detail"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureTradeV1EntrustProfitList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/profit-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/profit-list"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureTradeV1OrderDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/detail"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureTradeV1OrderList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/list"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureTradeV1OrderListHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/list-history", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/list-history"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureTradeV1PositionListHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/position/list-history", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/position/list-history"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureTradeV1OrderTradeList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/trade-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/trade-list"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureUserV1AccountInfo(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/account/info", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/account/info"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureUserV1BalanceBills(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/bills", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/balance/bills"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureUserV1BalanceDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/balance/detail"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureUserV1BalanceFundingRateList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/funding-rate-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/balance/funding-rate-list"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureUserV1BalanceList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/balance/list"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureUserV1PositionAdl(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/adl", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/adl"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureUserV1PositionBreakList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/break-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/break-list"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureUserV1PositionList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/list"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureUserV1UserCollectionList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/user/collection/list"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInverseGetFutureUserV1UserListenKey(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/listen-key", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/user/listen-key"; api=["private", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCancelAllPlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-all-plan", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/cancel-all-plan"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCancelAllProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-all-profit-stop", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/cancel-all-profit-stop"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCancelPlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-plan", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/cancel-plan"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCancelProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-profit-stop", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/cancel-profit-stop"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCreatePlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/create-plan", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/create-plan"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCreateProfit(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/create-profit", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/create-profit"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustUpdateProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/update-profit-stop", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/entrust/update-profit-stop"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1OrderCancel(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/cancel", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/cancel"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1OrderCancelAll(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/cancel-all", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/cancel-all"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1OrderCreate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/create", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/create"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1OrderCreateBatch(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/create-batch", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/create-batch"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureTradeV1OrderUpdate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/update", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/trade/v1/order/update"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureUserV1AccountOpen(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/account/open", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/account/open"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureUserV1PositionAdjustLeverage(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/adjust-leverage", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/adjust-leverage"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureUserV1PositionAutoMargin(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/auto-margin", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/auto-margin"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureUserV1PositionCloseAll(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/close-all", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/close-all"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureUserV1PositionMargin(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/margin", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/margin"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureUserV1UserCollectionAdd(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/add", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/user/collection/add"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureUserV1UserCollectionCancel(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/cancel", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/user/collection/cancel"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateInversePostFutureUserV1PositionChangeType(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/change-type", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+    return request(self, "future/user/v1/position/change-type"; api=["private", "inverse"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetUserAccount(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/account"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetUserAccountApiKey(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account/api-key", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/account/api-key"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostUserAccount(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/account"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostUserAccountApiKey(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account/api-key", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/account/api-key"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPutUserAccountApiKey(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account/api-key", ["private", "user"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "user/account/api-key"; api=["private", "user"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserDeleteUserAccountApiKeyId(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account/{apiKeyId}", ["private", "user"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "user/account/{apiKeyId}"; api=["private", "user"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Xt(; kwargs...)
@@ -4237,3 +4824,724 @@ function Xt(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Xt_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the xt server
+see: https://doc.xt.com/docs/spot/Market/GetServerTime
+
+# Arguments
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the xt server
+"""
+__ccxt_doc_Xt_fetchTime
+
+function __ccxt_doc_Xt_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetSupportedCurrencies
+
+# Arguments
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Xt_fetchCurrencies
+
+function __ccxt_doc_Xt_fetchMarkets() end
+"""
+retrieves data on all markets for xt
+see: https://doc.xt.com/docs/spot/Market/GetSymbolInformation
+see: https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols
+
+# Arguments
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Xt_fetchMarkets
+
+function __ccxt_doc_Xt_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://doc.xt.com/docs/spot/Market/GetKlineData
+see: https://doc.xt.com/docs/futures/MarketData/get-trading-pair-information-of-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Xt_fetchOHLCV
+
+function __ccxt_doc_Xt_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://doc.xt.com/docs/spot/Market/GetDepthData
+see: https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs
+
+# Arguments
+- `symbol`::string: unified market symbol to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+"""
+__ccxt_doc_Xt_fetchOrderBook
+
+function __ccxt_doc_Xt_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+see: https://doc.xt.com/docs/futures/MarketData/get-aggregated-market-information-for-specific-trading-pair
+
+# Arguments
+- `symbol`::string: unified market symbol to fetch the ticker for
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+"""
+__ccxt_doc_Xt_fetchTicker
+
+function __ccxt_doc_Xt_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+see: https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+see: https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs
+
+# Arguments
+- `symbols`::string, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+"""
+__ccxt_doc_Xt_fetchTickers
+
+function __ccxt_doc_Xt_fetchBidsAsks() end
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+see: https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+"""
+__ccxt_doc_Xt_fetchBidsAsks
+
+function __ccxt_doc_Xt_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://doc.xt.com/docs/spot/Market/QueryRecentTransactions
+see: https://doc.xt.com/docs/futures/MarketData/get-latest-transaction-information-of-trading-pairs
+
+# Arguments
+- `symbol`::string: unified market symbol to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+"""
+__ccxt_doc_Xt_fetchTrades
+
+function __ccxt_doc_Xt_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://doc.xt.com/docs/spot/Trade/QueryTrade
+see: https://doc.xt.com/docs/futures/Order/see-transaction-details
+
+# Arguments
+- `symbol`::string, optional: unified market symbol to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+"""
+__ccxt_doc_Xt_fetchMyTrades
+
+function __ccxt_doc_Xt_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://doc.xt.com/docs/spot/Balance/GetBalances
+see: https://doc.xt.com/docs/futures/User/GetUserFunds
+
+# Arguments
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+"""
+__ccxt_doc_Xt_fetchBalance
+
+function __ccxt_doc_Xt_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://doc.xt.com/docs/spot/Order/SubmitOrder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Xt_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Xt_createOrder() end
+"""
+create a trade order
+see: https://doc.xt.com/docs/spot/Order/SubmitOrder
+see: https://doc.xt.com/docs/futures/Order/Create%20Orders
+see: https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price to fulfill the order, in units of the quote currency, can be ignored in market orders
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK' or 'GTX'
+- `params.entrustType`::string, optional: 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
+- `params.triggerPriceType`::string, optional: 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
+- `params.triggerPrice`::float, optional: price to trigger a stop order
+- `params.stopPrice`::float, optional: alias for triggerPrice
+- `params.stopLoss`::float, optional: price to set a stop-loss on an open position
+- `params.takeProfit`::float, optional: price to set a take-profit on an open position
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+__ccxt_doc_Xt_createOrder
+
+function __ccxt_doc_Xt_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://doc.xt.com/docs/spot/Order/GetSingleOrder
+see: https://doc.xt.com/docs/futures/Order/see-orders-by-id
+see: https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
+see: https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+__ccxt_doc_Xt_fetchOrder
+
+function __ccxt_doc_Xt_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+see: https://doc.xt.com/docs/futures/Order/see-order-history
+see: https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market the orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+__ccxt_doc_Xt_fetchOrders
+
+function __ccxt_doc_Xt_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://doc.xt.com/docs/spot/Order/QueryOpenOrders
+see: https://doc.xt.com/docs/futures/Order/see-orders
+see: https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market the orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+__ccxt_doc_Xt_fetchOpenOrders
+
+function __ccxt_doc_Xt_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+see: https://doc.xt.com/docs/futures/Order/see-orders
+see: https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market the orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+__ccxt_doc_Xt_fetchClosedOrders
+
+function __ccxt_doc_Xt_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+see: https://doc.xt.com/docs/futures/Order/see-orders
+see: https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market the orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+__ccxt_doc_Xt_fetchCanceledOrders
+
+function __ccxt_doc_Xt_cancelOrder() end
+"""
+cancels an open order
+see: https://doc.xt.com/docs/spot/Order/CancelOrder
+see: https://doc.xt.com/docs/futures/Order/cancel-orders
+see: https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+__ccxt_doc_Xt_cancelOrder
+
+function __ccxt_doc_Xt_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://doc.xt.com/docs/spot/Order/CancelCurrentPendingOrder
+see: https://doc.xt.com/docs/futures/Order/cancel-all-orders
+see: https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
+see: https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: if the order is a trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: if the order is a stop-loss or take-profit order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+__ccxt_doc_Xt_cancelAllOrders
+
+function __ccxt_doc_Xt_cancelOrders() end
+"""
+cancel multiple orders
+see: https://doc.xt.com/docs/spot/Order/CancelBatchOrder
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+"""
+__ccxt_doc_Xt_cancelOrders
+
+function __ccxt_doc_Xt_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://doc.xt.com/docs/futures/User/Get%20User's%20Account%20Flow%20Information
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+"""
+__ccxt_doc_Xt_fetchLedger
+
+function __ccxt_doc_Xt_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.network`::string: required network id
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+"""
+__ccxt_doc_Xt_fetchDepositAddress
+
+function __ccxt_doc_Xt_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositHistory
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of transaction structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+"""
+__ccxt_doc_Xt_fetchDeposits
+
+function __ccxt_doc_Xt_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://doc.xt.com/docs/spot/Deposit&Withdrawal/WithdrawHistory
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of transaction structures to retrieve
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+"""
+__ccxt_doc_Xt_fetchWithdrawals
+
+function __ccxt_doc_Xt_withdraw() end
+"""
+make a withdrawal
+see: https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string, optional:
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+"""
+__ccxt_doc_Xt_withdraw
+
+function __ccxt_doc_Xt_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://doc.xt.com/docs/futures/User/Adjust%20Leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string: 'LONG' or 'SHORT'
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Xt_setLeverage
+
+function __ccxt_doc_Xt_addMargin() end
+"""
+add margin to a position
+see: https://doc.xt.com/docs/futures/User/Alter%20Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string: 'LONG' or 'SHORT'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Xt_addMargin
+
+function __ccxt_doc_Xt_reduceMargin() end
+"""
+remove margin from a position
+see: https://doc.xt.com/docs/futures/User/Alter%20Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string: 'LONG' or 'SHORT'
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Xt_reduceMargin
+
+function __ccxt_doc_Xt_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage for different trade sizes
+see: https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
+
+# Arguments
+- `symbols`::string, optional: a list of unified market symbols
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+__ccxt_doc_Xt_fetchLeverageTiers
+
+function __ccxt_doc_Xt_fetchMarketLeverageTiers() end
+"""
+retrieve information on the maximum leverage for different trade sizes of a single market
+see: https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+__ccxt_doc_Xt_fetchMarketLeverageTiers
+
+function __ccxt_doc_Xt_fetchFundingRateHistory() end
+"""
+fetches historical funding rates
+see: https://doc.xt.com/docs/futures/MarketData/get-funding-rate-records
+
+# Arguments
+- `symbol`::string, optional: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures] to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool: true/false whether to use the pagination helper to aumatically paginate through the results
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+"""
+__ccxt_doc_Xt_fetchFundingRateHistory
+
+function __ccxt_doc_Xt_fetchFundingInterval() end
+"""
+fetch the current funding rate interval
+see: https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Xt_fetchFundingInterval
+
+function __ccxt_doc_Xt_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Xt_fetchFundingRate
+
+function __ccxt_doc_Xt_fetchOpenInterest() end
+"""
+retrieves the open interest of a contract trading pair
+see: https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Xt_fetchOpenInterest
+
+function __ccxt_doc_Xt_fetchFundingHistory() end
+"""
+fetch the funding history
+see: https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the starting timestamp in milliseconds
+- `limit`::int, optional: the number of entries to return
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Xt_fetchFundingHistory
+
+function __ccxt_doc_Xt_indexPositionBreakList() end
+"""
+
+# Arguments
+- `breakList`::array: the "result" array of a position/break-list response
+"""
+__ccxt_doc_Xt_indexPositionBreakList
+
+function __ccxt_doc_Xt_mergePositionBreakInfo() end
+"""
+
+# Arguments
+- `entry`::object: a single entry from a position/list response
+- `breakBySymbolSide`::object: the result of indexPositionBreakList()
+"""
+__ccxt_doc_Xt_mergePositionBreakInfo
+
+function __ccxt_doc_Xt_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+see: https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Xt_fetchPosition
+
+function __ccxt_doc_Xt_fetchPositions() end
+"""
+fetch all open positions
+see: https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+see: https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
+
+# Arguments
+- `symbols`::string, optional: list of unified market symbols, not supported with xt
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Xt_fetchPositions
+
+function __ccxt_doc_Xt_fetchPositionsHistory() end
+"""
+fetches historical closed positions
+see: https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+
+# Arguments
+- `symbols`::array, optional: unified market symbols, all closed positions are returned if not assigned
+- `since`::int, optional: timestamp in ms of the earliest position to fetch
+- `limit`::int, optional: the maximum amount of records to fetch, default=10
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Xt_fetchPositionsHistory
+
+function __ccxt_doc_Xt_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from -  spot, swap, leverage, finance
+- `toAccount`::string: account to transfer to - spot, swap, leverage, finance
+- `params`::object: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Xt_transfer
+
+function __ccxt_doc_Xt_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://doc.xt.com/docs/futures/User/Change%20Position%20Type
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string, optional: required
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionSide`::string, optional: *required* "long" or "short"
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Xt_setMarginMode
+
+function __ccxt_doc_Xt_editOrder() end
+"""
+cancels an order and places a new order
+see: https://doc.xt.com/docs/spot/Order/UpdateOrderLimit
+see: https://doc.xt.com/docs/futures/Order/update-orders
+see: https://doc.xt.com/docs/futures/Entrust/AlterStopLimit
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.stopLoss`::float, optional: price to set a stop-loss on an open position
+- `params.takeProfit`::float, optional: price to set a take-profit on an open position
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Xt_editOrder

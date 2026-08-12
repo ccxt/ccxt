@@ -5109,7 +5109,7 @@ function describe(self::Binance, )
 ))
 
 end
-function isInverse(self::Binance, type_var, subType=nothing)
+function isInverse(self::Binance, type_var; subType=nothing)
     if functions.ccxtruthy(subType == nothing)
             return (type_var == "delivery")
     else
@@ -5117,7 +5117,7 @@ function isInverse(self::Binance, type_var, subType=nothing)
     end
 
 end
-function isLinear(self::Binance, type_var, subType=nothing)
+function isLinear(self::Binance, type_var; subType=nothing)
     if functions.ccxtruthy(subType == nothing)
             return @functions.ccxt_or((type_var == "future"), (type_var == "swap"))
     else
@@ -5256,18 +5256,26 @@ function market(self::Binance, symbol)
     throw(BadSymbol(string(self.id, " does not have market symbol ", symbol)));
 
 end
-function safeMarket(self::Binance, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
+function safeMarket(self::Binance; marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = @functions.ccxt_and((marketId != nothing), (@functions.ccxt_or((findfirst("-C", marketId) !== nothing), (findfirst("-P", marketId) !== nothing))));
     if functions.ccxtruthy(@functions.ccxt_and(isOption, (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
-    return safeMarket(self.parent, marketId, market, delimiter, marketType)
+    return safeMarket(self.parent, marketId = marketId, market = market, delimiter = delimiter, marketType = marketType)
 
 end
 function nonce(self::Binance, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
+"""
+enables or disables demo trading mode
+see: https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+see: https://demo.binance.com/en/my/settings/api-management
+
+# Arguments
+- `enable`::bool, optional: true if demo trading should be enabled, false otherwise
+"""
 function enableDemoTrading(self::Binance, enable)
     if functions.ccxtruthy(self.isSandboxModeEnabled)
         throw(NotSupported(string(self.id, " demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")));
@@ -5283,16 +5291,29 @@ function enableDemoTrading(self::Binance, enable)
     self.options[Symbol("enableDemoTrading")] = enable;
 
 end
-function fetchTime(self::Binance, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#check-server-time          // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Check-Server-time    // future
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Binance; params=Dict())
     defaultType = safeString2(self.options, "fetchTime", "defaultType", "spot");
     type_var = safeString(params, "type", defaultType);
     query = omit(params, "type");
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchTime", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchTime", market = nothing, params = params);
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         response = Base.fetch(self.fapiPublicGetTime(query));
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         response = Base.fetch(self.dapiPublicGetTime(query));
     else
         response = Base.fetch(self.publicGetTime(query));
@@ -5300,23 +5321,34 @@ function fetchTime(self::Binance, params=Dict())
     return safeInteger(response, "serverTime")
 
 end
-function fetchCurrencies(self::Binance, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://developers.binance.com/docs/wallet/capital/all-coins-info
+see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Binance; params=Dict())
     fetchCurrenciesEnabled = self.safeBool(self.options, "fetchCurrencies");
     if functions.ccxtruthy(!functions.ccxtruthy(fetchCurrenciesEnabled))
             return Dict{Symbol, Any}()
     end
-    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(false)))
+    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(error = false)))
             return Dict{Symbol, Any}()
     end
     apiBackup = safeValue(self.urls, "apiBackup");
     if functions.ccxtruthy(apiBackup != nothing)
             return Dict{Symbol, Any}()
     end
-    if functions.ccxtruthy(self.safeBool(self.options, "enableDemoTrading", false))
+    if functions.ccxtruthy(self.safeBool(self.options, "enableDemoTrading", defaultValue = false))
             return Dict{Symbol, Any}()
     end
     promises = [self.sapiGetCapitalConfigGetall(params)];
-    fetchMargins = self.safeBool(self.options, "fetchMargins", false);
+    fetchMargins = self.safeBool(self.options, "fetchMargins", defaultValue = false);
     if functions.ccxtruthy(fetchMargins)
                 push!(promises, self.sapiGetMarginAllPairs(params));
     end
@@ -5359,7 +5391,7 @@ function parseCurrency(self::Binance, rawCurrency)
     name = safeString(entry, "name");
     code = self.safeCurrencyCode(id);
     isFiat = self.safeBool(entry, "isLegalMoney");
-    networkList = self.safeList(entry, "networkList", []);
+    networkList = self.safeList(entry, "networkList", defaultValue = []);
     fees = Dict{Symbol, Any}();
     fee = nothing;
     networks = Dict{Symbol, Any}();
@@ -5368,7 +5400,7 @@ function parseCurrency(self::Binance, rawCurrency)
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkList)))
         networkItem = get(networkList, j + 1, nothing);
         network = safeString(networkItem, "network");
-        networkCode = self.networkIdToCode(network, code);
+        networkCode = self.networkIdToCode(networkId = network, currencyCode = code);
         isETF = (network == "ETF");
         withdrawFee = self.safeNumber(networkItem, "withdrawFee");
         depositEnable = self.safeBool(networkItem, "depositEnable");
@@ -5434,24 +5466,39 @@ function parseCurrency(self::Binance, rawCurrency)
 ))
 
 end
-function fetchMarkets(self::Binance, params=Dict())
+"""
+retrieves data on all markets for binance
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
+see: https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
+see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
+see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Binance; params=Dict())
     promisesRaw = [];
     rawFetchMarkets = nothing;
     defaultTypes = ["spot", "linear", "inverse"];
     fetchMarketsOptions = self.safeDict(self.options, "fetchMarkets");
     if functions.ccxtruthy(fetchMarketsOptions != nothing)
-        rawFetchMarkets = self.safeList(fetchMarketsOptions, "types", defaultTypes);
+        rawFetchMarkets = self.safeList(fetchMarketsOptions, "types", defaultValue = defaultTypes);
     else
-        rawFetchMarkets = self.safeList(self.options, "fetchMarkets", defaultTypes);
+        rawFetchMarkets = self.safeList(self.options, "fetchMarkets", defaultValue = defaultTypes);
     end
-    loadAllOptions = self.handleOption("fetchMarkets", "loadAllOptions", false);
+    loadAllOptions = self.handleOption("fetchMarkets", "loadAllOptions", defaultValue = false);
     if functions.ccxtruthy(loadAllOptions)
         if functions.ccxtruthy(!functions.ccxtruthy(inArray("option", rawFetchMarkets)))
                         push!(rawFetchMarkets, "option");
         end
     end
-    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
-    demoMode = self.safeBool(self.options, "enableDemoTrading", false);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
+    demoMode = self.safeBool(self.options, "enableDemoTrading", defaultValue = false);
     isDemoEnv = @functions.ccxt_or(demoMode, sandboxMode);
     fetchMarkets = [];
     i = 0
@@ -5463,13 +5510,13 @@ function fetchMarkets(self::Binance, params=Dict())
         push!(fetchMarkets, type_var);
         i += 1
     end
-    fetchMargins = self.safeBool(self.options, "fetchMargins", false);
+    fetchMargins = self.safeBool(self.options, "fetchMargins", defaultValue = false);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fetchMarkets)))
         marketType = get(fetchMarkets, i + 1, nothing);
         if functions.ccxtruthy(marketType == "spot")
                         push!(promisesRaw, self.publicGetExchangeInfo(params));
-            if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(fetchMargins, self.checkRequiredCredentials(false)), !functions.ccxtruthy(isDemoEnv)))
+            if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(fetchMargins, self.checkRequiredCredentials(error = false)), !functions.ccxtruthy(isDemoEnv)))
                                 push!(promisesRaw, self.sapiGetMarginAllPairs(params));
                                 push!(promisesRaw, self.sapiGetMarginIsolatedAllPairs(params));
             end
@@ -5503,7 +5550,7 @@ function fetchMarkets(self::Binance, params=Dict())
                 self.options[Symbol("isolatedMarginPairsData")] = keysList;
             end
         else
-            resultMarkets = self.safeList2(res, "symbols", "optionSymbols", []);
+            resultMarkets = self.safeList2(res, "symbols", "optionSymbols", defaultValue = []);
             markets = arrayConcat(markets, resultMarkets);
         end
         i += 1
@@ -5555,7 +5602,7 @@ function parseMarket(self::Binance, market)
     end
     settle = self.safeCurrencyCode(settleId);
     spot = !functions.ccxtruthy(contract);
-    filters = self.safeList(market, "filters", []);
+    filters = self.safeList(market, "filters", defaultValue = []);
     filtersByType = indexBy(filters, "filterType");
     status = safeString2(market, "status", "contractStatus");
     contractSize = nothing;
@@ -5576,15 +5623,15 @@ function parseMarket(self::Binance, market)
             end
 
         end
-        contractSize = self.safeNumber2(market, "contractSize", "unit", self.parseNumber("1"));
+        contractSize = self.safeNumber2(market, "contractSize", "unit", d = self.parseNumber("1"));
         linear = settle == quote_var;
         inverse = settle == base;
         feesType = functions.ccxtruthy(linear) ? "linear" : "inverse";
-        fees = self.safeDict(self.fees, feesType, Dict{Symbol, Any}());
+        fees = self.safeDict(self.fees, feesType, defaultValue = Dict{Symbol, Any}());
     end
     active = (status == "TRADING");
     if functions.ccxtruthy(spot)
-        permissions = self.safeList(market, "permissions", []);
+        permissions = self.safeList(market, "permissions", defaultValue = []);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(permissions)))
             if functions.ccxtruthy(get(permissions, j + 1, nothing) == "TRD_GRP_003")
@@ -5595,7 +5642,7 @@ function parseMarket(self::Binance, market)
         end
 
     end
-    isMarginTradingAllowed = self.safeBool(market, "isMarginTradingAllowed", false);
+    isMarginTradingAllowed = self.safeBool(market, "isMarginTradingAllowed", defaultValue = false);
     marginModes = nothing;
     if functions.ccxtruthy(spot)
         hasCrossMargin = inArray(id, get(self.options, Symbol("crossMarginPairsData"), nothing));
@@ -5657,10 +5704,10 @@ function parseMarket(self::Binance, market)
         Symbol("strike") => parsedStrike,
         Symbol("optionType") => safeStringLower(market, "side"),
         Symbol("precision") => Dict{Symbol, Any}(
-            Symbol("amount") => self.parseNumber(self.parsePrecision(safeString2(market, "quantityPrecision", "quantityScale"))),
-            Symbol("price") => self.parseNumber(self.parsePrecision(safeString2(market, "pricePrecision", "priceScale"))),
-            Symbol("base") => self.parseNumber(self.parsePrecision(safeString(market, "baseAssetPrecision"))),
-            Symbol("quote") => self.parseNumber(self.parsePrecision(safeString(market, "quotePrecision")))
+            Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString2(market, "quantityPrecision", "quantityScale"))),
+            Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString2(market, "pricePrecision", "priceScale"))),
+            Symbol("base") => self.parseNumber(self.parsePrecision(precision = safeString(market, "baseAssetPrecision"))),
+            Symbol("quote") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quotePrecision")))
         ),
         Symbol("limits") => Dict{Symbol, Any}(
             Symbol("leverage") => Dict{Symbol, Any}(
@@ -5684,7 +5731,7 @@ function parseMarket(self::Binance, market)
         Symbol("created") => safeInteger(market, "onboardDate")
     );
     if functions.ccxtruthy(ccxt_in("PRICE_FILTER", filtersByType))
-        filter_var = self.safeDict(filtersByType, "PRICE_FILTER", Dict{Symbol, Any}());
+        filter_var = self.safeDict(filtersByType, "PRICE_FILTER", defaultValue = Dict{Symbol, Any}());
         entry[Symbol("limits")][Symbol("price")] = Dict{Symbol, Any}(
             Symbol("min") => self.safeNumber(filter_var, "minPrice"),
             Symbol("max") => self.safeNumber(filter_var, "maxPrice")
@@ -5692,7 +5739,7 @@ function parseMarket(self::Binance, market)
         entry[Symbol("precision")][Symbol("price")] = self.safeNumber(filter_var, "tickSize");
     end
     if functions.ccxtruthy(ccxt_in("LOT_SIZE", filtersByType))
-        filter_var = self.safeDict(filtersByType, "LOT_SIZE", Dict{Symbol, Any}());
+        filter_var = self.safeDict(filtersByType, "LOT_SIZE", defaultValue = Dict{Symbol, Any}());
         entry[Symbol("precision")][Symbol("amount")] = self.safeNumber(filter_var, "stepSize");
         entry[Symbol("limits")][Symbol("amount")] = Dict{Symbol, Any}(
             Symbol("min") => self.safeNumber(filter_var, "minQty"),
@@ -5700,18 +5747,18 @@ function parseMarket(self::Binance, market)
         );
     end
     if functions.ccxtruthy(ccxt_in("MARKET_LOT_SIZE", filtersByType))
-        filter_var = self.safeDict(filtersByType, "MARKET_LOT_SIZE", Dict{Symbol, Any}());
+        filter_var = self.safeDict(filtersByType, "MARKET_LOT_SIZE", defaultValue = Dict{Symbol, Any}());
         entry[Symbol("limits")][Symbol("market")] = Dict{Symbol, Any}(
             Symbol("min") => self.safeNumber(filter_var, "minQty"),
             Symbol("max") => self.safeNumber(filter_var, "maxQty")
         );
     end
     if functions.ccxtruthy(@functions.ccxt_or((ccxt_in("MIN_NOTIONAL", filtersByType)), (ccxt_in("NOTIONAL", filtersByType))))
-        filter_var = self.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", Dict{Symbol, Any}());
+        filter_var = self.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", defaultValue = Dict{Symbol, Any}());
         entry[Symbol("limits")][Symbol("cost")][Symbol("min")] = self.safeNumber2(filter_var, "minNotional", "notional");
         entry[Symbol("limits")][Symbol("cost")][Symbol("max")] = self.safeNumber(filter_var, "maxNotional");
     end
-    return self.safeMarketStructure(entry)
+    return self.safeMarketStructure(market = entry)
 
 end
 function parseBalanceHelper(self::Binance, entry)
@@ -5724,7 +5771,7 @@ function parseBalanceHelper(self::Binance, entry)
     return account
 
 end
-function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMode=nothing, isPortfolioMargin=false)
+function parseBalanceCustom(self::Binance, response; type_var=nothing, marginMode=nothing, isPortfolioMargin=false)
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
@@ -5769,7 +5816,7 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
 
     elseif functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(isolated), (@functions.ccxt_or((type_var == "spot"), cross))))
         timestamp = safeInteger(response, "updateTime");
-        balances = self.safeList2(response, "balances", "userAssets", []);
+        balances = self.safeList2(response, "balances", "userAssets", defaultValue = []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
             balance = get(balances, i + 1, nothing);
@@ -5790,14 +5837,14 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
         end
     else
         if functions.ccxtruthy(isolated)
-            assets = self.safeList(response, "assets", []);
+            assets = self.safeList(response, "assets", defaultValue = []);
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(assets)))
                 asset = get(assets, i + 1, nothing);
                 marketId = safeString(asset, "symbol");
-                symbol = self.safeSymbol(marketId, nothing, nothing, "spot");
-                base = self.safeDict(asset, "baseAsset", Dict{Symbol, Any}());
-                quote_var = self.safeDict(asset, "quoteAsset", Dict{Symbol, Any}());
+                symbol = self.safeSymbol(marketId, market = nothing, delimiter = nothing, marketType = "spot");
+                base = self.safeDict(asset, "baseAsset", defaultValue = Dict{Symbol, Any}());
+                quote_var = self.safeDict(asset, "quoteAsset", defaultValue = Dict{Symbol, Any}());
                 baseCode = self.safeCurrencyCode(safeString(base, "asset"));
                 quoteCode = self.safeCurrencyCode(safeString(quote_var, "asset"));
                 subResult = Dict{Symbol, Any}();
@@ -5812,7 +5859,7 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
             end
 
         elseif functions.ccxtruthy(type_var == "savings")
-            positionAmountVos = self.safeList(response, "positionAmountVos", []);
+            positionAmountVos = self.safeList(response, "positionAmountVos", defaultValue = []);
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(positionAmountVos)))
                 entry = get(positionAmountVos, i + 1, nothing);
@@ -5849,7 +5896,7 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
             else
                 balances = response;
                 if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(response)))
-                    balances = self.safeList(response, "assets", []);
+                    balances = self.safeList(response, "assets", defaultValue = []);
                 end
                 i = 0
                 while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
@@ -5879,34 +5926,56 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
     return functions.ccxtruthy(isolated) ? result : self.safeBalance(result)
 
 end
-function fetchBalance(self::Binance, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data  // spot
+see: https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
+see: https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
+see: https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     // funding
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance      // future
+see: https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           // option
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+- `params.symbols`::any, optional: unified market symbols, only used in isolated margin mode
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the balance for a portfolio margin account
+- `params.subType`::string, optional: 'linear' or 'inverse'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Binance; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     defaultType = safeString2(self.options, "fetchBalance", "defaultType", "spot");
     type_var = safeString(params, "type", defaultType);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchBalance", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchBalance", market = nothing, params = params);
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchBalance", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchBalance", "papi", "portfolioMargin", defaultValue = false);
     marginMode = nothing;
     query = nothing;
-    (marginMode, query) = self.handleMarginModeAndParams("fetchBalance", params);
+    (marginMode, query) = self.handleMarginModeAndParams("fetchBalance", params = params);
     query = omit(query, "type");
     response = nothing;
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(@functions.ccxt_or(isPortfolioMargin, (type_var == "papi")))
-        if functions.ccxtruthy(self.isLinear(type_var, subType))
+        if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
             type_var = "linear";
-        elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+        elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
             type_var = "inverse";
         end
         isPortfolioMargin = true;
         response = Base.fetch(self.papiGetBalance(extend(request, query)));
-    elseif functions.ccxtruthy(self.isLinear(type_var, subType))
+    elseif functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         type_var = "linear";
         useV2 = nothing;
-        (useV2, params) = self.handleOptionAndParams(params, "fetchBalance", "useV2", false);
+        (useV2, params) = self.handleOptionAndParams(params, "fetchBalance", "useV2", defaultValue = false);
         params = extend(request, query);
         if functions.ccxtruthy(!functions.ccxtruthy(useV2))
             response = Base.fetch(self.fapiPrivateV3GetAccount(params));
@@ -5914,7 +5983,7 @@ function fetchBalance(self::Binance, params=Dict())
             response = Base.fetch(self.fapiPrivateV2GetAccount(params));
         end
     else
-        if functions.ccxtruthy(self.isInverse(type_var, subType))
+        if functions.ccxtruthy(self.isInverse(type_var, subType = subType))
             type_var = "inverse";
             response = Base.fetch(self.dapiPrivateGetAccount(extend(request, query)));
         elseif functions.ccxtruthy(marginMode == "isolated")
@@ -5960,10 +6029,27 @@ function fetchBalance(self::Binance, params=Dict())
         end
 
     end
-    return self.parseBalanceCustom(response, type_var, marginMode, isPortfolioMargin)
+    return self.parseBalanceCustom(response, type_var = type_var, marginMode = marginMode, isPortfolioMargin = isPortfolioMargin)
 
 end
-function fetchOrderBook(self::Binance, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     // swap
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI // swap rpi
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     // future
+see: https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                             // option
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.rpi`::bool, optional: *future only* set to true to use the RPI endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Binance, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5995,12 +6081,12 @@ function fetchOrderBook(self::Binance, symbol, limit=nothing, params=Dict())
 
     end
     timestamp = safeInteger(response, "T");
-    orderbook = self.parseOrderBook(response, symbol, timestamp);
+    orderbook = self.parseOrderBook(response, symbol, timestamp = timestamp);
     orderbook[Symbol("nonce")] = safeInteger2(response, "lastUpdateId", "u");
     return orderbook
 
 end
-function parseTicker(self::Binance, ticker, market=nothing)
+function parseTicker(self::Binance, ticker; market=nothing)
     timestamp = safeInteger2(ticker, "closeTime", "time");
     marketType = nothing;
     if functions.ccxtruthy((ccxt_in("time", ticker)))
@@ -6010,7 +6096,7 @@ function parseTicker(self::Binance, ticker, market=nothing)
         marketType = functions.ccxtruthy((ccxt_in("bidQty", ticker))) ? "spot" : "contract";
     end
     marketId = safeString(ticker, "symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, marketType);
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = marketType);
     last_var = safeString(ticker, "lastPrice");
     wAvg = safeString(ticker, "weightedAvgPrice");
     isCoinm = (ccxt_in("baseVolume", ticker));
@@ -6046,10 +6132,20 @@ function parseTicker(self::Binance, ticker, market=nothing)
     Symbol("markPrice") => safeString(ticker, "markPrice"),
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchStatus(self::Binance, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://developers.binance.com/docs/wallet/others/system-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Binance; params=Dict())
     response = Base.fetch(self.sapiGetSystemStatus(params));
     statusRaw = safeString(response, "status");
     return Dict{Symbol, Any}(
@@ -6064,7 +6160,23 @@ function fetchStatus(self::Binance, params=Dict())
 )
 
 end
-function fetchTicker(self::Binance, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics     // spot
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#rolling-window-price-change-statistics  // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
+see: https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.rolling`::bool, optional: (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Binance, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6081,7 +6193,7 @@ function fetchTicker(self::Binance, symbol, params=Dict())
         if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             response = Base.fetch(self.dapiPublicGetTicker24hr(extend(request, params)));
         else
-            rolling = self.safeBool(params, "rolling", false);
+            rolling = self.safeBool(params, "rolling", defaultValue = false);
             params = omit(params, "rolling");
             if functions.ccxtruthy(rolling)
                 response = Base.fetch(self.publicGetTicker(extend(request, params)));
@@ -6092,37 +6204,52 @@ function fetchTicker(self::Binance, symbol, params=Dict())
 
     end
     if functions.ccxtruthy(functions.ccxt_isArray(response))
-        firstTicker = self.safeDict(response, 0, Dict{Symbol, Any}());
-            return self.parseTicker(firstTicker, market)
+        firstTicker = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+            return self.parseTicker(firstTicker, market = market)
     end
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " fetchTicker() returned empty response")));
     end
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchBidsAsks(self::Binance, symbols=nothing, params=Dict())
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
+see: https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchBidsAsks(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBidsAsks", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBidsAsks", market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchBidsAsks", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchBidsAsks", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(type_var == "option")
         response = Base.fetch(self.eapiPublicGetTicker(params));
-    elseif functions.ccxtruthy(self.isLinear(type_var, subType))
+    elseif functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         response = Base.fetch(self.fapiPublicGetTickerBookTicker(params));
     else
-        if functions.ccxtruthy(self.isInverse(type_var, subType))
+        if functions.ccxtruthy(self.isInverse(type_var, subType = subType))
             response = Base.fetch(self.dapiPublicGetTickerBookTicker(params));
         elseif functions.ccxtruthy(type_var == "spot")
             request = Dict{Symbol, Any}();
             if functions.ccxtruthy(symbols != nothing)
-                request[Symbol("symbols")] = json(self.marketIds(symbols));
+                request[Symbol("symbols")] = json(self.marketIds(symbols = symbols));
             end
             response = Base.fetch(self.publicGetTickerBookTicker(extend(request, params)));
         else
@@ -6130,23 +6257,37 @@ function fetchBidsAsks(self::Binance, symbols=nothing, params=Dict())
         end
 
     end
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function fetchLastPrices(self::Binance, symbols=nothing, params=Dict())
+"""
+fetches the last price for multiple markets
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker    // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // future
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the last prices
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of lastprices structures
+"""
+function fetchLastPrices(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchLastPrices", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchLastPrices", market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchLastPrices", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchLastPrices", market = market, params = params);
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         response = Base.fetch(self.fapiPublicV2GetTickerPrice(params));
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         response = Base.fetch(self.dapiPublicGetTickerPrice(params));
     else
         if functions.ccxtruthy(type_var == "spot")
@@ -6156,14 +6297,14 @@ function fetchLastPrices(self::Binance, symbols=nothing, params=Dict())
         end
 
     end
-    return self.parseLastPrices(response, symbols)
+    return self.parseLastPrices(response, symbols = symbols)
 
 end
-function parseLastPrice(self::Binance, entry, market=nothing)
+function parseLastPrice(self::Binance, entry; market=nothing)
     timestamp = safeInteger(entry, "time");
     type_var = functions.ccxtruthy((timestamp == nothing)) ? "spot" : "swap";
     marketId = safeString(entry, "symbol");
-    market = self.safeMarket(marketId, market, nothing, type_var);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = type_var);
     return Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
     Symbol("timestamp") => timestamp,
@@ -6174,36 +6315,52 @@ function parseLastPrice(self::Binance, entry, market=nothing)
 )
 
 end
-function fetchTickers(self::Binance, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // future
+see: https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.type`::string, optional: 'spot', 'option', use params["subType"] for swap and future markets
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchTickers", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchTickers", market = market, params = params);
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         response = Base.fetch(self.fapiPublicGetTicker24hr(params));
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         response = Base.fetch(self.dapiPublicGetTicker24hr(params));
     else
         if functions.ccxtruthy(type_var == "spot")
-            rolling = self.safeBool(params, "rolling", false);
+            rolling = self.safeBool(params, "rolling", defaultValue = false);
             params = omit(params, "rolling");
             if functions.ccxtruthy(rolling)
-                symbols = self.marketSymbols(symbols);
+                symbols = self.marketSymbols(symbols = symbols);
                 request = Dict{Symbol, Any}(
-                    Symbol("symbols") => json(self.marketIds(symbols))
+                    Symbol("symbols") => json(self.marketIds(symbols = symbols))
                 );
                 response = Base.fetch(self.publicGetTicker(extend(request, params)));
                     return self.parseTickersForRolling(response, symbols)
             else
                 request = Dict{Symbol, Any}();
                 if functions.ccxtruthy(symbols != nothing)
-                    request[Symbol("symbols")] = json(self.marketIds(symbols));
+                    request[Symbol("symbols")] = json(self.marketIds(symbols = symbols));
                 end
                 response = Base.fetch(self.publicGetTicker24hr(extend(request, params)));
             end
@@ -6214,7 +6371,7 @@ function fetchTickers(self::Binance, symbols=nothing, params=Dict())
         end
 
     end
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
 function parseTickersForRolling(self::Binance, response, symbols)
@@ -6222,34 +6379,48 @@ function parseTickersForRolling(self::Binance, response, symbols)
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         marketId = safeString(get(response, i + 1, nothing), "symbol");
-        tickerMarket = self.safeMarket(marketId, nothing, nothing, "spot");
+        tickerMarket = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = "spot");
         parsedTicker = self.parseTicker(get(response, i + 1, nothing));
         parsedTicker[Symbol("symbol")] = get(tickerMarket, Symbol("symbol"), nothing);
         push!(results, parsedTicker);
         i += 1
     end
-    return self.filterByArray(results, "symbol", symbols)
+    return self.filterByArray(results, "symbol", values = symbols)
 
 end
-function fetchMarkPrice(self::Binance, symbol, params=Dict())
+"""
+fetches mark price for the market
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+see: https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrice(self::Binance, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMarkPrice", market, params, "swap");
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMarkPrice", market = market, params = params, defaultValue = "swap");
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMarkPrice", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchMarkPrice", market = market, params = params, defaultValue = "linear");
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
         response = Base.fetch(self.eapiPublicGetMark(extend(request, params)));
-    elseif functions.ccxtruthy(self.isLinear(type_var, subType))
+    elseif functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         response = Base.fetch(self.fapiPublicGetPremiumIndex(extend(request, params)));
     else
-        if functions.ccxtruthy(self.isInverse(type_var, subType))
+        if functions.ccxtruthy(self.isInverse(type_var, subType = subType))
             response = Base.fetch(self.dapiPublicGetPremiumIndex(extend(request, params)));
         else
             throw(NotSupported(string(self.id, " fetchMarkPrice() does not support ", type_var, " markets yet")));
@@ -6257,54 +6428,94 @@ function fetchMarkPrice(self::Binance, symbol, params=Dict())
 
     end
     if functions.ccxtruthy(functions.ccxt_isArray(response))
-            return self.parseTicker(self.safeDict(response, 0, Dict{Symbol, Any}()), market)
+            return self.parseTicker(self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}()), market = market)
     end
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " fetchMarkPrice() returned empty response")));
     end
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchMarkPrices(self::Binance, symbols=nothing, params=Dict())
+"""
+fetches mark prices for multiple markets
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+see: https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrices(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMarkPrices", market, params, "swap");
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMarkPrices", market = market, params = params, defaultValue = "swap");
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMarkPrices", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchMarkPrices", market = market, params = params, defaultValue = "linear");
     response = nothing;
     if functions.ccxtruthy(type_var == "option")
         response = Base.fetch(self.eapiPublicGetMark(params));
-    elseif functions.ccxtruthy(self.isLinear(type_var, subType))
+    elseif functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         response = Base.fetch(self.fapiPublicGetPremiumIndex(params));
     else
-        if functions.ccxtruthy(self.isInverse(type_var, subType))
+        if functions.ccxtruthy(self.isInverse(type_var, subType = subType))
             response = Base.fetch(self.dapiPublicGetPremiumIndex(params));
         else
             throw(NotSupported(string(self.id, " fetchMarkPrices() does not support ", type_var, " markets yet")));
         end
 
     end
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function parseOHLCV(self::Binance, ohlcv, market=nothing)
+function parseOHLCV(self::Binance, ohlcv; market=nothing)
     inverse = self.safeBool(market, "inverse");
     volumeIndex = functions.ccxtruthy(inverse) ? 7 : 5;
     return [safeInteger2(ohlcv, 0, "openTime"), self.safeNumber2(ohlcv, 1, "open"), self.safeNumber2(ohlcv, 2, "high"), self.safeNumber2(ohlcv, 3, "low"), self.safeNumber2(ohlcv, 4, "close"), self.safeNumber2(ohlcv, volumeIndex, "volume")]
 
 end
-function fetchOHLCV(self::Binance, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
+see: https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Binance, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 1000))
     end
     market = self.market(symbol);
     defaultLimit = 500;
@@ -6379,13 +6590,13 @@ function fetchOHLCV(self::Binance, symbol, timeframe="1m", since=nothing, limit=
         end
 
     end
-    candles = self.parseOHLCVs(toArray(response), market, timeframe, since, limit);
+    candles = self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit);
     return candles
 
 end
-function parseTrade(self::Binance, trade, market=nothing)
+function parseTrade(self::Binance, trade; market=nothing)
     if functions.ccxtruthy(ccxt_in("isDustTrade", trade))
-            return self.parseDustTrade(trade, market)
+            return self.parseDustTrade(trade, market = market)
     end
     timestamp = safeInteger2(trade, "T", "time");
     amount = safeString2(trade, "q", "qty");
@@ -6393,7 +6604,7 @@ function parseTrade(self::Binance, trade, market=nothing)
     marketId = safeString(trade, "symbol");
     isSpotTrade = @functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((ccxt_in("isIsolated", trade)), (ccxt_in("M", trade))), (ccxt_in("orderListId", trade))), (ccxt_in("isMaker", trade)));
     marketType = functions.ccxtruthy(isSpotTrade) ? "spot" : "contract";
-    market = self.safeMarket(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
     symbol = get(market, Symbol("symbol"), nothing);
     side = nothing;
     buyerMaker = self.safeBool2(trade, "m", "isBuyerMaker");
@@ -6452,17 +6663,44 @@ function parseTrade(self::Binance, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => safeString2(trade, "quoteQty", "baseQty"),
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Binance, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol Default fetchTradesMethod Other fetchTradesMethod
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
+see: https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
+see: https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+- `limit`::int, optional: default 500, max 1000
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+- `params.fetchTradesMethod`::int, optional: 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) EXCHANGE SPECIFIC PARAMETERS
+- `params.fromId`::int, optional: trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Binance, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -6546,10 +6784,27 @@ function fetchTrades(self::Binance, symbol, since=nothing, limit=nothing, params
     if functions.ccxtruthy(response != nothing)
         responseList = toArray(response);
     end
-    return self.parseTrades(responseList, market, since, limit)
+    return self.parseTrades(responseList, market = market, since = since, limit = limit)
 
 end
-function editSpotOrder(self::Binance, id, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editSpotOrder(self::Binance, id, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6557,13 +6812,13 @@ function editSpotOrder(self::Binance, id, symbol, type_var, side, amount, price=
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
         throw(NotSupported(string(self.id, " editSpotOrder() does not support ", get(market, Symbol("type"), nothing), " orders")));
     end
-    payload = self.editSpotOrderRequest(id, symbol, type_var, side, amount, price, params);
+    payload = self.editSpotOrderRequest(id, symbol, type_var, side, amount, price = price, params = params);
     response = Base.fetch(self.privatePostOrderCancelReplace(payload));
-    data = self.safeDict(response, "newOrderResponse", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "newOrderResponse", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function editSpotOrderRequest(self::Binance, id, symbol, type_var, side, amount, price=nothing, params=Dict())
+function editSpotOrderRequest(self::Binance, id, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -6581,7 +6836,7 @@ function editSpotOrderRequest(self::Binance, id, symbol, type_var, side, amount,
     );
     initialUppercaseType = uppercase(type_var);
     uppercaseType = initialUppercaseType;
-    postOnly = self.isPostOnly(initialUppercaseType == "MARKET", initialUppercaseType == "LIMIT_MAKER", params);
+    postOnly = self.isPostOnly(initialUppercaseType == "MARKET", initialUppercaseType == "LIMIT_MAKER", params = params);
     if functions.ccxtruthy(postOnly)
         uppercaseType = "LIMIT_MAKER";
     end
@@ -6594,7 +6849,7 @@ function editSpotOrderRequest(self::Binance, id, symbol, type_var, side, amount,
         end
     end
     request[Symbol("type")] = uppercaseType;
-    validOrderTypes = self.safeList(get(market, Symbol("info"), nothing), "orderTypes", []);
+    validOrderTypes = self.safeList(get(market, Symbol("info"), nothing), "orderTypes", defaultValue = []);
     if functions.ccxtruthy(!functions.ccxtruthy(inArray(uppercaseType, validOrderTypes)))
         if functions.ccxtruthy(initialUppercaseType != uppercaseType)
             throw(InvalidOrder(string(self.id, " triggerPrice parameter is not allowed for ", symbol, " ", type_var, " orders")));
@@ -6619,7 +6874,7 @@ function editSpotOrderRequest(self::Binance, id, symbol, type_var, side, amount,
     triggerPriceIsRequired = false;
     quantityIsRequired = false;
     if functions.ccxtruthy(uppercaseType == "MARKET")
-        quoteOrderQty = self.handleOption("createOrder", "quoteOrderQty", true);
+        quoteOrderQty = self.handleOption("createOrder", "quoteOrderQty", defaultValue = true);
         if functions.ccxtruthy(quoteOrderQty)
             quoteOrderQtyNew = safeValue2(params, "quoteOrderQty", "cost");
             precision = get(get(market, Symbol("precision"), nothing), Symbol("price"), nothing);
@@ -6689,7 +6944,7 @@ function editSpotOrderRequest(self::Binance, id, symbol, type_var, side, amount,
     return extend(request, params)
 
 end
-function editContractOrderRequest(self::Binance, id, symbol, type_var, side, amount, price=nothing, params=Dict())
+function editContractOrderRequest(self::Binance, id, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -6723,14 +6978,34 @@ function editContractOrderRequest(self::Binance, id, symbol, type_var, side, amo
     return request
 
 end
-function editContractOrder(self::Binance, id, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to edit an order in a portfolio margin account
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editContractOrder(self::Binance, id, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "editContractOrder", "papi", "portfolioMargin", false);
-    request = self.editContractOrderRequest(id, symbol, type_var, side, amount, price, params);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "editContractOrder", "papi", "portfolioMargin", defaultValue = false);
+    request = self.editContractOrderRequest(id, symbol, type_var, side, amount, price = price, params = params);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
@@ -6748,10 +7023,28 @@ function editContractOrder(self::Binance, id, symbol, type_var, side, amount, pr
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function editOrder(self::Binance, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Binance, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6760,13 +7053,25 @@ function editOrder(self::Binance, id, symbol, type_var, side, amount=nothing, pr
         throw(NotSupported(string(self.id, " editOrder() does not support ", get(market, Symbol("type"), nothing), " orders")));
     end
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            return Base.fetch(self.editSpotOrder(id, symbol, type_var, side, amount, price, params))
+            return Base.fetch(self.editSpotOrder(id, symbol, type_var, side, amount, price = price, params = params))
     else
-        return Base.fetch(self.editContractOrder(id, symbol, type_var, side, amount, price, params))
+        return Base.fetch(self.editContractOrder(id, symbol, type_var, side, amount, price = price, params = params))
     end
 
 end
-function editOrders(self::Binance, orders, params=Dict())
+"""
+edit a list of trade orders
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Multiple-Orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrders(self::Binance, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6782,17 +7087,17 @@ function editOrders(self::Binance, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         isPortfolioMargin = nothing;
-        (isPortfolioMargin, orderParams) = self.handleOptionAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false);
+        (isPortfolioMargin, orderParams) = self.handleOptionAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", defaultValue = false);
         if functions.ccxtruthy(isPortfolioMargin)
             throw(NotSupported(string(self.id, " editOrders() does not support portfolio margin orders")));
         end
-        orderRequest = self.editContractOrderRequest(id, marketId, type_var, side, amount, price, orderParams);
+        orderRequest = self.editContractOrderRequest(id, marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
-    orderSymbols = self.marketSymbols(orderSymbols, nothing, false, true, true);
+    orderSymbols = self.marketSymbols(symbols = orderSymbols, type_var = nothing, allowEmpty = false, sameTypeOnly = true, sameSubTypeOnly = true);
     market = self.market(get(orderSymbols, 1, nothing));
     if functions.ccxtruthy(@functions.ccxt_or(get(market, Symbol("spot"), nothing), get(market, Symbol("option"), nothing)))
         throw(NotSupported(string(self.id, " editOrders() does not support ", get(market, Symbol("type"), nothing), " orders")));
@@ -6852,7 +7157,7 @@ function parseOrderTypeByMarket(self::Binance, type_var, marketType)
     return safeString(types, type_var, type_var)
 
 end
-function parseOrder(self::Binance, order, market=nothing)
+function parseOrder(self::Binance, order; market=nothing)
     code = safeString(order, "code");
     if functions.ccxtruthy(code != nothing)
         msg = safeString(order, "msg");
@@ -6860,14 +7165,14 @@ function parseOrder(self::Binance, order, market=nothing)
                 return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => order,
     Symbol("status") => "rejected"
-), market)
+), market = market)
         end
     end
     status = self.parseOrderStatus(safeStringN(order, ["status", "strategyStatus", "algoStatus"]));
     marketId = safeString(order, "symbol");
     isContract = @functions.ccxt_or((ccxt_in("positionSide", order)), (ccxt_in("cumQuote", order)));
     marketType = functions.ccxtruthy(isContract) ? "contract" : "spot";
-    symbol = self.safeSymbol(marketId, market, nothing, marketType);
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = marketType);
     filled = safeString(order, "executedQty", "0");
     timestamp = safeIntegerN(order, ["time", "createTime", "workingTime", "transactTime", "updateTime"]);
     lastTradeTimestamp = nothing;
@@ -6889,7 +7194,7 @@ function parseOrder(self::Binance, order, market=nothing)
     cost = safeString(order, "cumBase", cost);
     type_var = safeStringLower2(order, "type", "orderType");
     side = safeStringLower(order, "side");
-    fills = self.safeList(order, "fills", []);
+    fills = self.safeList(order, "fills", defaultValue = []);
     timeInForce = safeString(order, "timeInForce");
     if functions.ccxtruthy(timeInForce == "GTX")
         timeInForce = "PO";
@@ -6930,10 +7235,23 @@ function parseOrder(self::Binance, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => fee,
     Symbol("trades") => fills
-), market)
+), market = market)
 
 end
-function createOrders(self::Binance, orders, params=Dict())
+"""
+*contract only* create a list of trade orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Binance, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6948,12 +7266,12 @@ function createOrders(self::Binance, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, orderParams);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
-    orderSymbols = self.marketSymbols(orderSymbols, nothing, false, true, true);
+    orderSymbols = self.marketSymbols(symbols = orderSymbols, type_var = nothing, allowEmpty = false, sameTypeOnly = true, sameSubTypeOnly = true);
     market = self.market(get(orderSymbols, 1, nothing));
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         throw(NotSupported(string(self.id, " createOrders() does not support ", get(market, Symbol("type"), nothing), " orders")));
@@ -6973,15 +7291,58 @@ function createOrders(self::Binance, orders, params=Dict())
     return self.parseOrders(response)
 
 end
-function createOrder(self::Binance, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+see: https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api
+see: https://developers.binance.com/docs/derivatives/option/trade/New-Order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
+see: https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.reduceOnly`::string, optional: for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.sor`::bool, optional: *spot only* whether to use SOR (Smart Order Routing) or not, default is false
+- `params.test`::bool, optional: *spot only* whether to use the test endpoint or not, default is false
+- `params.trailingPercent`::float, optional: the percent to trail away from the current market price
+- `params.trailingTriggerPrice`::float, optional: the price to trigger a trailing order, default uses the price argument
+- `params.triggerPrice`::float, optional: the price that a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at
+- `params.portfolioMargin`::bool, optional: set to true if you would like to create an order in a portfolio margin account
+- `params.selfTradePrevention`::string, optional: set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+- `params.icebergAmount`::float, optional: set iceberg amount for limit orders
+- `params.stopLossOrTakeProfit`::string, optional: 'stopLoss' or 'takeProfit', required for spot trailing orders
+- `params.positionSide`::string, optional: *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+- `params.hedged`::bool, optional: *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+- `params.clientOrderId`::string, optional: the clientOrderId of the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Binance, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     marketType = safeString(params, "type", get(market, Symbol("type"), nothing));
     marginMode = safeString(params, "marginMode");
-    porfolioOptionsValue = self.safeBool2(self.options, "papi", "portfolioMargin", false);
-    isPortfolioMargin = self.safeBool2(params, "papi", "portfolioMargin", porfolioOptionsValue);
+    porfolioOptionsValue = self.safeBool2(self.options, "papi", "portfolioMargin", defaultValue = false);
+    isPortfolioMargin = self.safeBool2(params, "papi", "portfolioMargin", defaultValue = porfolioOptionsValue);
     triggerPrice = safeString2(params, "triggerPrice", "stopPrice");
     stopLossPrice = safeString(params, "stopLossPrice");
     takeProfitPrice = safeString(params, "takeProfitPrice");
@@ -6990,10 +7351,10 @@ function createOrder(self::Binance, symbol, type_var, side, amount, price=nothin
     isStopLoss = stopLossPrice != nothing;
     isTakeProfit = takeProfitPrice != nothing;
     isConditional = @functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((triggerPrice != nothing), isTrailingPercentOrder), isStopLoss), isTakeProfit);
-    sor = self.safeBool2(params, "sor", "SOR", false);
-    test = self.safeBool(params, "test", false);
+    sor = self.safeBool2(params, "sor", "SOR", defaultValue = false);
+    test = self.safeBool(params, "test", defaultValue = false);
     params = omit(params, ["sor", "SOR", "test"]);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
         response = Base.fetch(self.eapiPrivatePostOrder(request));
@@ -7055,10 +7416,10 @@ function createOrder(self::Binance, symbol, type_var, side, amount, price=nothin
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createOrderRequest(self::Binance, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Binance, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -7080,10 +7441,10 @@ function createOrderRequest(self::Binance, symbol, type_var, side, amount, price
         Symbol("side") => upperCaseSide
     );
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "createOrder", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "createOrder", "papi", "portfolioMargin", defaultValue = false);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
-    reduceOnly = self.safeBool(params, "reduceOnly", false);
+    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
+    reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
     if functions.ccxtruthy(reduceOnly)
         if functions.ccxtruthy(@functions.ccxt_or(marketType == "margin", (@functions.ccxt_and(!functions.ccxtruthy(get(market, Symbol("contract"), nothing)), (marginMode != nothing)))))
             params = omit(params, "reduceOnly");
@@ -7167,7 +7528,7 @@ function createOrderRequest(self::Binance, symbol, type_var, side, amount, price
             throw(InvalidOrder(string(self.id, " ", type_var, " is not a valid order type for the ", symbol, " market")));
         end
     else
-        validOrderTypes = self.safeList(get(market, Symbol("info"), nothing), "orderTypes", []);
+        validOrderTypes = self.safeList(get(market, Symbol("info"), nothing), "orderTypes", defaultValue = []);
         if functions.ccxtruthy(!functions.ccxtruthy(inArray(uppercaseType, validOrderTypes)))
             if functions.ccxtruthy(initialUppercaseType != uppercaseType)
                 throw(InvalidOrder(string(self.id, " triggerPrice parameter is not allowed for ", symbol, " ", type_var, " orders")));
@@ -7181,7 +7542,7 @@ function createOrderRequest(self::Binance, symbol, type_var, side, amount, price
         clientOrderIdRequest = "clientAlgoId";
     end
     if functions.ccxtruthy(clientOrderId == nothing)
-        broker = self.safeDict(self.options, "broker", Dict{Symbol, Any}());
+        broker = self.safeDict(self.options, "broker", defaultValue = Dict{Symbol, Any}());
         defaultId = functions.ccxtruthy((get(market, Symbol("contract"), nothing))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
         idMarketType = "spot";
         if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
@@ -7194,7 +7555,7 @@ function createOrderRequest(self::Binance, symbol, type_var, side, amount, price
     end
     postOnly = nothing;
     if functions.ccxtruthy(!functions.ccxtruthy(isPortfolioMargin))
-        postOnly = self.isPostOnly(isMarketOrder, initialUppercaseType == "LIMIT_MAKER", params);
+        postOnly = self.isPostOnly(isMarketOrder, initialUppercaseType == "LIMIT_MAKER", params = params);
         if functions.ccxtruthy(@functions.ccxt_or(get(market, Symbol("spot"), nothing), marketType == "margin"))
             if functions.ccxtruthy(postOnly)
                 uppercaseType = "LIMIT_MAKER";
@@ -7204,7 +7565,7 @@ function createOrderRequest(self::Binance, symbol, type_var, side, amount, price
             end
         end
     else
-        postOnly = self.isPostOnly(isMarketOrder, initialUppercaseType == "LIMIT_MAKER", params);
+        postOnly = self.isPostOnly(isMarketOrder, initialUppercaseType == "LIMIT_MAKER", params = params);
         if functions.ccxtruthy(postOnly)
             if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("contract"), nothing)))
                 uppercaseType = "LIMIT_MAKER";
@@ -7220,14 +7581,14 @@ function createOrderRequest(self::Binance, symbol, type_var, side, amount, price
     end
     typeRequest = functions.ccxtruthy(isPortfolioMarginConditional) ? "strategyType" : "type";
     request[Symbol(typeRequest)] = uppercaseType;
-    closePosition = self.safeBool(params, "closePosition", false);
+    closePosition = self.safeBool(params, "closePosition", defaultValue = false);
     timeInForceIsRequired = false;
     priceIsRequired = false;
     triggerPriceIsRequired = false;
     quantityIsRequired = false;
     if functions.ccxtruthy(uppercaseType == "MARKET")
         if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            quoteOrderQty = self.handleOption("createOrder", "quoteOrderQty", true);
+            quoteOrderQty = self.handleOption("createOrder", "quoteOrderQty", defaultValue = true);
             if functions.ccxtruthy(quoteOrderQty)
                 quoteOrderQtyNew = safeString2(params, "quoteOrderQty", "cost");
                 precision = get(get(market, Symbol("precision"), nothing), Symbol("price"), nothing);
@@ -7339,7 +7700,7 @@ function createOrderRequest(self::Binance, symbol, type_var, side, amount, price
     if functions.ccxtruthy(safeString(params, "timeInForce") == "PO")
         params = omit(params, "timeInForce");
     end
-    hedged = self.safeBool(params, "hedged", false);
+    hedged = self.safeBool(params, "hedged", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)), !functions.ccxtruthy(get(market, Symbol("option"), nothing))), hedged))
         if functions.ccxtruthy(reduceOnly)
             params = omit(params, "reduceOnly");
@@ -7366,7 +7727,20 @@ function createOrderRequest(self::Binance, symbol, type_var, side, amount, price
     return extend(request, requestParams)
 
 end
-function createMarketOrderWithCost(self::Binance, symbol, side, cost, params=Dict())
+"""
+create a market order by providing the symbol, side and cost
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketOrderWithCost(self::Binance, symbol, side, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7377,10 +7751,22 @@ function createMarketOrderWithCost(self::Binance, symbol, side, cost, params=Dic
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return Base.fetch(self.createOrder(symbol, "market", side, cost, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", side, cost, price = nothing, params = extend(req, params)))
 
 end
-function createMarketBuyOrderWithCost(self::Binance, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Binance, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7391,10 +7777,22 @@ function createMarketBuyOrderWithCost(self::Binance, symbol, cost, params=Dict()
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = extend(req, params)))
 
 end
-function createMarketSellOrderWithCost(self::Binance, symbol, cost, params=Dict())
+"""
+create a market sell order by providing the symbol and cost
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketSellOrderWithCost(self::Binance, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7403,10 +7801,32 @@ function createMarketSellOrderWithCost(self::Binance, symbol, cost, params=Dict(
         throw(NotSupported(string(self.id, " createMarketSellOrderWithCost() supports spot orders only")));
     end
     params[Symbol("quoteOrderQty")] = cost;
-    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, price = nothing, params = params))
 
 end
-function fetchOrder(self::Binance, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch an order in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch a trigger or conditional order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Binance, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -7417,9 +7837,9 @@ function fetchOrder(self::Binance, id, symbol=nothing, params=Dict())
     defaultType = safeString2(self.options, "fetchOrder", "defaultType", "spot");
     type_var = safeString(params, "type", defaultType);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchOrder", params = params);
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchOrder", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchOrder", "papi", "portfolioMargin", defaultValue = false);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
@@ -7476,10 +7896,37 @@ function fetchOrder(self::Binance, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch orders in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -7489,15 +7936,15 @@ function fetchOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = self.market(symbol);
     defaultType = safeString2(self.options, "fetchOrders", "defaultType", get(market, Symbol("type"), nothing));
     type_var = safeString(params, "type", defaultType);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchOrders", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchOrders", params = params);
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchOrders", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchOrders", "papi", "portfolioMargin", defaultValue = false);
     isConditional = self.safeBoolN(params, ["stop", "trigger", "conditional"]);
     params = omit(params, ["stop", "trigger", "conditional", "type"]);
     request = Dict{Symbol, Any}(
@@ -7552,10 +7999,36 @@ function fetchOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing
         end
 
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch open orders in the portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account conditional orders
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7563,9 +8036,9 @@ function fetchOpenOrders(self::Binance, symbol=nothing, since=nothing, limit=not
     type_var = nothing;
     request = Dict{Symbol, Any}();
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchOpenOrders", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchOpenOrders", params = params);
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchOpenOrders", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchOpenOrders", "papi", "portfolioMargin", defaultValue = false);
     isConditional = self.safeBoolN(params, ["stop", "trigger", "conditional"]);
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
@@ -7584,7 +8057,7 @@ function fetchOpenOrders(self::Binance, symbol=nothing, since=nothing, limit=not
         end
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchOpenOrders", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchOpenOrders", market = market, params = params);
     params = omit(params, ["type", "stop", "trigger", "conditional"]);
     response = nothing;
     if functions.ccxtruthy(type_var == "option")
@@ -7595,7 +8068,7 @@ function fetchOpenOrders(self::Binance, symbol=nothing, since=nothing, limit=not
             request[Symbol("limit")] = limit;
         end
         response = Base.fetch(self.eapiPrivateGetOpenOrders(extend(request, params)));
-    elseif functions.ccxtruthy(self.isLinear(type_var, subType))
+    elseif functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             if functions.ccxtruthy(isConditional)
                 response = Base.fetch(self.papiGetUmConditionalOpenOrders(extend(request, params)));
@@ -7610,7 +8083,7 @@ function fetchOpenOrders(self::Binance, symbol=nothing, since=nothing, limit=not
             end
         end
     else
-        if functions.ccxtruthy(self.isInverse(type_var, subType))
+        if functions.ccxtruthy(self.isInverse(type_var, subType = subType))
             if functions.ccxtruthy(isPortfolioMargin)
                 if functions.ccxtruthy(isConditional)
                     response = Base.fetch(self.papiGetCmConditionalOpenOrders(extend(request, params)));
@@ -7641,10 +8114,29 @@ function fetchOpenOrders(self::Binance, symbol=nothing, since=nothing, limit=not
         end
 
     end
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrder(self::Binance, id, symbol=nothing, params=Dict())
+"""
+fetch an open order by the id
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::string, optional: set to true if you would like to fetch portfolio margin account stop or conditional orders
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch for a portfolio margin account
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrder(self::Binance, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrder() requires a symbol argument")));
     end
@@ -7656,7 +8148,7 @@ function fetchOpenOrder(self::Binance, id, symbol=nothing, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchOpenOrder", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchOpenOrder", "papi", "portfolioMargin", defaultValue = false);
     isConditional = self.safeBoolN(params, ["stop", "trigger", "conditional"]);
     params = omit(params, ["stop", "trigger", "conditional"]);
     isPortfolioMarginConditional = (@functions.ccxt_and(isPortfolioMargin, isConditional));
@@ -7693,40 +8185,136 @@ function fetchOpenOrder(self::Binance, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchClosedOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch orders in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchClosedOrders() requires a symbol argument")));
     end
-    orders = Base.fetch(self.fetchOrders(symbol, since, nothing, params));
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = params));
     filteredOrders = filterBy(orders, "status", "closed");
-    return self.filterBySinceLimit(filteredOrders, since, limit)
+    return self.filterBySinceLimit(filteredOrders, since = since, limit = limit)
 
 end
-function fetchCanceledOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch orders in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchCanceledOrders() requires a symbol argument")));
     end
-    orders = Base.fetch(self.fetchOrders(symbol, since, nothing, params));
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = params));
     filteredOrders = filterBy(orders, "status", "canceled");
-    return self.filterBySinceLimit(filteredOrders, since, limit)
+    return self.filterBySinceLimit(filteredOrders, since = since, limit = limit)
 
 end
-function fetchCanceledAndClosedOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch orders in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchCanceledAndClosedOrders() requires a symbol argument")));
     end
-    orders = Base.fetch(self.fetchOrders(symbol, since, nothing, params));
+    orders = Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = nothing, params = params));
     canceledOrders = filterBy(orders, "status", "canceled");
     closedOrders = filterBy(orders, "status", "closed");
     filteredOrders = arrayConcat(canceledOrders, closedOrders);
     sortedOrders = sortBy(filteredOrders, "timestamp");
-    return self.filterBySinceLimit(sortedOrders, since, limit)
+    return self.filterBySinceLimit(sortedOrders, since = since, limit = limit)
 
 end
-function cancelOrder(self::Binance, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
+see: https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
+see: https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to cancel an order in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to cancel a portfolio margin account conditional order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Binance, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -7737,9 +8325,9 @@ function cancelOrder(self::Binance, id, symbol=nothing, params=Dict())
     defaultType = safeString2(self.options, "cancelOrder", "defaultType", "spot");
     type_var = safeString(params, "type", defaultType);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params = params);
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "cancelOrder", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "cancelOrder", "papi", "portfolioMargin", defaultValue = false);
     isConditional = self.safeBoolN(params, ["stop", "trigger", "conditional"]);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
@@ -7816,10 +8404,34 @@ function cancelOrder(self::Binance, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelAllOrders(self::Binance, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
+see: https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.portfolioMargin`::bool, optional: set to true if you would like to cancel orders in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to cancel portfolio margin account conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Binance; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -7831,12 +8443,12 @@ function cancelAllOrders(self::Binance, symbol=nothing, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "cancelAllOrders", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "cancelAllOrders", "papi", "portfolioMargin", defaultValue = false);
     isConditional = self.safeBoolN(params, ["stop", "trigger", "conditional"]);
     type_var = safeString(params, "type", get(market, Symbol("type"), nothing));
     params = omit(params, ["type", "stop", "trigger", "conditional"]);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("cancelAllOrders", params);
+    (marginMode, params) = self.handleMarginModeAndParams("cancelAllOrders", params = params);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
         response = Base.fetch(self.eapiPrivateDeleteAllOpenOrders(extend(request, params)));
@@ -7880,7 +8492,7 @@ function cancelAllOrders(self::Binance, symbol=nothing, params=Dict())
 
     end
     if functions.ccxtruthy(functions.ccxt_isArray(response))
-            return self.parseOrders(response, market)
+            return self.parseOrders(response, market = market)
     else
         order = self.safeOrder(Dict{Symbol, Any}(
             Symbol("info") => response
@@ -7889,7 +8501,23 @@ function cancelAllOrders(self::Binance, symbol=nothing, params=Dict())
     end
 
 end
-function cancelOrders(self::Binance, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Multiple-Orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: alternative to ids, array of client order ids EXCHANGE SPECIFIC PARAMETERS
+- `params.origClientOrderIdList`::array, optional: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+- `params.recvWindow`::array, optional:
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Binance, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -7916,10 +8544,27 @@ function cancelOrders(self::Binance, ids, symbol=nothing, params=Dict())
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
         response = Base.fetch(self.dapiPrivateDeleteBatchOrders(extend(request, params)));
     end
-    return self.parseOrders(response, market)
+    return self.parseOrders(response, market = market)
 
 end
-function fetchOrderTrades(self::Binance, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Binance, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrderTrades() requires a symbol argument")));
     end
@@ -7935,17 +8580,39 @@ function fetchOrderTrades(self::Binance, id, symbol=nothing, since=nothing, limi
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    return Base.fetch(self.fetchMyTrades(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchMyTrades(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchMyTrades(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+see: https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch trades for a portfolio margin account
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -7955,7 +8622,7 @@ function fetchMyTrades(self::Binance, symbol=nothing, since=nothing, limit=nothi
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     endTime = safeInteger2(params, "until", "endTime");
     if functions.ccxtruthy(since != nothing)
         startTime = since;
@@ -7987,9 +8654,9 @@ function fetchMyTrades(self::Binance, symbol=nothing, since=nothing, limit=nothi
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
         end
-        (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params);
+        (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params = params);
         isPortfolioMargin = nothing;
-        (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchMyTrades", "papi", "portfolioMargin", false);
+        (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchMyTrades", "papi", "portfolioMargin", defaultValue = false);
         if functions.ccxtruthy(@functions.ccxt_or(type_var == "spot", type_var == "margin"))
             if functions.ccxtruthy(isPortfolioMargin)
                 response = Base.fetch(self.papiGetMarginMyTrades(extend(request, params)));
@@ -8022,10 +8689,24 @@ function fetchMyTrades(self::Binance, symbol=nothing, since=nothing, limit=nothi
     if functions.ccxtruthy(response != nothing)
         responseList = toArray(response);
     end
-    return self.parseTrades(responseList, market, since, limit)
+    return self.parseTrades(responseList, market = market, since = since, limit = limit)
 
 end
-function fetchMyDustTrades(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all dust trades made by the user
+see: https://developers.binance.com/docs/wallet/asset/dust-log
+
+# Arguments
+- `symbol`::string: not used by fetchMyDustTrades ()
+- `since`::int, optional: the earliest time in ms to fetch my dust trades for
+- `limit`::int, optional: the maximum number of dust trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'margin', default spot
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyDustTrades(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8040,12 +8721,12 @@ function fetchMyDustTrades(self::Binance, symbol=nothing, since=nothing, limit=n
         request[Symbol("accountType")] = accountType;
     end
     response = Base.fetch(self.sapiGetAssetDribblet(extend(request, params)));
-    results = self.safeList(response, "userAssetDribblets", []);
+    results = self.safeList(response, "userAssetDribblets", defaultValue = []);
     rows = safeInteger(response, "total", 0);
     data = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, rows))
-        logs = self.safeList(get(results, i + 1, nothing), "userAssetDribbletDetails", []);
+        logs = self.safeList(get(results, i + 1, nothing), "userAssetDribbletDetails", defaultValue = []);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(logs)))
             logs[j + 1][Symbol("isDustTrade")] = true;
@@ -8054,11 +8735,11 @@ function fetchMyDustTrades(self::Binance, symbol=nothing, since=nothing, limit=n
         end
         i += 1
     end
-    trades = self.parseTrades(data, nothing, since, limit);
-    return self.filterBySinceLimit(trades, since, limit)
+    trades = self.parseTrades(data, market = nothing, since = since, limit = limit);
+    return self.filterBySinceLimit(trades, since = since, limit = limit)
 
 end
-function parseDustTrade(self::Binance, trade, market=nothing)
+function parseDustTrade(self::Binance, trade; market=nothing)
     orderId = safeString(trade, "transId");
     timestamp = safeInteger(trade, "operateTime");
     currencyId = safeString(trade, "fromAsset");
@@ -8119,20 +8800,37 @@ function parseDustTrade(self::Binance, trade, market=nothing)
 )
 
 end
-function fetchDeposits(self::Binance, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://developers.binance.com/docs/wallet/capital/deposite-history
+see: https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fiat`::bool, optional: if true, only fiat deposits will be returned
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Binance; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", symbol = code, since = since, limit = limit, params = params))
     end
     currency = nothing;
     response = nothing;
     request = Dict{Symbol, Any}();
-    legalMoney = self.safeDict(self.options, "legalMoney", Dict{Symbol, Any}());
-    fiatOnly = self.safeBool(params, "fiat", false);
+    legalMoney = self.safeDict(self.options, "legalMoney", defaultValue = Dict{Symbol, Any}());
+    fiatOnly = self.safeBool(params, "fiat", defaultValue = false);
     params = omit(params, "fiatOnly");
     until = safeInteger(params, "until");
     params = omit(params, "until");
@@ -8148,7 +8846,7 @@ function fetchDeposits(self::Binance, code=nothing, since=nothing, limit=nothing
             request[Symbol("endTime")] = until;
         end
         raw = Base.fetch(self.sapiGetFiatOrders(extend(request, params)));
-        response = self.safeList(raw, "data", []);
+        response = self.safeList(raw, "data", defaultValue = []);
     else
         if functions.ccxtruthy(code != nothing)
             currency = self.currency(code);
@@ -8179,20 +8877,37 @@ function fetchDeposits(self::Binance, code=nothing, since=nothing, limit=nothing
         responseList[i + 1][Symbol("type")] = "deposit";
         i += 1
     end
-    return self.parseTransactions(responseList, currency, since, limit)
+    return self.parseTransactions(responseList, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Binance, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://developers.binance.com/docs/wallet/capital/withdraw-history
+see: https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fiat`::bool, optional: if true, only fiat withdrawals will be returned
+- `params.until`::int, optional: the latest time in ms to fetch withdrawals for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Binance; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", symbol = code, since = since, limit = limit, params = params))
     end
-    legalMoney = self.safeDict(self.options, "legalMoney", Dict{Symbol, Any}());
-    fiatOnly = self.safeBool(params, "fiat", false);
+    legalMoney = self.safeDict(self.options, "legalMoney", defaultValue = Dict{Symbol, Any}());
+    fiatOnly = self.safeBool(params, "fiat", defaultValue = false);
     params = omit(params, "fiatOnly");
     request = Dict{Symbol, Any}();
     until = safeInteger(params, "until");
@@ -8211,7 +8926,7 @@ function fetchWithdrawals(self::Binance, code=nothing, since=nothing, limit=noth
             request[Symbol("beginTime")] = since;
         end
         raw = Base.fetch(self.sapiGetFiatOrders(extend(request, params)));
-        response = self.safeList(raw, "data", []);
+        response = self.safeList(raw, "data", defaultValue = []);
     else
         if functions.ccxtruthy(code != nothing)
             currency = self.currency(code);
@@ -8241,10 +8956,10 @@ function fetchWithdrawals(self::Binance, code=nothing, since=nothing, limit=noth
         responseList[i + 1][Symbol("type")] = "withdrawal";
         i += 1
     end
-    return self.parseTransactions(responseList, currency, since, limit)
+    return self.parseTransactions(responseList, currency = currency, since = since, limit = limit)
 
 end
-function parseTransactionStatusByType(self::Binance, status, type_var=nothing)
+function parseTransactionStatusByType(self::Binance, status; type_var=nothing)
     if functions.ccxtruthy(type_var == nothing)
             return status
     end
@@ -8276,11 +8991,11 @@ function parseTransactionStatusByType(self::Binance, status, type_var=nothing)
             Symbol("Refund Failed") => "failed"
         )
     );
-    statuses = self.safeDict(statusesByType, type_var, Dict{Symbol, Any}());
+    statuses = self.safeDict(statusesByType, type_var, defaultValue = Dict{Symbol, Any}());
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Binance, transaction, currency=nothing)
+function parseTransaction(self::Binance, transaction; currency=nothing)
     id = safeString2(transaction, "id", "orderNo");
     address = safeString(transaction, "address");
     tag = safeString(transaction, "addressTag");
@@ -8294,7 +9009,7 @@ function parseTransaction(self::Binance, transaction, currency=nothing)
         txid = functions.ccxt_slice(txid, 18);
     end
     currencyId = safeString2(transaction, "coin", "fiatCurrency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = nothing;
     timestamp = safeInteger2(transaction, "insertTime", "createTime");
     if functions.ccxtruthy(timestamp == nothing)
@@ -8310,7 +9025,7 @@ function parseTransaction(self::Binance, transaction, currency=nothing)
         legalMoneyCurrenciesById = self.safeDict(self.options, "legalMoneyCurrenciesById");
         code = safeString(legalMoneyCurrenciesById, code, code);
     end
-    status = self.parseTransactionStatusByType(safeString(transaction, "status"), type_var);
+    status = self.parseTransactionStatusByType(safeString(transaction, "status"), type_var = type_var);
     amount = self.safeNumber(transaction, "amount");
     feeCost = self.safeNumber2(transaction, "transactionFee", "totalFee");
     fee = nothing;
@@ -8326,7 +9041,7 @@ function parseTransaction(self::Binance, transaction, currency=nothing)
         internal = functions.ccxtruthy((internalInteger != 0)) ? true : false;
     end
     networkId = safeString(transaction, "network");
-    network = self.networkIdToCode(networkId, code);
+    network = self.networkIdToCode(networkId = networkId, currencyCode = code);
     return Dict{Symbol, Any}(
     Symbol("info") => transaction,
     Symbol("id") => id,
@@ -8358,15 +9073,15 @@ function parseTransferStatus(self::Binance, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransfer(self::Binance, transfer, currency=nothing)
+function parseTransfer(self::Binance, transfer; currency=nothing)
     id = safeString2(transfer, "tranId", "transactionId");
     currencyId = safeString2(transfer, "asset", "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     amount = self.safeNumber(transfer, "amount");
     type_var = safeString(transfer, "type");
     fromAccount = nothing;
     toAccount = nothing;
-    accountsById = self.safeDict(self.options, "accountsById", Dict{Symbol, Any}());
+    accountsById = self.safeDict(self.options, "accountsById", defaultValue = Dict{Symbol, Any}());
     if functions.ccxtruthy(type_var != nothing)
         parts = split(type_var, "_");
         fromAccount = safeValue(parts, 0);
@@ -8376,8 +9091,8 @@ function parseTransfer(self::Binance, transfer, currency=nothing)
     end
     walletType = safeInteger(transfer, "walletType");
     if functions.ccxtruthy(walletType != nothing)
-        payer = self.safeDict(transfer, "payerInfo", Dict{Symbol, Any}());
-        receiver = self.safeDict(transfer, "receiverInfo", Dict{Symbol, Any}());
+        payer = self.safeDict(transfer, "payerInfo", defaultValue = Dict{Symbol, Any}());
+        receiver = self.safeDict(transfer, "receiverInfo", defaultValue = Dict{Symbol, Any}());
         fromAccount = safeString(payer, "accountId");
         toAccount = safeString(receiver, "accountId");
     end
@@ -8396,13 +9111,13 @@ function parseTransfer(self::Binance, transfer, currency=nothing)
 )
 
 end
-function parseIncome(self::Binance, income, market=nothing)
+function parseIncome(self::Binance, income; market=nothing)
     marketId = safeString(income, "symbol");
     currencyId = safeString(income, "asset");
     timestamp = safeInteger(income, "time");
     return Dict{Symbol, Any}(
     Symbol("info") => income,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("code") => self.safeCurrencyCode(currencyId),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -8411,7 +9126,23 @@ function parseIncome(self::Binance, income, market=nothing)
 )
 
 end
-function transfer(self::Binance, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://developers.binance.com/docs/wallet/asset/user-universal-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: exchange specific transfer type
+- `params.symbol`::string, optional: the unified symbol, required for isolated margin transfers
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Binance, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8445,7 +9176,7 @@ function transfer(self::Binance, code, amount, fromAccount, toAccount, params=Di
                 throw(ArgumentsRequired(string(self.id, " transfer () requires params[\"symbol\"] when toAccount is ", toAccount)));
             end
         end
-        accountsById = self.safeDict(self.options, "accountsById", Dict{Symbol, Any}());
+        accountsById = self.safeDict(self.options, "accountsById", defaultValue = Dict{Symbol, Any}());
         fromIsolated = !functions.ccxtruthy((ccxt_in(fromId, accountsById)));
         toIsolated = !functions.ccxtruthy((ccxt_in(toId, accountsById)));
         if functions.ccxtruthy(@functions.ccxt_and(fromIsolated, (market == nothing)))
@@ -8496,10 +9227,26 @@ function transfer(self::Binance, code, amount, fromAccount, toAccount, params=Di
         end
     end
     response = Base.fetch(self.sapiPostAssetTransfer(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function fetchTransfers(self::Binance, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.internal`::bool, optional: default false, when true will fetch pay trade history
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Binance; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8508,7 +9255,7 @@ function fetchTransfers(self::Binance, code=nothing, since=nothing, limit=nothin
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate");
     if functions.ccxtruthy(@functions.ccxt_and(paginate, !functions.ccxtruthy(internal)))
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", symbol = code, since = since, limit = limit, params = params))
     end
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -8522,7 +9269,7 @@ function fetchTransfers(self::Binance, code=nothing, since=nothing, limit=nothin
         defaultTo = functions.ccxtruthy((fromAccount == "future")) ? "spot" : "future";
         toAccount = safeString(params, "toAccount", defaultTo);
         type_var = safeString(params, "type");
-        accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+        accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
         fromId = safeString(accountsByType, fromAccount);
         toId = safeString(accountsByType, toAccount);
         if functions.ccxtruthy(type_var == nothing)
@@ -8556,11 +9303,23 @@ function fetchTransfers(self::Binance, code=nothing, since=nothing, limit=nothin
     else
         response = Base.fetch(self.sapiGetAssetTransfer(extend(request, params)));
     end
-    rows = self.safeList2(response, "rows", "data", []);
-    return self.parseTransfers(rows, currency, since, limit)
+    rows = self.safeList2(response, "rows", "data", defaultValue = []);
+    return self.parseTransfers(rows, currency = currency, since = since, limit = limit)
 
 end
-function fetchDepositAddress(self::Binance, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://developers.binance.com/docs/wallet/capital/deposite-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: network for fetch deposit address
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Binance, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8571,23 +9330,23 @@ function fetchDepositAddress(self::Binance, code, params=Dict())
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("network")] = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        request[Symbol("network")] = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     end
     response = Base.fetch(self.sapiGetCapitalDepositAddress(extend(request, params)));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function parseDepositAddress(self::Binance, response, currency=nothing)
+function parseDepositAddress(self::Binance, response; currency=nothing)
     url = safeString(response, "url");
     address = safeString(response, "address");
     currencyId = safeString(response, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
-    networkCode = self.getNetworkCodeByNetworkUrl(code, url);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    networkCode = self.getNetworkCodeByNetworkUrl(code, depositUrl = url);
     tag = safeString(response, "tag", "");
     if functions.ccxtruthy(length(tag) == 0)
         tag = nothing;
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
@@ -8597,7 +9356,18 @@ function parseDepositAddress(self::Binance, response, currency=nothing)
 )
 
 end
-function fetchTransactionFees(self::Binance, codes=nothing, params=Dict())
+"""
+please use fetchDepositWithdrawFees instead
+see: https://developers.binance.com/docs/wallet/capital/all-coins-info
+
+# Arguments
+- `codes`::any: not used by fetchTransactionFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTransactionFees(self::Binance; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8609,7 +9379,7 @@ function fetchTransactionFees(self::Binance, codes=nothing, params=Dict())
         entry = get(coins, i + 1, nothing);
         currencyId = safeString(entry, "coin");
         code = self.safeCurrencyCode(currencyId);
-        networkList = self.safeList(entry, "networkList", []);
+        networkList = self.safeList(entry, "networkList", defaultValue = []);
         if functions.ccxtruthy(code != nothing)
             withdrawFees[Symbol(code)] = Dict{Symbol, Any}();
         end
@@ -8633,23 +9403,34 @@ function fetchTransactionFees(self::Binance, codes=nothing, params=Dict())
 )
 
 end
-function fetchDepositWithdrawFees(self::Binance, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://developers.binance.com/docs/wallet/capital/all-coins-info
+
+# Arguments
+- `codes`::any: not used by fetchDepositWithdrawFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Binance; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.sapiGetCapitalConfigGetall(params));
-    return self.parseDepositWithdrawFees(response, codes, "coin")
+    return self.parseDepositWithdrawFees(response, codes = codes, currencyIdKey = "coin")
 
 end
-function parseDepositWithdrawFee(self::Binance, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Binance, fee; currency=nothing)
     code = safeString(currency, "code");
-    networkList = self.safeList(fee, "networkList", []);
+    networkList = self.safeList(fee, "networkList", defaultValue = []);
     result = self.depositWithdrawFee(fee);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkList)))
         networkEntry = get(networkList, j + 1, nothing);
         networkId = safeString(networkEntry, "network");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         withdrawFee = self.safeNumber(networkEntry, "withdrawFee");
         isDefault = self.safeBool(networkEntry, "isDefault");
         if functions.ccxtruthy(isDefault)
@@ -8675,9 +9456,23 @@ function parseDepositWithdrawFee(self::Binance, fee, currency=nothing)
     return result
 
 end
-function withdraw(self::Binance, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://developers.binance.com/docs/wallet/capital/withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Binance, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8692,16 +9487,16 @@ function withdraw(self::Binance, code, amount, address, tag=nothing, params=Dict
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("network")] = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        request[Symbol("network")] = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     end
-    request[Symbol("amount")] = self.currencyToPrecision(get(currency, Symbol("code"), nothing), amount, networkCode);
+    request[Symbol("amount")] = self.currencyToPrecision(get(currency, Symbol("code"), nothing), amount, networkCode = networkCode);
     response = Base.fetch(self.sapiPostCapitalWithdrawApply(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseTradingFee(self::Binance, fee, market=nothing)
+function parseTradingFee(self::Binance, fee; market=nothing)
     marketId = safeString(fee, "symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, "spot");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "spot");
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => symbol,
@@ -8712,18 +9507,35 @@ function parseTradingFee(self::Binance, fee, market=nothing)
 )
 
 end
-function fetchTradingFee(self::Binance, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://developers.binance.com/docs/wallet/asset/trade-fee
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/User-Commission-Rate
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch trading fees in a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Binance, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     type_var = get(market, Symbol("type"), nothing);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchTradingFee", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchTradingFee", market = market, params = params);
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchTradingFee", "papi", "portfolioMargin", false);
-    isLinear = self.isLinear(type_var, subType);
-    isInverse = self.isInverse(type_var, subType);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchTradingFee", "papi", "portfolioMargin", defaultValue = false);
+    isLinear = self.isLinear(type_var, subType = subType);
+    isInverse = self.isInverse(type_var, subType = subType);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
@@ -8745,25 +9557,39 @@ function fetchTradingFee(self::Binance, symbol, params=Dict())
     end
     data = response;
     if functions.ccxtruthy(functions.ccxt_isArray(data))
-        data = self.safeDict(data, 0, Dict{Symbol, Any}());
+        data = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     end
     if functions.ccxtruthy(data == nothing)
         throw(NullResponse(string(self.id, " parseTradingFee() returned empty response")));
     end
-    return self.parseTradingFee(data, market)
+    return self.parseTradingFee(data, market = market)
 
 end
-function fetchTradingFees(self::Binance, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://developers.binance.com/docs/wallet/asset/trade-fee
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Binance; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTradingFees", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTradingFees", market = nothing, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchTradingFees", nothing, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchTradingFees", market = nothing, params = params, defaultValue = "linear");
     isSpotOrMargin = @functions.ccxt_or((type_var == "spot"), (type_var == "margin"));
-    isLinear = self.isLinear(type_var, subType);
-    isInverse = self.isInverse(type_var, subType);
+    isLinear = self.isLinear(type_var, subType = subType);
+    isInverse = self.isInverse(type_var, subType = subType);
     response = nothing;
     if functions.ccxtruthy(isSpotOrMargin)
         response = Base.fetch(self.sapiGetAssetTradeFee(params));
@@ -8856,7 +9682,21 @@ function fetchTradingFees(self::Binance, params=Dict())
     throw(NotSupported(string(self.id, " fetchTradingFees() is not supported for ", type_var, " markets")));
 
 end
-function futuresTransfer(self::Binance, code, amount, type_var, params=Dict())
+"""
+transfer between futures account
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to transfer
+- `type`::string: 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.recvWindow`::float:
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
+"""
+function futuresTransfer(self::Binance, code, amount, type_var; params=Dict())
     if functions.ccxtruthy(@functions.ccxt_or((functions.ccxt_lt(type_var, 1)), (functions.ccxt_gt(type_var, 4))))
         throw(ArgumentsRequired(string(self.id, " type must be between 1 and 4")));
     end
@@ -8870,10 +9710,22 @@ function futuresTransfer(self::Binance, code, amount, type_var, params=Dict())
         Symbol("type") => type_var
     );
     response = Base.fetch(self.sapiPostFuturesTransfer(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function fetchFundingRate(self::Binance, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Binance, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8895,10 +9747,27 @@ function fetchFundingRate(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
         response = get(response, 1, nothing);
     end
-    return self.parseFundingRate(response, market)
+    return self.parseFundingRate(response, market = market)
 
 end
-function fetchFundingRateHistory(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Rate-History-of-Perpetual-Futures
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8906,7 +9775,7 @@ function fetchFundingRateHistory(self::Binance, symbol=nothing, since=nothing, l
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params))
     end
     defaultType = safeString2(self.options, "fetchFundingRateHistory", "defaultType", "future");
     type_var = safeString(params, "type", defaultType);
@@ -8917,7 +9786,7 @@ function fetchFundingRateHistory(self::Binance, symbol=nothing, since=nothing, l
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchFundingRateHistory", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchFundingRateHistory", market = market, params = params, defaultValue = "linear");
     params = omit(params, "type");
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startTime")] = since;
@@ -8932,52 +9801,65 @@ function fetchFundingRateHistory(self::Binance, symbol=nothing, since=nothing, l
         request[Symbol("limit")] = limit;
     end
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         response = Base.fetch(self.fapiPublicGetFundingRate(extend(request, params)));
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         response = Base.fetch(self.dapiPublicGetFundingRate(extend(request, params)));
     else
         throw(NotSupported(string(self.id, " fetchFundingRateHistory() is not supported for ", type_var, " markets")));
     end
-    return self.parseFundingRateHistories(response, market, since, limit)
+    return self.parseFundingRateHistories(response, market = market, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Binance, contract, market=nothing)
+function parseFundingRateHistory(self::Binance, contract; market=nothing)
     timestamp = safeInteger(contract, "fundingTime");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(safeString(contract, "symbol"), nothing, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(safeString(contract, "symbol"), market = nothing, delimiter = nothing, marketType = "swap"),
     Symbol("fundingRate") => self.safeNumber(contract, "fundingRate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 )
 
 end
-function fetchFundingRates(self::Binance, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     defaultType = safeString2(self.options, "fetchFundingRates", "defaultType", "future");
     type_var = safeString(params, "type", defaultType);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchFundingRates", nothing, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchFundingRates", market = nothing, params = params, defaultValue = "linear");
     query = omit(params, "type");
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         response = Base.fetch(self.fapiPublicGetPremiumIndex(query));
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         response = Base.fetch(self.dapiPublicGetPremiumIndex(query));
     else
         throw(NotSupported(string(self.id, " fetchFundingRates() supports linear and inverse contracts only")));
     end
-    return self.parseFundingRates(response, symbols)
+    return self.parseFundingRates(response, symbols = symbols)
 
 end
-function parseFundingRate(self::Binance, contract, market=nothing)
+function parseFundingRate(self::Binance, contract; market=nothing)
     timestamp = safeInteger(contract, "time");
     marketId = safeString(contract, "symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, "contract");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract");
     markPrice = self.safeNumber(contract, "markPrice");
     indexPrice = self.safeNumber(contract, "indexPrice");
     interestRate = self.safeNumber(contract, "interestRate");
@@ -9011,9 +9893,9 @@ function parseFundingRate(self::Binance, contract, market=nothing)
 )
 
 end
-function parseAccountPositions(self::Binance, account, filterClosed=false)
-    positions = self.safeList(account, "positions", []);
-    assets = self.safeList(account, "assets", []);
+function parseAccountPositions(self::Binance, account; filterClosed=false)
+    positions = self.safeList(account, "positions", defaultValue = []);
+    assets = self.safeList(account, "assets", defaultValue = []);
     balances = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(assets)))
@@ -9035,7 +9917,7 @@ function parseAccountPositions(self::Binance, account, filterClosed=false)
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         position = get(positions, i + 1, nothing);
         marketId = safeString(position, "symbol");
-        market = self.safeMarket(marketId, nothing, nothing, "contract");
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = "contract");
         code = functions.ccxtruthy(get(market, Symbol("linear"), nothing)) ? get(market, Symbol("quote"), nothing) : get(market, Symbol("base"), nothing);
         maintenanceMargin = safeString(position, "maintMargin");
         isPositionOpen = @functions.ccxt_and((maintenanceMargin != "0"), (maintenanceMargin != "0.00000000"));
@@ -9044,7 +9926,7 @@ function parseAccountPositions(self::Binance, account, filterClosed=false)
                 parsed = self.parseAccountPosition(extend(position, Dict{Symbol, Any}(
                     Symbol("crossMargin") => get(get(balances, Symbol(code), nothing), Symbol("crossMargin"), nothing),
                     Symbol("crossWalletBalance") => get(get(balances, Symbol(code), nothing), Symbol("crossWalletBalance"), nothing)
-                )), market);
+                )), market = market);
                                 push!(result, parsed);
             end
         end
@@ -9053,9 +9935,9 @@ function parseAccountPositions(self::Binance, account, filterClosed=false)
     return result
 
 end
-function parseAccountPosition(self::Binance, position, market=nothing)
+function parseAccountPosition(self::Binance, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
     symbol = safeString(market, "symbol");
     leverageString = omitZero(safeString(position, "leverage"));
     leverage = functions.ccxtruthy((leverageString != nothing)) ? ccxt_parseInt(leverageString) : nothing;
@@ -9089,8 +9971,8 @@ function parseAccountPosition(self::Binance, position, market=nothing)
         contractsStringAbs = stringDiv(stringAdd(contractsString, "0.5"), "1", 0);
     end
     contracts = self.parseNumber(contractsStringAbs);
-    leverageBrackets = self.safeDict(self.options, "leverageBrackets", Dict{Symbol, Any}());
-    leverageBracket = self.safeList(leverageBrackets, symbol, []);
+    leverageBrackets = self.safeDict(self.options, "leverageBrackets", defaultValue = Dict{Symbol, Any}());
+    leverageBracket = self.safeList(leverageBrackets, symbol, defaultValue = []);
     maintenanceMarginPercentageString = nothing;
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(leverageBracket)))
@@ -9206,13 +10088,13 @@ function parseAccountPosition(self::Binance, position, market=nothing)
 )
 
 end
-function parsePositionRisk(self::Binance, position, market=nothing)
+function parsePositionRisk(self::Binance, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
     symbol = safeString(market, "symbol");
     isolatedMarginString = safeString(position, "isolatedMargin");
-    leverageBrackets = self.safeDict(self.options, "leverageBrackets", Dict{Symbol, Any}());
-    leverageBracket = self.safeList(leverageBrackets, symbol, []);
+    leverageBrackets = self.safeDict(self.options, "leverageBrackets", defaultValue = Dict{Symbol, Any}());
+    leverageBracket = self.safeList(leverageBrackets, symbol, defaultValue = []);
     notionalString = safeString2(position, "notional", "notionalValue");
     notionalStringAbs = stringAbs(notionalString);
     maintenanceMarginPercentageString = nothing;
@@ -9249,7 +10131,7 @@ function parsePositionRisk(self::Binance, position, market=nothing)
     contractSizeString = numberToString(contractSize);
     linear = (ccxt_in("notional", position));
     if functions.ccxtruthy(marginMode == "cross")
-        precision = self.safeDict(market, "precision", Dict{Symbol, Any}());
+        precision = self.safeDict(market, "precision", defaultValue = Dict{Symbol, Any}());
         basePrecisionValue = safeString(precision, "base");
         quotePrecisionValue = safeString2(precision, "quote", "price");
         precisionIsUndefined = @functions.ccxt_and((basePrecisionValue == nothing), (quotePrecisionValue == nothing));
@@ -9357,7 +10239,7 @@ function parsePositionRisk(self::Binance, position, market=nothing)
 ))
 
 end
-function loadLeverageBrackets(self::Binance, reload=false, params=Dict())
+function loadLeverageBrackets(self::Binance; reload=false, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -9367,17 +10249,17 @@ function loadLeverageBrackets(self::Binance, reload=false, params=Dict())
         type_var = safeString(params, "type", defaultType);
         query = omit(params, "type");
         subType = nothing;
-        (subType, params) = self.handleSubTypeAndParams("loadLeverageBrackets", nothing, params, "linear");
+        (subType, params) = self.handleSubTypeAndParams("loadLeverageBrackets", market = nothing, params = params, defaultValue = "linear");
         isPortfolioMargin = nothing;
-        (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "loadLeverageBrackets", "papi", "portfolioMargin", false);
+        (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "loadLeverageBrackets", "papi", "portfolioMargin", defaultValue = false);
         response = nothing;
-        if functions.ccxtruthy(self.isLinear(type_var, subType))
+        if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
             if functions.ccxtruthy(isPortfolioMargin)
                 response = Base.fetch(self.papiGetUmLeverageBracket(query));
             else
                 response = Base.fetch(self.fapiPrivateGetLeverageBracket(query));
             end
-        elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+        elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
             if functions.ccxtruthy(isPortfolioMargin)
                 response = Base.fetch(self.papiGetCmLeverageBracket(query));
             else
@@ -9395,8 +10277,8 @@ function loadLeverageBrackets(self::Binance, reload=false, params=Dict())
         while functions.ccxtruthy(functions.ccxt_lt(i, length(entries)))
             entry = get(entries, i + 1, nothing);
             marketId = safeString(entry, "symbol");
-            symbol = self.safeSymbol(marketId, nothing, nothing, "contract");
-            brackets = self.safeList(entry, "brackets", []);
+            symbol = self.safeSymbol(marketId, market = nothing, delimiter = nothing, marketType = "contract");
+            brackets = self.safeList(entry, "brackets", defaultValue = []);
             result = [];
             j = 0
             while functions.ccxtruthy(functions.ccxt_lt(j, length(brackets)))
@@ -9414,24 +10296,40 @@ function loadLeverageBrackets(self::Binance, reload=false, params=Dict())
     return get(self.options, Symbol("leverageBrackets"), nothing)
 
 end
-function fetchLeverageTiers(self::Binance, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the leverage tiers for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchLeverageTiers", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchLeverageTiers", market = nothing, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchLeverageTiers", nothing, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchLeverageTiers", market = nothing, params = params, defaultValue = "linear");
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchLeverageTiers", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchLeverageTiers", "papi", "portfolioMargin", defaultValue = false);
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiGetUmLeverageBracket(params));
         else
             response = Base.fetch(self.fapiPrivateGetLeverageBracket(params));
         end
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiGetCmLeverageBracket(params));
         else
@@ -9440,20 +10338,20 @@ function fetchLeverageTiers(self::Binance, symbols=nothing, params=Dict())
     else
         throw(NotSupported(string(self.id, " fetchLeverageTiers() supports linear and inverse contracts only")));
     end
-    return self.parseLeverageTiers(response, symbols, "symbol")
+    return self.parseLeverageTiers(response, symbols = symbols, marketIdKey = "symbol")
 
 end
-function parseMarketLeverageTiers(self::Binance, info, market=nothing)
+function parseMarketLeverageTiers(self::Binance, info; market=nothing)
     marketId = safeString(info, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "contract");
-    brackets = self.safeList(info, "brackets", []);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
+    brackets = self.safeList(info, "brackets", defaultValue = []);
     tiers = [];
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(brackets)))
         bracket = get(brackets, j + 1, nothing);
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => self.safeNumber(bracket, "bracket"),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("currency") => get(market, Symbol("quote"), nothing),
     Symbol("minNotional") => self.safeNumber2(bracket, "notionalFloor", "qtyFloor"),
     Symbol("maxNotional") => self.safeNumber2(bracket, "notionalCap", "qtyCap"),
@@ -9466,7 +10364,18 @@ function parseMarketLeverageTiers(self::Binance, info, market=nothing)
     return tiers
 
 end
-function fetchPosition(self::Binance, symbol, params=Dict())
+"""
+fetch data on an open position
+see: https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Binance, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -9478,14 +10387,25 @@ function fetchPosition(self::Binance, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.eapiPrivateGetPosition(extend(request, params)));
-    return self.parseOptionPosition(self.safeDict(response, 0, Dict{Symbol, Any}()), market)
+    return self.parseOptionPosition(self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}()), market = market)
 
 end
-function fetchOptionPositions(self::Binance, symbols=nothing, params=Dict())
+"""
+fetch data on open options positions
+see: https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchOptionPositions(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
@@ -9507,15 +10427,15 @@ function fetchOptionPositions(self::Binance, symbols=nothing, params=Dict())
     positions = toArray(response);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
-        push!(result, self.parseOptionPosition(get(positions, i + 1, nothing), market));
+        push!(result, self.parseOptionPosition(get(positions, i + 1, nothing), market = market));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function parseOptionPosition(self::Binance, position, market=nothing)
+function parseOptionPosition(self::Binance, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "swap");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "swap");
     symbol = get(market, Symbol("symbol"), nothing);
     side = safeStringLower(position, "side");
     quantity = safeString(position, "quantity");
@@ -9550,7 +10470,25 @@ function parseOptionPosition(self::Binance, position, market=nothing)
 ))
 
 end
-function fetchPositions(self::Binance, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
+see: https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+- `params.useV2`::bool, optional: set to true if you want to use the obsolete endpoint, where some more additional fields were provided
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Binance; symbols=nothing, params=Dict())
     defaultMethod = nothing;
     (defaultMethod, params) = self.handleOptionAndParams(params, "fetchPositions", "method");
     if functions.ccxtruthy(defaultMethod == nothing)
@@ -9562,12 +10500,12 @@ function fetchPositions(self::Binance, symbols=nothing, params=Dict())
         end
     end
     if functions.ccxtruthy(defaultMethod == "positionRisk")
-            return Base.fetch(self.fetchPositionsRisk(symbols, params))
+            return Base.fetch(self.fetchPositionsRisk(symbols = symbols, params = params))
     elseif functions.ccxtruthy(defaultMethod == "account")
-        return Base.fetch(self.fetchAccountPositions(symbols, params))
+        return Base.fetch(self.fetchAccountPositions(symbols = symbols, params = params))
     else
         if functions.ccxtruthy(defaultMethod == "option")
-                return Base.fetch(self.fetchOptionPositions(symbols, params))
+                return Base.fetch(self.fetchOptionPositions(symbols = symbols, params = params))
         else
             throw(NotSupported(string(self.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"", defaultMethod, "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")));
         end
@@ -9575,7 +10513,26 @@ function fetchPositions(self::Binance, symbols=nothing, params=Dict())
     end
 
 end
-function fetchAccountPositions(self::Binance, symbols=nothing, params=Dict())
+"""
+fetch account positions
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch positions in a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.filterClosed`::bool, optional: set to true if you would like to filter out closed positions, default is false
+- `params.useV2`::bool, optional: set to true if you want to use obsolete endpoint, where some more additional fields were provided
+
+# Returns
+- data on account positions
+"""
+function fetchAccountPositions(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(symbols != nothing)
         if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(symbols)))
             throw(ArgumentsRequired(string(self.id, " fetchPositions() requires an array argument for symbols")));
@@ -9584,28 +10541,28 @@ function fetchAccountPositions(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    Base.fetch(self.loadLeverageBrackets(false, params));
+    Base.fetch(self.loadLeverageBrackets(reload = false, params = params));
     defaultType = safeString(self.options, "defaultType", "future");
     type_var = safeString(params, "type", defaultType);
     params = omit(params, "type");
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchAccountPositions", nothing, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchAccountPositions", market = nothing, params = params, defaultValue = "linear");
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchAccountPositions", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchAccountPositions", "papi", "portfolioMargin", defaultValue = false);
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiV2GetUmAccount(params));
         else
             useV2 = nothing;
-            (useV2, params) = self.handleOptionAndParams(params, "fetchAccountPositions", "useV2", false);
+            (useV2, params) = self.handleOptionAndParams(params, "fetchAccountPositions", "useV2", defaultValue = false);
             if functions.ccxtruthy(!functions.ccxtruthy(useV2))
                 response = Base.fetch(self.fapiPrivateV3GetAccount(params));
             else
                 response = Base.fetch(self.fapiPrivateV2GetAccount(params));
             end
         end
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiGetCmAccount(params));
         else
@@ -9615,13 +10572,31 @@ function fetchAccountPositions(self::Binance, symbols=nothing, params=Dict())
         throw(NotSupported(string(self.id, " fetchPositions() supports linear and inverse contracts only")));
     end
     filterClosed = nothing;
-    (filterClosed, params) = self.handleOptionAndParams(params, "fetchAccountPositions", "filterClosed", false);
-    result = self.parseAccountPositions(response, filterClosed);
-    symbols = self.marketSymbols(symbols);
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    (filterClosed, params) = self.handleOptionAndParams(params, "fetchAccountPositions", "filterClosed", defaultValue = false);
+    result = self.parseAccountPositions(response, filterClosed = filterClosed);
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function fetchPositionsRisk(self::Binance, symbols=nothing, params=Dict())
+"""
+fetch positions risk
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch positions for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.useV2`::bool, optional: set to true if you want to use the obsolete endpoint, where some more additional fields were provided
+
+# Returns
+- data on the positions risk
+"""
+function fetchPositionsRisk(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(symbols != nothing)
         if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(symbols)))
             throw(ArgumentsRequired(string(self.id, " fetchPositionsRisk() requires an array argument for symbols")));
@@ -9630,23 +10605,23 @@ function fetchPositionsRisk(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    Base.fetch(self.loadLeverageBrackets(false, params));
+    Base.fetch(self.loadLeverageBrackets(reload = false, params = params));
     request = Dict{Symbol, Any}();
     defaultType = "future";
     defaultType = safeString(self.options, "defaultType", defaultType);
     type_var = safeString(params, "type", defaultType);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchPositionsRisk", nothing, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchPositionsRisk", market = nothing, params = params, defaultValue = "linear");
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchPositionsRisk", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchPositionsRisk", "papi", "portfolioMargin", defaultValue = false);
     params = omit(params, "type");
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiGetUmPositionRisk(extend(request, params)));
         else
             useV2 = nothing;
-            (useV2, params) = self.handleOptionAndParams(params, "fetchPositionsRisk", "useV2", false);
+            (useV2, params) = self.handleOptionAndParams(params, "fetchPositionsRisk", "useV2", defaultValue = false);
             params = extend(request, params);
             if functions.ccxtruthy(!functions.ccxtruthy(useV2))
                 response = Base.fetch(self.fapiPrivateV3GetPositionRisk(params));
@@ -9654,7 +10629,7 @@ function fetchPositionsRisk(self::Binance, symbols=nothing, params=Dict())
                 response = Base.fetch(self.fapiPrivateV2GetPositionRisk(params));
             end
         end
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiGetCmPositionRisk(extend(request, params)));
         else
@@ -9677,11 +10652,30 @@ function fetchPositionsRisk(self::Binance, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    symbols = self.marketSymbols(symbols);
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function fetchFundingHistory(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding history entry
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the funding history for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -9697,9 +10691,9 @@ function fetchFundingHistory(self::Binance, symbol=nothing, since=nothing, limit
         end
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchFundingHistory", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchFundingHistory", market = market, params = params, defaultValue = "linear");
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchFundingHistory", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchFundingHistory", "papi", "portfolioMargin", defaultValue = false);
     (request, params) = self.handleUntilOption("endTime", request, params);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startTime")] = since;
@@ -9711,13 +10705,13 @@ function fetchFundingHistory(self::Binance, symbol=nothing, since=nothing, limit
     type_var = safeString(params, "type", defaultType);
     params = omit(params, "type");
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiGetUmIncome(extend(request, params)));
         else
             response = Base.fetch(self.fapiPrivateGetIncome(extend(request, params)));
         end
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiGetCmIncome(extend(request, params)));
         else
@@ -9726,10 +10720,26 @@ function fetchFundingHistory(self::Binance, symbol=nothing, since=nothing, limit
     else
         throw(NotSupported(string(self.id, " fetchFundingHistory() supports linear and inverse contracts only")));
     end
-    return self.parseIncomes(response, market, since, limit)
+    return self.parseIncomes(response, market = market, since = since, limit = limit)
 
 end
-function setLeverage(self::Binance, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Initial-Leverage
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to set the leverage for a trading pair in a portfolio margin account
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Binance, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -9745,7 +10755,7 @@ function setLeverage(self::Binance, leverage, symbol=nothing, params=Dict())
         Symbol("leverage") => leverage
     );
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "setLeverage", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "setLeverage", "papi", "portfolioMargin", defaultValue = false);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
@@ -9768,7 +10778,20 @@ function setLeverage(self::Binance, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function setMarginMode(self::Binance, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Margin-Type
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Binance, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -9798,7 +10821,7 @@ function setMarginMode(self::Binance, marginMode, symbol=nothing, params=Dict())
         end
     catch e
         if functions.ccxtruthy(isa(e, MarginModeAlreadySet))
-            throwMarginModeAlreadySet = self.handleOption("setMarginMode", "throwMarginModeAlreadySet", false);
+            throwMarginModeAlreadySet = self.handleOption("setMarginMode", "throwMarginModeAlreadySet", defaultValue = false);
             if functions.ccxtruthy(throwMarginModeAlreadySet)
                 throw(e);
             else
@@ -9818,17 +10841,34 @@ function setMarginMode(self::Binance, marginMode, symbol=nothing, params=Dict())
     return response
 
 end
-function setPositionMode(self::Binance, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to set the position mode for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Binance, hedged; symbol=nothing, params=Dict())
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("setPositionMode", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("setPositionMode", market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("setPositionMode", market, params);
+    (subType, params) = self.handleSubTypeAndParams("setPositionMode", market = market, params = params);
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "setPositionMode", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "setPositionMode", "papi", "portfolioMargin", defaultValue = false);
     dualSidePosition = nothing;
     if functions.ccxtruthy(hedged)
         dualSidePosition = "true";
@@ -9839,13 +10879,13 @@ function setPositionMode(self::Binance, hedged, symbol=nothing, params=Dict())
         Symbol("dualSidePosition") => dualSidePosition
     );
     response = nothing;
-    if functions.ccxtruthy(self.isInverse(type_var, subType))
+    if functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiPostCmPositionSideDual(extend(request, params)));
         else
             response = Base.fetch(self.dapiPrivatePostPositionSideDual(extend(request, params)));
         end
-    elseif functions.ccxtruthy(self.isLinear(type_var, subType))
+    elseif functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiPostUmPositionSideDual(extend(request, params)));
         else
@@ -9860,25 +10900,41 @@ function setPositionMode(self::Binance, hedged, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchLeverages(self::Binance, symbols=nothing, params=Dict())
+"""
+fetch the set leverage for all markets
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverages(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    Base.fetch(self.loadLeverageBrackets(false, params));
+    Base.fetch(self.loadLeverageBrackets(reload = false, params = params));
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchLeverages", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchLeverages", market = nothing, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchLeverages", nothing, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchLeverages", market = nothing, params = params, defaultValue = "linear");
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchLeverages", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchLeverages", "papi", "portfolioMargin", defaultValue = false);
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiGetUmAccount(params));
         else
             response = Base.fetch(self.fapiPrivateGetSymbolConfig(params));
         end
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiGetCmAccount(params));
         else
@@ -9887,14 +10943,14 @@ function fetchLeverages(self::Binance, symbols=nothing, params=Dict())
     else
         throw(NotSupported(string(self.id, " fetchLeverages() supports linear and inverse contracts only")));
     end
-    leverages = self.safeList(response, "positions", []);
+    leverages = self.safeList(response, "positions", defaultValue = []);
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         leverages = response;
     end
-    return self.parseLeverages(leverages, symbols, "symbol")
+    return self.parseLeverages(leverages, symbols = symbols, symbolKey = "symbol")
 
 end
-function parseLeverage(self::Binance, leverage, market=nothing)
+function parseLeverage(self::Binance, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
     marginModeRaw = self.safeBool(leverage, "isolated");
     marginMode = nothing;
@@ -9922,20 +10978,33 @@ function parseLeverage(self::Binance, leverage, market=nothing)
     end
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => marginMode,
     Symbol("longLeverage") => longLeverage,
     Symbol("shortLeverage") => shortLeverage
 )
 
 end
-function fetchSettlementHistory(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records
+see: https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records, default 100, max 100
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+function fetchSettlementHistory(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = functions.ccxtruthy((symbol == nothing)) ? nothing : self.market(symbol);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchSettlementHistory", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchSettlementHistory", market = market, params = params);
     if functions.ccxtruthy(type_var != "option")
         throw(NotSupported(string(self.id, " fetchSettlementHistory() supports option markets only")));
     end
@@ -9953,16 +11022,29 @@ function fetchSettlementHistory(self::Binance, symbol=nothing, since=nothing, li
     response = Base.fetch(self.eapiPublicGetExerciseHistory(extend(request, params)));
     settlements = self.parseSettlements(response, market);
     sorted = sortBy(settlements, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchMySettlementHistory(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records of the user
+see: https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]
+"""
+function fetchMySettlementHistory(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = functions.ccxtruthy((symbol == nothing)) ? nothing : self.market(symbol);
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMySettlementHistory", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMySettlementHistory", market = market, params = params);
     if functions.ccxtruthy(type_var != "option")
         throw(NotSupported(string(self.id, " fetchMySettlementHistory() supports option markets only")));
     end
@@ -9980,7 +11062,7 @@ function fetchMySettlementHistory(self::Binance, symbol=nothing, since=nothing, 
     response = Base.fetch(self.eapiPrivateGetExerciseRecord(extend(request, params)));
     settlements = self.parseSettlements(response, market);
     sorted = sortBy(settlements, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
 function parseSettlement(self::Binance, settlement, market)
@@ -9988,7 +11070,7 @@ function parseSettlement(self::Binance, settlement, market)
     marketId = safeString(settlement, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => settlement,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("price") => self.safeNumber2(settlement, "realStrikePrice", "exercisePrice"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
@@ -10005,12 +11087,24 @@ function parseSettlements(self::Binance, settlements, market)
     return result
 
 end
-function fetchLedgerEntry(self::Binance, id, code=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+
+# Arguments
+- `id`::string: the identification number of the ledger entry
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedgerEntry(self::Binance, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchLedgerEntry", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchLedgerEntry", market = nothing, params = params);
     if functions.ccxtruthy(type_var != "option")
         throw(BadRequest(string(self.id, " fetchLedgerEntry() can only be used for type option")));
     end
@@ -10021,18 +11115,39 @@ function fetchLedgerEntry(self::Binance, id, code=nothing, params=Dict())
         Symbol("currency") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.eapiPrivateGetBill(extend(request, params)));
-    first_var = self.safeDict(response, 0, response);
-    return self.parseLedgerEntry(first_var, currency)
+    first_var = self.safeDict(response, 0, defaultValue = response);
+    return self.parseLedgerEntry(first_var, currency = currency)
 
 end
-function fetchLedger(self::Binance, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the ledger for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Binance; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, nothing, false))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", symbol = code, since = since, limit = limit, params = params, maxEntriesPerRequest = nothing, removeRepeated = false))
     end
     type_var = nothing;
     subType = nothing;
@@ -10041,8 +11156,8 @@ function fetchLedger(self::Binance, code=nothing, since=nothing, limit=nothing, 
         currency = self.currency(code);
     end
     request = Dict{Symbol, Any}();
-    (type_var, params) = self.handleMarketTypeAndParams("fetchLedger", nothing, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchLedger", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchLedger", market = nothing, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchLedger", market = nothing, params = params);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startTime")] = since;
     end
@@ -10055,7 +11170,7 @@ function fetchLedger(self::Binance, code=nothing, since=nothing, limit=nothing, 
         request[Symbol("endTime")] = until;
     end
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchLedger", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchLedger", "papi", "portfolioMargin", defaultValue = false);
     response = nothing;
     if functions.ccxtruthy(type_var == "option")
         self.checkRequiredArgument("fetchLedger", code, "code");
@@ -10064,14 +11179,14 @@ function fetchLedger(self::Binance, code=nothing, since=nothing, limit=nothing, 
         end
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
         response = Base.fetch(self.eapiPrivateGetBill(extend(request, params)));
-    elseif functions.ccxtruthy(self.isLinear(type_var, subType))
+    elseif functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         if functions.ccxtruthy(isPortfolioMargin)
             response = Base.fetch(self.papiGetUmIncome(extend(request, params)));
         else
             response = Base.fetch(self.fapiPrivateGetIncome(extend(request, params)));
         end
     else
-        if functions.ccxtruthy(self.isInverse(type_var, subType))
+        if functions.ccxtruthy(self.isInverse(type_var, subType = subType))
             if functions.ccxtruthy(isPortfolioMargin)
                 response = Base.fetch(self.papiGetCmIncome(extend(request, params)));
             else
@@ -10082,10 +11197,10 @@ function fetchLedger(self::Binance, code=nothing, since=nothing, limit=nothing, 
         end
 
     end
-    return self.parseLedger(response, currency, since, limit)
+    return self.parseLedger(response, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Binance, item, currency=nothing)
+function parseLedgerEntry(self::Binance, item; currency=nothing)
     amount = safeString2(item, "amount", "income");
     direction = nothing;
     if functions.ccxtruthy(stringLe(amount, "0"))
@@ -10095,8 +11210,8 @@ function parseLedgerEntry(self::Binance, item, currency=nothing)
         direction = "in";
     end
     currencyId = safeString(item, "asset");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     timestamp = safeInteger2(item, "createDate", "time");
     type_var = safeString2(item, "type", "incomeType");
     return self.safeLedgerEntry(Dict{Symbol, Any}(
@@ -10115,7 +11230,7 @@ function parseLedgerEntry(self::Binance, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => nothing,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Binance, type_var)
@@ -10143,18 +11258,18 @@ function parseLedgerEntryType(self::Binance, type_var)
     return safeString(ledgerType, type_var, type_var)
 
 end
-function getNetworkCodeByNetworkUrl(self::Binance, currencyCode, depositUrl=nothing)
+function getNetworkCodeByNetworkUrl(self::Binance, currencyCode; depositUrl=nothing)
     if functions.ccxtruthy(depositUrl == nothing)
             return nothing
     end
     networkCode = nothing;
     currency = self.currency(currencyCode);
-    networks = self.safeDict(currency, "networks", Dict{Symbol, Any}());
+    networks = self.safeDict(currency, "networks", defaultValue = Dict{Symbol, Any}());
     networkCodes = objectKeys(networks);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(networkCodes)))
         currentNetworkCode = get(networkCodes, i + 1, nothing);
-        info = self.safeDict(get(networks, Symbol(currentNetworkCode), nothing), "info", Dict{Symbol, Any}());
+        info = self.safeDict(get(networks, Symbol(currentNetworkCode), nothing), "info", defaultValue = Dict{Symbol, Any}());
         siteUrl = safeString(info, "contractAddressUrl");
         baseDomain = self.getBaseDomainFromUrl(siteUrl);
         if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(siteUrl != nothing, baseDomain != nothing), startswith(depositUrl, baseDomain)))
@@ -10181,7 +11296,7 @@ function getBaseDomainFromUrl(self::Binance, url)
     return string(scheme, "//", domain, "/")
 
 end
-function sign(self::Binance, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Binance, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     urls = self.urls;
     if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(api, get(urls, Symbol("api"), nothing)))))
         throw(NotSupported(string(self.id, " does not have a testnet/sandbox URL for ", api, " endpoints")));
@@ -10221,14 +11336,14 @@ function sign(self::Binance, path, api="public", method="GET", params=Dict(), he
                 isSpotOrMargin = (@functions.ccxt_or(findfirst("sapi", api) !== nothing, api == "private"));
                 marketType = functions.ccxtruthy(isSpotOrMargin) ? "spot" : "future";
                 defaultId = functions.ccxtruthy((!functions.ccxtruthy(isSpotOrMargin))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
-                broker = self.safeDict(self.options, "broker", Dict{Symbol, Any}());
+                broker = self.safeDict(self.options, "broker", defaultValue = Dict{Symbol, Any}());
                 brokerId = safeString(broker, marketType, defaultId);
                 params[Symbol("newClientOrderId")] = string(brokerId, uuid22());
             end
         end
         query = nothing;
         if functions.ccxtruthy(@functions.ccxt_and((path == "batchOrders"), (@functions.ccxt_or((method == "POST"), (method == "PUT")))))
-            batchOrders = self.safeList(params, "batchOrders", []);
+            batchOrders = self.safeList(params, "batchOrders", defaultValue = []);
             checkedBatchOrders = batchOrders;
             if functions.ccxtruthy(@functions.ccxt_and(method == "POST", api == "fapiPrivate"))
                 checkedBatchOrders = [];
@@ -10238,7 +11353,7 @@ function sign(self::Binance, path, api="public", method="GET", params=Dict(), he
                     newClientOrderId = safeString(batchOrder, "newClientOrderId");
                     if functions.ccxtruthy(newClientOrderId == nothing)
                         defaultId = "x-xcKtGhcu";
-                        broker = self.safeDict(self.options, "broker", Dict{Symbol, Any}());
+                        broker = self.safeDict(self.options, "broker", defaultValue = Dict{Symbol, Any}());
                         brokerId = safeString(broker, "future", defaultId);
                         newClientOrderId = string(brokerId, uuid22());
                         batchOrder[Symbol("newClientOrderId")] = newClientOrderId;
@@ -10266,8 +11381,8 @@ function sign(self::Binance, path, api="public", method="GET", params=Dict(), he
             query = self.urlencodeWithArrayRepeat(extendedParams);
         elseif functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((path == "batchOrders"), (findfirst("sub-account", path) !== nothing)), (path == "capital/withdraw/apply")), (findfirst("staking", path) !== nothing)), (findfirst("simple-earn", path) !== nothing)))
             if functions.ccxtruthy(@functions.ccxt_and((method == "DELETE"), (path == "batchOrders")))
-                orderidlist = self.safeList(extendedParams, "orderidlist", []);
-                origclientorderidlist = self.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", []);
+                orderidlist = self.safeList(extendedParams, "orderidlist", defaultValue = []);
+                origclientorderidlist = self.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", defaultValue = []);
                 extendedParams = omit(extendedParams, ["orderidlist", "origclientorderidlist", "origClientOrderIdList"]);
                 if functions.ccxtruthy(ccxt_in("symbol", extendedParams))
                     extendedParams[Symbol("symbol")] = self.encodeURIComponent(get(extendedParams, Symbol("symbol"), nothing));
@@ -10351,8 +11466,8 @@ function getExceptionsByUrl(self::Binance, url, exactOrBroad)
 
     end
     if functions.ccxtruthy(marketType != nothing)
-        exceptionsForMarketType = self.safeDict(self.exceptions, marketType, Dict{Symbol, Any}());
-            return self.safeDict(exceptionsForMarketType, exactOrBroad, Dict{Symbol, Any}())
+        exceptionsForMarketType = self.safeDict(self.exceptions, marketType, defaultValue = Dict{Symbol, Any}());
+            return self.safeDict(exceptionsForMarketType, exactOrBroad, defaultValue = Dict{Symbol, Any}())
     end
     return Dict{Symbol, Any}()
 
@@ -10375,7 +11490,7 @@ function handleErrors(self::Binance, code, reason, url, method, headers, body, r
     if functions.ccxtruthy(response == nothing)
             return nothing
     end
-    success = self.safeBool(response, "success", true);
+    success = self.safeBool(response, "success", defaultValue = true);
     if functions.ccxtruthy(!functions.ccxtruthy(success))
         messageNew = safeString(response, "msg");
         parsedMessage = nothing;
@@ -10431,7 +11546,7 @@ function handleErrors(self::Binance, code, reason, url, method, headers, body, r
     return nothing
 
 end
-function calculateRateLimiterCost(self::Binance, api, method, path, params, config=Dict())
+function calculateRateLimiterCost(self::Binance, api, method, path, params; config=Dict())
     if functions.ccxtruthy(@functions.ccxt_and((ccxt_in("noCoin", config)), !functions.ccxtruthy((ccxt_in("coin", params)))))
             return get(config, Symbol("noCoin"), nothing)
     elseif functions.ccxtruthy(@functions.ccxt_and((ccxt_in("noSymbol", config)), !functions.ccxtruthy((ccxt_in("symbol", params)))))
@@ -10456,15 +11571,15 @@ function calculateRateLimiterCost(self::Binance, api, method, path, params, conf
     return safeValue(config, "cost", 1)
 
 end
-function request(self::Binance, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing, config=Dict())
-    response = Base.fetch(self.fetch2(path, api, method, params, headers, body, config));
+function request(self::Binance, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing, config=Dict())
+    response = Base.fetch(self.fetch2(path, api = api, method = method, params = params, headers = headers, body = body, config = config));
     if functions.ccxtruthy(api == "private")
         self.options[Symbol("hasAlreadyAuthenticatedSuccessfully")] = true;
     end
     return response
 
 end
-function modifyMarginHelper(self::Binance, symbol, amount, addOrReduce, params=Dict())
+function modifyMarginHelper(self::Binance, symbol, amount, addOrReduce; params=Dict())
     defaultType = safeString(self.options, "defaultType", "future");
     if functions.ccxtruthy(defaultType == "spot")
         defaultType = "future";
@@ -10495,17 +11610,17 @@ function modifyMarginHelper(self::Binance, symbol, amount, addOrReduce, params=D
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseMarginModification() returned empty response")));
     end
-    return extend(self.parseMarginModification(response, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(response, market = market), Dict{Symbol, Any}(
     Symbol("code") => code
 ))
 
 end
-function parseMarginModification(self::Binance, data, market=nothing)
+function parseMarginModification(self::Binance, data; market=nothing)
     rawType = safeInteger(data, "type");
     errorCode = safeString(data, "code");
     marketId = safeString(data, "symbol");
     timestamp = safeInteger(data, "time");
-    market = self.safeMarket(marketId, market, nothing, "swap");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "swap");
     noErrorCode = errorCode == nothing;
     success = errorCode == "200";
     return Dict{Symbol, Any}(
@@ -10522,15 +11637,52 @@ function parseMarginModification(self::Binance, data, market=nothing)
 )
 
 end
-function reduceMargin(self::Binance, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, 2, params))
+"""
+remove margin from a position
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Binance, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, 2, params = params))
 
 end
-function addMargin(self::Binance, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, 1, params))
+"""
+add margin
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Binance, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, 1, params = params))
 
 end
-function fetchCrossBorrowRate(self::Binance, code, params=Dict())
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchCrossBorrowRate(self::Binance, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -10543,15 +11695,39 @@ function fetchCrossBorrowRate(self::Binance, code, params=Dict())
     return self.parseBorrowRate(rate)
 
 end
-function fetchIsolatedBorrowRate(self::Binance, symbol, params=Dict())
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.vipLevel`::object, optional: user's current specific margin data will be returned if viplevel is omitted
+
+# Returns
+- an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
+"""
+function fetchIsolatedBorrowRate(self::Binance, symbol; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("symbol") => symbol
     );
-    borrowRates = Base.fetch(self.fetchIsolatedBorrowRates(extend(request, params)));
+    borrowRates = Base.fetch(self.fetchIsolatedBorrowRates(params = extend(request, params)));
     return self.safeDict(borrowRates, symbol)
 
 end
-function fetchIsolatedBorrowRates(self::Binance, params=Dict())
+"""
+fetch the borrow interest rates of all currencies
+see: https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::object, optional: unified market symbol EXCHANGE SPECIFIC PARAMETERS
+- `params.vipLevel`::object, optional: user's current specific margin data will be returned if viplevel is omitted
+
+# Returns
+- a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchIsolatedBorrowRates(self::Binance; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -10566,7 +11742,20 @@ function fetchIsolatedBorrowRates(self::Binance, params=Dict())
     return self.parseIsolatedBorrowRates(response)
 
 end
-function fetchBorrowRateHistory(self::Binance, code, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves a history of a currencies borrow interest rate at specific time slots
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: timestamp for the earliest borrow rate
+- `limit`::int, optional: the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+function fetchBorrowRateHistory(self::Binance, code; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -10590,11 +11779,11 @@ function fetchBorrowRateHistory(self::Binance, code, since=nothing, limit=nothin
     return self.parseBorrowRateHistory(response, code, since, limit)
 
 end
-function parseBorrowRate(self::Binance, info, currency=nothing)
+function parseBorrowRate(self::Binance, info; currency=nothing)
     timestamp = safeInteger(info, "timestamp");
     currencyId = safeString(info, "asset");
     return Dict{Symbol, Any}(
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("rate") => self.safeNumber(info, "dailyInterestRate"),
     Symbol("period") => 86400000,
     Symbol("timestamp") => timestamp,
@@ -10603,9 +11792,9 @@ function parseBorrowRate(self::Binance, info, currency=nothing)
 )
 
 end
-function parseIsolatedBorrowRate(self::Binance, info, market=nothing)
+function parseIsolatedBorrowRate(self::Binance, info; market=nothing)
     marketId = safeString(info, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "spot");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "spot");
     data = self.safeList(info, "data");
     baseInfo = self.safeDict(data, 0);
     quoteInfo = self.safeDict(data, 1);
@@ -10622,7 +11811,19 @@ function parseIsolatedBorrowRate(self::Binance, info, market=nothing)
 )
 
 end
-function createGiftCode(self::Binance, code, amount, params=Dict())
+"""
+create gift code
+see: https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card
+
+# Arguments
+- `code`::string: gift code
+- `amount`::float: amount of currency for the gift
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- The gift code id, code, currency and amount
+"""
+function createGiftCode(self::Binance, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -10644,7 +11845,18 @@ function createGiftCode(self::Binance, code, amount, params=Dict())
 )
 
 end
-function redeemGiftCode(self::Binance, giftcardCode, params=Dict())
+"""
+redeem gift code
+see: https://developers.binance.com/docs/gift_card/market-data/Redeem-a-Binance-Gift-Card
+
+# Arguments
+- `giftcardCode`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function redeemGiftCode(self::Binance, giftcardCode; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("code") => giftcardCode
     );
@@ -10652,7 +11864,18 @@ function redeemGiftCode(self::Binance, giftcardCode, params=Dict())
     return response
 
 end
-function verifyGiftCode(self::Binance, id, params=Dict())
+"""
+verify gift code
+see: https://developers.binance.com/docs/gift_card/market-data/Verify-Binance-Gift-Card-by-Gift-Card-Number
+
+# Arguments
+- `id`::string: reference number id
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function verifyGiftCode(self::Binance, id; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("referenceNo") => id
     );
@@ -10660,12 +11883,28 @@ function verifyGiftCode(self::Binance, id, params=Dict())
     return response
 
 end
-function fetchBorrowInterest(self::Binance, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Get-Interest-History
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-Margin-BorrowLoan-Interest-History
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `symbol`::string, optional: unified market symbol when fetch interest in isolated markets
+- `since`::int, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the borrow interest in a portfolio margin account
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+function fetchBorrowInterest(self::Binance; code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", defaultValue = false);
     request = Dict{Symbol, Any}();
     market = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -10690,11 +11929,11 @@ function fetchBorrowInterest(self::Binance, code=nothing, symbol=nothing, since=
         response = Base.fetch(self.sapiGetMarginInterestHistory(extend(request, params)));
     end
     rows = self.safeList(response, "rows");
-    interest = self.parseBorrowInterests(rows, market);
-    return self.filterByCurrencySinceLimit(interest, code, since, limit)
+    interest = self.parseBorrowInterests(rows, market = market);
+    return self.filterByCurrencySinceLimit(interest, code = code, since = since, limit = limit)
 
 end
-function parseBorrowInterest(self::Binance, info, market=nothing)
+function parseBorrowInterest(self::Binance, info; market=nothing)
     symbol = safeString(info, "isolatedSymbol");
     timestamp = safeInteger(info, "interestAccuredTime");
     marginMode = functions.ccxtruthy((symbol == nothing)) ? "cross" : "isolated";
@@ -10711,7 +11950,24 @@ function parseBorrowInterest(self::Binance, info, market=nothing)
 )
 
 end
-function repayCrossMargin(self::Binance, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to repay margin in a portfolio margin account
+- `params.repayCrossMarginMethod`::string, optional: *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+- `params.specifyRepayAssets`::string, optional: *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayCrossMargin(self::Binance, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -10722,7 +11978,7 @@ function repayCrossMargin(self::Binance, code, amount, params=Dict())
     );
     response = nothing;
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "repayCrossMargin", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "repayCrossMargin", "papi", "portfolioMargin", defaultValue = false);
     if functions.ccxtruthy(isPortfolioMargin)
         method = nothing;
         (method, params) = self.handleOptionAndParams2(params, "repayCrossMargin", "repayCrossMarginMethod", "method");
@@ -10736,10 +11992,23 @@ function repayCrossMargin(self::Binance, code, amount, params=Dict())
         request[Symbol("type")] = "REPAY";
         response = Base.fetch(self.sapiPostMarginBorrowRepay(extend(request, params)));
     end
-    return self.parseMarginLoan(response, currency)
+    return self.parseMarginLoan(response, currency = currency)
 
 end
-function repayIsolatedMargin(self::Binance, symbol, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+
+# Arguments
+- `symbol`::string: unified market symbol, required for isolated margin
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayIsolatedMargin(self::Binance, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -10753,10 +12022,24 @@ function repayIsolatedMargin(self::Binance, symbol, code, amount, params=Dict())
         Symbol("type") => "REPAY"
     );
     response = Base.fetch(self.sapiPostMarginBorrowRepay(extend(request, params)));
-    return self.parseMarginLoan(response, currency)
+    return self.parseMarginLoan(response, currency = currency)
 
 end
-function borrowCrossMargin(self::Binance, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Borrow
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to borrow margin in a portfolio margin account
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowCrossMargin(self::Binance, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -10767,7 +12050,7 @@ function borrowCrossMargin(self::Binance, code, amount, params=Dict())
     );
     response = nothing;
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "borrowCrossMargin", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "borrowCrossMargin", "papi", "portfolioMargin", defaultValue = false);
     if functions.ccxtruthy(isPortfolioMargin)
         response = Base.fetch(self.papiPostMarginLoan(extend(request, params)));
     else
@@ -10775,10 +12058,23 @@ function borrowCrossMargin(self::Binance, code, amount, params=Dict())
         request[Symbol("type")] = "BORROW";
         response = Base.fetch(self.sapiPostMarginBorrowRepay(extend(request, params)));
     end
-    return self.parseMarginLoan(response, currency)
+    return self.parseMarginLoan(response, currency = currency)
 
 end
-function borrowIsolatedMargin(self::Binance, symbol, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+
+# Arguments
+- `symbol`::string: unified market symbol, required for isolated margin
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowIsolatedMargin(self::Binance, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -10792,15 +12088,15 @@ function borrowIsolatedMargin(self::Binance, symbol, code, amount, params=Dict()
         Symbol("type") => "BORROW"
     );
     response = Base.fetch(self.sapiPostMarginBorrowRepay(extend(request, params)));
-    return self.parseMarginLoan(response, currency)
+    return self.parseMarginLoan(response, currency = currency)
 
 end
-function parseMarginLoan(self::Binance, info, currency=nothing)
+function parseMarginLoan(self::Binance, info; currency=nothing)
     currencyId = safeString(info, "asset");
     timestamp = safeInteger(info, "updateTime");
     return Dict{Symbol, Any}(
     Symbol("id") => safeString(info, "tranId"),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(info, "amount"),
     Symbol("symbol") => nothing,
     Symbol("timestamp") => timestamp,
@@ -10809,7 +12105,24 @@ function parseMarginLoan(self::Binance, info, currency=nothing)
 )
 
 end
-function fetchOpenInterestHistory(self::Binance, symbol, timeframe="5m", since=nothing, limit=nothing, params=Dict())
+"""
+Retrieves the open interest history of a currency
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest-Statistics
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `timeframe`::string: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+- `since`::int, optional: the time(ms) of the earliest record to retrieve as a unix timestamp
+- `limit`::int, optional: default 30, max 500
+- `params`::object, optional: exchange specific parameters
+- `params.until`::int, optional: the time(ms) of the latest record to retrieve as a unix timestamp
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterestHistory(self::Binance, symbol; timeframe="5m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(timeframe == "1m")
         throw(BadRequest(string(self.id, " fetchOpenInterestHistory cannot use the 1m timeframe")));
     end
@@ -10817,9 +12130,9 @@ function fetchOpenInterestHistory(self::Binance, symbol, timeframe="5m", since=n
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 500))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -10854,10 +12167,23 @@ function fetchOpenInterestHistory(self::Binance, symbol, timeframe="5m", since=n
     else
         response = Base.fetch(self.fapiDataGetOpenInterestHist(extend(request, params)));
     end
-    return self.parseOpenInterestsHistory(response, market, since, limit)
+    return self.parseOpenInterestsHistory(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenInterest(self::Binance, symbol, params=Dict())
+"""
+retrieves the open interest of a contract trading pair
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
+see: https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Binance, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -10882,7 +12208,7 @@ function fetchOpenInterest(self::Binance, symbol, params=Dict())
     end
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
         symbol = get(market, Symbol("symbol"), nothing);
-        result = self.parseOpenInterestsHistory(response, market);
+        result = self.parseOpenInterestsHistory(response, market = market);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
             item = get(result, i + 1, nothing);
@@ -10894,17 +12220,17 @@ function fetchOpenInterest(self::Binance, symbol, params=Dict())
 
         throw(NullResponse(string(self.id, " fetchOpenInterest() could not find open interest for ", symbol)));
     else
-        return self.parseOpenInterest(response, market)
+        return self.parseOpenInterest(response, market = market)
     end
 
 end
-function parseOpenInterest(self::Binance, interest, market=nothing)
+function parseOpenInterest(self::Binance, interest; market=nothing)
     timestamp = safeInteger2(interest, "timestamp", "time");
     id = safeString(interest, "symbol");
     amount = self.safeNumber2(interest, "sumOpenInterest", "openInterest");
     value = self.safeNumber2(interest, "sumOpenInterestValue", "sumOpenInterestUsd");
     return self.safeOpenInterest(Dict{Symbol, Any}(
-    Symbol("symbol") => self.safeSymbol(id, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(id, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("baseVolume") => functions.ccxtruthy(self.safeBool(market, "inverse")) ? nothing : amount,
     Symbol("quoteVolume") => value,
     Symbol("openInterestAmount") => amount,
@@ -10912,28 +12238,50 @@ function parseOpenInterest(self::Binance, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchMyLiquidations(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the users liquidated positions
+see: https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Users-Force-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+
+# Arguments
+- `symbol`::string, optional: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the binance api endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+- `params.paginate`::bool, optional: *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch liquidations in a portfolio margin account
+- `params.type`::string, optional: "spot"
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchMyLiquidations(self::Binance; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyLiquidations", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol = symbol, since = since, limit = limit, params = params, pageKey = "current", maxEntriesPerRequest = 100))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMyLiquidations", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMyLiquidations", market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMyLiquidations", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchMyLiquidations", market = market, params = params, defaultValue = "linear");
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchMyLiquidations", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchMyLiquidations", "papi", "portfolioMargin", defaultValue = false);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(type_var != "spot")
         request[Symbol("autoCloseType")] = "LIQUIDATION";
@@ -10987,15 +12335,15 @@ function fetchMyLiquidations(self::Binance, symbol=nothing, since=nothing, limit
     elseif functions.ccxtruthy(functions.ccxt_isArray(response))
         liquidationsList = response;
     end
-    return self.parseLiquidations(liquidationsList, market, since, limit)
+    return self.parseLiquidations(liquidationsList, market = market, since = since, limit = limit)
 
 end
-function parseLiquidation(self::Binance, liquidation, market=nothing)
+function parseLiquidation(self::Binance, liquidation; market=nothing)
     marketId = safeString(liquidation, "symbol");
     timestamp = safeInteger2(liquidation, "updatedTime", "updateTime");
     return self.safeLiquidation(Dict{Symbol, Any}(
     Symbol("info") => liquidation,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("contracts") => self.safeNumber(liquidation, "executedQty"),
     Symbol("contractSize") => self.safeNumber(market, "contractSize"),
     Symbol("price") => self.safeNumber(liquidation, "avgPrice"),
@@ -11007,7 +12355,18 @@ function parseLiquidation(self::Binance, liquidation, market=nothing)
 ))
 
 end
-function fetchGreeks(self::Binance, symbol, params=Dict())
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchGreeks(self::Binance, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -11016,14 +12375,25 @@ function fetchGreeks(self::Binance, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.eapiPublicGetMark(extend(request, params)));
-    return self.parseGreeks(self.safeDict(response, 0, Dict{Symbol, Any}()), market)
+    return self.parseGreeks(self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}()), market = market)
 
 end
-function fetchAllGreeks(self::Binance, symbols=nothing, params=Dict())
+"""
+fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchAllGreeks(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     request = Dict{Symbol, Any}();
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
@@ -11034,12 +12404,12 @@ function fetchAllGreeks(self::Binance, symbols=nothing, params=Dict())
         end
     end
     response = Base.fetch(self.eapiPublicGetMark(extend(request, params)));
-    return self.parseAllGreeks(response, symbols)
+    return self.parseAllGreeks(response, symbols = symbols)
 
 end
-function parseGreeks(self::Binance, greeks, market=nothing)
+function parseGreeks(self::Binance, greeks; market=nothing)
     marketId = safeString(greeks, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => nothing,
@@ -11063,7 +12433,7 @@ function parseGreeks(self::Binance, greeks, market=nothing)
 )
 
 end
-function fetchTradingLimits(self::Binance, symbols=nothing, params=Dict())
+function fetchTradingLimits(self::Binance; symbols=nothing, params=Dict())
     markets = Base.fetch(self.fetchMarkets());
     tradingLimits = Dict{Symbol, Any}();
     i = 0
@@ -11083,13 +12453,26 @@ function fetchTradingLimits(self::Binance, symbols=nothing, params=Dict())
     return tradingLimits
 
 end
-function fetchPositionMode(self::Binance, symbol=nothing, params=Dict())
+"""
+fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Current-Position-Mode
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+function fetchPositionMode(self::Binance; symbol=nothing, params=Dict())
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchPositionMode", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchPositionMode", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.dapiPrivateGetPositionSideDual(params));
@@ -11103,17 +12486,31 @@ function fetchPositionMode(self::Binance, symbol=nothing, params=Dict())
 )
 
 end
-function fetchMarginModes(self::Binance, symbols=nothing, params=Dict())
+"""
+fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginModes(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
-        symbols = self.marketSymbols(symbols);
+        symbols = self.marketSymbols(symbols = symbols);
         market = self.market(get(symbols, 1, nothing));
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMarginMode", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchMarginMode", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "linear")
         response = Base.fetch(self.fapiPrivateGetSymbolConfig(params));
@@ -11122,20 +12519,33 @@ function fetchMarginModes(self::Binance, symbols=nothing, params=Dict())
     else
         throw(BadRequest(string(self.id, " fetchMarginModes () supports linear and inverse subTypes only")));
     end
-    assets = self.safeList(response, "positions", []);
+    assets = self.safeList(response, "positions", defaultValue = []);
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         assets = response;
     end
-    return self.parseMarginModes(assets, symbols, "symbol", "swap")
+    return self.parseMarginModes(assets, symbols = symbols, symbolKey = "symbol", marketType = "swap")
 
 end
-function fetchMarginMode(self::Binance, symbol, params=Dict())
+"""
+fetches the margin mode of a specific symbol
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+
+# Arguments
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Binance, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMarginMode", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchMarginMode", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "linear")
         request = Dict{Symbol, Any}(
@@ -11143,7 +12553,7 @@ function fetchMarginMode(self::Binance, symbol, params=Dict())
         );
         response = Base.fetch(self.fapiPrivateGetSymbolConfig(extend(request, params)));
     elseif functions.ccxtruthy(subType == "inverse")
-        fetchMarginModesResponse = Base.fetch(self.fetchMarginModes([symbol], params));
+        fetchMarginModesResponse = Base.fetch(self.fetchMarginModes(symbols = [symbol], params = params));
         return get(fetchMarginModesResponse, Symbol(symbol), nothing)
     else
         throw(BadRequest(string(self.id, " fetchMarginMode () supports linear and inverse subTypes only")));
@@ -11151,12 +12561,12 @@ function fetchMarginMode(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " fetchMarginMode() returned empty response")));
     end
-    return self.parseMarginMode(get(response, 1, nothing), market)
+    return self.parseMarginMode(get(response, 1, nothing), market = market)
 
 end
-function parseMarginMode(self::Binance, marginMode, market=nothing)
+function parseMarginMode(self::Binance, marginMode; market=nothing)
     marketId = safeString(marginMode, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     marginModeRaw = self.safeBool(marginMode, "isolated");
     reMarginMode = nothing;
     if functions.ccxtruthy(marginModeRaw != nothing)
@@ -11173,7 +12583,18 @@ function parseMarginMode(self::Binance, marginMode, market=nothing)
 )
 
 end
-function fetchOption(self::Binance, symbol, params=Dict())
+"""
+fetches option data that is commonly found in an option chain
+see: https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+function fetchOption(self::Binance, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -11182,13 +12603,13 @@ function fetchOption(self::Binance, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.eapiPublicGetTicker(extend(request, params)));
-    chain = self.safeDict(response, 0, Dict{Symbol, Any}());
-    return self.parseOption(chain, nothing, market)
+    chain = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOption(chain, currency = nothing, market = market)
 
 end
-function parseOption(self::Binance, chain, currency=nothing, market=nothing)
+function parseOption(self::Binance, chain; currency=nothing, market=nothing)
     marketId = safeString(chain, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => chain,
     Symbol("currency") => nothing,
@@ -11210,7 +12631,23 @@ function parseOption(self::Binance, chain, currency=nothing, market=nothing)
 )
 
 end
-function fetchMarginAdjustmentHistory(self::Binance, symbol=nothing, type_var=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches the history of margin added or reduced from contract isolated positions
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `type`::string, optional: "add" or "reduce"
+- `since`::int, optional: timestamp in ms of the earliest change to fetch
+- `limit`::int, optional: the maximum amount of changes to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest change to fetch
+
+# Returns
+- a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function fetchMarginAdjustmentHistory(self::Binance; symbol=nothing, type_var=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -11247,10 +12684,20 @@ function fetchMarginAdjustmentHistory(self::Binance, symbol=nothing, type_var=no
         throw(NullResponse(string(self.id, " parseMarginModifications() returned empty response")));
     end
     modifications = self.parseMarginModifications(toArray(response));
-    return self.filterBySymbolSinceLimit(modifications, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(modifications, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchConvertCurrencies(self::Binance, params=Dict())
+"""
+fetches all available currencies that can be converted
+see: https://developers.binance.com/docs/convert/market-data/Query-order-quantity-precision-per-asset
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchConvertCurrencies(self::Binance; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -11274,7 +12721,7 @@ function fetchConvertCurrencies(self::Binance, params=Dict())
                 Symbol("deposit") => nothing,
                 Symbol("withdraw") => nothing,
                 Symbol("fee") => nothing,
-                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(entry, "fraction"))),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(entry, "fraction"))),
                 Symbol("limits") => Dict{Symbol, Any}(
                     Symbol("amount") => Dict{Symbol, Any}(
                         Symbol("min") => nothing,
@@ -11297,7 +12744,21 @@ function fetchConvertCurrencies(self::Binance, params=Dict())
     return result
 
 end
-function fetchConvertQuote(self::Binance, fromCode, toCode, amount=nothing, params=Dict())
+"""
+fetch a quote for converting from one currency to another
+see: https://developers.binance.com/docs/convert/trade/Send-quote-request
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.walletType`::string, optional: either 'SPOT' or 'FUNDING', the default is 'SPOT'
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertQuote(self::Binance, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(amount == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchConvertQuote() requires an amount argument")));
     end
@@ -11315,10 +12776,24 @@ function fetchConvertQuote(self::Binance, fromCode, toCode, amount=nothing, para
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseConversion() returned empty response")));
     end
-    return self.parseConversion(response, fromCurrency, toCurrency)
+    return self.parseConversion(response, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function createConvertTrade(self::Binance, id, fromCode, toCode, amount=nothing, params=Dict())
+"""
+convert from one currency to another
+see: https://developers.binance.com/docs/convert/trade/Accept-Quote
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function createConvertTrade(self::Binance, id, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -11342,10 +12817,22 @@ function createConvertTrade(self::Binance, id, fromCode, toCode, amount=nothing,
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseConversion() returned empty response")));
     end
-    return self.parseConversion(response, fromCurrency, toCurrency)
+    return self.parseConversion(response, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function fetchConvertTrade(self::Binance, id, code=nothing, params=Dict())
+"""
+fetch the data for a conversion trade
+see: https://developers.binance.com/docs/convert/trade/Order-Status
+
+# Arguments
+- `id`::string: the id of the trade that you want to fetch
+- `code`::string, optional: the unified currency code of the conversion trade
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTrade(self::Binance, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -11368,8 +12855,8 @@ function fetchConvertTrade(self::Binance, id, code=nothing, params=Dict())
     end
     data = response;
     if functions.ccxtruthy(code == "BUSD")
-        rows = self.safeList(response, "rows", []);
-        data = self.safeDict(rows, 0, Dict{Symbol, Any}());
+        rows = self.safeList(response, "rows", defaultValue = []);
+        data = self.safeDict(rows, 0, defaultValue = Dict{Symbol, Any}());
     end
     fromCurrencyId = safeString2(data, "deductedAsset", "fromAsset");
     toCurrencyId = safeString2(data, "targetAsset", "toAsset");
@@ -11384,10 +12871,24 @@ function fetchConvertTrade(self::Binance, id, code=nothing, params=Dict())
     if functions.ccxtruthy(data == nothing)
         throw(NullResponse(string(self.id, " parseConversion() returned empty response")));
     end
-    return self.parseConversion(data, fromCurrency, toCurrency)
+    return self.parseConversion(data, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function fetchConvertTradeHistory(self::Binance, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the users history of conversion trades
+see: https://developers.binance.com/docs/convert/trade/Get-Convert-Trade-History
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest conversion to fetch
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTradeHistory(self::Binance; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -11432,16 +12933,16 @@ function fetchConvertTradeHistory(self::Binance, code=nothing, since=nothing, li
         responseQuery = "list";
         response = Base.fetch(self.sapiGetConvertTradeFlow(extend(request, params)));
     end
-    rows = self.safeList(response, responseQuery, []);
-    return self.parseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit)
+    rows = self.safeList(response, responseQuery, defaultValue = []);
+    return self.parseConversions(rows, code = code, fromCurrencyKey = fromCurrencyKey, toCurrencyKey = toCurrencyKey, since = since, limit = limit)
 
 end
-function parseConversion(self::Binance, conversion, fromCurrency=nothing, toCurrency=nothing)
+function parseConversion(self::Binance, conversion; fromCurrency=nothing, toCurrency=nothing)
     timestamp = safeIntegerN(conversion, ["time", "validTimestamp", "createTime"]);
     fromCur = safeString2(conversion, "deductedAsset", "fromAsset");
-    fromCode = self.safeCurrencyCode(fromCur, fromCurrency);
+    fromCode = self.safeCurrencyCode(fromCur, currency = fromCurrency);
     to = safeString2(conversion, "targetAsset", "toAsset");
-    toCode = self.safeCurrencyCode(to, toCurrency);
+    toCode = self.safeCurrencyCode(to, currency = toCurrency);
     return Dict{Symbol, Any}(
     Symbol("info") => conversion,
     Symbol("timestamp") => timestamp,
@@ -11456,30 +12957,59 @@ function parseConversion(self::Binance, conversion, fromCurrency=nothing, toCurr
 )
 
 end
-function fetchFundingIntervals(self::Binance, symbols=nothing, params=Dict())
+"""
+fetch the funding rate interval for multiple markets
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-Info
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Info
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingIntervals(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
-        symbols = self.marketSymbols(symbols);
+        symbols = self.marketSymbols(symbols = symbols);
         market = self.market(get(symbols, 1, nothing));
     end
     type_var = "swap";
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchFundingIntervals", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchFundingIntervals", market = market, params = params, defaultValue = "linear");
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
+    if functions.ccxtruthy(self.isLinear(type_var, subType = subType))
         response = Base.fetch(self.fapiPublicGetFundingInfo(params));
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
+    elseif functions.ccxtruthy(self.isInverse(type_var, subType = subType))
         response = Base.fetch(self.dapiPublicGetFundingInfo(params));
     else
         throw(NotSupported(string(self.id, " fetchFundingIntervals() supports linear and inverse swap contracts only")));
     end
-    return self.parseFundingRates(response, symbols)
+    return self.parseFundingRates(response, symbols = symbols)
 
 end
-function fetchLongShortRatioHistory(self::Binance, symbol=nothing, timeframe=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches the long short ratio history for a unified market symbol
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Long-Short-Ratio
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the long short ratio for
+- `timeframe`::string, optional: the period for the ratio, default is 24 hours
+- `since`::int, optional: the earliest time in ms to fetch ratios for
+- `limit`::int, optional: the maximum number of long short ratio structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ratio to fetch
+
+# Returns
+- an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
+"""
+function fetchLongShortRatioHistory(self::Binance; symbol=nothing, timeframe=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -11498,7 +13028,7 @@ function fetchLongShortRatioHistory(self::Binance, symbol=nothing, timeframe=not
         request[Symbol("limit")] = limit;
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchLongShortRatioHistory", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchLongShortRatioHistory", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "linear")
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
@@ -11509,15 +13039,15 @@ function fetchLongShortRatioHistory(self::Binance, symbol=nothing, timeframe=not
     else
         throw(BadRequest(string(self.id, " fetchLongShortRatioHistory() supports linear and inverse subTypes only")));
     end
-    return self.parseLongShortRatioHistory(response, market)
+    return self.parseLongShortRatioHistory(response, market = market)
 
 end
-function parseLongShortRatio(self::Binance, info, market=nothing)
+function parseLongShortRatio(self::Binance, info; market=nothing)
     marketId = safeString(info, "symbol");
     timestamp = self.safeIntegerOmitZero(info, "timestamp");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("timeframe") => nothing,
@@ -11525,7 +13055,18 @@ function parseLongShortRatio(self::Binance, info, market=nothing)
 )
 
 end
-function fetchADLRank(self::Binance, symbol, params=Dict())
+"""
+fetches the auto deleveraging rank and risk percentage for a symbol
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the auto deleveraging rank for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+function fetchADLRank(self::Binance, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -11534,7 +13075,7 @@ function fetchADLRank(self::Binance, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchADLRank", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchADLRank", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(subType == "linear")
         response = Base.fetch(self.fapiPublicGetSymbolAdlRisk(extend(request, params)));
@@ -11544,19 +13085,34 @@ function fetchADLRank(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseADLRank() returned empty response")));
     end
-    return self.parseADLRank(response, market)
+    return self.parseADLRank(response, market = market)
 
 end
-function fetchPositionsADLRank(self::Binance, symbols=nothing, params=Dict())
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true for the portfolio margin account
+
+# Returns
+- an array of [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+function fetchPositionsADLRank(self::Binance; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
+    market = self.getMarketFromSymbols(symbols = symbols);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchPositionsADLRank", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchPositionsADLRank", market = market, params = params);
     isPortfolioMargin = nothing;
-    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchPositionsADLRank", "papi", "portfolioMargin", false);
+    (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchPositionsADLRank", "papi", "portfolioMargin", defaultValue = false);
     response = nothing;
     if functions.ccxtruthy(subType == "linear")
         if functions.ccxtruthy(isPortfolioMargin)
@@ -11577,11 +13133,11 @@ function fetchPositionsADLRank(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(response != nothing)
         responseList = toArray(response);
     end
-    return self.parseADLRanks(responseList, symbols)
+    return self.parseADLRanks(responseList, symbols = symbols)
 
 end
-function parseADLRank(self::Binance, info, market=nothing)
-    adlQuantile = self.safeDict(info, "adlQuantile", Dict{Symbol, Any}());
+function parseADLRank(self::Binance, info; market=nothing)
+    adlQuantile = self.safeDict(info, "adlQuantile", defaultValue = Dict{Symbol, Any}());
     longNum = self.safeNumber(adlQuantile, "LONG");
     shortNum = self.safeNumber(adlQuantile, "SHORT");
     both = self.safeNumber(adlQuantile, "BOTH");
@@ -11601,7 +13157,7 @@ function parseADLRank(self::Binance, info, market=nothing)
     timestamp = safeInteger2(info, "timestamp", "updateTime");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("rank") => rank,
     Symbol("rating") => safeStringLower(info, "adlRisk"),
     Symbol("percentage") => nothing,
@@ -11617,3171 +13173,3171 @@ Base.getproperty(self::Binance, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function sapiGetCopyTradingFuturesUserStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "copyTrading/futures/userStatus", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "copyTrading/futures/userStatus"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCopyTradingFuturesLeadSymbol(self::Binance, params=Dict(), context=Dict())
-    return request(self, "copyTrading/futures/leadSymbol", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "copyTrading/futures/leadSymbol"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSystemStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "system/status", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "system/status"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAccountSnapshot(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accountSnapshot", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "accountSnapshot"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAccountInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/info", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/info"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/asset", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/asset"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginPair(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/pair", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/pair"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginAllAssets(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allAssets", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/allAssets"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginAllPairs(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allPairs", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/allPairs"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginPriceIndex(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/priceIndex", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/priceIndex"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSpotDelistSchedule(self::Binance, params=Dict(), context=Dict())
-    return request(self, "spot/delist-schedule", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/delist-schedule"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetAssetDividend(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/assetDividend", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/assetDividend"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetDribblet(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/dribblet", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/dribblet"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/transfer", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/transfer"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetAssetDetail(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/assetDetail", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/assetDetail"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetTradeFee(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/tradeFee", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/tradeFee"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetLedgerTransferCloudMiningQueryByPage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/ledger-transfer/cloud-mining/queryByPage", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/ledger-transfer/cloud-mining/queryByPage"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetConvertTransferQueryByPage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/convert-transfer/queryByPage", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/convert-transfer/queryByPage"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetWalletBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/wallet/balance", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/wallet/balance"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAssetCustodyTransferHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/custody/transfer-history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/custody/transfer-history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginBorrowRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/borrow-repay", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/borrow-repay"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/loan", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/loan"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/repay", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/repay"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/account", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/account"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/transfer", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/transfer"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginInterestHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/interestHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/interestHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginForceLiquidationRec(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/forceLiquidationRec", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/forceLiquidationRec"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/order"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/openOrders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/openOrders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allOrders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/allOrders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginMyTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/myTrades", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/myTrades"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginMaxBorrowable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/maxBorrowable", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/maxBorrowable"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginMaxTransferable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/maxTransferable", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/maxTransferable"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginTradeCoeff(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/tradeCoeff", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/tradeCoeff"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginIsolatedTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/transfer", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/isolated/transfer"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginIsolatedAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/account", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/isolated/account"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginIsolatedPair(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/pair", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/isolated/pair"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginIsolatedAllPairs(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/allPairs", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/isolated/allPairs"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginIsolatedAccountLimit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/accountLimit", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/isolated/accountLimit"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginInterestRateHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/interestRateHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/interestRateHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/orderList", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/orderList"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginAllOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allOrderList", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/allOrderList"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginOpenOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/openOrderList", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/openOrderList"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginCrossMarginData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/crossMarginData", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/crossMarginData"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginIsolatedMarginData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolatedMarginData", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/isolatedMarginData"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginIsolatedMarginTier(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolatedMarginTier", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/isolatedMarginTier"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginRateLimitOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/rateLimit/order", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/rateLimit/order"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginDribblet(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/dribblet", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/dribblet"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginDust(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/dust", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/dust"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginCrossMarginCollateralRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/crossMarginCollateralRatio", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/crossMarginCollateralRatio"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginExchangeSmallLiability(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/exchange-small-liability", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/exchange-small-liability"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginExchangeSmallLiabilityHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/exchange-small-liability-history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/exchange-small-liability-history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginNextHourlyInterestRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/next-hourly-interest-rate", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/next-hourly-interest-rate"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginCapitalFlow(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/capital-flow", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/capital-flow"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginDelistSchedule(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/delist-schedule", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/delist-schedule"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginAvailableInventory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/available-inventory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/available-inventory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMarginLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/leverageBracket", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/leverageBracket"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanVipLoanableData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/loanable/data", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/vip/loanable/data"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanVipCollateralData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/collateral/data", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/vip/collateral/data"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanVipRequestData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/request/data", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/vip/request/data"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanVipRequestInterestRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/request/interestRate", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/vip/request/interestRate"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanIncome(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/income", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/income"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanOngoingOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/ongoing/orders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/ongoing/orders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanLtvAdjustmentHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/ltv/adjustment/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/ltv/adjustment/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanBorrowHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/borrow/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/borrow/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanRepayHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/repay/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/repay/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanLoanableData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/loanable/data", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/loanable/data"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanCollateralData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/collateral/data", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/collateral/data"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanRepayCollateralRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/repay/collateral/rate", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/repay/collateral/rate"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanFlexibleOngoingOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/ongoing/orders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/ongoing/orders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanFlexibleBorrowHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/borrow/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/borrow/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanFlexibleRepayHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/repay/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/repay/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanFlexibleLtvAdjustmentHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/ltv/adjustment/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/ltv/adjustment/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanVipOngoingOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/ongoing/orders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/vip/ongoing/orders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanVipRepayHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/repay/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/vip/repay/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLoanVipCollateralAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/collateral/account", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/vip/collateral/account"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetFiatOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fiat/orders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "fiat/orders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetFiatPayments(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fiat/payments", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "fiat/payments"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetFuturesTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "futures/transfer", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/transfer"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetFuturesHistDataLink(self::Binance, params=Dict(), context=Dict())
-    return request(self, "futures/histDataLink", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/histDataLink"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetRebateTaxQuery(self::Binance, params=Dict(), context=Dict())
-    return request(self, "rebate/taxQuery", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "rebate/taxQuery"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalConfigGetall(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/config/getall", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/config/getall"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalDepositAddress(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/address", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/address"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalDepositAddressList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/address/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/address/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalDepositHisrec(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/hisrec", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/hisrec"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalDepositSubAddress(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/subAddress", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/subAddress"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalDepositSubHisrec(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/subHisrec", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/subHisrec"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalWithdrawHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/withdraw/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalWithdrawAddressList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/address/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/withdraw/address/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetCapitalContractConvertibleCoins(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/contract/convertible-coins", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/contract/convertible-coins"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetConvertTradeFlow(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/tradeFlow", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/tradeFlow"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetConvertExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/exchangeInfo", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/exchangeInfo"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetConvertAssetInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/assetInfo", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/assetInfo"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetConvertOrderStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/orderStatus", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/orderStatus"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetConvertLimitQueryOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/limit/queryOpenOrders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/limit/queryOpenOrders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAccountStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/status", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/status"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAccountApiTradingStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/apiTradingStatus", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/apiTradingStatus"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAccountApiRestrictionsIpRestriction(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/apiRestrictions/ipRestriction", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/apiRestrictions/ipRestriction"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBnbBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bnbBurn", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bnbBurn"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountFuturesAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/account", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/futures/account"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountFuturesAccountSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/accountSummary", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/futures/accountSummary"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountFuturesPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/positionRisk", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/futures/positionRisk"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountFuturesInternalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/internalTransfer", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/futures/internalTransfer"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountMarginAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/margin/account", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/margin/account"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountMarginAccountSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/margin/accountSummary", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/margin/accountSummary"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountSpotSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/spotSummary", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/spotSummary"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/status", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/status"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountSubTransferHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/sub/transfer/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/sub/transfer/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountTransferSubUserHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/transfer/subUserHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/transfer/subUserHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountUniversalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/universalTransfer", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/universalTransfer"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/apiRestrictions/ipRestriction/thirdPartyList", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/apiRestrictions/ipRestriction/thirdPartyList"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountTransactionStatistics(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/transaction-statistics", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/transaction-statistics"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSubAccountSubAccountApiIpRestriction(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/subAccountApi/ipRestriction", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/subAccountApi/ipRestriction"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetManagedSubaccountAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/asset", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/asset"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetManagedSubaccountAccountSnapshot(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/accountSnapshot", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/accountSnapshot"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetManagedSubaccountQueryTransLogForInvestor(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/queryTransLogForInvestor", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/queryTransLogForInvestor"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetManagedSubaccountQueryTransLogForTradeParent(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/queryTransLogForTradeParent", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/queryTransLogForTradeParent"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetManagedSubaccountFetchFutureAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/fetch-future-asset", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/fetch-future-asset"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetManagedSubaccountMarginAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/marginAsset", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/marginAsset"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetManagedSubaccountInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/info", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/info"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetManagedSubaccountDepositAddress(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/deposit/address", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/deposit/address"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetManagedSubaccountQueryTransLog(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/query-trans-log", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/query-trans-log"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingDailyProductList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/product/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/daily/product/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingDailyUserLeftQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/userLeftQuota", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/daily/userLeftQuota"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingDailyUserRedemptionQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/userRedemptionQuota", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/daily/userRedemptionQuota"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingDailyTokenPosition(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/token/position", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/daily/token/position"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingUnionAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/union/account", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/union/account"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingUnionPurchaseRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/union/purchaseRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/union/purchaseRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingUnionRedemptionRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/union/redemptionRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/union/redemptionRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingUnionInterestHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/union/interestHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/union/interestHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingProjectList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/project/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/project/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingProjectPositionList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/project/position/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/project/position/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetEthStakingEthHistoryStakingHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/history/stakingHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/eth/history/stakingHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetEthStakingEthHistoryRedemptionHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/history/redemptionHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/eth/history/redemptionHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetEthStakingEthHistoryRewardsHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/history/rewardsHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/eth/history/rewardsHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetEthStakingEthQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/quota", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/eth/quota"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetEthStakingEthHistoryRateHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/history/rateHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/eth/history/rateHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetEthStakingAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/account", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/account"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetEthStakingWbethHistoryWrapHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/wbeth/history/wrapHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/wbeth/history/wrapHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetEthStakingWbethHistoryUnwrapHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/wbeth/history/unwrapHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/wbeth/history/unwrapHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetEthStakingEthHistoryWbethRewardsHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/history/wbethRewardsHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/eth/history/wbethRewardsHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSolStakingSolHistoryStakingHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/history/stakingHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sol-staking/sol/history/stakingHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSolStakingSolHistoryRedemptionHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/history/redemptionHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sol-staking/sol/history/redemptionHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSolStakingSolHistoryBnsolRewardsHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/history/bnsolRewardsHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sol-staking/sol/history/bnsolRewardsHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSolStakingSolHistoryRateHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/history/rateHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sol-staking/sol/history/rateHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSolStakingAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/account", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sol-staking/account"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSolStakingSolQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/quota", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "sol-staking/sol/quota"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMiningPubAlgoList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/pub/algoList", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "mining/pub/algoList"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMiningPubCoinList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/pub/coinList", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "mining/pub/coinList"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMiningWorkerDetail(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/worker/detail", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "mining/worker/detail"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMiningWorkerList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/worker/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "mining/worker/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMiningPaymentList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/payment/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "mining/payment/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMiningStatisticsUserStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/statistics/user/status", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "mining/statistics/user/status"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMiningStatisticsUserList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/statistics/user/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "mining/statistics/user/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetMiningPaymentUid(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/payment/uid", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "mining/payment/uid"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBswapPools(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/pools", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bswap/pools"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBswapLiquidity(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/liquidity", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bswap/liquidity"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBswapLiquidityOps(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/liquidityOps", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bswap/liquidityOps"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBswapQuote(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/quote", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bswap/quote"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBswapSwap(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/swap", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bswap/swap"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBswapPoolConfigure(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/poolConfigure", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bswap/poolConfigure"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBswapAddLiquidityPreview(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/addLiquidityPreview", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bswap/addLiquidityPreview"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBswapRemoveLiquidityPreview(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/removeLiquidityPreview", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bswap/removeLiquidityPreview"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBswapUnclaimedRewards(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/unclaimedRewards", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bswap/unclaimedRewards"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBswapClaimedHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/claimedHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "bswap/claimedHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBlvtTokenInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/tokenInfo", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "blvt/tokenInfo"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBlvtSubscribeRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/subscribe/record", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "blvt/subscribe/record"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBlvtRedeemRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/redeem/record", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "blvt/redeem/record"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBlvtUserLimit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/userLimit", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "blvt/userLimit"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetApiReferralIfNewUser(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/ifNewUser", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/ifNewUser"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetApiReferralCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/customization", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/customization"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetApiReferralUserCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/userCustomization", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/userCustomization"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetApiReferralRebateRecentRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/rebate/recentRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/rebate/recentRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetApiReferralRebateHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/rebate/historicalRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/rebate/historicalRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetApiReferralKickbackRecentRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/kickback/recentRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/kickback/recentRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetApiReferralKickbackHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/kickback/historicalRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/kickback/historicalRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerSubAccountApi(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerSubAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerSubAccountApiCommissionFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/commission/futures", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/commission/futures"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerSubAccountApiCommissionCoinFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/commission/coinFutures", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/commission/coinFutures"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/info", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/info"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/transfer", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/transfer"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerTransferFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/transfer/futures", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/transfer/futures"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerRebateRecentRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/rebate/recentRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/rebate/recentRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerRebateHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/rebate/historicalRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/rebate/historicalRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerSubAccountBnbBurnStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/bnbBurn/status", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount/bnbBurn/status"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerSubAccountDepositHist(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/depositHist", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount/depositHist"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerSubAccountSpotSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/spotSummary", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount/spotSummary"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerSubAccountMarginSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/marginSummary", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount/marginSummary"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerSubAccountFuturesSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/futuresSummary", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount/futuresSummary"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerRebateFuturesRecentRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/rebate/futures/recentRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/rebate/futures/recentRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerSubAccountApiIpRestriction(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/ipRestriction", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/ipRestriction"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetBrokerUniversalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/universalTransfer", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/universalTransfer"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAccountApiRestrictions(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/apiRestrictions", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/apiRestrictions"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetC2cOrderMatchListUserOrderHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "c2c/orderMatch/listUserOrderHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/orderMatch/listUserOrderHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetNftHistoryTransactions(self::Binance, params=Dict(), context=Dict())
-    return request(self, "nft/history/transactions", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "nft/history/transactions"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetNftHistoryDeposit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "nft/history/deposit", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "nft/history/deposit"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetNftHistoryWithdraw(self::Binance, params=Dict(), context=Dict())
-    return request(self, "nft/history/withdraw", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "nft/history/withdraw"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetNftUserGetAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "nft/user/getAsset", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "nft/user/getAsset"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPayTransactions(self::Binance, params=Dict(), context=Dict())
-    return request(self, "pay/transactions", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "pay/transactions"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetGiftcardVerify(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/verify", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "giftcard/verify"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetGiftcardCryptographyRsaPublicKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/cryptography/rsa-public-key", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "giftcard/cryptography/rsa-public-key"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetGiftcardBuyCodeTokenLimit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/buyCode/token-limit", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "giftcard/buyCode/token-limit"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAlgoSpotOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/spot/openOrders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/spot/openOrders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAlgoSpotHistoricalOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/spot/historicalOrders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/spot/historicalOrders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAlgoSpotSubOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/spot/subOrders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/spot/subOrders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAlgoFuturesOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/openOrders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/futures/openOrders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAlgoFuturesHistoricalOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/historicalOrders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/futures/historicalOrders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAlgoFuturesSubOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/subOrders", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/futures/subOrders"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/account", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/account"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioCollateralRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/collateralRate", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/collateralRate"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioPmLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/pmLoan", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/pmLoan"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioInterestHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/interest-history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/interest-history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioAssetIndexPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/asset-index-price", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/asset-index-price"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioRepayFuturesSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/repay-futures-switch", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/repay-futures-switch"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioMarginAssetLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/margin-asset-leverage", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/margin-asset-leverage"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/balance", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/balance"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioNegativeBalanceExchangeRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/negative-balance-exchange-record", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/negative-balance-exchange-record"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioPmloanHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/pmloan-history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/pmloan-history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioEarnAssetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/earn-asset-balance", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/earn-asset-balance"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetPortfolioDeltaMode(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/delta-mode", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/delta-mode"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetStakingProductList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/productList", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/productList"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetStakingPosition(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/position", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/position"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetStakingStakingRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/stakingRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/stakingRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetStakingPersonalLeftQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/personalLeftQuota", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/personalLeftQuota"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestTargetAssetList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/target-asset/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/target-asset/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestTargetAssetRoiList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/target-asset/roi/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/target-asset/roi/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestAllAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/all/asset", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/all/asset"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestSourceAssetList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/source-asset/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/source-asset/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestPlanList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/plan/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/plan/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestPlanId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/plan/id", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/plan/id"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestHistoryList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/history/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/history/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestIndexInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/index/info", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/index/info"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestIndexUserSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/index/user-summary", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/index/user-summary"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestOneOffStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/one-off/status", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/one-off/status"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestRedeemHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/redeem/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/redeem/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetLendingAutoInvestRebalanceHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/rebalance/history", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/rebalance/history"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnFlexibleList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnLockedList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnFlexiblePersonalLeftQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/personalLeftQuota", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/personalLeftQuota"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnLockedPersonalLeftQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/personalLeftQuota", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/personalLeftQuota"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnFlexibleSubscriptionPreview(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/subscriptionPreview", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/subscriptionPreview"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnLockedSubscriptionPreview(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/subscriptionPreview", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/subscriptionPreview"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnFlexibleHistoryRateHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/history/rateHistory", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/history/rateHistory"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnFlexiblePosition(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/position", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/position"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnLockedPosition(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/position", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/position"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/account", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/account"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnFlexibleHistorySubscriptionRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/history/subscriptionRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/history/subscriptionRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnLockedHistorySubscriptionRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/history/subscriptionRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/history/subscriptionRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnFlexibleHistoryRedemptionRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/history/redemptionRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/history/redemptionRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnLockedHistoryRedemptionRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/history/redemptionRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/history/redemptionRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnFlexibleHistoryRewardsRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/history/rewardsRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/history/rewardsRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnLockedHistoryRewardsRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/history/rewardsRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/history/rewardsRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetSimpleEarnFlexibleHistoryCollateralRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/history/collateralRecord", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/history/collateralRecord"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetDciProductList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "dci/product/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "dci/product/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetDciProductPositions(self::Binance, params=Dict(), context=Dict())
-    return request(self, "dci/product/positions", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "dci/product/positions"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetDciProductAccounts(self::Binance, params=Dict(), context=Dict())
-    return request(self, "dci/product/accounts", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "dci/product/accounts"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAccumulatorProductList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accumulator/product/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "accumulator/product/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAccumulatorProductPositionList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accumulator/product/position/list", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "accumulator/product/position/list"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiGetAccumulatorProductSumHolding(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accumulator/product/sum-holding", "sapi", "GET", params, nothing, nothing, Dict())
+    return request(self, "accumulator/product/sum-holding"; api="sapi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAssetDust(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/dust", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/dust"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAssetDustBtc(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/dust-btc", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/dust-btc"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAssetTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAssetGetFundingAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/get-funding-asset", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/get-funding-asset"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAssetConvertTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/convert-transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/convert-transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAccountDisableFastWithdrawSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/disableFastWithdrawSwitch", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/disableFastWithdrawSwitch"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAccountEnableFastWithdrawSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/enableFastWithdrawSwitch", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/enableFastWithdrawSwitch"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostCapitalWithdrawApply(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/apply", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "capital/withdraw/apply"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostCapitalContractConvertibleCoins(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/contract/convertible-coins", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "capital/contract/convertible-coins"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostCapitalDepositCreditApply(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/credit-apply", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/credit-apply"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginBorrowRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/borrow-repay", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/borrow-repay"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/loan", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/loan"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/repay", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/repay"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/order"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginOrderOco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order/oco", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/order/oco"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginDust(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/dust", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/dust"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginExchangeSmallLiability(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/exchange-small-liability", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/exchange-small-liability"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginIsolatedTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/isolated/transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginIsolatedAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/account", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/isolated/account"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMarginMaxLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/max-leverage", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/max-leverage"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBnbBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bnbBurn", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "bnbBurn"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSubAccountVirtualSubAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/virtualSubAccount", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/virtualSubAccount"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSubAccountMarginTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/margin/transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/margin/transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSubAccountMarginEnable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/margin/enable", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/margin/enable"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSubAccountFuturesEnable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/enable", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/futures/enable"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSubAccountFuturesTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/futures/transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSubAccountFuturesInternalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/internalTransfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/futures/internalTransfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSubAccountTransferSubToSub(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/transfer/subToSub", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/transfer/subToSub"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSubAccountTransferSubToMaster(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/transfer/subToMaster", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/transfer/subToMaster"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSubAccountUniversalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/universalTransfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/universalTransfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSubAccountOptionsEnable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/options/enable", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/options/enable"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostManagedSubaccountDeposit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/deposit", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/deposit"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostManagedSubaccountWithdraw(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/withdraw", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "managed-subaccount/withdraw"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "userDataStream"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostUserDataStreamIsolated(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream/isolated", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "userDataStream/isolated"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostUserListenToken(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userListenToken", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "userListenToken"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostFuturesTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "futures/transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLendingCustomizedFixedPurchase(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/customizedFixed/purchase", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "lending/customizedFixed/purchase"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLendingDailyPurchase(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/purchase", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "lending/daily/purchase"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLendingDailyRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/redeem", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "lending/daily/redeem"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBswapLiquidityAdd(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/liquidityAdd", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "bswap/liquidityAdd"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBswapLiquidityRemove(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/liquidityRemove", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "bswap/liquidityRemove"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBswapSwap(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/swap", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "bswap/swap"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBswapClaimRewards(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/claimRewards", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "bswap/claimRewards"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBlvtSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/subscribe", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "blvt/subscribe"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBlvtRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/redeem", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "blvt/redeem"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostApiReferralCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/customization", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/customization"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostApiReferralUserCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/userCustomization", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/userCustomization"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostApiReferralRebateHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/rebate/historicalRecord", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/rebate/historicalRecord"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostApiReferralKickbackHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/kickback/historicalRecord", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/kickback/historicalRecord"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountMargin(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/margin", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount/margin"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/futures", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount/futures"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountApi(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountApiPermission(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/permission", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/permission"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountApiCommission(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/commission", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/commission"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountApiCommissionFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/commission/futures", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/commission/futures"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountApiCommissionCoinFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/commission/coinFutures", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/commission/coinFutures"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerTransferFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/transfer/futures", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/transfer/futures"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerRebateHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/rebate/historicalRecord", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/rebate/historicalRecord"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountBnbBurnSpot(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/bnbBurn/spot", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount/bnbBurn/spot"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountBnbBurnMarginInterest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/bnbBurn/marginInterest", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount/bnbBurn/marginInterest"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountBlvt(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/blvt", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccount/blvt"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountApiIpRestriction(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/ipRestriction", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/ipRestriction"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountApiIpRestrictionIpList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/ipRestriction/ipList", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/ipRestriction/ipList"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerUniversalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/universalTransfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/universalTransfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountApiPermissionUniversalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/permission/universalTransfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/permission/universalTransfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostBrokerSubAccountApiPermissionVanillaOptions(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/permission/vanillaOptions", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/permission/vanillaOptions"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostGiftcardCreateCode(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/createCode", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "giftcard/createCode"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostGiftcardRedeemCode(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/redeemCode", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "giftcard/redeemCode"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostGiftcardBuyCode(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/buyCode", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "giftcard/buyCode"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAlgoSpotNewOrderTwap(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/spot/newOrderTwap", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo/spot/newOrderTwap"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAlgoFuturesNewOrderVp(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/newOrderVp", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo/futures/newOrderVp"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAlgoFuturesNewOrderTwap(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/newOrderTwap", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo/futures/newOrderTwap"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostStakingPurchase(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/purchase", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "staking/purchase"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostStakingRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/redeem", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "staking/redeem"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostStakingSetAutoStaking(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/setAutoStaking", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "staking/setAutoStaking"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostEthStakingEthStake(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/stake", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/eth/stake"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostEthStakingEthRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/redeem", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/eth/redeem"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostEthStakingWbethWrap(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/wbeth/wrap", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/wbeth/wrap"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSolStakingSolStake(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/stake", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sol-staking/sol/stake"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSolStakingSolRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/redeem", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "sol-staking/sol/redeem"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMiningHashTransferConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/hash-transfer/config", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "mining/hash-transfer/config"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostMiningHashTransferConfigCancel(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/hash-transfer/config/cancel", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "mining/hash-transfer/config/cancel"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostPortfolioRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/repay", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "portfolio/repay"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLoanVipRenew(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/renew", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/vip/renew"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLoanVipBorrow(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/borrow", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/vip/borrow"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLoanBorrow(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/borrow", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/borrow"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLoanRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/repay", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/repay"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLoanAdjustLtv(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/adjust/ltv", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/adjust/ltv"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLoanCustomizeMarginCall(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/customize/margin_call", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/customize/margin_call"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLoanFlexibleRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/repay", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/repay"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLoanFlexibleAdjustLtv(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/adjust/ltv", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/adjust/ltv"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLoanVipRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/repay", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/vip/repay"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostConvertGetQuote(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/getQuote", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "convert/getQuote"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostConvertAcceptQuote(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/acceptQuote", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "convert/acceptQuote"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostConvertLimitPlaceOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/limit/placeOrder", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "convert/limit/placeOrder"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostConvertLimitCancelOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/limit/cancelOrder", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "convert/limit/cancelOrder"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostPortfolioAutoCollection(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/auto-collection", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "portfolio/auto-collection"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostPortfolioAssetCollection(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/asset-collection", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "portfolio/asset-collection"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostPortfolioBnbTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/bnb-transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "portfolio/bnb-transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostPortfolioRepayFuturesSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/repay-futures-switch", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "portfolio/repay-futures-switch"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostPortfolioRepayFuturesNegativeBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/repay-futures-negative-balance", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "portfolio/repay-futures-negative-balance"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostPortfolioMint(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/mint", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "portfolio/mint"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostPortfolioRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/redeem", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "portfolio/redeem"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostPortfolioEarnAssetTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/earn-asset-transfer", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "portfolio/earn-asset-transfer"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostPortfolioDeltaMode(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/delta-mode", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "portfolio/delta-mode"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLendingAutoInvestPlanAdd(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/plan/add", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/plan/add"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLendingAutoInvestPlanEdit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/plan/edit", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/plan/edit"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLendingAutoInvestPlanEditStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/plan/edit-status", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/plan/edit-status"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLendingAutoInvestOneOff(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/one-off", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/one-off"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostLendingAutoInvestRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/redeem", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "lending/auto-invest/redeem"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSimpleEarnFlexibleSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/subscribe", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/subscribe"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSimpleEarnLockedSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/subscribe", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/subscribe"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSimpleEarnFlexibleRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/redeem", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/redeem"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSimpleEarnLockedRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/redeem", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/redeem"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSimpleEarnFlexibleSetAutoSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/setAutoSubscribe", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/flexible/setAutoSubscribe"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSimpleEarnLockedSetAutoSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/setAutoSubscribe", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/setAutoSubscribe"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostSimpleEarnLockedSetRedeemOption(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/setRedeemOption", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "simple-earn/locked/setRedeemOption"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostDciProductSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "dci/product/subscribe", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "dci/product/subscribe"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostDciProductAutoCompoundEdit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "dci/product/auto_compound/edit", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "dci/product/auto_compound/edit"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPostAccumulatorProductSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accumulator/product/subscribe", "sapi", "POST", params, nothing, nothing, Dict())
+    return request(self, "accumulator/product/subscribe"; api="sapi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPutUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "sapi", "PUT", params, nothing, nothing, Dict())
+    return request(self, "userDataStream"; api="sapi", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiPutUserDataStreamIsolated(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream/isolated", "sapi", "PUT", params, nothing, nothing, Dict())
+    return request(self, "userDataStream/isolated"; api="sapi", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteMarginOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/openOrders", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "margin/openOrders"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "margin/order"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteMarginOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/orderList", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "margin/orderList"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteMarginIsolatedAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/account", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "margin/isolated/account"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "userDataStream"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteUserDataStreamIsolated(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream/isolated", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "userDataStream/isolated"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteBrokerSubAccountApi(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteBrokerSubAccountApiIpRestrictionIpList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/ipRestriction/ipList", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "broker/subAccountApi/ipRestriction/ipList"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteAlgoSpotOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/spot/order", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algo/spot/order"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteAlgoFuturesOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/order", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algo/futures/order"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/subAccountApi/ipRestriction/ipList", "sapi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "sub-account/subAccountApi/ipRestriction/ipList"; api="sapi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetEthStakingAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/account", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/account"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetSubAccountFuturesAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/account", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/futures/account"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetSubAccountFuturesAccountSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/accountSummary", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/futures/accountSummary"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetSubAccountFuturesPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/positionRisk", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/futures/positionRisk"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetLoanFlexibleOngoingOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/ongoing/orders", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/ongoing/orders"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetLoanFlexibleBorrowHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/borrow/history", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/borrow/history"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetLoanFlexibleRepayHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/repay/history", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/repay/history"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetLoanFlexibleLtvAdjustmentHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/ltv/adjustment/history", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/ltv/adjustment/history"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetLoanFlexibleLoanableData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/loanable/data", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/loanable/data"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetLoanFlexibleCollateralData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/collateral/data", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/collateral/data"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2GetPortfolioAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/account", "sapiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/account"; api="sapiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2PostEthStakingEthStake(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/stake", "sapiV2", "POST", params, nothing, nothing, Dict())
+    return request(self, "eth-staking/eth/stake"; api="sapiV2", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2PostSubAccountSubAccountApiIpRestriction(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/subAccountApi/ipRestriction", "sapiV2", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-account/subAccountApi/ipRestriction"; api="sapiV2", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2PostLoanFlexibleBorrow(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/borrow", "sapiV2", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/borrow"; api="sapiV2", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2PostLoanFlexibleRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/repay", "sapiV2", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/repay"; api="sapiV2", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV2PostLoanFlexibleAdjustLtv(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/adjust/ltv", "sapiV2", "POST", params, nothing, nothing, Dict())
+    return request(self, "loan/flexible/adjust/ltv"; api="sapiV2", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV3GetSubAccountAssets(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/assets", "sapiV3", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/assets"; api="sapiV3", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV3PostAssetGetUserAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/getUserAsset", "sapiV3", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset/getUserAsset"; api="sapiV3", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function sapiV4GetSubAccountAssets(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/assets", "sapiV4", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-account/assets"; api="sapiV4", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetPing(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ping", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetTime(self::Binance, params=Dict(), context=Dict())
-    return request(self, "time", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchangeInfo"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetDepth(self::Binance, params=Dict(), context=Dict())
-    return request(self, "depth", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trades", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetHistoricalTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalTrades"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetAggTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "aggTrades", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "aggTrades"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetPremiumIndex(self::Binance, params=Dict(), context=Dict())
-    return request(self, "premiumIndex", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "premiumIndex"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetFundingRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fundingRate", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "fundingRate"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "klines", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "klines"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetContinuousKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "continuousKlines", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "continuousKlines"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetIndexPriceKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "indexPriceKlines", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "indexPriceKlines"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetMarkPriceKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "markPriceKlines", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "markPriceKlines"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetPremiumIndexKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "premiumIndexKlines", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "premiumIndexKlines"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetTicker24hr(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/24hr"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetTickerPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetTickerBookTicker(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/bookTicker", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/bookTicker"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetConstituents(self::Binance, params=Dict(), context=Dict())
-    return request(self, "constituents", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "constituents"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetOpenInterest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openInterest", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "openInterest"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPublicGetFundingInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fundingInfo", "dapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "fundingInfo"; api="dapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiDataGetDeliveryPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "delivery-price", "dapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "delivery-price"; api="dapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiDataGetOpenInterestHist(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openInterestHist", "dapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "openInterestHist"; api="dapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiDataGetTopLongShortAccountRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "topLongShortAccountRatio", "dapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "topLongShortAccountRatio"; api="dapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiDataGetTopLongShortPositionRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "topLongShortPositionRatio", "dapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "topLongShortPositionRatio"; api="dapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiDataGetGlobalLongShortAccountRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "globalLongShortAccountRatio", "dapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "globalLongShortAccountRatio"; api="dapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiDataGetTakerBuySellVol(self::Binance, params=Dict(), context=Dict())
-    return request(self, "takerBuySellVol", "dapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "takerBuySellVol"; api="dapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiDataGetBasis(self::Binance, params=Dict(), context=Dict())
-    return request(self, "basis", "dapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "basis"; api="dapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionSide/dual", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "positionSide/dual"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetOrderAmendment(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderAmendment", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderAmendment"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrder", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrder"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetOpenAlgoOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openAlgoOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "openAlgoOrders"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "allOrders"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "balance", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetPositionMarginHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionMargin/history", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "positionMargin/history"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionRisk", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "positionRisk"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userTrades", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "userTrades"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetIncome(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "income"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "leverageBracket", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "leverageBracket"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetForceOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "forceOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "forceOrders"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetAdlQuantile(self::Binance, params=Dict(), context=Dict())
-    return request(self, "adlQuantile", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "adlQuantile"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetCommissionRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "commissionRate", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "commissionRate"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetIncomeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "income/asyn"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetIncomeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn/id", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "income/asyn/id"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetTradeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trade/asyn", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/asyn"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetTradeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trade/asyn/id", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/asyn/id"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetOrderAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/asyn", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/asyn"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetOrderAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/asyn/id", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/asyn/id"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetPmExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "pmExchangeInfo", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "pmExchangeInfo"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateGetPmAccountInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "pmAccountInfo", "dapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "pmAccountInfo"; api="dapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePostPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionSide/dual", "dapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "positionSide/dual"; api="dapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePostOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "dapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="dapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePostAlgoOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOrder", "dapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "algoOrder"; api="dapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePostBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "dapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "batchOrders"; api="dapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePostCountdownCancelAll(self::Binance, params=Dict(), context=Dict())
-    return request(self, "countdownCancelAll", "dapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "countdownCancelAll"; api="dapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePostLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "leverage", "dapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "leverage"; api="dapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePostMarginType(self::Binance, params=Dict(), context=Dict())
-    return request(self, "marginType", "dapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "marginType"; api="dapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePostPositionMargin(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionMargin", "dapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "positionMargin"; api="dapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePostListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "dapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="dapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePutListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "dapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="dapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePutOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "dapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "order"; api="dapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivatePutBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "dapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "batchOrders"; api="dapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateDeleteOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "dapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api="dapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateDeleteAlgoOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOrder", "dapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algoOrder"; api="dapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateDeleteAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOpenOrders", "dapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "allOpenOrders"; api="dapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateDeleteBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "dapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "batchOrders"; api="dapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateDeleteListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "dapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="dapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function dapiPrivateV2GetLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "leverageBracket", "dapiPrivateV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "leverageBracket"; api="dapiPrivateV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetPing(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ping", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetTime(self::Binance, params=Dict(), context=Dict())
-    return request(self, "time", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchangeInfo"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetDepth(self::Binance, params=Dict(), context=Dict())
-    return request(self, "depth", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetRpiDepth(self::Binance, params=Dict(), context=Dict())
-    return request(self, "rpiDepth", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "rpiDepth"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trades", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetHistoricalTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalTrades"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetAggTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "aggTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "aggTrades"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "klines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "klines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetContinuousKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "continuousKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "continuousKlines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetMarkPriceKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "markPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "markPriceKlines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetIndexPriceKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "indexPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "indexPriceKlines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetPremiumIndexKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "premiumIndexKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "premiumIndexKlines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetFundingRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fundingRate", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "fundingRate"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetFundingInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fundingInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "fundingInfo"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetPremiumIndex(self::Binance, params=Dict(), context=Dict())
-    return request(self, "premiumIndex", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "premiumIndex"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetTicker24hr(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/24hr"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetTickerPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetTickerBookTicker(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/bookTicker", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/bookTicker"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetOpenInterest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openInterest", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "openInterest"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetIndexInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "indexInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "indexInfo"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetAssetIndex(self::Binance, params=Dict(), context=Dict())
-    return request(self, "assetIndex", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "assetIndex"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetConstituents(self::Binance, params=Dict(), context=Dict())
-    return request(self, "constituents", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "constituents"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetApiTradingStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiTradingStatus", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiTradingStatus"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetLvtKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lvtKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "lvtKlines"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetConvertExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/exchangeInfo"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetInsuranceBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "insuranceBalance", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "insuranceBalance"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetSymbolAdlRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "symbolAdlRisk", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "symbolAdlRisk"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicGetTradingSchedule(self::Binance, params=Dict(), context=Dict())
-    return request(self, "tradingSchedule", "fapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingSchedule"; api="fapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiDataGetDeliveryPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "delivery-price", "fapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "delivery-price"; api="fapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiDataGetOpenInterestHist(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openInterestHist", "fapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "openInterestHist"; api="fapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiDataGetTopLongShortAccountRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "topLongShortAccountRatio", "fapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "topLongShortAccountRatio"; api="fapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiDataGetTopLongShortPositionRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "topLongShortPositionRatio", "fapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "topLongShortPositionRatio"; api="fapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiDataGetGlobalLongShortAccountRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "globalLongShortAccountRatio", "fapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "globalLongShortAccountRatio"; api="fapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiDataGetTakerlongshortRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "takerlongshortRatio", "fapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "takerlongshortRatio"; api="fapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiDataGetBasis(self::Binance, params=Dict(), context=Dict())
-    return request(self, "basis", "fapiData", "GET", params, nothing, nothing, Dict())
+    return request(self, "basis"; api="fapiData", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetForceOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "forceOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "forceOrders"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "allOrders"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrder"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "balance", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "leverageBracket", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "leverageBracket"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetPositionMarginHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionMargin/history", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "positionMargin/history"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionRisk", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "positionRisk"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionSide/dual", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "positionSide/dual"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userTrades", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "userTrades"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetIncome(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "income"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetCommissionRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "commissionRate", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "commissionRate"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetRateLimitOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "rateLimit/order", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "rateLimit/order"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetApiTradingStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiTradingStatus", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiTradingStatus"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetMultiAssetsMargin(self::Binance, params=Dict(), context=Dict())
-    return request(self, "multiAssetsMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "multiAssetsMargin"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetApiReferralIfNewUser(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/ifNewUser", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/ifNewUser"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetApiReferralCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/customization", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/customization"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetApiReferralUserCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/userCustomization", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/userCustomization"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetApiReferralTraderNum(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/traderNum", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/traderNum"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetApiReferralOverview(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/overview", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/overview"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetApiReferralTradeVol(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/tradeVol", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/tradeVol"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetApiReferralRebateVol(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/rebateVol", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/rebateVol"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetApiReferralTraderSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/traderSummary", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/traderSummary"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetAdlQuantile(self::Binance, params=Dict(), context=Dict())
-    return request(self, "adlQuantile", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "adlQuantile"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetPmAccountInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "pmAccountInfo", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "pmAccountInfo"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetOrderAmendment(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderAmendment", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderAmendment"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetIncomeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "income/asyn"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetIncomeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn/id", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "income/asyn/id"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetOrderAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/asyn", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/asyn"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetOrderAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/asyn/id", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/asyn/id"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetTradeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trade/asyn", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/asyn"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetTradeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trade/asyn/id", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/asyn/id"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetFeeBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "feeBurn", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "feeBurn"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetSymbolConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "symbolConfig", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "symbolConfig"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetAccountConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accountConfig", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "accountConfig"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetConvertOrderStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/orderStatus", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "convert/orderStatus"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetAlgoOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "algoOrder"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetOpenAlgoOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openAlgoOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "openAlgoOrders"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetAllAlgoOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allAlgoOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "allAlgoOrders"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateGetStockContract(self::Binance, params=Dict(), context=Dict())
-    return request(self, "stock/contract", "fapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "stock/contract"; api="fapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "batchOrders"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionSide/dual", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "positionSide/dual"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostPositionMargin(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "positionMargin"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostMarginType(self::Binance, params=Dict(), context=Dict())
-    return request(self, "marginType", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "marginType"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostOrderTest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/test", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/test"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "leverage", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "leverage"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostCountdownCancelAll(self::Binance, params=Dict(), context=Dict())
-    return request(self, "countdownCancelAll", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "countdownCancelAll"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostMultiAssetsMargin(self::Binance, params=Dict(), context=Dict())
-    return request(self, "multiAssetsMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "multiAssetsMargin"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostApiReferralCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/customization", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/customization"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostApiReferralUserCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/userCustomization", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "apiReferral/userCustomization"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostFeeBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "feeBurn", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "feeBurn"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostConvertGetQuote(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/getQuote", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "convert/getQuote"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostConvertAcceptQuote(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/acceptQuote", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "convert/acceptQuote"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePostAlgoOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOrder", "fapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "algoOrder"; api="fapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePutListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "fapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="fapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePutOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "fapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "order"; api="fapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivatePutBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "fapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "batchOrders"; api="fapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "batchOrders"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "allOpenOrders"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteAlgoOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOrder", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algoOrder"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateDeleteAlgoOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algoOpenOrders"; api="fapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPublicV2GetTickerPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "fapiPublicV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api="fapiPublicV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateV2GetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "fapiPrivateV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="fapiPrivateV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateV2GetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "balance", "fapiPrivateV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api="fapiPrivateV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateV2GetPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionRisk", "fapiPrivateV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "positionRisk"; api="fapiPrivateV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateV3GetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "fapiPrivateV3", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="fapiPrivateV3", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateV3GetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "balance", "fapiPrivateV3", "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api="fapiPrivateV3", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function fapiPrivateV3GetPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionRisk", "fapiPrivateV3", "GET", params, nothing, nothing, Dict())
+    return request(self, "positionRisk"; api="fapiPrivateV3", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetPing(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ping", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetTime(self::Binance, params=Dict(), context=Dict())
-    return request(self, "time", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchangeInfo"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetIndex(self::Binance, params=Dict(), context=Dict())
-    return request(self, "index", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "index"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetTicker(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetMark(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mark", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "mark"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetDepth(self::Binance, params=Dict(), context=Dict())
-    return request(self, "depth", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "klines", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "klines"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trades", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetHistoricalTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalTrades"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetExerciseHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exerciseHistory", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "exerciseHistory"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPublicGetOpenInterest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openInterest", "eapiPublic", "GET", params, nothing, nothing, Dict())
+    return request(self, "openInterest"; api="eapiPublic", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetPosition(self::Binance, params=Dict(), context=Dict())
-    return request(self, "position", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "position"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrders", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetHistoryOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "historyOrders", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "historyOrders"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userTrades", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "userTrades"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetExerciseRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exerciseRecord", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "exerciseRecord"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetBill(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bill", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "bill"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetIncomeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "income/asyn"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetIncomeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn/id", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "income/asyn/id"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetMarginAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "marginAccount", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "marginAccount"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetMmp(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mmp", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "mmp"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetCountdownCancelAll(self::Binance, params=Dict(), context=Dict())
-    return request(self, "countdownCancelAll", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "countdownCancelAll"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetBlockOrderOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/orders", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "block/order/orders"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetBlockOrderExecute(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/execute", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "block/order/execute"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetBlockUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/user-trades", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "block/user-trades"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetBlockTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blockTrades", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "blockTrades"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateGetComission(self::Binance, params=Dict(), context=Dict())
-    return request(self, "comission", "eapiPrivate", "GET", params, nothing, nothing, Dict())
+    return request(self, "comission"; api="eapiPrivate", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePostOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "eapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="eapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePostBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "eapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "batchOrders"; api="eapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePostListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "eapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="eapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePostMmpSet(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mmpSet", "eapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "mmpSet"; api="eapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePostMmpReset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mmpReset", "eapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "mmpReset"; api="eapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePostCountdownCancelAll(self::Binance, params=Dict(), context=Dict())
-    return request(self, "countdownCancelAll", "eapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "countdownCancelAll"; api="eapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePostCountdownCancelAllHeartBeat(self::Binance, params=Dict(), context=Dict())
-    return request(self, "countdownCancelAllHeartBeat", "eapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "countdownCancelAllHeartBeat"; api="eapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePostBlockOrderCreate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/create", "eapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "block/order/create"; api="eapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePostBlockOrderExecute(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/execute", "eapiPrivate", "POST", params, nothing, nothing, Dict())
+    return request(self, "block/order/execute"; api="eapiPrivate", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePutListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "eapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="eapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivatePutBlockOrderCreate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/create", "eapiPrivate", "PUT", params, nothing, nothing, Dict())
+    return request(self, "block/order/create"; api="eapiPrivate", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateDeleteOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api="eapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateDeleteBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "batchOrders"; api="eapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateDeleteAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOpenOrders", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "allOpenOrders"; api="eapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateDeleteAllOpenOrdersByUnderlying(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOpenOrdersByUnderlying", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "allOpenOrdersByUnderlying"; api="eapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateDeleteListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="eapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function eapiPrivateDeleteBlockOrderCreate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/create", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "block/order/create"; api="eapiPrivate", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetPing(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ping", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTime(self::Binance, params=Dict(), context=Dict())
-    return request(self, "time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDepth(self::Binance, params=Dict(), context=Dict())
-    return request(self, "depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAggTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "aggTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "aggTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetHistoricalTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "klines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "klines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUiKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "uiKlines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "uiKlines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker24hr(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/24hr"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerTradingDay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/tradingDay", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/tradingDay"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerBookTicker(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/bookTicker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "exchangeInfo"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAvgPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "avgPrice", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "avgPrice"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPutUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "public", "PUT", params, nothing, nothing, Dict())
+    return request(self, "userDataStream"; api="public", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicPostUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "public", "POST", params, nothing, nothing, Dict())
+    return request(self, "userDataStream"; api="public", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicDeleteUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "public", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "userDataStream"; api="public", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAllOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOrderList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "allOrderList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrderList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrderList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderList"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "allOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMyTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "myTrades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "myTrades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRateLimitOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "rateLimit/order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "rateLimit/order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMyPreventedMatches(self::Binance, params=Dict(), context=Dict())
-    return request(self, "myPreventedMatches", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "myPreventedMatches"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMyAllocations(self::Binance, params=Dict(), context=Dict())
-    return request(self, "myAllocations", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "myAllocations"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountCommission(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/commission", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/commission"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/oco", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/oco"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderListOco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList/oco", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orderList/oco"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderListOto(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList/oto", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orderList/oto"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderListOtoco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList/otoco", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orderList/otoco"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderListOpo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList/opo", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orderList/opo"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderListOpoco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList/opoco", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orderList/opoco"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSorOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sor/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sor/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSorOrderTest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sor/order/test", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sor/order/test"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderCancelReplace(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/cancelReplace", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancelReplace"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderTest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/test", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/test"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "openOrders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orderList"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetPing(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ping", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/order"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/openOrder", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/openOrder"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/openOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/openOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/allOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/allOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/order", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/order"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/openOrder", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/openOrder"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/openOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/openOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/allOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/allOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmConditionalOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/openOrder", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/conditional/openOrder"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmConditionalOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/openOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/conditional/openOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmConditionalOrderHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/orderHistory", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/conditional/orderHistory"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmConditionalAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/allOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/conditional/allOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmConditionalOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/openOrder", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/conditional/openOrder"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmConditionalOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/openOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/conditional/openOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmConditionalOrderHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/orderHistory", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/conditional/orderHistory"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmConditionalAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/allOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/conditional/allOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/order"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/openOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/openOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/allOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/orderList", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/orderList"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginAllOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allOrderList", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/allOrderList"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginOpenOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/openOrderList", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/openOrderList"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginMyTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/myTrades", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/myTrades"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "balance", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginMaxBorrowable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/maxBorrowable", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/maxBorrowable"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginMaxWithdraw(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/maxWithdraw", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/maxWithdraw"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/positionRisk", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/positionRisk"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/positionRisk", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/positionRisk"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/positionSide/dual", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/positionSide/dual"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/positionSide/dual", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/positionSide/dual"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/userTrades", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/userTrades"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/userTrades", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/userTrades"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/leverageBracket", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/leverageBracket"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/leverageBracket", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/leverageBracket"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginForceOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/forceOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/forceOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmForceOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/forceOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/forceOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmForceOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/forceOrders", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/forceOrders"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmApiTradingStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/apiTradingStatus", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/apiTradingStatus"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmCommissionRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/commissionRate", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/commissionRate"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmCommissionRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/commissionRate", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/commissionRate"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginMarginLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/marginLoan", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/marginLoan"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginRepayLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/repayLoan", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/repayLoan"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetMarginMarginInterestHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/marginInterestHistory", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/marginInterestHistory"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetPortfolioInterestHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/interest-history", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "portfolio/interest-history"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmIncome(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/income", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/income"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmIncome(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/income", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/income"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/account", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/account"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/account", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/account"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetRepayFuturesSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "repay-futures-switch", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "repay-futures-switch"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmAdlQuantile(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/adlQuantile", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/adlQuantile"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmAdlQuantile(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/adlQuantile", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/adlQuantile"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmTradeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/trade/asyn", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/trade/asyn"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmTradeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/trade/asyn/id", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/trade/asyn/id"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmOrderAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order/asyn", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/order/asyn"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmOrderAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order/asyn/id", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/order/asyn/id"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmIncomeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/income/asyn", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/income/asyn"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmIncomeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/income/asyn/id", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/income/asyn/id"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmOrderAmendment(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/orderAmendment", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/orderAmendment"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmOrderAmendment(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/orderAmendment", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/orderAmendment"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmFeeBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/feeBurn", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/feeBurn"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmAccountConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/accountConfig", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/accountConfig"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetUmSymbolConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/symbolConfig", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/symbolConfig"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmAccountConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/accountConfig", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/accountConfig"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetCmSymbolConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/symbolConfig", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "cm/symbolConfig"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiGetRateLimitOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "rateLimit/order", "papi", "GET", params, nothing, nothing, Dict())
+    return request(self, "rateLimit/order"; api="papi", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostUmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "um/order"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostUmConditionalOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/order", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "um/conditional/order"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostCmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/order", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "cm/order"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostCmConditionalOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/order", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "cm/conditional/order"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/order"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostMarginLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "marginLoan", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "marginLoan"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostRepayLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "repayLoan", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "repayLoan"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostMarginOrderOco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order/oco", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/order/oco"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostUmLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/leverage", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "um/leverage"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostCmLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/leverage", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "cm/leverage"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostUmPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/positionSide/dual", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "um/positionSide/dual"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostCmPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/positionSide/dual", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "cm/positionSide/dual"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostAutoCollection(self::Binance, params=Dict(), context=Dict())
-    return request(self, "auto-collection", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "auto-collection"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostBnbTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bnb-transfer", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "bnb-transfer"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostRepayFuturesSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "repay-futures-switch", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "repay-futures-switch"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostRepayFuturesNegativeBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "repay-futures-negative-balance", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "repay-futures-negative-balance"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostAssetCollection(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset-collection", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "asset-collection"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostMarginRepayDebt(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/repay-debt", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/repay-debt"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostUmFeeBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/feeBurn", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "um/feeBurn"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPostUmStockContract(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/stock/contract", "papi", "POST", params, nothing, nothing, Dict())
+    return request(self, "um/stock/contract"; api="papi", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPutListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "papi", "PUT", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="papi", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPutUmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order", "papi", "PUT", params, nothing, nothing, Dict())
+    return request(self, "um/order"; api="papi", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiPutCmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/order", "papi", "PUT", params, nothing, nothing, Dict())
+    return request(self, "cm/order"; api="papi", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteUmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "um/order"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteUmConditionalOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/order", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "um/conditional/order"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteUmAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "um/allOpenOrders"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteUmConditionalAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "um/conditional/allOpenOrders"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteCmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/order", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "cm/order"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteCmConditionalOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/order", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "cm/conditional/order"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteCmAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "cm/allOpenOrders"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteCmConditionalAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "cm/conditional/allOpenOrders"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "margin/order"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteMarginAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "margin/allOpenOrders"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteMarginOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/orderList", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "margin/orderList"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiDeleteListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "papi", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "listenKey"; api="papi", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function papiV2GetUmAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/account", "papiV2", "GET", params, nothing, nothing, Dict())
+    return request(self, "um/account"; api="papiV2", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Binance(; kwargs...)
@@ -14845,3 +16401,1858 @@ function Binance(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Binance_enableDemoTrading() end
+"""
+enables or disables demo trading mode
+see: https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+see: https://demo.binance.com/en/my/settings/api-management
+
+# Arguments
+- `enable`::bool, optional: true if demo trading should be enabled, false otherwise
+"""
+__ccxt_doc_Binance_enableDemoTrading
+
+function __ccxt_doc_Binance_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#check-server-time          // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Check-Server-time    // future
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Binance_fetchTime
+
+function __ccxt_doc_Binance_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://developers.binance.com/docs/wallet/capital/all-coins-info
+see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Binance_fetchCurrencies
+
+function __ccxt_doc_Binance_fetchMarkets() end
+"""
+retrieves data on all markets for binance
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
+see: https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
+see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
+see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Binance_fetchMarkets
+
+function __ccxt_doc_Binance_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data  // spot
+see: https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
+see: https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
+see: https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     // funding
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance      // future
+see: https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           // option
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+- `params.symbols`::any, optional: unified market symbols, only used in isolated margin mode
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the balance for a portfolio margin account
+- `params.subType`::string, optional: 'linear' or 'inverse'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Binance_fetchBalance
+
+function __ccxt_doc_Binance_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     // swap
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI // swap rpi
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     // future
+see: https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                             // option
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.rpi`::bool, optional: *future only* set to true to use the RPI endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Binance_fetchOrderBook
+
+function __ccxt_doc_Binance_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://developers.binance.com/docs/wallet/others/system-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Binance_fetchStatus
+
+function __ccxt_doc_Binance_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics     // spot
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#rolling-window-price-change-statistics  // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
+see: https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.rolling`::bool, optional: (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Binance_fetchTicker
+
+function __ccxt_doc_Binance_fetchBidsAsks() end
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
+see: https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Binance_fetchBidsAsks
+
+function __ccxt_doc_Binance_fetchLastPrices() end
+"""
+fetches the last price for multiple markets
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker    // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // future
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the last prices
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of lastprices structures
+"""
+__ccxt_doc_Binance_fetchLastPrices
+
+function __ccxt_doc_Binance_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    // spot
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // future
+see: https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.type`::string, optional: 'spot', 'option', use params["subType"] for swap and future markets
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Binance_fetchTickers
+
+function __ccxt_doc_Binance_fetchMarkPrice() end
+"""
+fetches mark price for the market
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+see: https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Binance_fetchMarkPrice
+
+function __ccxt_doc_Binance_fetchMarkPrices() end
+"""
+fetches mark prices for multiple markets
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+see: https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Binance_fetchMarkPrices
+
+function __ccxt_doc_Binance_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
+see: https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Binance_fetchOHLCV
+
+function __ccxt_doc_Binance_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol Default fetchTradesMethod Other fetchTradesMethod
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
+see: https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
+see: https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+- `limit`::int, optional: default 500, max 1000
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+- `params.fetchTradesMethod`::int, optional: 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) EXCHANGE SPECIFIC PARAMETERS
+- `params.fromId`::int, optional: trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Binance_fetchTrades
+
+function __ccxt_doc_Binance_editSpotOrder() end
+"""
+edit a trade order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_editSpotOrder
+
+function __ccxt_doc_Binance_editContractOrder() end
+"""
+edit a trade order
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to edit an order in a portfolio margin account
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_editContractOrder
+
+function __ccxt_doc_Binance_editOrder() end
+"""
+edit a trade order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_editOrder
+
+function __ccxt_doc_Binance_editOrders() end
+"""
+edit a list of trade orders
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Multiple-Orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_editOrders
+
+function __ccxt_doc_Binance_createOrders() end
+"""
+*contract only* create a list of trade orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_createOrders
+
+function __ccxt_doc_Binance_createOrder() end
+"""
+create a trade order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+see: https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api
+see: https://developers.binance.com/docs/derivatives/option/trade/New-Order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
+see: https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of you want to trade in units of the base currency
+- `price`::float, optional: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.reduceOnly`::string, optional: for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.sor`::bool, optional: *spot only* whether to use SOR (Smart Order Routing) or not, default is false
+- `params.test`::bool, optional: *spot only* whether to use the test endpoint or not, default is false
+- `params.trailingPercent`::float, optional: the percent to trail away from the current market price
+- `params.trailingTriggerPrice`::float, optional: the price to trigger a trailing order, default uses the price argument
+- `params.triggerPrice`::float, optional: the price that a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at
+- `params.portfolioMargin`::bool, optional: set to true if you would like to create an order in a portfolio margin account
+- `params.selfTradePrevention`::string, optional: set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+- `params.icebergAmount`::float, optional: set iceberg amount for limit orders
+- `params.stopLossOrTakeProfit`::string, optional: 'stopLoss' or 'takeProfit', required for spot trailing orders
+- `params.positionSide`::string, optional: *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+- `params.hedged`::bool, optional: *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+- `params.clientOrderId`::string, optional: the clientOrderId of the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_createOrder
+
+function __ccxt_doc_Binance_createMarketOrderWithCost() end
+"""
+create a market order by providing the symbol, side and cost
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_createMarketOrderWithCost
+
+function __ccxt_doc_Binance_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Binance_createMarketSellOrderWithCost() end
+"""
+create a market sell order by providing the symbol and cost
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_createMarketSellOrderWithCost
+
+function __ccxt_doc_Binance_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch an order in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch a trigger or conditional order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_fetchOrder
+
+function __ccxt_doc_Binance_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch orders in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_fetchOrders
+
+function __ccxt_doc_Binance_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch open orders in the portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account conditional orders
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_fetchOpenOrders
+
+function __ccxt_doc_Binance_fetchOpenOrder() end
+"""
+fetch an open order by the id
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::string, optional: set to true if you would like to fetch portfolio margin account stop or conditional orders
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch for a portfolio margin account
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_fetchOpenOrder
+
+function __ccxt_doc_Binance_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch orders in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_fetchClosedOrders
+
+function __ccxt_doc_Binance_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch orders in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_fetchCanceledOrders
+
+function __ccxt_doc_Binance_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch orders in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to fetch portfolio margin account trigger or conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Binance_cancelOrder() end
+"""
+cancels an open order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
+see: https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
+see: https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to cancel an order in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to cancel a portfolio margin account conditional order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_cancelOrder
+
+function __ccxt_doc_Binance_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+see: https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
+see: https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for spot margin trading
+- `params.portfolioMargin`::bool, optional: set to true if you would like to cancel orders in a portfolio margin account
+- `params.trigger`::bool, optional: set to true if you would like to cancel portfolio margin account conditional orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_cancelAllOrders
+
+function __ccxt_doc_Binance_cancelOrders() end
+"""
+cancel multiple orders
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Multiple-Orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: alternative to ids, array of client order ids EXCHANGE SPECIFIC PARAMETERS
+- `params.origClientOrderIdList`::array, optional: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+- `params.recvWindow`::array, optional:
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Binance_cancelOrders
+
+function __ccxt_doc_Binance_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Binance_fetchOrderTrades
+
+function __ccxt_doc_Binance_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
+see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+see: https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch trades for a portfolio margin account
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Binance_fetchMyTrades
+
+function __ccxt_doc_Binance_fetchMyDustTrades() end
+"""
+fetch all dust trades made by the user
+see: https://developers.binance.com/docs/wallet/asset/dust-log
+
+# Arguments
+- `symbol`::string: not used by fetchMyDustTrades ()
+- `since`::int, optional: the earliest time in ms to fetch my dust trades for
+- `limit`::int, optional: the maximum number of dust trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'margin', default spot
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Binance_fetchMyDustTrades
+
+function __ccxt_doc_Binance_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://developers.binance.com/docs/wallet/capital/deposite-history
+see: https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fiat`::bool, optional: if true, only fiat deposits will be returned
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Binance_fetchDeposits
+
+function __ccxt_doc_Binance_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://developers.binance.com/docs/wallet/capital/withdraw-history
+see: https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fiat`::bool, optional: if true, only fiat withdrawals will be returned
+- `params.until`::int, optional: the latest time in ms to fetch withdrawals for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Binance_fetchWithdrawals
+
+function __ccxt_doc_Binance_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://developers.binance.com/docs/wallet/asset/user-universal-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: exchange specific transfer type
+- `params.symbol`::string, optional: the unified symbol, required for isolated margin transfers
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Binance_transfer
+
+function __ccxt_doc_Binance_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.internal`::bool, optional: default false, when true will fetch pay trade history
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Binance_fetchTransfers
+
+function __ccxt_doc_Binance_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://developers.binance.com/docs/wallet/capital/deposite-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: network for fetch deposit address
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Binance_fetchDepositAddress
+
+function __ccxt_doc_Binance_fetchTransactionFees() end
+"""
+please use fetchDepositWithdrawFees instead
+see: https://developers.binance.com/docs/wallet/capital/all-coins-info
+
+# Arguments
+- `codes`::any: not used by fetchTransactionFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Binance_fetchTransactionFees
+
+function __ccxt_doc_Binance_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://developers.binance.com/docs/wallet/capital/all-coins-info
+
+# Arguments
+- `codes`::any: not used by fetchDepositWithdrawFees ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Binance_fetchDepositWithdrawFees
+
+function __ccxt_doc_Binance_withdraw() end
+"""
+make a withdrawal
+see: https://developers.binance.com/docs/wallet/capital/withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Binance_withdraw
+
+function __ccxt_doc_Binance_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://developers.binance.com/docs/wallet/asset/trade-fee
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/User-Commission-Rate
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch trading fees in a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Binance_fetchTradingFee
+
+function __ccxt_doc_Binance_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://developers.binance.com/docs/wallet/asset/trade-fee
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Binance_fetchTradingFees
+
+function __ccxt_doc_Binance_futuresTransfer() end
+"""
+transfer between futures account
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to transfer
+- `type`::string: 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.recvWindow`::float:
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
+"""
+__ccxt_doc_Binance_futuresTransfer
+
+function __ccxt_doc_Binance_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Binance_fetchFundingRate
+
+function __ccxt_doc_Binance_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Rate-History-of-Perpetual-Futures
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Binance_fetchFundingRateHistory
+
+function __ccxt_doc_Binance_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Binance_fetchFundingRates
+
+function __ccxt_doc_Binance_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the leverage tiers for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Binance_fetchLeverageTiers
+
+function __ccxt_doc_Binance_fetchPosition() end
+"""
+fetch data on an open position
+see: https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Binance_fetchPosition
+
+function __ccxt_doc_Binance_fetchOptionPositions() end
+"""
+fetch data on open options positions
+see: https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Binance_fetchOptionPositions
+
+function __ccxt_doc_Binance_fetchPositions() end
+"""
+fetch all open positions
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
+see: https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+- `params.useV2`::bool, optional: set to true if you want to use the obsolete endpoint, where some more additional fields were provided
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Binance_fetchPositions
+
+function __ccxt_doc_Binance_fetchAccountPositions() end
+"""
+fetch account positions
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch positions in a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.filterClosed`::bool, optional: set to true if you would like to filter out closed positions, default is false
+- `params.useV2`::bool, optional: set to true if you want to use obsolete endpoint, where some more additional fields were provided
+
+# Returns
+- data on account positions
+"""
+__ccxt_doc_Binance_fetchAccountPositions
+
+function __ccxt_doc_Binance_fetchPositionsRisk() end
+"""
+fetch positions risk
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch positions for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+- `params.useV2`::bool, optional: set to true if you want to use the obsolete endpoint, where some more additional fields were provided
+
+# Returns
+- data on the positions risk
+"""
+__ccxt_doc_Binance_fetchPositionsRisk
+
+function __ccxt_doc_Binance_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding history entry
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the funding history for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Binance_fetchFundingHistory
+
+function __ccxt_doc_Binance_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Initial-Leverage
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to set the leverage for a trading pair in a portfolio margin account
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Binance_setLeverage
+
+function __ccxt_doc_Binance_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Margin-Type
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Binance_setMarginMode
+
+function __ccxt_doc_Binance_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to set the position mode for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Binance_setPositionMode
+
+function __ccxt_doc_Binance_fetchLeverages() end
+"""
+fetch the set leverage for all markets
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Binance_fetchLeverages
+
+function __ccxt_doc_Binance_fetchSettlementHistory() end
+"""
+fetches historical settlement records
+see: https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records, default 100, max 100
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+__ccxt_doc_Binance_fetchSettlementHistory
+
+function __ccxt_doc_Binance_fetchMySettlementHistory() end
+"""
+fetches historical settlement records of the user
+see: https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]
+"""
+__ccxt_doc_Binance_fetchMySettlementHistory
+
+function __ccxt_doc_Binance_fetchLedgerEntry() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+
+# Arguments
+- `id`::string: the identification number of the ledger entry
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Binance_fetchLedgerEntry
+
+function __ccxt_doc_Binance_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the ledger for a portfolio margin account
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Binance_fetchLedger
+
+function __ccxt_doc_Binance_reduceMargin() end
+"""
+remove margin from a position
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Binance_reduceMargin
+
+function __ccxt_doc_Binance_addMargin() end
+"""
+add margin
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Binance_addMargin
+
+function __ccxt_doc_Binance_fetchCrossBorrowRate() end
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Binance_fetchCrossBorrowRate
+
+function __ccxt_doc_Binance_fetchIsolatedBorrowRate() end
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.vipLevel`::object, optional: user's current specific margin data will be returned if viplevel is omitted
+
+# Returns
+- an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
+"""
+__ccxt_doc_Binance_fetchIsolatedBorrowRate
+
+function __ccxt_doc_Binance_fetchIsolatedBorrowRates() end
+"""
+fetch the borrow interest rates of all currencies
+see: https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::object, optional: unified market symbol EXCHANGE SPECIFIC PARAMETERS
+- `params.vipLevel`::object, optional: user's current specific margin data will be returned if viplevel is omitted
+
+# Returns
+- a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Binance_fetchIsolatedBorrowRates
+
+function __ccxt_doc_Binance_fetchBorrowRateHistory() end
+"""
+retrieves a history of a currencies borrow interest rate at specific time slots
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: timestamp for the earliest borrow rate
+- `limit`::int, optional: the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+"""
+__ccxt_doc_Binance_fetchBorrowRateHistory
+
+function __ccxt_doc_Binance_createGiftCode() end
+"""
+create gift code
+see: https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card
+
+# Arguments
+- `code`::string: gift code
+- `amount`::float: amount of currency for the gift
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- The gift code id, code, currency and amount
+"""
+__ccxt_doc_Binance_createGiftCode
+
+function __ccxt_doc_Binance_redeemGiftCode() end
+"""
+redeem gift code
+see: https://developers.binance.com/docs/gift_card/market-data/Redeem-a-Binance-Gift-Card
+
+# Arguments
+- `giftcardCode`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Binance_redeemGiftCode
+
+function __ccxt_doc_Binance_verifyGiftCode() end
+"""
+verify gift code
+see: https://developers.binance.com/docs/gift_card/market-data/Verify-Binance-Gift-Card-by-Gift-Card-Number
+
+# Arguments
+- `id`::string: reference number id
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Binance_verifyGiftCode
+
+function __ccxt_doc_Binance_fetchBorrowInterest() end
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Get-Interest-History
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-Margin-BorrowLoan-Interest-History
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `symbol`::string, optional: unified market symbol when fetch interest in isolated markets
+- `since`::int, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch the borrow interest in a portfolio margin account
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+__ccxt_doc_Binance_fetchBorrowInterest
+
+function __ccxt_doc_Binance_repayCrossMargin() end
+"""
+repay borrowed margin and interest
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to repay margin in a portfolio margin account
+- `params.repayCrossMarginMethod`::string, optional: *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+- `params.specifyRepayAssets`::string, optional: *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Binance_repayCrossMargin
+
+function __ccxt_doc_Binance_repayIsolatedMargin() end
+"""
+repay borrowed margin and interest
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+
+# Arguments
+- `symbol`::string: unified market symbol, required for isolated margin
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Binance_repayIsolatedMargin
+
+function __ccxt_doc_Binance_borrowCrossMargin() end
+"""
+create a loan to borrow margin
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Borrow
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true if you would like to borrow margin in a portfolio margin account
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Binance_borrowCrossMargin
+
+function __ccxt_doc_Binance_borrowIsolatedMargin() end
+"""
+create a loan to borrow margin
+see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+
+# Arguments
+- `symbol`::string: unified market symbol, required for isolated margin
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Binance_borrowIsolatedMargin
+
+function __ccxt_doc_Binance_fetchOpenInterestHistory() end
+"""
+Retrieves the open interest history of a currency
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest-Statistics
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `timeframe`::string: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+- `since`::int, optional: the time(ms) of the earliest record to retrieve as a unix timestamp
+- `limit`::int, optional: default 30, max 500
+- `params`::object, optional: exchange specific parameters
+- `params.until`::int, optional: the time(ms) of the latest record to retrieve as a unix timestamp
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Binance_fetchOpenInterestHistory
+
+function __ccxt_doc_Binance_fetchOpenInterest() end
+"""
+retrieves the open interest of a contract trading pair
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
+see: https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Binance_fetchOpenInterest
+
+function __ccxt_doc_Binance_fetchMyLiquidations() end
+"""
+retrieves the users liquidated positions
+see: https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Users-Force-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+
+# Arguments
+- `symbol`::string, optional: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the binance api endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+- `params.paginate`::bool, optional: *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.portfolioMargin`::bool, optional: set to true if you would like to fetch liquidations in a portfolio margin account
+- `params.type`::string, optional: "spot"
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Binance_fetchMyLiquidations
+
+function __ccxt_doc_Binance_fetchGreeks() end
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Binance_fetchGreeks
+
+function __ccxt_doc_Binance_fetchAllGreeks() end
+"""
+fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Binance_fetchAllGreeks
+
+function __ccxt_doc_Binance_fetchPositionMode() end
+"""
+fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Current-Position-Mode
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+__ccxt_doc_Binance_fetchPositionMode
+
+function __ccxt_doc_Binance_fetchMarginModes() end
+"""
+fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Binance_fetchMarginModes
+
+function __ccxt_doc_Binance_fetchMarginMode() end
+"""
+fetches the margin mode of a specific symbol
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+
+# Arguments
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Binance_fetchMarginMode
+
+function __ccxt_doc_Binance_fetchOption() end
+"""
+fetches option data that is commonly found in an option chain
+see: https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+__ccxt_doc_Binance_fetchOption
+
+function __ccxt_doc_Binance_fetchMarginAdjustmentHistory() end
+"""
+fetches the history of margin added or reduced from contract isolated positions
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `type`::string, optional: "add" or "reduce"
+- `since`::int, optional: timestamp in ms of the earliest change to fetch
+- `limit`::int, optional: the maximum amount of changes to fetch
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest change to fetch
+
+# Returns
+- a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Binance_fetchMarginAdjustmentHistory
+
+function __ccxt_doc_Binance_fetchConvertCurrencies() end
+"""
+fetches all available currencies that can be converted
+see: https://developers.binance.com/docs/convert/market-data/Query-order-quantity-precision-per-asset
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Binance_fetchConvertCurrencies
+
+function __ccxt_doc_Binance_fetchConvertQuote() end
+"""
+fetch a quote for converting from one currency to another
+see: https://developers.binance.com/docs/convert/trade/Send-quote-request
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.walletType`::string, optional: either 'SPOT' or 'FUNDING', the default is 'SPOT'
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Binance_fetchConvertQuote
+
+function __ccxt_doc_Binance_createConvertTrade() end
+"""
+convert from one currency to another
+see: https://developers.binance.com/docs/convert/trade/Accept-Quote
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Binance_createConvertTrade
+
+function __ccxt_doc_Binance_fetchConvertTrade() end
+"""
+fetch the data for a conversion trade
+see: https://developers.binance.com/docs/convert/trade/Order-Status
+
+# Arguments
+- `id`::string: the id of the trade that you want to fetch
+- `code`::string, optional: the unified currency code of the conversion trade
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Binance_fetchConvertTrade
+
+function __ccxt_doc_Binance_fetchConvertTradeHistory() end
+"""
+fetch the users history of conversion trades
+see: https://developers.binance.com/docs/convert/trade/Get-Convert-Trade-History
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest conversion to fetch
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Binance_fetchConvertTradeHistory
+
+function __ccxt_doc_Binance_fetchFundingIntervals() end
+"""
+fetch the funding rate interval for multiple markets
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-Info
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Info
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Binance_fetchFundingIntervals
+
+function __ccxt_doc_Binance_fetchLongShortRatioHistory() end
+"""
+fetches the long short ratio history for a unified market symbol
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Long-Short-Ratio
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the long short ratio for
+- `timeframe`::string, optional: the period for the ratio, default is 24 hours
+- `since`::int, optional: the earliest time in ms to fetch ratios for
+- `limit`::int, optional: the maximum number of long short ratio structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ratio to fetch
+
+# Returns
+- an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
+"""
+__ccxt_doc_Binance_fetchLongShortRatioHistory
+
+function __ccxt_doc_Binance_fetchADLRank() end
+"""
+fetches the auto deleveraging rank and risk percentage for a symbol
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the auto deleveraging rank for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+__ccxt_doc_Binance_fetchADLRank
+
+function __ccxt_doc_Binance_fetchPositionsADLRank() end
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
+see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.portfolioMargin`::bool, optional: set to true for the portfolio margin account
+
+# Returns
+- an array of [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+__ccxt_doc_Binance_fetchPositionsADLRank

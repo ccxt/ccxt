@@ -825,12 +825,32 @@ function describe(self::Paradex, )
 ))
 
 end
-function fetchTime(self::Paradex, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.paradex.trade/api/prod/system/get-time-unix-milliseconds
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Paradex; params=Dict())
     response = Base.fetch(self.publicGetSystemTime(params));
     return safeInteger(response, "server_time")
 
 end
-function fetchStatus(self::Paradex, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.paradex.trade/api/prod/system/get-state
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Paradex; params=Dict())
     response = Base.fetch(self.publicGetSystemState(params));
     status = safeString(response, "status");
     return Dict{Symbol, Any}(
@@ -842,7 +862,17 @@ function fetchStatus(self::Paradex, params=Dict())
 )
 
 end
-function fetchMarkets(self::Paradex, params=Dict())
+"""
+retrieves data on all markets for paradex
+see: https://docs.paradex.trade/api/prod/markets/get-markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Paradex; params=Dict())
     response = Base.fetch(self.publicGetMarkets(params));
     data = self.safeList(response, "results");
     return self.parseMarkets(data)
@@ -877,7 +907,7 @@ function parseMarket(self::Paradex, market)
         expiry = nothing;
     end
     expireDatetime = functions.ccxtruthy((expiry == 0)) ? nothing : self.iso8601(expiry);
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -930,24 +960,35 @@ function parseMarket(self::Paradex, market)
 ))
 
 end
-function parseTradingFee(self::Paradex, fee, market=nothing)
+function parseTradingFee(self::Paradex, fee; market=nothing)
     marketId = safeString(fee, "symbol");
-    market = self.safeMarket(marketId, market);
-    feeConfig = self.safeDict(fee, "fee_config", Dict{Symbol, Any}());
-    apiFee = self.safeDict(feeConfig, "api_fee", Dict{Symbol, Any}());
-    makerFee = self.safeDict(apiFee, "maker_fee", Dict{Symbol, Any}());
-    takerFee = self.safeDict(apiFee, "taker_fee", Dict{Symbol, Any}());
+    market = self.safeMarket(marketId = marketId, market = market);
+    feeConfig = self.safeDict(fee, "fee_config", defaultValue = Dict{Symbol, Any}());
+    apiFee = self.safeDict(feeConfig, "api_fee", defaultValue = Dict{Symbol, Any}());
+    makerFee = self.safeDict(apiFee, "maker_fee", defaultValue = Dict{Symbol, Any}());
+    takerFee = self.safeDict(apiFee, "taker_fee", defaultValue = Dict{Symbol, Any}());
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
-    Symbol("maker") => self.safeNumber(makerFee, "fee", self.safeNumber(market, "maker")),
-    Symbol("taker") => self.safeNumber(takerFee, "fee", self.safeNumber(market, "taker")),
+    Symbol("maker") => self.safeNumber(makerFee, "fee", defaultNumber = self.safeNumber(market, "maker")),
+    Symbol("taker") => self.safeNumber(takerFee, "fee", defaultNumber = self.safeNumber(market, "taker")),
     Symbol("percentage") => true,
     Symbol("tierBased") => false
 )
 
 end
-function fetchTradingFee(self::Paradex, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://docs.paradex.trade/api/prod/markets/get-markets
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Paradex, symbol; params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchTradingFee() requires a symbol argument")));
     end
@@ -959,17 +1000,27 @@ function fetchTradingFee(self::Paradex, symbol, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarkets(extend(request, params)));
-    data = self.safeList(response, "results", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTradingFee(first_var, market)
+    data = self.safeList(response, "results", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTradingFee(first_var, market = market)
 
 end
-function fetchTradingFees(self::Paradex, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://docs.paradex.trade/api/prod/markets/get-markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Paradex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetMarkets(params));
-    fees = self.safeList(response, "results", []);
+    fees = self.safeList(response, "results", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fees)))
@@ -981,7 +1032,23 @@ function fetchTradingFees(self::Paradex, params=Dict())
     return result
 
 end
-function fetchOHLCV(self::Paradex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.paradex.trade/api/prod/markets/klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.price`::string, optional: "last", "mark", "index", default is "last"
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Paradex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1014,28 +1081,50 @@ function fetchOHLCV(self::Paradex, symbol, timeframe="1m", since=nothing, limit=
         end
     end
     response = Base.fetch(self.publicGetMarketsKlines(extend(request, params)));
-    data = self.safeList(response, "results", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "results", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Paradex, ohlcv, market=nothing)
+function parseOHLCV(self::Paradex, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchTickers(self::Paradex, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Paradex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}(
         Symbol("market") => "ALL"
     );
     response = Base.fetch(self.publicGetMarketsSummary(extend(request, params)));
-    data = self.safeList(response, "results", []);
-    return self.parseTickers(data, symbols)
+    data = self.safeList(response, "results", defaultValue = []);
+    return self.parseTickers(data, symbols = symbols)
 
 end
-function fetchTicker(self::Paradex, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Paradex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1044,19 +1133,19 @@ function fetchTicker(self::Paradex, symbol, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketsSummary(extend(request, params)));
-    data = self.safeList(response, "results", []);
-    ticker = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTicker(ticker, market)
+    data = self.safeList(response, "results", defaultValue = []);
+    ticker = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(ticker, market = market)
 
 end
-function parseTicker(self::Paradex, ticker, market=nothing)
+function parseTicker(self::Paradex, ticker; market=nothing)
     percentage = safeString(ticker, "price_change_rate_24h");
     if functions.ccxtruthy(percentage != nothing)
         percentage = stringMul(percentage, "100");
     end
     last_var = safeString(ticker, "last_traded_price");
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger(ticker, "created_at");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1081,10 +1170,22 @@ function parseTicker(self::Paradex, ticker, market=nothing)
     Symbol("quoteVolume") => safeString(ticker, "volume_24h"),
     Symbol("markPrice") => safeString(ticker, "mark_price"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchOrderBook(self::Paradex, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.paradex.trade/api/prod/markets/get-orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Paradex, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1097,19 +1198,34 @@ function fetchOrderBook(self::Paradex, symbol, limit=nothing, params=Dict())
         request[Symbol("depth")] = limit;
     end
     timestamp = safeInteger(response, "last_updated_at");
-    orderbook = self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp);
+    orderbook = self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = timestamp);
     orderbook[Symbol("nonce")] = safeInteger(response, "seq_no");
     return orderbook
 
 end
-function fetchTrades(self::Paradex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.paradex.trade/api/prod/trades/trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Paradex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "next", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchTrades", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "next", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1123,18 +1239,18 @@ function fetchTrades(self::Paradex, symbol, since=nothing, limit=nothing, params
     end
     (request, params) = self.handleUntilOption("end_at", request, params);
     response = Base.fetch(self.publicGetTrades(extend(request, params)));
-    trades = self.safeList(response, "results", []);
+    trades = self.safeList(response, "results", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(trades)))
         trades[i + 1][Symbol("next")] = safeString(response, "next");
         i += 1
     end
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Paradex, trade, market=nothing)
+function parseTrade(self::Paradex, trade; market=nothing)
     marketId = safeString(trade, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     id = safeString(trade, "id");
     timestamp = safeInteger(trade, "created_at");
     priceString = safeString(trade, "price");
@@ -1163,10 +1279,21 @@ function parseTrade(self::Paradex, trade, market=nothing)
         Symbol("currency") => code,
         Symbol("rate") => nothing
     )
-), market)
+), market = market)
 
 end
-function fetchOpenInterest(self::Paradex, symbol, params=Dict())
+"""
+retrieves the open interest of a contract trading pair
+see: https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Paradex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1178,15 +1305,15 @@ function fetchOpenInterest(self::Paradex, symbol, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketsSummary(extend(request, params)));
-    data = self.safeList(response, "results", []);
-    interest = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseOpenInterest(interest, market)
+    data = self.safeList(response, "results", defaultValue = []);
+    interest = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOpenInterest(interest, market = market)
 
 end
-function parseOpenInterest(self::Paradex, interest, market=nothing)
+function parseOpenInterest(self::Paradex, interest; market=nothing)
     timestamp = safeInteger(interest, "created_at");
     marketId = safeString(interest, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     return self.safeOpenInterest(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -1195,7 +1322,7 @@ function parseOpenInterest(self::Paradex, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
 function hashMessage(self::Paradex, message)
@@ -1221,10 +1348,10 @@ function getSystemConfig(self::Paradex, )
     end
     response = Base.fetch(self.publicGetSystemConfig());
     self.options[Symbol("systemConfig")] = response;
-    return self.safeDict(self.options, "systemConfig", Dict{Symbol, Any}())
+    return self.safeDict(self.options, "systemConfig", defaultValue = Dict{Symbol, Any}())
 
 end
-function prepareParadexDomain(self::Paradex, l1=false)
+function prepareParadexDomain(self::Paradex; l1=false)
     systemConfig = Base.fetch(self.getSystemConfig());
     if functions.ccxtruthy(l1)
         l1D = Dict{Symbol, Any}(
@@ -1249,7 +1376,7 @@ function retrieveAccount(self::Paradex, )
     end
     self.checkRequiredCredentials();
     systemConfig = Base.fetch(self.getSystemConfig());
-    domain = Base.fetch(self.prepareParadexDomain(true));
+    domain = Base.fetch(self.prepareParadexDomain(l1 = true));
     messageTypes = Dict{Symbol, Any}(
         Symbol("Constant") => [Dict{Symbol, Any}(
         Symbol("name") => "action",
@@ -1266,7 +1393,7 @@ function retrieveAccount(self::Paradex, )
     return account
 
 end
-function onboarding(self::Paradex, params=Dict())
+function onboarding(self::Paradex; params=Dict())
     account = Base.fetch(self.retrieveAccount());
     req = Dict{Symbol, Any}(
         Symbol("action") => "Onboarding"
@@ -1287,7 +1414,7 @@ function onboarding(self::Paradex, params=Dict())
     return response
 
 end
-function authenticateRest(self::Paradex, params=Dict())
+function authenticateRest(self::Paradex; params=Dict())
     cachedToken = safeString(self.options, "authToken");
     now = self.nonce();
     if functions.ccxtruthy(cachedToken != nothing)
@@ -1340,12 +1467,12 @@ function authenticateRest(self::Paradex, params=Dict())
     return token
 
 end
-function parseOrder(self::Paradex, order, market=nothing)
+function parseOrder(self::Paradex, order; market=nothing)
     timestamp = safeInteger(order, "created_at");
     orderId = safeString(order, "id");
     clientOrderId = omitZero(safeString(order, "client_id"));
     marketId = safeString(order, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     price = safeString(order, "price");
     amount = safeString(order, "size");
@@ -1363,7 +1490,7 @@ function parseOrder(self::Paradex, order, market=nothing)
     average = omitZero(safeString(order, "avg_fill_price"));
     remaining = omitZero(safeString(order, "remaining_size"));
     lastUpdateTimestamp = safeInteger(order, "last_updated_at");
-    flags = self.safeList(order, "flags", []);
+    flags = self.safeList(order, "flags", defaultValue = []);
     reduceOnly = nothing;
     if functions.ccxtruthy(ccxt_in("REDUCE_ONLY", flags))
         reduceOnly = true;
@@ -1397,7 +1524,7 @@ function parseOrder(self::Paradex, order, market=nothing)
         Symbol("currency") => nothing
     ),
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseTimeInForce(self::Paradex, timeInForce)
@@ -1436,7 +1563,7 @@ function scaleNumber(self::Paradex, num)
     return stringMul(num, "100000000")
 
 end
-function createOrderRequest(self::Paradex, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Paradex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1461,7 +1588,7 @@ function createOrderRequest(self::Paradex, symbol, type_var, side, amount, price
     isStopLossOrder = (stopLossPrice != nothing);
     isStopOrder = @functions.ccxt_or(@functions.ccxt_or((triggerPrice != nothing), isTakeProfitOrder), isStopLossOrder);
     timeInForce = safeStringUpper(params, "timeInForce");
-    postOnly = self.isPostOnly(isMarket, nothing, params);
+    postOnly = self.isPostOnly(isMarket, nothing, params = params);
     if functions.ccxtruthy(!functions.ccxtruthy(isMarket))
         if functions.ccxtruthy(postOnly)
             request[Symbol("instruction")] = "POST_ONLY";
@@ -1522,7 +1649,7 @@ function createOrderRequest(self::Paradex, symbol, type_var, side, amount, price
     return extend(request, params)
 
 end
-function signOrderRequest(self::Paradex, request, modify=false)
+function signOrderRequest(self::Paradex, request; modify=false)
     account = Base.fetch(self.retrieveAccount());
     now = self.nonce();
     orderType = safeString(request, "type");
@@ -1580,20 +1707,61 @@ function signOrderRequest(self::Paradex, request, modify=false)
     return request
 
 end
-function createOrder(self::Paradex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.paradex.trade/api/prod/orders/new
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.stopPrice`::float, optional: alias for triggerPrice
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "POST_ONLY"
+- `params.postOnly`::bool, optional: true or false
+- `params.reduceOnly`::bool, optional: Ensures that the executed order does not flip the opened position.
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Paradex, symbol, type_var, side, amount; price=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     request = Base.fetch(self.signOrderRequest(request));
     response = Base.fetch(self.privatePostOrders(request));
-    order = self.parseOrder(response, market);
+    order = self.parseOrder(response, market = market);
     return order
 
 end
-function editOrder(self::Paradex, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit an open limit order or TPSL order
+see: https://docs.paradex.trade/api/prod/orders/modify
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: 'limit' or a TPSL order type
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.stopPrice`::float, optional: alias for triggerPrice
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Paradex, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(amount == nothing)
         throw(ArgumentsRequired(string(self.id, " editOrder() requires an amount argument")));
     end
@@ -1605,16 +1773,27 @@ function editOrder(self::Paradex, id, symbol, type_var, side, amount=nothing, pr
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     request = omit(request, ["instruction", "client_id", "flags"]);
     request[Symbol("order_id")] = id;
     request[Symbol("id")] = id;
-    request = Base.fetch(self.signOrderRequest(request, true));
+    request = Base.fetch(self.signOrderRequest(request, modify = true));
     response = Base.fetch(self.privatePutOrdersOrderId(request));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function createOrders(self::Paradex, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://docs.paradex.trade/api/prod/orders/batch
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Paradex, orders; params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1628,17 +1807,17 @@ function createOrders(self::Paradex, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = self.safeNumber(rawOrder, "amount");
         price = self.safeNumber(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         extendedParams = extend(params, orderParams);
-        orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price, extendedParams);
+        orderRequest = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = extendedParams);
         orderRequest = Base.fetch(self.signOrderRequest(orderRequest));
         push!(ordersRequests, orderRequest);
         i += 1
     end
     response = Base.fetch(self.privatePostOrdersBatch(ordersRequests));
-    responseOrders = self.safeList(response, "orders", []);
+    responseOrders = self.safeList(response, "orders", defaultValue = []);
     parsedOrders = self.parseOrders(responseOrders);
-    errors = self.safeList(response, "errors", []);
+    errors = self.safeList(response, "errors", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(errors)))
         error = get(errors, i + 1, nothing);
@@ -1651,7 +1830,21 @@ function createOrders(self::Paradex, orders, params=Dict())
     return parsedOrders
 
 end
-function cancelOrder(self::Paradex, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.paradex.trade/api/prod/orders/cancel
+see: https://docs.paradex.trade/api/prod/orders/cancel-by-client-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Paradex, id; symbol=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1668,7 +1861,20 @@ function cancelOrder(self::Paradex, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelOrders(self::Paradex, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://docs.paradex.trade/api/prod/orders/cancel-batch
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol, not used by cancelOrders()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Paradex, ids; symbol=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1688,13 +1894,13 @@ function cancelOrders(self::Paradex, ids, symbol=nothing, params=Dict())
         request[Symbol("client_order_ids")] = clientOrderIds;
     end
     response = Base.fetch(self.privateDeleteOrdersBatch(extend(request, params)));
-    results = self.safeList(response, "results", []);
+    results = self.safeList(response, "results", defaultValue = []);
     orders = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(results)))
         result = get(results, i + 1, nothing);
         marketId = safeString(result, "market");
-        market = self.safeMarket(marketId);
+        market = self.safeMarket(marketId = marketId);
         status = safeString(result, "status");
         orderStatus = nothing;
         if functions.ccxtruthy(status == "QUEUED_FOR_CANCELLATION")
@@ -1713,13 +1919,24 @@ function cancelOrders(self::Paradex, ids, symbol=nothing, params=Dict())
     Symbol("clientOrderId") => safeString(result, "client_id"),
     Symbol("status") => orderStatus,
     Symbol("symbol") => get(market, Symbol("symbol"), nothing)
-), market));
+), market = market));
         i += 1
     end
     return orders
 
 end
-function cancelAllOrders(self::Paradex, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://docs.paradex.trade/api/prod/orders/cancel-all
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Paradex; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -1737,7 +1954,21 @@ function cancelAllOrders(self::Paradex, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchOrder(self::Paradex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.paradex.trade/api/prod/orders/get
+see: https://docs.paradex.trade/api/prod/orders/get-by-client-id
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Paradex, id; symbol=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1755,7 +1986,23 @@ function fetchOrder(self::Paradex, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOrders(self::Paradex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.paradex.trade/api/prod/orders/get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+- `params.until`::int: timestamp in ms of the latest order to fetch
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Paradex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1763,7 +2010,7 @@ function fetchOrders(self::Paradex, symbol=nothing, since=nothing, limit=nothing
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "next", "cursor", nothing, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOrders", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "next", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 50))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1779,7 +2026,7 @@ function fetchOrders(self::Paradex, symbol=nothing, since=nothing, limit=nothing
     end
     (request, params) = self.handleUntilOption("end_at", request, params);
     response = Base.fetch(self.privateGetOrdersHistory(extend(request, params)));
-    orders = self.safeList(response, "results", []);
+    orders = self.safeList(response, "results", defaultValue = []);
     paginationCursor = safeString(response, "next");
     ordersLength = length(orders);
     if functions.ccxtruthy(@functions.ccxt_and((paginationCursor != nothing), (functions.ccxt_gt(ordersLength, 0))))
@@ -1787,10 +2034,23 @@ function fetchOrders(self::Paradex, symbol=nothing, since=nothing, limit=nothing
         first_var[Symbol("next")] = paginationCursor;
         orders[1] = first_var;
     end
-    return self.parseOrders(orders, market, since, limit)
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Paradex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.paradex.trade/api/prod/orders/get-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Paradex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1802,17 +2062,27 @@ function fetchOpenOrders(self::Paradex, symbol=nothing, since=nothing, limit=not
         request[Symbol("market")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetOrders(extend(request, params)));
-    orders = self.safeList(response, "results", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(response, "results", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchBalance(self::Paradex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.paradex.trade/api/prod/account/get-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Paradex; params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetBalance());
-    data = self.safeList(response, "results", []);
+    data = self.safeList(response, "results", defaultValue = []);
     return self.parseBalance(data)
 
 end
@@ -1822,7 +2092,7 @@ function parseBalance(self::Paradex, response)
     );
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        balance = self.safeDict(response, i, Dict{Symbol, Any}());
+        balance = self.safeDict(response, i, defaultValue = Dict{Symbol, Any}());
         currencyId = safeString(balance, "token");
         code = self.safeCurrencyCode(currencyId);
         account = self.account();
@@ -1835,7 +2105,22 @@ function parseBalance(self::Paradex, response)
     return self.safeBalance(result)
 
 end
-function fetchMyTrades(self::Paradex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.paradex.trade/api/prod/account/list-fills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Paradex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1843,7 +2128,7 @@ function fetchMyTrades(self::Paradex, symbol=nothing, since=nothing, limit=nothi
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "next", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1859,39 +2144,61 @@ function fetchMyTrades(self::Paradex, symbol=nothing, since=nothing, limit=nothi
     end
     (request, params) = self.handleUntilOption("end_at", request, params);
     response = Base.fetch(self.privateGetFills(extend(request, params)));
-    trades = self.safeList(response, "results", []);
+    trades = self.safeList(response, "results", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(trades)))
         trades[i + 1][Symbol("next")] = safeString(response, "next");
         i += 1
     end
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchPosition(self::Paradex, symbol, params=Dict())
+"""
+fetch data on an open position
+see: https://docs.paradex.trade/api/prod/account/get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Paradex, symbol; params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    positions = Base.fetch(self.fetchPositions([get(market, Symbol("symbol"), nothing)], params));
-    return self.safeDict(positions, 0, Dict{Symbol, Any}())
+    positions = Base.fetch(self.fetchPositions(symbols = [get(market, Symbol("symbol"), nothing)], params = params));
+    return self.safeDict(positions, 0, defaultValue = Dict{Symbol, Any}())
 
 end
-function fetchPositions(self::Paradex, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.paradex.trade/api/prod/account/get-positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Paradex; symbols=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.privateGetPositions());
-    data = self.safeList(response, "results", []);
-    return self.parsePositions(data, symbols)
+    data = self.safeList(response, "results", defaultValue = []);
+    return self.parsePositions(data, symbols = symbols)
 
 end
-function parsePosition(self::Paradex, position, market=nothing)
+function parsePosition(self::Paradex, position; market=nothing)
     marketId = safeString(position, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     side = safeStringLower(position, "side");
     quantity = safeString(position, "size");
@@ -1926,7 +2233,21 @@ function parsePosition(self::Paradex, position, market=nothing)
 ))
 
 end
-function fetchMyLiquidations(self::Paradex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the users liquidated positions
+see: https://docs.paradex.trade/api/prod/liquidations/get-liquidations
+
+# Arguments
+- `symbol`::string, optional: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchMyLiquidations(self::Paradex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1943,11 +2264,11 @@ function fetchMyLiquidations(self::Paradex, symbol=nothing, since=nothing, limit
     end
     (request, params) = self.handleUntilOption("to", request, params);
     response = Base.fetch(self.privateGetLiquidations(extend(request, params)));
-    data = self.safeList(response, "results", []);
-    return self.parseLiquidations(data, market, since, limit)
+    data = self.safeList(response, "results", defaultValue = []);
+    return self.parseLiquidations(data, market = market, since = since, limit = limit)
 
 end
-function parseLiquidation(self::Paradex, liquidation, market=nothing)
+function parseLiquidation(self::Paradex, liquidation; market=nothing)
     timestamp = safeInteger(liquidation, "created_at");
     return self.safeLiquidation(Dict{Symbol, Any}(
     Symbol("info") => liquidation,
@@ -1963,7 +2284,22 @@ function parseLiquidation(self::Paradex, liquidation, market=nothing)
 ))
 
 end
-function fetchDeposits(self::Paradex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.paradex.trade/api/prod/transfers/get
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Paradex; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1971,7 +2307,7 @@ function fetchDeposits(self::Paradex, code=nothing, since=nothing, limit=nothing
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "next", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", symbol = code, since = since, limit = limit, params = params, cursorReceived = "next", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(limit != nothing)
@@ -1982,7 +2318,7 @@ function fetchDeposits(self::Paradex, code=nothing, since=nothing, limit=nothing
     end
     (request, params) = self.handleUntilOption("end_at", request, params);
     response = Base.fetch(self.privateGetTransfers(extend(request, params)));
-    rows = self.safeList(response, "results", []);
+    rows = self.safeList(response, "results", defaultValue = []);
     deposits = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
@@ -1992,10 +2328,25 @@ function fetchDeposits(self::Paradex, code=nothing, since=nothing, limit=nothing
         end
         i += 1
     end
-    return self.parseTransactions(deposits, nothing, since, limit)
+    return self.parseTransactions(deposits, currency = nothing, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Paradex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.paradex.trade/api/prod/transfers/get
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch withdrawals for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Paradex; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2003,7 +2354,7 @@ function fetchWithdrawals(self::Paradex, code=nothing, since=nothing, limit=noth
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "next", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", symbol = code, since = since, limit = limit, params = params, cursorReceived = "next", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(limit != nothing)
@@ -2014,7 +2365,7 @@ function fetchWithdrawals(self::Paradex, code=nothing, since=nothing, limit=noth
     end
     (request, params) = self.handleUntilOption("end_at", request, params);
     response = Base.fetch(self.privateGetTransfers(extend(request, params)));
-    rows = self.safeList(response, "results", []);
+    rows = self.safeList(response, "results", defaultValue = []);
     deposits = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
@@ -2024,10 +2375,25 @@ function fetchWithdrawals(self::Paradex, code=nothing, since=nothing, limit=noth
         end
         i += 1
     end
-    return self.parseTransactions(deposits, nothing, since, limit)
+    return self.parseTransactions(deposits, currency = nothing, since = since, limit = limit)
 
 end
-function fetchTransfers(self::Paradex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of transfers made on an account
+see: https://docs.paradex.trade/api/prod/transfers/get
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Paradex; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2035,7 +2401,7 @@ function fetchTransfers(self::Paradex, code=nothing, since=nothing, limit=nothin
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "next", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransfers", symbol = code, since = since, limit = limit, params = params, cursorReceived = "next", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -2050,13 +2416,13 @@ function fetchTransfers(self::Paradex, code=nothing, since=nothing, limit=nothin
     end
     (request, params) = self.handleUntilOption("end_at", request, params);
     response = Base.fetch(self.privateGetTransfers(extend(request, params)));
-    rows = self.safeList(response, "results", []);
-    return self.parseTransfers(rows, currency, since, limit)
+    rows = self.safeList(response, "results", defaultValue = []);
+    return self.parseTransfers(rows, currency = currency, since = since, limit = limit)
 
 end
-function parseTransfer(self::Paradex, transfer, currency=nothing)
+function parseTransfer(self::Paradex, transfer; currency=nothing)
     currencyId = safeString(transfer, "token");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeInteger(transfer, "created_at");
     kind = safeString(transfer, "kind");
     fromAccount = nothing;
@@ -2081,12 +2447,12 @@ function parseTransfer(self::Paradex, transfer, currency=nothing)
 )
 
 end
-function parseTransaction(self::Paradex, transaction, currency=nothing)
+function parseTransaction(self::Paradex, transaction; currency=nothing)
     id = safeString(transaction, "id");
     address = safeString(transaction, "account");
     txid = safeString(transaction, "txn_hash");
     currencyId = safeString(transaction, "token");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeInteger(transaction, "created_at");
     updated = safeInteger(transaction, "last_updated_at");
     type_var = safeString(transaction, "kind");
@@ -2127,7 +2493,18 @@ function parseTransactionStatus(self::Paradex, status)
     return safeString(statuses, status, status)
 
 end
-function fetchMarginMode(self::Paradex, symbol, params=Dict())
+"""
+fetches the margin mode of a specific symbol
+see: https://docs.paradex.trade/api/prod/account/get-account-margin
+
+# Arguments
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Paradex, symbol; params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2138,12 +2515,12 @@ function fetchMarginMode(self::Paradex, symbol, params=Dict())
     );
     response = Base.fetch(self.privateGetAccountMargin(extend(request, params)));
     configs = self.safeList(response, "configs");
-    return self.parseMarginMode(self.safeDict(configs, 0), market)
+    return self.parseMarginMode(self.safeDict(configs, 0), market = market)
 
 end
-function parseMarginMode(self::Paradex, rawMarginMode, market=nothing)
+function parseMarginMode(self::Paradex, rawMarginMode; market=nothing)
     marketId = safeString(rawMarginMode, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     marginMode = safeStringLower(rawMarginMode, "margin_type");
     return Dict{Symbol, Any}(
     Symbol("info") => rawMarginMode,
@@ -2152,7 +2529,20 @@ function parseMarginMode(self::Paradex, rawMarginMode, market=nothing)
 )
 
 end
-function setMarginMode(self::Paradex, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://docs.paradex.trade/api/prod/account/upsert-account-margin
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::float, optional: the rate of leverage
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Paradex, marginMode; symbol=nothing, params=Dict())
     self.checkRequiredArgument("setMarginMode", symbol, "symbol");
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
@@ -2160,7 +2550,7 @@ function setMarginMode(self::Paradex, marginMode, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     leverage = 1;
-    (leverage, params) = self.handleOptionAndParams(params, "setMarginMode", "leverage", leverage);
+    (leverage, params) = self.handleOptionAndParams(params, "setMarginMode", "leverage", defaultValue = leverage);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing),
         Symbol("leverage") => leverage,
@@ -2169,7 +2559,18 @@ function setMarginMode(self::Paradex, marginMode, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePostAccountMarginMarket(extend(request, params)))
 
 end
-function fetchLeverage(self::Paradex, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://docs.paradex.trade/api/prod/account/get-account-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Paradex, symbol; params=Dict())
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2180,16 +2581,16 @@ function fetchLeverage(self::Paradex, symbol, params=Dict())
     );
     response = Base.fetch(self.privateGetAccountMargin(extend(request, params)));
     configs = self.safeList(response, "configs");
-    return self.parseLeverage(self.safeDict(configs, 0), market)
+    return self.parseLeverage(self.safeDict(configs, 0), market = market)
 
 end
-function parseLeverage(self::Paradex, leverage, market=nothing)
+function parseLeverage(self::Paradex, leverage; market=nothing)
     marketId = safeString(leverage, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     marginMode = safeStringLower(leverage, "margin_type");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => marginMode,
     Symbol("longLeverage") => safeInteger(leverage, "leverage"),
     Symbol("shortLeverage") => safeInteger(leverage, "leverage")
@@ -2204,7 +2605,20 @@ function encodeMarginMode(self::Paradex, mode)
     return safeString(modes, mode, mode)
 
 end
-function setLeverage(self::Paradex, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://docs.paradex.trade/api/prod/account/upsert-account-margin
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string, optional: unified market symbol (is mandatory for swap markets)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Paradex, leverage; symbol=nothing, params=Dict())
     self.checkRequiredArgument("setLeverage", symbol, "symbol");
     Base.fetch(self.authenticateRest());
     if functions.ccxtruthy(self.markets == nothing)
@@ -2212,7 +2626,7 @@ function setLeverage(self::Paradex, leverage, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params, "cross");
+    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params, defaultValue = "cross");
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing),
         Symbol("leverage") => leverage,
@@ -2221,7 +2635,18 @@ function setLeverage(self::Paradex, leverage, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePostAccountMarginMarket(extend(request, params)))
 
 end
-function fetchGreeks(self::Paradex, symbol, params=Dict())
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchGreeks(self::Paradex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2230,30 +2655,41 @@ function fetchGreeks(self::Paradex, symbol, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetMarketsSummary(extend(request, params)));
-    data = self.safeList(response, "results", []);
-    greeks = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseGreeks(greeks, market)
+    data = self.safeList(response, "results", defaultValue = []);
+    greeks = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseGreeks(greeks, market = market)
 
 end
-function fetchAllGreeks(self::Paradex, symbols=nothing, params=Dict())
+"""
+fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchAllGreeks(self::Paradex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     request = Dict{Symbol, Any}(
         Symbol("market") => "ALL"
     );
     response = Base.fetch(self.publicGetMarketsSummary(extend(request, params)));
-    results = self.safeList(response, "results", []);
-    return self.parseAllGreeks(results, symbols)
+    results = self.safeList(response, "results", defaultValue = []);
+    return self.parseAllGreeks(results, symbols = symbols)
 
 end
-function parseGreeks(self::Paradex, greeks, market=nothing)
+function parseGreeks(self::Paradex, greeks; market=nothing)
     marketId = safeString(greeks, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "option");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "option");
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger(greeks, "created_at");
-    greeksData = self.safeDict(greeks, "greeks", Dict{Symbol, Any}());
+    greeksData = self.safeDict(greeks, "greeks", defaultValue = Dict{Symbol, Any}());
     return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => timestamp,
@@ -2279,7 +2715,23 @@ function parseGreeks(self::Paradex, greeks, market=nothing)
 )
 
 end
-function fetchFundingHistory(self::Paradex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.paradex.trade/api/prod/account/get-funding
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cursor`::string, optional: returns the next paginated page
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Paradex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingHistory() requires a symbol argument")));
     end
@@ -2290,7 +2742,7 @@ function fetchFundingHistory(self::Paradex, symbol=nothing, since=nothing, limit
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "next", "cursor", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "next", cursorSent = "cursor", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -2306,13 +2758,13 @@ function fetchFundingHistory(self::Paradex, symbol=nothing, since=nothing, limit
     end
     (request, params) = self.handleUntilOption("end_at", request, params);
     response = Base.fetch(self.privateGetFundingPayments(extend(request, params)));
-    results = self.safeList(response, "results", []);
-    return self.parseIncomes(results, market, since, limit)
+    results = self.safeList(response, "results", defaultValue = []);
+    return self.parseIncomes(results, market = market, since = since, limit = limit)
 
 end
-function parseIncome(self::Paradex, income, market=nothing)
+function parseIncome(self::Paradex, income; market=nothing)
     marketId = safeString(income, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(income, "created_at");
     return Dict{Symbol, Any}(
     Symbol("info") => income,
@@ -2325,7 +2777,21 @@ function parseIncome(self::Paradex, income, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Paradex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://docs.paradex.trade/api/prod/markets/get-funding-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of funding rate structures
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Paradex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -2350,7 +2816,7 @@ function fetchFundingRateHistory(self::Paradex, symbol=nothing, since=nothing, l
         request[Symbol("end_at")] = until;
     end
     response = Base.fetch(self.publicGetFundingData(extend(request, params)));
-    results = self.safeList(response, "results", []);
+    results = self.safeList(response, "results", defaultValue = []);
     rates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(results)))
@@ -2367,10 +2833,10 @@ function fetchFundingRateHistory(self::Paradex, symbol=nothing, since=nothing, l
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function sign(self::Paradex, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Paradex, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     version = self.version;
     if functions.ccxtruthy(findfirst("v2/", path) !== nothing)
         version = "v2";
@@ -2441,447 +2907,447 @@ Base.getproperty(self::Paradex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetBboMarket(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "bbo/{market}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "bbo/{market}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetBboMarketInteractive(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "bbo/{market}/interactive", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "bbo/{market}/interactive"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetFundingData(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "funding/data", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding/data"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarkets(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "markets/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsKlines(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "markets/klines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/klines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsSettlementPrice(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "markets/settlement-price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/settlement-price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMarketsSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "markets/summary", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "markets/summary"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbookMarket(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orderbook/{market}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook/{market}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbookMarketImpactPrice(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orderbook/{market}/impact-price", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook/{market}/impact-price"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbookMarketInteractive(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orderbook/{market}/interactive", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook/{market}/interactive"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetInsurance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "insurance", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "insurance"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetJwksJson(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "jwks.json", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "jwks.json"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOnboarding(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "onboarding", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "onboarding"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetReferralsConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "referrals/config", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "referrals/config"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetStakingConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "staking/config", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/config"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSystemAnnouncements(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/announcements", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "system/announcements"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSystemConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/config", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "system/config"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSystemPortfolioMarginConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/portfolio-margin-config", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "system/portfolio-margin-config"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSystemState(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/state", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "system/state"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSystemTime(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/time", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "system/time"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSystemVolumeTiers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/volume-tiers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "system/volume-tiers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrades(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetVaults(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "vaults"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetVaultsBalance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/balance", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "vaults/balance"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetVaultsConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/config", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "vaults/config"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetVaultsHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "vaults/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetVaultsPositions(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/positions", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "vaults/positions"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetVaultsSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/summary", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "vaults/summary"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetVaultsTransfers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/transfers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "vaults/transfers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetXpFeeConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/fee-config", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "xp/fee-config"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetXpPublicTransfers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/public-transfers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "xp/public-transfers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetXpTransferTransferId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/transfer/{transfer_id}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "xp/transfer/{transfer_id}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccount(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountCompliance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/compliance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/compliance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountInfo(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountMargin(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/margin", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/margin"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountProfile(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/profile"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSettings(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/settings", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/settings"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSubaccounts(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/subaccounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subaccounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/summary", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/summary"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBalance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFills(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFundingPayments(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "funding/payments", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "funding/payments"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPositions(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTradebusts(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "tradebusts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "tradebusts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransactions(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "transactions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transactions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountKeysSubkeys(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/keys/subkeys"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountKeysSubkeysPublicKey(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys/{public_key}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/keys/subkeys/{public_key}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountTokens(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/tokens", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/tokens"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAlgoOrders(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "algo/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAlgoOrdersHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "algo/orders-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/orders-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAlgoOrdersAlgoId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "algo/orders/{algo_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/orders/{algo_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBlockTrades(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "block-trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBlockTradesBlockTradeId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "block-trades/{block_trade_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBlockTradesBlockTradeIdOffers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/offers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "block-trades/{block_trade_id}/offers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetBlockTradesBlockTradeIdOffersOfferId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetLiquidations(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "liquidations", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "liquidations"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrders(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersByClientIdClientId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/by_client_id/{client_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/by_client_id/{client_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersOrderId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/{order_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{order_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetReferralsQrCode(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "referrals/qr-code", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "referrals/qr-code"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetReferralsSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "referrals/summary", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "referrals/summary"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStakingHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "staking/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStakingSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "staking/summary", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "staking/summary"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTransfers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "transfers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetVaultsAccountSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/account-summary", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "vaults/account-summary"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetVaultsMine(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/mine", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "vaults/mine"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetXpAccountBalance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/account-balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "xp/account-balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetXpTransfers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/transfers", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "xp/transfers"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountCompliance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/compliance", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/compliance"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountMarginMarket(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/margin/{market}", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/margin/{market}"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountProfileMarketMaxSlippageMarket(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/market_max_slippage/{market}", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/profile/market_max_slippage/{market}"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountProfileNotifications(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/notifications", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/profile/notifications"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountProfileNotificationsLastSeen(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/notifications/last_seen", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/profile/notifications/last_seen"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountProfileReferralCode(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/referral_code", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/profile/referral_code"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountProfileRefreshInventory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/refresh_inventory", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/profile/refresh_inventory"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountProfileSizeCurrencyDisplay(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/size_currency_display", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/profile/size_currency_display"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountProfileUsername(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/username", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/profile/username"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountReferrer(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/referrer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/referrer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountSettingsTradingValueDisplay(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/settings/trading_value_display", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/settings/trading_value_display"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountKeysSubkeysActivate(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys/activate", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/keys/subkeys/activate"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountKeysSubkeys(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/keys/subkeys"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountTokens(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/tokens", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/tokens"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAlgoOrders(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "algo/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAuth(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "auth", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "auth"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBlockTrades(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "block-trades"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBlockTradesBlockTradeIdExecute(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/execute", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "block-trades/{block_trade_id}/execute"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBlockTradesBlockTradeIdOffers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/offers", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "block-trades/{block_trade_id}/offers"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostBlockTradesBlockTradeIdOffersOfferIdExecute(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}/execute", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}/execute"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOnboarding(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "onboarding", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "onboarding"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersBatch(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2Auth(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "v2/auth", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/auth"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostV2Onboarding(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "v2/onboarding", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/onboarding"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostVaults(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "vaults"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostXpTransfer(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "xp/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutAccountProfile(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "account/profile"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutAccountKeysSubkeysPublicKey(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys/{public_key}", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "account/keys/subkeys/{public_key}"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOrdersOrderId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/{order_id}", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "orders/{order_id}"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteAccountKeysSubkeysPublicKey(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys/{public_key}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "account/keys/subkeys/{public_key}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteAccountTokensLookupId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/tokens/{lookup_id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "account/tokens/{lookup_id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteAlgoOrdersAlgoId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "algo/orders/{algo_id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algo/orders/{algo_id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteBlockTradesBlockTradeId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "block-trades/{block_trade_id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteBlockTradesBlockTradeIdOffersOfferId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrders(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersBatch(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersByClientIdClientId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/by_client_id/{client_id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/by_client_id/{client_id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersOrderId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/{order_id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{order_id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Paradex(; kwargs...)
@@ -2945,3 +3411,579 @@ function Paradex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Paradex_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.paradex.trade/api/prod/system/get-time-unix-milliseconds
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Paradex_fetchTime
+
+function __ccxt_doc_Paradex_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://docs.paradex.trade/api/prod/system/get-state
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Paradex_fetchStatus
+
+function __ccxt_doc_Paradex_fetchMarkets() end
+"""
+retrieves data on all markets for paradex
+see: https://docs.paradex.trade/api/prod/markets/get-markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Paradex_fetchMarkets
+
+function __ccxt_doc_Paradex_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://docs.paradex.trade/api/prod/markets/get-markets
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Paradex_fetchTradingFee
+
+function __ccxt_doc_Paradex_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://docs.paradex.trade/api/prod/markets/get-markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Paradex_fetchTradingFees
+
+function __ccxt_doc_Paradex_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.paradex.trade/api/prod/markets/klines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.price`::string, optional: "last", "mark", "index", default is "last"
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Paradex_fetchOHLCV
+
+function __ccxt_doc_Paradex_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Paradex_fetchTickers
+
+function __ccxt_doc_Paradex_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Paradex_fetchTicker
+
+function __ccxt_doc_Paradex_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.paradex.trade/api/prod/markets/get-orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Paradex_fetchOrderBook
+
+function __ccxt_doc_Paradex_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.paradex.trade/api/prod/trades/trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Paradex_fetchTrades
+
+function __ccxt_doc_Paradex_fetchOpenInterest() end
+"""
+retrieves the open interest of a contract trading pair
+see: https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Paradex_fetchOpenInterest
+
+function __ccxt_doc_Paradex_createOrder() end
+"""
+create a trade order
+see: https://docs.paradex.trade/api/prod/orders/new
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.stopPrice`::float, optional: alias for triggerPrice
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at
+- `params.timeInForce`::string, optional: "GTC", "IOC", or "POST_ONLY"
+- `params.postOnly`::bool, optional: true or false
+- `params.reduceOnly`::bool, optional: Ensures that the executed order does not flip the opened position.
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paradex_createOrder
+
+function __ccxt_doc_Paradex_editOrder() end
+"""
+edit an open limit order or TPSL order
+see: https://docs.paradex.trade/api/prod/orders/modify
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: 'limit' or a TPSL order type
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.stopPrice`::float, optional: alias for triggerPrice
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paradex_editOrder
+
+function __ccxt_doc_Paradex_createOrders() end
+"""
+create a list of trade orders
+see: https://docs.paradex.trade/api/prod/orders/batch
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paradex_createOrders
+
+function __ccxt_doc_Paradex_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.paradex.trade/api/prod/orders/cancel
+see: https://docs.paradex.trade/api/prod/orders/cancel-by-client-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paradex_cancelOrder
+
+function __ccxt_doc_Paradex_cancelOrders() end
+"""
+cancel multiple orders
+see: https://docs.paradex.trade/api/prod/orders/cancel-batch
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol, not used by cancelOrders()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paradex_cancelOrders
+
+function __ccxt_doc_Paradex_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://docs.paradex.trade/api/prod/orders/cancel-all
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paradex_cancelAllOrders
+
+function __ccxt_doc_Paradex_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.paradex.trade/api/prod/orders/get
+see: https://docs.paradex.trade/api/prod/orders/get-by-client-id
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paradex_fetchOrder
+
+function __ccxt_doc_Paradex_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.paradex.trade/api/prod/orders/get-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+- `params.until`::int: timestamp in ms of the latest order to fetch
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paradex_fetchOrders
+
+function __ccxt_doc_Paradex_fetchOpenOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.paradex.trade/api/prod/orders/get-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paradex_fetchOpenOrders
+
+function __ccxt_doc_Paradex_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.paradex.trade/api/prod/account/get-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Paradex_fetchBalance
+
+function __ccxt_doc_Paradex_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.paradex.trade/api/prod/account/list-fills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Paradex_fetchMyTrades
+
+function __ccxt_doc_Paradex_fetchPosition() end
+"""
+fetch data on an open position
+see: https://docs.paradex.trade/api/prod/account/get-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Paradex_fetchPosition
+
+function __ccxt_doc_Paradex_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.paradex.trade/api/prod/account/get-positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Paradex_fetchPositions
+
+function __ccxt_doc_Paradex_fetchMyLiquidations() end
+"""
+retrieves the users liquidated positions
+see: https://docs.paradex.trade/api/prod/liquidations/get-liquidations
+
+# Arguments
+- `symbol`::string, optional: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Paradex_fetchMyLiquidations
+
+function __ccxt_doc_Paradex_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.paradex.trade/api/prod/transfers/get
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Paradex_fetchDeposits
+
+function __ccxt_doc_Paradex_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.paradex.trade/api/prod/transfers/get
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch withdrawals for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Paradex_fetchWithdrawals
+
+function __ccxt_doc_Paradex_fetchTransfers() end
+"""
+fetch a history of transfers made on an account
+see: https://docs.paradex.trade/api/prod/transfers/get
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Paradex_fetchTransfers
+
+function __ccxt_doc_Paradex_fetchMarginMode() end
+"""
+fetches the margin mode of a specific symbol
+see: https://docs.paradex.trade/api/prod/account/get-account-margin
+
+# Arguments
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Paradex_fetchMarginMode
+
+function __ccxt_doc_Paradex_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://docs.paradex.trade/api/prod/account/upsert-account-margin
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::float, optional: the rate of leverage
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Paradex_setMarginMode
+
+function __ccxt_doc_Paradex_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://docs.paradex.trade/api/prod/account/get-account-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Paradex_fetchLeverage
+
+function __ccxt_doc_Paradex_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://docs.paradex.trade/api/prod/account/upsert-account-margin
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string, optional: unified market symbol (is mandatory for swap markets)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated'
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Paradex_setLeverage
+
+function __ccxt_doc_Paradex_fetchGreeks() end
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Paradex_fetchGreeks
+
+function __ccxt_doc_Paradex_fetchAllGreeks() end
+"""
+fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Paradex_fetchAllGreeks
+
+function __ccxt_doc_Paradex_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://docs.paradex.trade/api/prod/account/get-funding
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cursor`::string, optional: returns the next paginated page
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Paradex_fetchFundingHistory
+
+function __ccxt_doc_Paradex_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://docs.paradex.trade/api/prod/markets/get-funding-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of funding rate structures
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Paradex_fetchFundingRateHistory

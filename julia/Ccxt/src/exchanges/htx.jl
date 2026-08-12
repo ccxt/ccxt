@@ -2711,13 +2711,27 @@ function describe(self::Htx, )
 ))
 
 end
-function fetchStatus(self::Htx, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Htx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchStatus", nothing, params);
-    enabledForContracts = self.handleOption("fetchStatus", "enableForContracts", false);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchStatus", market = nothing, params = params);
+    enabledForContracts = self.handleOption("fetchStatus", "enableForContracts", defaultValue = false);
     response = nothing;
     if functions.ccxtruthy(@functions.ccxt_and(marketType != "spot", enabledForContracts))
         subType = safeString(params, "subType", get(self.options, Symbol("defaultSubType"), nothing));
@@ -2771,7 +2785,18 @@ function fetchStatus(self::Htx, params=Dict())
 )
 
 end
-function fetchTime(self::Htx, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Htx; params=Dict())
     options = safeValue(self.options, "fetchTime", Dict{Symbol, Any}());
     defaultType = safeString(self.options, "defaultType", "spot");
     type_var = safeString(options, "type", defaultType);
@@ -2785,11 +2810,11 @@ function fetchTime(self::Htx, params=Dict())
     return safeInteger2(response, "data", "ts")
 
 end
-function parseTradingFee(self::Htx, fee, market=nothing)
+function parseTradingFee(self::Htx, fee; market=nothing)
     marketId = safeString(fee, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("maker") => self.safeNumber(fee, "actualMakerRate"),
     Symbol("taker") => self.safeNumber(fee, "actualTakerRate"),
     Symbol("percentage") => nothing,
@@ -2797,7 +2822,18 @@ function parseTradingFee(self::Htx, fee, market=nothing)
 )
 
 end
-function fetchTradingFee(self::Htx, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Htx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2808,10 +2844,10 @@ function fetchTradingFee(self::Htx, symbol, params=Dict())
     response = Base.fetch(self.spotPrivateGetV2ReferenceTransactFeeRate(extend(request, params)));
     data = safeValue(response, "data", []);
     first_var = safeValue(data, 0, Dict{Symbol, Any}());
-    return self.parseTradingFee(first_var, market)
+    return self.parseTradingFee(first_var, market = market)
 
 end
-function fetchTradingLimits(self::Htx, symbols=nothing, params=Dict())
+function fetchTradingLimits(self::Htx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2825,13 +2861,23 @@ function fetchTradingLimits(self::Htx, symbols=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
         symbol = get(symbols, i + 1, nothing);
-        result[Symbol(symbol)] = Base.fetch(self.fetchTradingLimitsById(self.marketId(symbol), params));
+        result[Symbol(symbol)] = Base.fetch(self.fetchTradingLimitsById(self.marketId(symbol), params = params));
         i += 1
     end
     return result
 
 end
-function fetchTradingLimitsById(self::Htx, id, params=Dict())
+"""
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+
+# Arguments
+- `id`::string: market id
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the limits object of a market structure
+"""
+function fetchTradingLimitsById(self::Htx, id; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("symbol") => id
     );
@@ -2839,7 +2885,7 @@ function fetchTradingLimitsById(self::Htx, id, params=Dict())
     return self.parseTradingLimits(safeValue(response, "data", Dict{Symbol, Any}()))
 
 end
-function parseTradingLimits(self::Htx, limits, symbol=nothing, params=Dict())
+function parseTradingLimits(self::Htx, limits; symbol=nothing, params=Dict())
     return Dict{Symbol, Any}(
     Symbol("info") => limits,
     Symbol("limits") => Dict{Symbol, Any}(
@@ -2855,12 +2901,25 @@ function costToPrecision(self::Htx, symbol, cost)
     return decimalToPrecision(cost, TRUNCATE, get(get(self.market(symbol), Symbol("precision"), nothing), Symbol("cost"), nothing), self.precisionMode)
 
 end
-function fetchMarkets(self::Htx, params=Dict())
+"""
+retrieves data on all markets for huobi
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Htx; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
     types = nothing;
-    (types, params) = self.handleOptionAndParams(params, "fetchMarkets", "types", Dict{Symbol, Any}());
+    (types, params) = self.handleOptionAndParams(params, "fetchMarkets", "types", defaultValue = Dict{Symbol, Any}());
     allMarkets = [];
     promises = [];
     keys_var = objectKeys(types);
@@ -2869,13 +2928,13 @@ function fetchMarkets(self::Htx, params=Dict())
         key = get(keys_var, i + 1, nothing);
         if functions.ccxtruthy(self.safeBool(types, key))
             if functions.ccxtruthy(key == "spot")
-                                push!(promises, self.fetchMarketsByTypeAndSubType("spot", nothing, params));
+                                push!(promises, self.fetchMarketsByTypeAndSubType("spot", nothing, params = params));
             elseif functions.ccxtruthy(key == "linear")
-                push!(promises, self.fetchMarketsByTypeAndSubType(nothing, "linear", params));
+                push!(promises, self.fetchMarketsByTypeAndSubType(nothing, "linear", params = params));
             else
                 if functions.ccxtruthy(key == "inverse")
-                                        push!(promises, self.fetchMarketsByTypeAndSubType("swap", "inverse", params));
-                                        push!(promises, self.fetchMarketsByTypeAndSubType("future", "inverse", params));
+                                        push!(promises, self.fetchMarketsByTypeAndSubType("swap", "inverse", params = params));
+                                        push!(promises, self.fetchMarketsByTypeAndSubType("future", "inverse", params = params));
                 end
 
             end
@@ -2891,7 +2950,22 @@ function fetchMarkets(self::Htx, params=Dict())
     return allMarkets
 
 end
-function fetchMarketsByTypeAndSubType(self::Htx, type_var, subType, params=Dict())
+"""
+retrieves data on all markets of a certain type and/or subtype
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+
+# Arguments
+- `type`::string, optional: 'spot', 'swap' or 'future'
+- `subType`::string, optional: 'linear' or 'inverse'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarketsByTypeAndSubType(self::Htx, type_var, subType; params=Dict())
     isSpot = (type_var == "spot");
     request = Dict{Symbol, Any}();
     response = nothing;
@@ -2909,7 +2983,7 @@ function fetchMarketsByTypeAndSubType(self::Htx, type_var, subType, params=Dict(
     else
         response = Base.fetch(self.spotPublicGetV1CommonSymbols(extend(request, params)));
     end
-    markets = self.safeList(response, "data", []);
+    markets = self.safeList(response, "data", defaultValue = []);
     numMarkets = length(markets);
     if functions.ccxtruthy(functions.ccxt_lt(numMarkets, 1))
         throw(OperationFailed(string(self.id, " fetchMarkets() returned an empty response: ", json(response))));
@@ -3013,9 +3087,9 @@ function fetchMarketsByTypeAndSubType(self::Htx, type_var, subType, params=Dict(
         taker = nothing;
         active = nothing;
         if functions.ccxtruthy(spot)
-            pricePrecision = self.parseNumber(self.parsePrecision(safeString(market, "price-precision")));
-            amountPrecision = self.parseNumber(self.parsePrecision(safeString(market, "amount-precision")));
-            costPrecision = self.parseNumber(self.parsePrecision(safeString(market, "value-precision")));
+            pricePrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "price-precision")));
+            amountPrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "amount-precision")));
+            costPrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "value-precision")));
             maker = self.parseNumber("0.002");
             taker = self.parseNumber("0.002");
             state = safeString(market, "state");
@@ -3104,7 +3178,7 @@ function tryGetSymbolFromFutureMarkets(self::Htx, symbolOrMarketId)
     if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in("futureMarketIdsForSymbols", self.options))))
         self.options[Symbol("futureMarketIdsForSymbols")] = Dict{Symbol, Any}();
     end
-    futureMarketIdsForSymbols = self.safeDict(self.options, "futureMarketIdsForSymbols", Dict{Symbol, Any}());
+    futureMarketIdsForSymbols = self.safeDict(self.options, "futureMarketIdsForSymbols", defaultValue = Dict{Symbol, Any}());
     if functions.ccxtruthy(ccxt_in(symbolOrMarketId, futureMarketIdsForSymbols))
             return get(futureMarketIdsForSymbols, Symbol(symbolOrMarketId), nothing)
     end
@@ -3133,9 +3207,9 @@ function tryGetSymbolFromFutureMarkets(self::Htx, symbolOrMarketId)
     return symbolOrMarketId
 
 end
-function parseTicker(self::Htx, ticker, market=nothing)
+function parseTicker(self::Htx, ticker; market=nothing)
     marketId = safeString2(ticker, "symbol", "contract_code");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     symbol = self.tryGetSymbolFromFutureMarkets(symbol);
     timestamp = safeInteger2(ticker, "ts", "quoteTime");
     bid = nothing;
@@ -3185,10 +3259,24 @@ function parseTicker(self::Htx, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Htx, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Htx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3211,18 +3299,32 @@ function fetchTicker(self::Htx, symbol, params=Dict())
         response = Base.fetch(self.spotPublicGetMarketDetailMerged(extend(request, params)));
     end
     tick = safeValue(response, "tick", Dict{Symbol, Any}());
-    ticker = self.parseTicker(tick, market);
+    ticker = self.parseTicker(tick, market = market);
     timestamp = safeInteger(response, "ts");
     ticker[Symbol("timestamp")] = timestamp;
     ticker[Symbol("datetime")] = self.iso8601(timestamp);
     return ticker
 
 end
-function fetchTickers(self::Htx, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Htx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     first_var = safeString(symbols, 0);
     market = nothing;
     if functions.ccxtruthy(first_var != nothing)
@@ -3231,8 +3333,8 @@ function fetchTickers(self::Htx, symbols=nothing, params=Dict())
     isSubTypeRequested = @functions.ccxt_or((ccxt_in("subType", params)), (ccxt_in("business_type", params)));
     type_var = nothing;
     subType = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchTickers", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchTickers", market = market, params = params);
     request = Dict{Symbol, Any}();
     isSpot = (type_var == "spot");
     future = (type_var == "future");
@@ -3264,21 +3366,34 @@ function fetchTickers(self::Htx, symbols=nothing, params=Dict())
     else
         response = Base.fetch(self.spotPublicGetMarketTickers(extend(request, params)));
     end
-    rawTickers = self.safeList2(response, "data", "ticks", []);
-    tickers = self.parseTickers(rawTickers, symbols, params);
-    return self.filterByArrayTickers(tickers, "symbol", symbols)
+    rawTickers = self.safeList2(response, "data", "ticks", defaultValue = []);
+    tickers = self.parseTickers(rawTickers, symbols = symbols, params = params);
+    return self.filterByArrayTickers(tickers, "symbol", values = symbols)
 
 end
-function fetchLastPrices(self::Htx, symbols=nothing, params=Dict())
+"""
+fetches the last price for multiple markets
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
+see: https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
+see: https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003 inverse swap
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the last prices
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of lastprices structures
+"""
+function fetchLastPrices(self::Htx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
+    market = self.getMarketFromSymbols(symbols = symbols);
     type_var = nothing;
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchLastPrices", market, params);
-    (type_var, params) = self.handleMarketTypeAndParams("fetchLastPrices", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchLastPrices", market = market, params = params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchLastPrices", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(@functions.ccxt_and((@functions.ccxt_or((type_var == "swap"), (type_var == "future"))), (subType == "linear")))
         response = Base.fetch(self.contractPublicGetLinearSwapExMarketTrade(params));
@@ -3293,13 +3408,13 @@ function fetchLastPrices(self::Htx, symbols=nothing, params=Dict())
 
     end
     tick = safeValue(response, "tick", Dict{Symbol, Any}());
-    data = self.safeList(tick, "data", []);
-    return self.parseLastPrices(data, symbols)
+    data = self.safeList(tick, "data", defaultValue = []);
+    return self.parseLastPrices(data, symbols = symbols)
 
 end
-function parseLastPrice(self::Htx, entry, market=nothing)
+function parseLastPrice(self::Htx, entry; market=nothing)
     marketId = safeString2(entry, "symbol", "contract_code");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     price = self.safeNumber(entry, "price");
     direction = safeString(entry, "direction");
     return Dict{Symbol, Any}(
@@ -3312,7 +3427,22 @@ function parseLastPrice(self::Htx, entry, market=nothing)
 )
 
 end
-function fetchOrderBook(self::Htx, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Htx, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3353,16 +3483,16 @@ function fetchOrderBook(self::Htx, symbol, limit=nothing, params=Dict())
         end
         tick = safeValue(response, "tick");
         timestamp = safeInteger(tick, "ts", safeInteger(response, "ts"));
-        result = self.parseOrderBook(tick, symbol, timestamp);
+        result = self.parseOrderBook(tick, symbol, timestamp = timestamp);
         result[Symbol("nonce")] = safeInteger(tick, "version");
             return result
     end
     throw(ExchangeError(string(self.id, " fetchOrderBook() returned unrecognized response: ", json(response))));
 
 end
-function parseTrade(self::Htx, trade, market=nothing)
+function parseTrade(self::Htx, trade; market=nothing)
     marketId = safeString2(trade, "contract_code", "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeIntegerN(trade, ["ts", "created-at", "created_at", "create_date", "created_time"]);
     order = safeString2(trade, "order-id", "order_id");
@@ -3422,23 +3552,51 @@ function parseTrade(self::Htx, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchOrderTrades(self::Htx, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Htx, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrderTrades", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOrderTrades", market = market, params = params);
     if functions.ccxtruthy(marketType != "spot")
         throw(NotSupported(string(self.id, " fetchOrderTrades() is only supported for spot markets")));
     end
-    return Base.fetch(self.fetchSpotOrderTrades(id, symbol, since, limit, params))
+    return Base.fetch(self.fetchSpotOrderTrades(id, symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchSpotOrderTrades(self::Htx, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchSpotOrderTrades(self::Htx, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3446,25 +3604,41 @@ function fetchSpotOrderTrades(self::Htx, id, symbol=nothing, since=nothing, limi
         Symbol("order-id") => id
     );
     response = Base.fetch(self.spotPrivateGetV1OrderOrdersOrderIdMatchresults(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, nothing, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = nothing, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195898804f0
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params);
     request = Dict{Symbol, Any}();
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
@@ -3514,10 +3688,26 @@ function fetchMyTrades(self::Htx, symbol=nothing, since=nothing, limit=nothing, 
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(trades)))
         trades = safeValue(trades, "trades");
     end
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchTrades(self::Htx, symbol, since=nothing, limit=1000, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Htx, symbol; since=nothing, limit=1000, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3553,28 +3743,47 @@ function fetchTrades(self::Htx, symbol, since=nothing, limit=1000, params=Dict()
         trades = safeValue(get(data, i + 1, nothing), "data", []);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(trades)))
-            trade = self.parseTrade(get(trades, j + 1, nothing), market);
+            trade = self.parseTrade(get(trades, j + 1, nothing), market = market);
             push!(result, trade);
             j += 1
         end
         i += 1
     end
     result = sortBy(result, "timestamp");
-    return self.filterBySymbolSinceLimit(result, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(result, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function parseOHLCV(self::Htx, ohlcv, market=nothing)
+function parseOHLCV(self::Htx, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, "id"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "amount")]
 
 end
-function fetchOHLCV(self::Htx, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.useHistoricalEndpointForSpot`::string, optional: true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Htx, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 1000))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -3669,7 +3878,7 @@ function fetchOHLCV(self::Htx, symbol, timeframe="1m", since=nothing, limit=noth
     else
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         useHistorical = nothing;
-        (useHistorical, params) = self.handleOptionAndParams(params, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
+        (useHistorical, params) = self.handleOptionAndParams(params, "fetchOHLCV", "useHistoricalEndpointForSpot", defaultValue = true);
         if functions.ccxtruthy(!functions.ccxtruthy(useHistorical))
             if functions.ccxtruthy(limit != nothing)
                 request[Symbol("size")] = min(limit, 2000);
@@ -3688,11 +3897,21 @@ function fetchOHLCV(self::Htx, symbol, timeframe="1m", since=nothing, limit=noth
             response = Base.fetch(self.spotPublicGetMarketHistoryCandles(extend(request, params)));
         end
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchAccounts(self::Htx, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Htx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3713,7 +3932,20 @@ function parseAccount(self::Htx, account)
 )
 
 end
-function fetchAccountIdByType(self::Htx, type_var, marginMode=nothing, symbol=nothing, params=Dict())
+"""
+fetch all the accounts by a type and marginModeassociated with a profile
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+
+# Arguments
+- `type`::string: 'spot', 'swap' or 'future
+- `marginMode`::string, optional: 'cross' or 'isolated'
+- `symbol`::string, optional: unified ccxt market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccountIdByType(self::Htx, type_var; marginMode=nothing, symbol=nothing, params=Dict())
     accounts = Base.fetch(self.loadAccounts());
     accountId = safeValue2(params, "accountId", "account-id");
     if functions.ccxtruthy(accountId != nothing)
@@ -3749,9 +3981,19 @@ function fetchAccountIdByType(self::Htx, type_var, marginMode=nothing, symbol=no
     return safeString(defaultAccount, "id")
 
 end
-function fetchCurrencies(self::Htx, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Htx; params=Dict())
     response = Base.fetch(self.spotPublicGetV2ReferenceCurrencies(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     self.options[Symbol("networkNamesByChainIds")] = Dict{Symbol, Any}();
     self.options[Symbol("networkChainIdsByNames")] = Dict{Symbol, Any}();
     return self.parseCurrencies(data)
@@ -3771,7 +4013,7 @@ function parseCurrency(self::Htx, rawCurrency)
     if functions.ccxtruthy(code != nothing)
         self.options[Symbol("networkChainIdsByNames")][Symbol(code)] = Dict{Symbol, Any}();
     end
-    chains = self.safeList(rawCurrency, "chains", []);
+    chains = self.safeList(rawCurrency, "chains", defaultValue = []);
     networks = Dict{Symbol, Any}();
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
@@ -3784,7 +4026,7 @@ function parseCurrency(self::Htx, rawCurrency)
         if functions.ccxtruthy(uniqueChainId != nothing)
             self.options[Symbol("networkNamesByChainIds")][Symbol(uniqueChainId)] = title;
         end
-        networkCode = self.networkIdToCode(uniqueChainId, code);
+        networkCode = self.networkIdToCode(networkId = uniqueChainId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("info") => chainEntry,
@@ -3804,7 +4046,7 @@ function parseCurrency(self::Htx, rawCurrency)
                 Symbol("deposit") => safeString(chainEntry, "depositStatus") == "allowed",
                 Symbol("withdraw") => safeString(chainEntry, "withdrawStatus") == "allowed",
                 Symbol("fee") => self.safeNumber(chainEntry, "transactFeeWithdraw"),
-                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chainEntry, "withdrawPrecision")))
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(chainEntry, "withdrawPrecision")))
             );
         end
         j += 1
@@ -3838,17 +4080,17 @@ function parseCurrency(self::Htx, rawCurrency)
 ))
 
 end
-function networkIdToCode(self::Htx, networkId=nothing, currencyCode=nothing)
+function networkIdToCode(self::Htx; networkId=nothing, currencyCode=nothing)
     keys_var = objectKeys(get(self.options, Symbol("networkNamesByChainIds"), nothing));
     keysLength = length(keys_var);
     if functions.ccxtruthy(keysLength == 0)
         throw(ExchangeError(string(self.id, " networkIdToCode() - markets need to be loaded at first")));
     end
     networkTitle = safeValue(get(self.options, Symbol("networkNamesByChainIds"), nothing), networkId, networkId);
-    return networkIdToCode(self.parent, networkTitle, currencyCode)
+    return networkIdToCode(self.parent, networkId = networkTitle, currencyCode = currencyCode)
 
 end
-function networkCodeToId(self::Htx, networkCode, currencyCode=nothing)
+function networkCodeToId(self::Htx, networkCode; currencyCode=nothing)
     if functions.ccxtruthy(networkCode == nothing)
             return nothing
     end
@@ -3864,29 +4106,46 @@ function networkCodeToId(self::Htx, networkCode, currencyCode=nothing)
     if functions.ccxtruthy(ccxt_in(networkCode, uniqueNetworkIds))
             return get(uniqueNetworkIds, Symbol(networkCode), nothing)
     else
-        networkTitle = networkCodeToId(self.parent, networkCode, currencyCode);
+        networkTitle = networkCodeToId(self.parent, networkCode, currencyCode = currencyCode);
         return safeValue(uniqueNetworkIds, networkTitle, networkTitle)
     end
 
 end
-function fetchBalance(self::Htx, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: spot, margin, future or swap
+- `params.subType`::string, optional: linear or inverse
+- `params.multiAssetMode`::bool, optional: set to true if you are using multi-asset mode for USDT-margined contracts
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Htx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     isUnifiedAccount = nothing;
-    (isUnifiedAccount, params) = self.handleOptionAndParams2(params, "fetchBalance", "unified", "uta", false);
+    (isUnifiedAccount, params) = self.handleOptionAndParams2(params, "fetchBalance", "unified", "uta", defaultValue = false);
     if functions.ccxtruthy(isUnifiedAccount)
         throw(NotSupported(string(self.id, " fetchBalance() unified account has been deprecated on htx")));
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     subType = nothing;
     isMultiAssetMode = nothing;
     (subType, params) = self.handleOptionAndParams2(params, "fetchBalance", "defaultSubType", "subType");
     if functions.ccxtruthy(subType == nothing)
         subType = "linear";
     end
-    (isMultiAssetMode, params) = self.handleOptionAndParams(params, "fetchBalance", "multiAssetMode", false);
+    (isMultiAssetMode, params) = self.handleOptionAndParams(params, "fetchBalance", "multiAssetMode", defaultValue = false);
     request = Dict{Symbol, Any}();
     spot = (type_var == "spot");
     future = (type_var == "future");
@@ -3894,7 +4153,7 @@ function fetchBalance(self::Htx, params=Dict())
     inverse = (subType == "inverse");
     linear = (subType == "linear");
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params = params);
     isolated = (marginMode == "isolated");
     cross = (marginMode == "cross");
     margin = @functions.ccxt_or((type_var == "margin"), (@functions.ccxt_and(spot, (@functions.ccxt_or(cross, isolated)))));
@@ -3910,7 +4169,7 @@ function fetchBalance(self::Htx, params=Dict())
             end
         else
             Base.fetch(self.loadAccounts());
-            accountId = Base.fetch(self.fetchAccountIdByType(type_var, nothing, nothing, params));
+            accountId = Base.fetch(self.fetchAccountIdByType(type_var, marginMode = nothing, symbol = nothing, params = params));
             request[Symbol("account-id")] = accountId;
             response = Base.fetch(self.spotPrivateGetV1AccountAccountsAccountIdBalance(extend(request, params)));
         end
@@ -3930,7 +4189,7 @@ function fetchBalance(self::Htx, params=Dict())
     );
     data = safeValue(response, "data");
     if functions.ccxtruthy(@functions.ccxt_or(isMultiAssetMode, (@functions.ccxt_and(linear, (@functions.ccxt_or(swap, future))))))
-        details = self.safeList(data, "details", []);
+        details = self.safeList(data, "details", defaultValue = []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(details)))
             balance = get(details, i + 1, nothing);
@@ -4005,7 +4264,28 @@ function fetchBalance(self::Htx, params=Dict())
     return result
 
 end
-function fetchOrder(self::Htx, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-196a8401f83
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *linear only* set to true if you want to fetch a trigger order
+- `params.stopLossTakeProfit`::bool, optional: *linear only* set to true if you want to fetch a stop-loss take-profit order
+- `params.stopLoss`::bool, optional: *linear only* set to true if you want to fetch a stop-loss order
+- `params.takeProfit`::bool, optional: *linear only* set to true if you want to fetch a take-profit order
+- `params.trailing`::bool, optional: *linear only* set to true if you want to fetch a trailing order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Htx, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4014,7 +4294,7 @@ function fetchOrder(self::Htx, id, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrder", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOrder", market = market, params = params);
     request = Dict{Symbol, Any}();
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
@@ -4074,7 +4354,7 @@ function fetchOrder(self::Htx, id, symbol=nothing, params=Dict())
                 end
                 request[Symbol("contract_code")] = safeString(market, "id");
                 marginMode = nothing;
-                (marginMode, params) = self.handleMarginModeAndParams("fetchOrder", params);
+                (marginMode, params) = self.handleMarginModeAndParams("fetchOrder", params = params);
                 marginMode = functions.ccxtruthy((marginMode == nothing)) ? "cross" : marginMode;
                 request[Symbol("margin_mode")] = marginMode;
                 response = Base.fetch(self.contractPrivateGetV5TradeOrder(extend(request, params)));
@@ -4095,7 +4375,7 @@ function fetchOrder(self::Htx, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(functions.ccxt_isArray(order))
         order = safeValue(order, 0);
     end
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
 function parseMarginBalanceHelper(self::Htx, balance, code, result)
@@ -4120,7 +4400,7 @@ function parseMarginBalanceHelper(self::Htx, balance, code, result)
     return account
 
 end
-function fetchSpotOrdersByStates(self::Htx, states, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchSpotOrdersByStates(self::Htx, states; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     method = safeString(self.options, "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders");
     if functions.ccxtruthy(method == "spot_private_get_v1_order_orders")
         if functions.ccxtruthy(symbol == nothing)
@@ -4152,19 +4432,19 @@ function fetchSpotOrdersByStates(self::Htx, states, symbol=nothing, since=nothin
     else
         response = Base.fetch(self.spotPrivateGetV1OrderHistory(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchSpotOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))
+function fetchSpotOrders(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchClosedSpotOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchSpotOrdersByStates("filled", symbol, since, limit, params))
+function fetchClosedSpotOrders(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchSpotOrdersByStates("filled", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchContractOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchContractOrders(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchContractOrders() requires a symbol argument")));
     end
@@ -4178,7 +4458,7 @@ function fetchContractOrders(self::Htx, symbol=nothing, since=nothing, limit=not
     stopLossTakeProfit = safeValue(params, "stopLossTakeProfit");
     stopLoss = self.safeBool(params, "stopLoss");
     takeProfit = self.safeBool(params, "takeProfit");
-    trailing = self.safeBool(params, "trailing", false);
+    trailing = self.safeBool(params, "trailing", defaultValue = false);
     isAlgo = (@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(trigger, stopLoss), takeProfit), stopLossTakeProfit), trailing));
     params = omit(params, ["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"]);
     if functions.ccxtruthy(since != nothing)
@@ -4190,7 +4470,7 @@ function fetchContractOrders(self::Htx, symbol=nothing, since=nothing, limit=not
             request[Symbol("limit")] = limit;
         end
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("fetchContractOrders", params);
+        (marginMode, params) = self.handleMarginModeAndParams("fetchContractOrders", params = params);
         marginMode = functions.ccxtruthy((marginMode == nothing)) ? "cross" : marginMode;
         request[Symbol("margin_mode")] = marginMode;
         request[Symbol("contract_code")] = get(market, Symbol("id"), nothing);
@@ -4254,10 +4534,10 @@ function fetchContractOrders(self::Htx, symbol=nothing, since=nothing, limit=not
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(orders)))
         orders = safeValue(orders, "orders", []);
     end
-    return self.parseOrders(orders, market, since, limit)
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchClosedContractOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchClosedContractOrders(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchClosedContractOrders() requires a symbol argument")));
     end
@@ -4271,7 +4551,7 @@ function fetchClosedContractOrders(self::Htx, symbol=nothing, since=nothing, lim
         stopLossTakeProfit = safeValue(params, "stopLossTakeProfit");
         stopLoss = self.safeBool(params, "stopLoss");
         takeProfit = self.safeBool(params, "takeProfit");
-        trailing = self.safeBool(params, "trailing", false);
+        trailing = self.safeBool(params, "trailing", defaultValue = false);
         isAlgo = (@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(trigger, stopLoss), takeProfit), stopLossTakeProfit), trailing));
         if functions.ccxtruthy(isAlgo)
             request[Symbol("states")] = "effective";
@@ -4281,10 +4561,34 @@ function fetchClosedContractOrders(self::Htx, symbol=nothing, since=nothing, lim
     else
         request[Symbol("status")] = "6";
     end
-    return Base.fetch(self.fetchContractOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchContractOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.trigger`::bool, optional: *contract only* if the orders are trigger trigger orders or not
+- `params.trailing`::bool, optional: *contract only* set to true if you want to fetch trailing stop orders
+- `params.stopLossTakeProfit`::bool, optional: *contract only* if the orders are stop-loss and take-profit orders
+- `params.stopLoss`::bool, optional: *contract only* set to true if you want to fetch stop loss orders
+- `params.takeProfit`::bool, optional: *contract only* set to true if you want to fetch take profit orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4293,35 +4597,55 @@ function fetchOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing, pa
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOrders", market = market, params = params);
     contract = @functions.ccxt_or((marketType == "swap"), (marketType == "future"));
     if functions.ccxtruthy(@functions.ccxt_and(contract, (symbol == nothing)))
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument for ", marketType, " orders")));
     end
     if functions.ccxtruthy(contract)
-            return Base.fetch(self.fetchContractOrders(symbol, since, limit, params))
+            return Base.fetch(self.fetchContractOrders(symbol = symbol, since = since, limit = limit, params = params))
     else
-        return Base.fetch(self.fetchSpotOrders(symbol, since, limit, params))
+        return Base.fetch(self.fetchSpotOrders(symbol = symbol, since = since, limit = limit, params = params))
     end
 
 end
-function fetchCanceledOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchCanceledOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, params, 100))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 100))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchCanceledOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchCanceledOrders", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
-            return Base.fetch(self.fetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, params))
+            return Base.fetch(self.fetchSpotOrdersByStates("partial-canceled,canceled", symbol = symbol, since = since, limit = limit, params = params))
     else
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchCanceledOrders() requires a symbol argument for ", marketType, " orders")));
@@ -4332,7 +4656,7 @@ function fetchCanceledOrders(self::Htx, symbol=nothing, since=nothing, limit=not
             stopLossTakeProfit = safeValue(params, "stopLossTakeProfit");
             stopLoss = self.safeBool(params, "stopLoss");
             takeProfit = self.safeBool(params, "takeProfit");
-            trailing = self.safeBool(params, "trailing", false);
+            trailing = self.safeBool(params, "trailing", defaultValue = false);
             isAlgo = (@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(trigger, stopLoss), takeProfit), stopLossTakeProfit), trailing));
             if functions.ccxtruthy(isAlgo)
                 request[Symbol("states")] = "canceled";
@@ -4342,33 +4666,73 @@ function fetchCanceledOrders(self::Htx, symbol=nothing, since=nothing, limit=not
         else
             request[Symbol("status")] = "5,7";
         end
-        return Base.fetch(self.fetchContractOrders(symbol, since, limit, extend(request, params)))
+        return Base.fetch(self.fetchContractOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
     end
 
 end
-function fetchClosedOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, 100))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol = symbol, since = since, limit = limit, params = params, maxEntriesPerRequest = 100))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchClosedOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchClosedOrders", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
-            return Base.fetch(self.fetchClosedSpotOrders(symbol, since, limit, params))
+            return Base.fetch(self.fetchClosedSpotOrders(symbol = symbol, since = since, limit = limit, params = params))
     else
-        return Base.fetch(self.fetchClosedContractOrders(symbol, since, limit, params))
+        return Base.fetch(self.fetchClosedContractOrders(symbol = symbol, since = since, limit = limit, params = params))
     end
 
 end
-function fetchOpenOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589587da5
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b9754d736
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *contract only* if the orders are trigger trigger orders or not
+- `params.stopLossTakeProfit`::bool, optional: *contract only* if the orders are stop-loss or take-profit orders
+- `params.stopLoss`::bool, optional: *linear swap contract only* if the orders are stop-loss orders
+- `params.takeProfit`::bool, optional: *linear swap contract only* if the orders are take-profit orders
+- `params.trailing`::bool, optional: *contract only* set to true if you want to fetch trailing stop orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4378,9 +4742,9 @@ function fetchOpenOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing
     end
     request = Dict{Symbol, Any}();
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchOpenOrders", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchOpenOrders", market = market, params = params, defaultValue = "linear");
     isLinear = (subType == "linear");
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
@@ -4424,7 +4788,7 @@ function fetchOpenOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing
         stopLossTakeProfit = self.safeBool(params, "stopLossTakeProfit");
         stopLoss = self.safeBool(params, "stopLoss");
         takeProfit = self.safeBool(params, "takeProfit");
-        trailing = self.safeBool(params, "trailing", false);
+        trailing = self.safeBool(params, "trailing", defaultValue = false);
         params = omit(params, ["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"]);
         if functions.ccxtruthy(isLinear)
             if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(trigger, trailing), stopLossTakeProfit), stopLoss), takeProfit))
@@ -4484,7 +4848,7 @@ function fetchOpenOrders(self::Htx, symbol=nothing, since=nothing, limit=nothing
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(orders)))
         orders = safeValue(orders, "orders", []);
     end
-    return self.parseOrders(orders, market, since, limit)
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Htx, status)
@@ -4511,9 +4875,9 @@ function parseOrderStatus(self::Htx, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Htx, order, market=nothing)
+function parseOrder(self::Htx, order; market=nothing)
     marketId = safeString2(order, "contract_code", "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     rejectedCreateOrders = safeString2(order, "err_code", "err-code");
     status = self.parseOrderStatus(safeString2(order, "state", "status"));
     if functions.ccxtruthy(rejectedCreateOrders != nothing)
@@ -4609,10 +4973,22 @@ function parseOrder(self::Htx, order, market=nothing)
     Symbol("reduceOnly") => reduceOnly,
     Symbol("fee") => fee,
     Symbol("trades") => trades
-), market)
+), market = market)
 
 end
-function createMarketBuyOrderWithCost(self::Htx, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Htx, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4621,10 +4997,26 @@ function createMarketBuyOrderWithCost(self::Htx, symbol, cost, params=Dict())
         throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
     end
     params[Symbol("createMarketBuyOrderRequiresPrice")] = false;
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = params))
 
 end
-function createTrailingPercentOrder(self::Htx, symbol, type_var, side, amount, price=nothing, trailingPercent=nothing, trailingTriggerPrice=nothing, params=Dict())
+"""
+create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency, or number of contracts
+- `price`::float, optional: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+- `trailingPercent`::float: the percent to trail away from the current market price
+- `trailingTriggerPrice`::float: the price to activate a trailing order, default uses the price argument
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createTrailingPercentOrder(self::Htx, symbol, type_var, side, amount; price=nothing, trailingPercent=nothing, trailingTriggerPrice=nothing, params=Dict())
     if functions.ccxtruthy(trailingPercent == nothing)
         throw(ArgumentsRequired(string(self.id, " createTrailingPercentOrder() requires a trailingPercent argument")));
     end
@@ -4633,10 +5025,26 @@ function createTrailingPercentOrder(self::Htx, symbol, type_var, side, amount, p
     end
     params[Symbol("trailingPercent")] = trailingPercent;
     params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
-    return Base.fetch(self.createOrder(symbol, type_var, side, amount, price, params))
+    return Base.fetch(self.createOrder(symbol, type_var, side, amount, price = price, params = params))
 
 end
-function createSpotOrderRequest(self::Htx, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+helper function to build request
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: supports 'IOC' and 'FOK'
+- `params.cost`::float, optional: the quote quantity that can be used as an alternative for the amount for market buy orders
+
+# Returns
+- request to be sent to the exchange
+"""
+function createSpotOrderRequest(self::Htx, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -4649,8 +5057,8 @@ function createSpotOrderRequest(self::Htx, symbol, type_var, side, amount, price
     Base.fetch(self.loadAccounts());
     market = self.market(symbol);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
-    accountId = Base.fetch(self.fetchAccountIdByType(get(market, Symbol("type"), nothing), marginMode, symbol));
+    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
+    accountId = Base.fetch(self.fetchAccountIdByType(get(market, Symbol("type"), nothing), marginMode = marginMode, symbol = symbol));
     request = Dict{Symbol, Any}(
         Symbol("account-id") => accountId,
         Symbol("symbol") => get(market, Symbol("id"), nothing)
@@ -4676,7 +5084,7 @@ function createSpotOrderRequest(self::Htx, symbol, type_var, side, amount, price
         end
     end
     postOnly = nothing;
-    (postOnly, params) = self.handlePostOnly(orderType == "market", orderType == "limit-maker", params);
+    (postOnly, params) = self.handlePostOnly(orderType == "market", orderType == "limit-maker", params = params);
     if functions.ccxtruthy(postOnly)
         orderType = "limit-maker";
     end
@@ -4708,7 +5116,7 @@ function createSpotOrderRequest(self::Htx, symbol, type_var, side, amount, price
     if functions.ccxtruthy(@functions.ccxt_and((orderType == "market"), (side == "buy")))
         quoteAmount = nothing;
         createMarketBuyOrderRequiresPrice = true;
-        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
         cost = self.safeNumber(params, "cost");
         params = omit(params, "cost");
         if functions.ccxtruthy(cost != nothing)
@@ -4736,7 +5144,7 @@ function createSpotOrderRequest(self::Htx, symbol, type_var, side, amount, price
     return extend(request, params)
 
 end
-function createContractOrderRequest(self::Htx, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createContractOrderRequest(self::Htx, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -4749,19 +5157,19 @@ function createContractOrderRequest(self::Htx, symbol, type_var, side, amount, p
         Symbol("volume") => self.amountToPrecision(symbol, amount)
     );
     postOnly = nothing;
-    (postOnly, params) = self.handlePostOnly(type_var == "market", type_var == "post_only", params);
+    (postOnly, params) = self.handlePostOnly(type_var == "market", type_var == "post_only", params = params);
     if functions.ccxtruthy(postOnly)
         type_var = "post_only";
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("createOrder", market, params);
+    (subType, params) = self.handleSubTypeAndParams("createOrder", market = market, params = params);
     isLinear = (subType == "linear");
-    reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", false);
-    hedged = self.safeBool(params, "hedged", false);
+    reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", defaultValue = false);
+    hedged = self.safeBool(params, "hedged", defaultValue = false);
     timeInForce = safeStringLower2(params, "timeInForce", "time_in_force", "gtc");
     if functions.ccxtruthy(isLinear)
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("createOrder", params, "cross");
+        (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params, defaultValue = "cross");
         request[Symbol("margin_mode")] = marginMode;
         request[Symbol("side")] = side;
         if functions.ccxtruthy(timeInForce != nothing)
@@ -4818,7 +5226,7 @@ function createContractOrderRequest(self::Htx, symbol, type_var, side, amount, p
     stopLossTriggerPrice = self.safeNumber2(params, "stopLossPrice", "sl_trigger_price");
     takeProfitTriggerPrice = self.safeNumber2(params, "takeProfitPrice", "tp_trigger_price");
     trailingPercent = safeString2(params, "trailingPercent", "callback_rate");
-    trailingTriggerPrice = self.safeNumber(params, "trailingTriggerPrice", price);
+    trailingTriggerPrice = self.safeNumber(params, "trailingTriggerPrice", defaultNumber = price);
     isTrailingPercentOrder = trailingPercent != nothing;
     isTrigger = triggerPrice != nothing;
     isStopLossTriggerOrder = stopLossTriggerPrice != nothing;
@@ -4910,7 +5318,53 @@ function createContractOrderRequest(self::Htx, symbol, type_var, side, amount, p
     return extend(request, params)
 
 end
-function createOrder(self::Htx, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                       // spot, margin
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order            // coin-m swap
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order       // coin-m swap trigger
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588768fe7 // usdt-m swap cross and isolated
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b933812c9 // usdt-m swap cross and isolated trigger and trailing orders
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position
+see: https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                            // coin-m futures
+see: https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                       // coin-m futures contract trigger
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price a trigger order is triggered at
+- `params.triggerType`::string, optional: *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
+- `params.stopLossPrice`::float, optional: *contract only* the price a stop-loss order is triggered at
+- `params.takeProfitPrice`::float, optional: *contract only* the price a take-profit order is triggered at
+- `params.operator`::string, optional: *spot and margin only* gte or lte, trigger price condition
+- `params.offset`::string, optional: *contract only* 'both' (linear only), 'open', or 'close', required in hedge mode and for inverse markets
+- `params.postOnly`::bool, optional: *contract only* true or false
+- `params.leverRate`::int, optional: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
+- `params.timeInForce`::string, optional: supports 'IOC' and 'FOK'
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.trailingPercent`::float, optional: *contract only* the percent to trail away from the current market price
+- `params.trailingTriggerPrice`::float, optional: *contract only* the price to trigger a trailing order, default uses the price argument
+- `params.hedged`::bool, optional: *contract only* true for hedged mode, false for one way mode, default is false
+- `params.marginMode`::string, optional: linear swap supports 'cross' and 'isolated', 'cross' is the default
+- `params.position_side`::string, optional: linear swap supports 'long', 'short' and 'both', 'both' is the default
+- `params.takeProfit`::object, optional: *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.takeProfit.price`::float, optional: take profit price for take profit orders
+- `params.takeProfit.type`::string, optional: market is the default, limit, optimal_5, optimal_10, optimal_20
+- `params.stopLoss`::object, optional: *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.stopLoss.price`::float, optional: stop loss price for stop loss orders
+- `params.stopLoss.type`::string, optional: market is the default, limit, optimal_5, optimal_10, optimal_20
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Htx, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4928,10 +5382,10 @@ function createOrder(self::Htx, symbol, type_var, side, amount, price=nothing, p
         if functions.ccxtruthy(isTrailingPercentOrder)
             throw(NotSupported(string(self.id, " createOrder() does not support trailing orders for spot markets")));
         end
-        spotRequest = Base.fetch(self.createSpotOrderRequest(symbol, type_var, side, amount, price, params));
+        spotRequest = Base.fetch(self.createSpotOrderRequest(symbol, type_var, side, amount, price = price, params = params));
         response = Base.fetch(self.spotPrivatePostV1OrderOrdersPlace(spotRequest));
     else
-        contractRequest = self.createContractOrderRequest(symbol, type_var, side, amount, price, params);
+        contractRequest = self.createContractOrderRequest(symbol, type_var, side, amount, price = price, params = params);
         if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
             if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(isTrigger, isStopLossTriggerOrder), isTakeProfitTriggerOrder), isTrailingPercentOrder))
                 response = Base.fetch(self.contractPrivatePostV5AlgoOrder(contractRequest));
@@ -4994,18 +5448,18 @@ function createOrder(self::Htx, symbol, type_var, side, amount, price=nothing, p
     Symbol("fee") => nothing,
     Symbol("clientOrderId") => nothing,
     Symbol("average") => nothing
-), market)
+), market = market)
     elseif functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(isTrigger, isTrailingPercentOrder), isStopLossTriggerOrder), isTakeProfitTriggerOrder))
-            data = self.safeList(response, "data", []);
-            result = self.safeDict(data, 0, Dict{Symbol, Any}());
+            data = self.safeList(response, "data", defaultValue = []);
+            result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
         else
-            result = self.safeDict(response, "data", Dict{Symbol, Any}());
+            result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         end
         if functions.ccxtruthy(result == nothing)
             throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
         end
-        return extend(self.parseOrder(result, market), Dict{Symbol, Any}(
+        return extend(self.parseOrder(result, market = market), Dict{Symbol, Any}(
     Symbol("type") => type_var,
     Symbol("side") => side,
     Symbol("price") => price,
@@ -5026,10 +5480,24 @@ function createOrder(self::Htx, symbol, type_var, side, amount, price=nothing, p
     if functions.ccxtruthy(result == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    return self.parseOrder(result, market)
+    return self.parseOrder(result, market = market)
 
 end
-function createOrders(self::Htx, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
+see: https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958935dae1
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Htx, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5053,7 +5521,7 @@ function createOrders(self::Htx, orders, params=Dict())
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
         orderParams = safeValue(rawOrder, "params", Dict{Symbol, Any}());
-        marginResult = self.handleMarginModeAndParams("createOrders", orderParams);
+        marginResult = self.handleMarginModeAndParams("createOrders", params = orderParams);
         currentMarginMode = get(marginResult, 1, nothing);
         if functions.ccxtruthy(currentMarginMode != nothing)
             if functions.ccxtruthy(marginMode == nothing)
@@ -5067,9 +5535,9 @@ function createOrders(self::Htx, orders, params=Dict())
         market = self.market(symbol);
         orderRequest = nothing;
         if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            orderRequest = Base.fetch(self.createSpotOrderRequest(marketId, type_var, side, amount, price, orderParams));
+            orderRequest = Base.fetch(self.createSpotOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams));
         else
-            orderRequest = self.createContractOrderRequest(marketId, type_var, side, amount, price, orderParams);
+            orderRequest = self.createContractOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         end
         orderRequest = omit(orderRequest, "marginMode");
         push!(ordersRequests, orderRequest);
@@ -5105,10 +5573,28 @@ function createOrders(self::Htx, orders, params=Dict())
             result = arrayConcat(success, errors);
         end
     end
-    return self.parseOrders(result, market)
+    return self.parseOrders(result, market = market)
 
 end
-function cancelOrder(self::Htx, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958947efe6
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b935d4997
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *contract only* if the order is a trigger trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: *contract only* if the order is a stop-loss or take-profit order
+- `params.stopLoss`::bool, optional: *contract only* if the order is a stop-loss order
+- `params.takeProfit`::bool, optional: *contract only* if the order is a take-profit order
+- `params.trailing`::bool, optional: *contract only* set to true if you want to cancel a trailing order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Htx, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5117,14 +5603,14 @@ function cancelOrder(self::Htx, id, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelOrder", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelOrder", market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("cancelOrder", market, params);
+    (subType, params) = self.handleSubTypeAndParams("cancelOrder", market = market, params = params);
     isLinear = (subType == "linear");
     request = Dict{Symbol, Any}();
     trigger = self.safeBool2(params, "stop", "trigger");
     stopLossTakeProfit = self.safeBoolN(params, ["stopLossTakeProfit", "stopLoss", "takeProfit"]);
-    trailing = self.safeBool(params, "trailing", false);
+    trailing = self.safeBool(params, "trailing", defaultValue = false);
     params = omit(params, ["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"]);
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
@@ -5207,10 +5693,10 @@ function cancelOrder(self::Htx, id, symbol=nothing, params=Dict())
     result = nothing;
     if functions.ccxtruthy(isLinear)
         if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(trigger, stopLossTakeProfit), trailing))
-            data = self.safeList(response, "data", []);
-            result = self.safeDict(data, 0, Dict{Symbol, Any}());
+            data = self.safeList(response, "data", defaultValue = []);
+            result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
         else
-            result = self.safeDict(response, "data", Dict{Symbol, Any}());
+            result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         end
     else
         result = response;
@@ -5218,13 +5704,27 @@ function cancelOrder(self::Htx, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(result == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    return extend(self.parseOrder(result, market), Dict{Symbol, Any}(
+    return extend(self.parseOrder(result, market = market), Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("status") => "canceled"
 ))
 
 end
-function cancelOrders(self::Htx, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894d0de8
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *contract only* if the orders are trigger trigger orders or not
+- `params.stopLossTakeProfit`::bool, optional: *contract only* if the orders are stop-loss or take-profit orders
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Htx, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5233,7 +5733,7 @@ function cancelOrders(self::Htx, ids, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelOrders", market = market, params = params);
     request = Dict{Symbol, Any}();
     trigger = self.safeBool2(params, "stop", "trigger");
     stopLossTakeProfit = safeValue(params, "stopLossTakeProfit");
@@ -5322,10 +5822,10 @@ function parseCancelOrders(self::Htx, orders)
     if functions.ccxtruthy(successes != nothing)
         success = split(successes, ",");
     else
-        success = self.safeList(orders, "success", []);
+        success = self.safeList(orders, "success", defaultValue = []);
     end
-    failed = self.safeList2(orders, "errors", "failed", []);
-    data = self.safeList(orders, "data", []);
+    failed = self.safeList2(orders, "errors", "failed", defaultValue = []);
+    data = self.safeList(orders, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -5362,7 +5862,21 @@ function parseCancelOrders(self::Htx, orders)
     return result
 
 end
-function cancelAllOrders(self::Htx, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894f0cf6
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *contract only* if the orders are trigger trigger orders or not
+- `params.stopLossTakeProfit`::bool, optional: *contract only* if the orders are stop-loss or take-profit orders
+- `params.trailing`::bool, optional: *contract only* set to true if you want to cancel all trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Htx; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5371,7 +5885,7 @@ function cancelAllOrders(self::Htx, symbol=nothing, params=Dict())
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market = market, params = params);
     request = Dict{Symbol, Any}();
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
@@ -5393,7 +5907,7 @@ function cancelAllOrders(self::Htx, symbol=nothing, params=Dict())
         request[Symbol("contract_code")] = safeString(market, "id");
         trigger = self.safeBool2(params, "stop", "trigger");
         stopLossTakeProfit = safeValue(params, "stopLossTakeProfit");
-        trailing = self.safeBool(params, "trailing", false);
+        trailing = self.safeBool(params, "trailing", defaultValue = false);
         params = omit(params, ["stop", "stopLossTakeProfit", "trailing", "trigger"]);
         if functions.ccxtruthy(self.safeBool(market, "linear"))
             response = Base.fetch(self.contractPrivatePostV5TradeCancelAllOrders(extend(request, params)));
@@ -5436,7 +5950,18 @@ function cancelAllOrders(self::Htx, symbol=nothing, params=Dict())
     end
 
 end
-function cancelAllOrdersAfter(self::Htx, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Htx, timeout; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5450,26 +5975,37 @@ function cancelAllOrdersAfter(self::Htx, timeout, params=Dict())
     return response
 
 end
-function parseDepositAddress(self::Htx, depositAddress, currency=nothing)
+function parseDepositAddress(self::Htx, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
     tag = safeString(depositAddress, "addressTag");
     currencyId = safeString(depositAddress, "currency");
-    currency = self.safeCurrency(currencyId, currency);
-    code = self.safeCurrencyCode(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     note = safeString(depositAddress, "note");
     networkId = safeString(depositAddress, "chain");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("currency") => code,
     Symbol("address") => address,
     Symbol("tag") => tag,
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("note") => note,
     Symbol("info") => depositAddress
 )
 
 end
-function fetchDepositAddressesByNetwork(self::Htx, code, params=Dict())
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+function fetchDepositAddressesByNetwork(self::Htx, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5479,22 +6015,33 @@ function fetchDepositAddressesByNetwork(self::Htx, code, params=Dict())
     );
     response = Base.fetch(self.spotPrivateGetV2AccountDepositAddress(extend(request, params)));
     data = safeValue(response, "data", []);
-    parsed = self.parseDepositAddresses(data, [get(currency, Symbol("code"), nothing)], false);
+    parsed = self.parseDepositAddresses(data, codes = [get(currency, Symbol("code"), nothing)], indexed = false);
     return indexBy(parsed, "network")
 
 end
-function fetchDepositAddress(self::Htx, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Htx, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     (networkCode, paramsOmited) = self.handleNetworkCodeAndParams(params);
-    indexedAddresses = Base.fetch(self.fetchDepositAddressesByNetwork(code, paramsOmited));
+    indexedAddresses = Base.fetch(self.fetchDepositAddressesByNetwork(code, params = paramsOmited));
     selectedNetworkCode = self.selectNetworkCodeFromUnifiedNetworks(get(currency, Symbol("code"), nothing), networkCode, indexedAddresses);
     return safeValue(indexedAddresses, selectedNetworkCode)
 
 end
-function fetchWithdrawAddresses(self::Htx, code, note=nothing, networkCode=nothing, params=Dict())
+function fetchWithdrawAddresses(self::Htx, code; note=nothing, networkCode=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5504,7 +6051,7 @@ function fetchWithdrawAddresses(self::Htx, code, note=nothing, networkCode=nothi
     );
     response = Base.fetch(self.spotPrivateGetV2AccountWithdrawAddress(extend(request, params)));
     data = safeValue(response, "data", []);
-    allAddresses = self.parseDepositAddresses(data, [get(currency, Symbol("code"), nothing)], false);
+    allAddresses = self.parseDepositAddresses(data, codes = [get(currency, Symbol("code"), nothing)], indexed = false);
     addresses = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(allAddresses)))
@@ -5519,7 +6066,20 @@ function fetchWithdrawAddresses(self::Htx, code, note=nothing, networkCode=nothi
     return addresses
 
 end
-function fetchDeposits(self::Htx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Htx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(@functions.ccxt_or(limit == nothing, functions.ccxt_gt(limit, 100)))
         limit = 100;
     end
@@ -5542,11 +6102,24 @@ function fetchDeposits(self::Htx, code=nothing, since=nothing, limit=nothing, pa
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.spotPrivateGetV1QueryDepositWithdraw(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Htx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-for-existed-withdraws-and-deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Htx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(@functions.ccxt_or(limit == nothing, functions.ccxt_gt(limit, 100)))
         limit = 100;
     end
@@ -5569,11 +6142,11 @@ function fetchWithdrawals(self::Htx, code=nothing, since=nothing, limit=nothing,
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.spotPrivateGetV1QueryDepositWithdraw(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Htx, transaction, currency=nothing)
+function parseTransaction(self::Htx, transaction; currency=nothing)
     timestamp = safeInteger(transaction, "created-at");
     code = self.safeCurrencyCode(safeString(transaction, "currency"));
     type_var = safeString(transaction, "type");
@@ -5600,7 +6173,7 @@ function parseTransaction(self::Htx, transaction, currency=nothing)
     Symbol("txid") => txHash,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("address") => safeString(transaction, "address"),
     Symbol("addressTo") => nothing,
     Symbol("addressFrom") => nothing,
@@ -5644,12 +6217,26 @@ function parseTransactionStatus(self::Htx, status)
     return safeString(statuses, status, status)
 
 end
-function withdraw(self::Htx, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Htx, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("address") => address,
@@ -5661,15 +6248,15 @@ function withdraw(self::Htx, code, amount, address, tag=nothing, params=Dict())
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("chain")] = self.networkCodeToId(networkCode, code);
+        request[Symbol("chain")] = self.networkCodeToId(networkCode, currencyCode = code);
     end
-    amountPrecision = self.currencyToPrecision(code, amount, networkCode);
+    amountPrecision = self.currencyToPrecision(code, amount, networkCode = networkCode);
     if functions.ccxtruthy(amountPrecision == nothing)
         amountPrecision = "0";
     end
     amount = ccxt_toNumber(amountPrecision);
     withdrawOptions = safeValue(self.options, "withdraw", Dict{Symbol, Any}());
-    if functions.ccxtruthy(self.safeBool(withdrawOptions, "includeFee", false))
+    if functions.ccxtruthy(self.safeBool(withdrawOptions, "includeFee", defaultValue = false))
         fee = self.safeNumber(params, "fee");
         if functions.ccxtruthy(fee == nothing)
             currencies = Base.fetch(self.fetchCurrencies());
@@ -5680,7 +6267,7 @@ function withdraw(self::Htx, code, amount, address, tag=nothing, params=Dict())
                 throw(ArgumentsRequired(string(self.id, " withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with \"exchange.loadMarkets(true)\", or provide the \"fee\" parameter")));
             end
         end
-        feeString = self.currencyToPrecision(code, fee, networkCode);
+        feeString = self.currencyToPrecision(code, fee, networkCode = networkCode);
         params = omit(params, "fee");
         amountString = numberToString(amount);
         amountSubtractedString = stringSub(amountString, feeString);
@@ -5694,7 +6281,7 @@ function withdraw(self::Htx, code, amount, address, tag=nothing, params=Dict())
             feeParsed = "0";
         end
         request[Symbol("fee")] = ccxt_toNumber(feeParsed);
-        amountAfterFee = self.currencyToPrecision(code, amountSubtracted, networkCode);
+        amountAfterFee = self.currencyToPrecision(code, amountSubtracted, networkCode = networkCode);
         if functions.ccxtruthy(amountAfterFee == nothing)
             amountAfterFee = "0";
         end
@@ -5702,14 +6289,14 @@ function withdraw(self::Htx, code, amount, address, tag=nothing, params=Dict())
     end
     request[Symbol("amount")] = amount;
     response = Base.fetch(self.spotPrivatePostV1DwWithdrawApiCreate(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseTransfer(self::Htx, transfer, currency=nothing)
-    accountsById = self.safeDict(self.options, "accountsById", Dict{Symbol, Any}());
+function parseTransfer(self::Htx, transfer; currency=nothing)
+    accountsById = self.safeDict(self.options, "accountsById", defaultValue = Dict{Symbol, Any}());
     id = safeString2(transfer, "transfer_id", "data");
     currencyId = safeString(transfer, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     amount = self.safeNumber(transfer, "amount");
     timestamp = safeInteger(transfer, "transfer_time");
     fromAccountRaw = safeString(transfer, "from_account_type");
@@ -5741,7 +6328,29 @@ function parseTransfer(self::Htx, transfer, currency=nothing)
 )
 
 end
-function transfer(self::Htx, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
+see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
+see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
+see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from 'spot', 'future', 'swap'
+- `toAccount`::string: account to transfer to 'spot', 'future', 'swap'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: used for isolated margin transfer
+- `params.subType`::string, optional: 'linear' or 'inverse', only used when transfering to/from swap accounts
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Htx, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5755,7 +6364,7 @@ function transfer(self::Htx, code, amount, fromAccount, toAccount, params=Dict()
         Symbol("amount") => ccxt_toNumber(transferAmount)
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("transfer", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("transfer", market = nothing, params = params);
     fromAccountId = self.convertTypeToAccount(fromAccount);
     toAccountId = self.convertTypeToAccount(toAccount);
     toCross = toAccountId == "cross";
@@ -5813,10 +6422,27 @@ function transfer(self::Htx, code, amount, fromAccount, toAccount, params=Dict()
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseTransfer() returned empty response")));
     end
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function fetchTransfers(self::Htx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://www.huobi.com/en-us/opend/newApiPages/
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.status`::string, optional: transfer status: 'success', 'pending', 'failed'
+- `params.from`::int, optional: the starting ID for pagination
+- `params.direct`::string, optional: pagination direction: 'prev' or 'next', default 'next'
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Htx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5838,11 +6464,21 @@ function fetchTransfers(self::Htx, code=nothing, since=nothing, limit=nothing, p
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.spotPrivateGetV5AccountUniversalTransferRecords(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransfers(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransfers(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchIsolatedBorrowRates(self::Htx, params=Dict())
+"""
+fetch the borrow interest rates of all currencies
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
+"""
+function fetchIsolatedBorrowRates(self::Htx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5851,9 +6487,9 @@ function fetchIsolatedBorrowRates(self::Htx, params=Dict())
     return self.parseIsolatedBorrowRates(data)
 
 end
-function parseIsolatedBorrowRate(self::Htx, info, market=nothing)
+function parseIsolatedBorrowRate(self::Htx, info; market=nothing)
     marketId = safeString(info, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     currencies = safeValue(info, "currencies", []);
     baseData = safeValue(currencies, 0);
     quoteData = safeValue(currencies, 1);
@@ -5872,14 +6508,30 @@ function parseIsolatedBorrowRate(self::Htx, info, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97ea5941
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: the earliest time in ms to fetch funding rate history for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "current_page", "page_index", 1, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "current_page", cursorSent = "page_index", cursorIncrement = 1, maxEntriesPerRequest = 50))
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -5917,7 +6569,7 @@ function fetchFundingRateHistory(self::Htx, symbol=nothing, since=nothing, limit
         while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
             entry = get(data, i + 1, nothing);
             marketId = safeString(entry, "contract_code");
-            symbolInner = self.safeSymbol(marketId, market);
+            symbolInner = self.safeSymbol(marketId, market = market);
             timestamp = safeInteger(entry, "funding_time");
             push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
@@ -5950,10 +6602,10 @@ function fetchFundingRateHistory(self::Htx, symbol=nothing, since=nothing, limit
         end
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function parseFundingRate(self::Htx, contract, market=nothing)
+function parseFundingRate(self::Htx, contract; market=nothing)
     nextFundingRate = self.safeNumber(contract, "estimated_rate");
     fundingTimestamp = safeInteger(contract, "funding_time");
     nextFundingTimestamp = safeInteger(contract, "next_funding_time");
@@ -5961,7 +6613,7 @@ function parseFundingRate(self::Htx, contract, market=nothing)
     nextFundingTimeString = safeString(contract, "next_funding_time");
     millisecondsInterval = stringSub(nextFundingTimeString, fundingTimeString);
     marketId = safeString(contract, "contract_code");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
     Symbol("symbol") => symbol,
@@ -5995,7 +6647,19 @@ function parseFundingInterval(self::Htx, interval)
     return safeString(intervals, interval, interval)
 
 end
-function fetchFundingRate(self::Htx, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97d0c0bf
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Htx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6013,22 +6677,33 @@ function fetchFundingRate(self::Htx, symbol, params=Dict())
     end
     result = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        data = self.safeList(response, "data", []);
-        result = self.safeDict(data, 0, Dict{Symbol, Any}());
+        data = self.safeList(response, "data", defaultValue = []);
+        result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     else
         result = safeValue(response, "data", Dict{Symbol, Any}());
     end
-    return self.parseFundingRate(result, market)
+    return self.parseFundingRate(result, market = market)
 
 end
-function fetchFundingRates(self::Htx, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Htx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     defaultSubType = "linear";
     subType = nothing;
-    (subType, params) = self.handleOptionAndParams(params, "fetchFundingRates", "subType", defaultSubType);
+    (subType, params) = self.handleOptionAndParams(params, "fetchFundingRates", "subType", defaultValue = defaultSubType);
     if functions.ccxtruthy(symbols != nothing)
         firstSymbol = safeString(symbols, 0);
         market = self.market(firstSymbol);
@@ -6045,15 +6720,30 @@ function fetchFundingRates(self::Htx, symbols=nothing, params=Dict())
         throw(NotSupported(string(self.id, " fetchFundingRates() not support this market type")));
     end
     data = safeValue(response, "data", []);
-    return self.parseFundingRates(data, symbols)
+    return self.parseFundingRates(data, symbols = symbols)
 
 end
-function fetchBorrowInterest(self::Htx, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated
+
+# Arguments
+- `code`::string: unified currency code
+- `symbol`::string: unified market symbol when fetch interest in isolated markets
+- `since`::int, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+function fetchBorrowInterest(self::Htx; code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBorrowInterest", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBorrowInterest", params = params);
     marginMode = functions.ccxtruthy((marginMode == nothing)) ? "cross" : marginMode;
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(since != nothing)
@@ -6078,14 +6768,14 @@ function fetchBorrowInterest(self::Htx, code=nothing, symbol=nothing, since=noth
         response = Base.fetch(self.privateGetCrossMarginLoanOrders(extend(request, params)));
     end
     data = safeValue(response, "data");
-    interest = self.parseBorrowInterests(data, market);
-    return self.filterByCurrencySinceLimit(interest, code, since, limit)
+    interest = self.parseBorrowInterests(data, market = market);
+    return self.filterByCurrencySinceLimit(interest, code = code, since = since, limit = limit)
 
 end
-function parseBorrowInterest(self::Htx, info, market=nothing)
+function parseBorrowInterest(self::Htx, info; market=nothing)
     marketId = safeString(info, "symbol");
     marginMode = functions.ccxtruthy((marketId == nothing)) ? "cross" : "isolated";
-    market = self.safeMarket(marketId);
+    market = self.safeMarket(marketId = marketId);
     symbol = safeString(market, "symbol");
     timestamp = safeInteger(info, "accrued-at");
     return Dict{Symbol, Any}(
@@ -6105,7 +6795,7 @@ function nonce(self::Htx, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function sign(self::Htx, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Htx, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = "/";
     isArrayParams = functions.ccxt_isArray(params);
     query = nothing;
@@ -6291,13 +6981,29 @@ function handleErrors(self::Htx, httpCode, reason, url, method, headers, body, r
     return nothing
 
 end
-function fetchFundingHistory(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchFundingHistory", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchFundingHistory", market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("type") => "30,31"
     );
@@ -6313,7 +7019,7 @@ function fetchFundingHistory(self::Htx, symbol=nothing, since=nothing, limit=not
     if functions.ccxtruthy(marketType == "swap")
         if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
             marginMode = nothing;
-            (marginMode, params) = self.handleMarginModeAndParams("fetchFundingHistory", params);
+            (marginMode, params) = self.handleMarginModeAndParams("fetchFundingHistory", params = params);
             marginMode = functions.ccxtruthy((marginMode == nothing)) ? "cross" : marginMode;
             request[Symbol("margin_mode")] = marginMode;
             request[Symbol("contract_code")] = get(market, Symbol("id"), nothing);
@@ -6329,11 +7035,26 @@ function fetchFundingHistory(self::Htx, symbol=nothing, since=nothing, limit=not
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.contractPrivatePostApiV3ContractFinancialRecordExact(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseIncomes(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseIncomes(data, market = market, since = since, limit = limit)
 
 end
-function setLeverage(self::Htx, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959439f997
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
+see: https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  // Coin-m futures
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.position_side`::string, optional: linear swap supports 'long', 'short' and 'both', 'both' is the default
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Htx, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -6341,7 +7062,7 @@ function setLeverage(self::Htx, leverage, symbol=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    (marketType, query) = self.handleMarketTypeAndParams("setLeverage", market, params);
+    (marketType, query) = self.handleMarketTypeAndParams("setLeverage", market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("lever_rate") => leverage
     );
@@ -6353,7 +7074,7 @@ function setLeverage(self::Htx, leverage, symbol=nothing, params=Dict())
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params);
+        (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params);
         marginMode = functions.ccxtruthy((marginMode == nothing)) ? "cross" : marginMode;
         request[Symbol("margin_mode")] = marginMode;
         response = Base.fetch(self.contractPrivatePostV5PositionLever(extend(request, query)));
@@ -6372,9 +7093,9 @@ function setLeverage(self::Htx, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function parseIncome(self::Htx, income, market=nothing)
+function parseIncome(self::Htx, income; market=nothing)
     marketId = safeString(income, "contract_code");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     amount = self.safeNumber(income, "amount");
     timestamp = safeInteger2(income, "ts", "created_time");
     id = safeString(income, "id");
@@ -6391,8 +7112,8 @@ function parseIncome(self::Htx, income, market=nothing)
 )
 
 end
-function parsePosition(self::Htx, position, market=nothing)
-    market = self.safeMarket(safeString(position, "contract_code"));
+function parsePosition(self::Htx, position; market=nothing)
+    market = self.safeMarket(marketId = safeString(position, "contract_code"));
     symbol = get(market, Symbol("symbol"), nothing);
     contracts = safeString(position, "volume");
     contractSize = safeValue(market, "contractSize");
@@ -6468,11 +7189,27 @@ function parsePosition(self::Htx, position, market=nothing)
 ))
 
 end
-function fetchPositions(self::Htx, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: 'linear' or 'inverse'
+- `params.type`::string, optional: *inverse only* 'future', or 'swap'
+- `params.marginMode`::string, optional: *linear only* 'cross' or 'isolated'
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Htx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
         symbolsLength = length(symbols);
@@ -6482,9 +7219,9 @@ function fetchPositions(self::Htx, symbols=nothing, params=Dict())
         end
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchPositions", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchPositions", market = market, params = params, defaultValue = "linear");
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchPositions", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchPositions", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         marketType = "future";
     end
@@ -6513,18 +7250,31 @@ function fetchPositions(self::Htx, symbols=nothing, params=Dict())
 )));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function fetchPosition(self::Htx, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Htx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchPosition", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchPosition", params = params);
     marginMode = functions.ccxtruthy((marginMode == nothing)) ? "cross" : marginMode;
-    (marketType, query) = self.handleMarketTypeAndParams("fetchPosition", market, params);
+    (marketType, query) = self.handleMarketTypeAndParams("fetchPosition", market = market, params = params);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(@functions.ccxt_and(get(market, Symbol("future"), nothing), get(market, Symbol("inverse"), nothing)))
         request[Symbol("symbol")] = get(market, Symbol("settleId"), nothing);
@@ -6548,8 +7298,8 @@ function fetchPosition(self::Htx, symbol, params=Dict())
     end
     data = safeValue(response, "data");
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        linearPosition = self.safeDict(data, 0, Dict{Symbol, Any}());
-            return self.parsePosition(linearPosition, market)
+        linearPosition = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+            return self.parsePosition(linearPosition, market = market)
     end
     account = nothing;
     if functions.ccxtruthy(marginMode == "cross")
@@ -6575,7 +7325,7 @@ function fetchPosition(self::Htx, symbol, params=Dict())
         position = safeValue(positions, 0);
     end
     timestamp = safeInteger(response, "ts");
-    parsed = self.parsePosition(extend(position, omitted), market);
+    parsed = self.parsePosition(extend(position, omitted), market = market);
     parsed[Symbol("timestamp")] = timestamp;
     parsed[Symbol("datetime")] = self.iso8601(timestamp);
     return parsed
@@ -6601,10 +7351,10 @@ function parseLedgerEntryType(self::Htx, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Htx, item, currency=nothing)
+function parseLedgerEntry(self::Htx, item; currency=nothing)
     currencyId = safeString(item, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     id = safeString(item, "transactId");
     transferType = safeString(item, "transferType");
     timestamp = safeInteger(item, "transactTime");
@@ -6625,19 +7375,34 @@ function parseLedgerEntry(self::Htx, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => nothing,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
-function fetchLedger(self::Htx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Htx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, 500))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", symbol = code, since = since, limit = limit, params = params, maxEntriesPerRequest = 500))
     end
-    accountId = Base.fetch(self.fetchAccountIdByType("spot", nothing, nothing, params));
+    accountId = Base.fetch(self.fetchAccountIdByType("spot", marginMode = nothing, symbol = nothing, params = params));
     request = Dict{Symbol, Any}(
         Symbol("accountId") => accountId
     );
@@ -6655,35 +7420,45 @@ function fetchLedger(self::Htx, code=nothing, since=nothing, limit=nothing, para
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.spotPrivateGetV2AccountLedger(extend(request, params)));
     data = safeValue(response, "data", []);
-    return self.parseLedger(data, currency, since, limit)
+    return self.parseLedger(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchLeverageTiers(self::Htx, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Htx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(params));
-    data = self.safeList(response, "data", []);
-    return self.parseLeverageTiers(data, symbols, "contract_code")
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLeverageTiers(data, symbols = symbols, marketIdKey = "contract_code")
 
 end
-function parseMarketLeverageTiers(self::Htx, info, market=nothing)
+function parseMarketLeverageTiers(self::Htx, info; market=nothing)
     currencyId = safeString(info, "trade_partition");
     marketId = safeString(info, "contract_code");
     tiers = [];
-    brackets = self.safeList(info, "list", []);
+    brackets = self.safeList(info, "list", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(brackets)))
         item = get(brackets, i + 1, nothing);
         leverage = safeString(item, "lever_rate");
-        ladders = self.safeList(item, "ladders", []);
+        ladders = self.safeList(item, "ladders", defaultValue = []);
         k = 0
         while functions.ccxtruthy(functions.ccxt_lt(k, length(ladders)))
             bracket = get(ladders, k + 1, nothing);
             adjustFactor = safeString(bracket, "adjust_factor");
             push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => safeInteger(bracket, "ladder"),
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("currency") => self.safeCurrencyCode(currencyId),
     Symbol("minNotional") => self.safeNumber(bracket, "min_size"),
     Symbol("maxNotional") => self.safeNumber(bracket, "max_size"),
@@ -6698,7 +7473,25 @@ function parseMarketLeverageTiers(self::Htx, info, market=nothing)
     return tiers
 
 end
-function fetchOpenInterestHistory(self::Htx, symbol, timeframe="1h", since=nothing, limit=nothing, params=Dict())
+"""
+Retrieves the open interest history of a currency
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `timeframe`::string: '1h', '4h', '12h', or '1d'
+- `since`::int, optional: Not used by huobi api, but response parsed by CCXT
+- `limit`::int, optional: Default：48，Data Range [1,200]
+- `params`::object, optional: Exchange specific parameters
+- `params.amount_type`::int, optional: *required* Open interest unit. 1-cont，2-cryptocurrency
+- `params.pair`::int, optional: eg BTC-USDT *Only for USDT-M*
+
+# Returns
+- an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterestHistory(self::Htx, symbol; timeframe="1h", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(@functions.ccxt_and(timeframe != "1h", timeframe != "4h"), timeframe != "12h"), timeframe != "1d"))
         throw(BadRequest(string(self.id, " fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe")));
     end
@@ -6736,14 +7529,26 @@ function fetchOpenInterestHistory(self::Htx, symbol, timeframe="1h", since=nothi
     end
     data = safeValue(response, "data");
     tick = self.safeList(data, "tick");
-    return self.parseOpenInterestsHistory(tick, market, since, limit)
+    return self.parseOpenInterestsHistory(tick, market = market, since = since, limit = limit)
 
 end
-function fetchOpenInterests(self::Htx, symbols=nothing, params=Dict())
+"""
+Retrieves the open interest for a list of symbols
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+
+# Arguments
+- `symbols`::array, optional: a list of unified CCXT market symbols
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterests(self::Htx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
         symbolsLength = length(symbols);
@@ -6754,9 +7559,9 @@ function fetchOpenInterests(self::Htx, symbols=nothing, params=Dict())
     end
     request = Dict{Symbol, Any}();
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchOpenInterests", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchOpenInterests", market = market, params = params, defaultValue = "linear");
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenInterests", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenInterests", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(marketType == "future")
         response = Base.fetch(self.contractPublicGetApiV1ContractOpenInterest(extend(request, params)));
@@ -6765,11 +7570,24 @@ function fetchOpenInterests(self::Htx, symbols=nothing, params=Dict())
     else
         throw(NotSupported(string(self.id, " fetchOpenInterests() does not currently support linear markets")));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOpenInterests(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOpenInterests(data, symbols = symbols)
 
 end
-function fetchOpenInterest(self::Htx, symbol, params=Dict())
+"""
+Retrieves the open interest of a currency
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97fb53f2
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Htx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6795,26 +7613,26 @@ function fetchOpenInterest(self::Htx, symbol, params=Dict())
     end
     timestamp = safeInteger(response, "ts");
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        result = self.safeDict(response, "data", Dict{Symbol, Any}());
-            return extend(self.parseOpenInterest(result, market), Dict{Symbol, Any}(
+        result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+            return extend(self.parseOpenInterest(result, market = market), Dict{Symbol, Any}(
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 ))
     end
     data = safeValue(response, "data", []);
-    openInterest = self.parseOpenInterest(get(data, 1, nothing), market);
+    openInterest = self.parseOpenInterest(get(data, 1, nothing), market = market);
     openInterest[Symbol("timestamp")] = timestamp;
     openInterest[Symbol("datetime")] = self.iso8601(timestamp);
     return openInterest
 
 end
-function parseOpenInterest(self::Htx, interest, market=nothing)
+function parseOpenInterest(self::Htx, interest; market=nothing)
     timestamp = safeInteger(interest, "ts");
     amount = self.safeNumber(interest, "volume");
     value = self.safeNumber(interest, "value");
     marketId = safeString(interest, "contract_code");
     return self.safeOpenInterest(Dict{Symbol, Any}(
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("baseVolume") => amount,
     Symbol("quoteVolume") => value,
     Symbol("openInterestAmount") => amount,
@@ -6822,10 +7640,24 @@ function parseOpenInterest(self::Htx, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function borrowIsolatedMargin(self::Htx, symbol, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+
+# Arguments
+- `symbol`::string: unified market symbol, required for isolated margin
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowIsolatedMargin(self::Htx, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6837,14 +7669,27 @@ function borrowIsolatedMargin(self::Htx, symbol, code, amount, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privatePostMarginOrders(extend(request, params)));
-    transaction = self.parseMarginLoan(response, currency);
+    transaction = self.parseMarginLoan(response, currency = currency);
     return extend(transaction, Dict{Symbol, Any}(
     Symbol("amount") => amount,
     Symbol("symbol") => symbol
 ))
 
 end
-function borrowCrossMargin(self::Htx, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowCrossMargin(self::Htx, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6854,18 +7699,31 @@ function borrowCrossMargin(self::Htx, code, amount, params=Dict())
         Symbol("amount") => self.currencyToPrecision(code, amount)
     );
     response = Base.fetch(self.privatePostCrossMarginOrders(extend(request, params)));
-    transaction = self.parseMarginLoan(response, currency);
+    transaction = self.parseMarginLoan(response, currency = currency);
     return extend(transaction, Dict{Symbol, Any}(
     Symbol("amount") => amount
 ))
 
 end
-function repayIsolatedMargin(self::Htx, symbol, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayIsolatedMargin(self::Htx, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    accountId = Base.fetch(self.fetchAccountIdByType("spot", "isolated", symbol, params));
+    accountId = Base.fetch(self.fetchAccountIdByType("spot", marginMode = "isolated", symbol = symbol, params = params));
     request = Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("id"), nothing),
         Symbol("amount") => self.currencyToPrecision(code, amount),
@@ -6874,19 +7732,31 @@ function repayIsolatedMargin(self::Htx, symbol, code, amount, params=Dict())
     response = Base.fetch(self.v2PrivatePostAccountRepayment(extend(request, params)));
     data = safeValue(response, "Data", []);
     loan = safeValue(data, 0);
-    transaction = self.parseMarginLoan(loan, currency);
+    transaction = self.parseMarginLoan(loan, currency = currency);
     return extend(transaction, Dict{Symbol, Any}(
     Symbol("amount") => amount,
     Symbol("symbol") => symbol
 ))
 
 end
-function repayCrossMargin(self::Htx, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayCrossMargin(self::Htx, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    accountId = Base.fetch(self.fetchAccountIdByType("spot", "cross", nothing, params));
+    accountId = Base.fetch(self.fetchAccountIdByType("spot", marginMode = "cross", symbol = nothing, params = params));
     request = Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("id"), nothing),
         Symbol("amount") => self.currencyToPrecision(code, amount),
@@ -6895,17 +7765,17 @@ function repayCrossMargin(self::Htx, code, amount, params=Dict())
     response = Base.fetch(self.v2PrivatePostAccountRepayment(extend(request, params)));
     data = safeValue(response, "Data", []);
     loan = safeValue(data, 0);
-    transaction = self.parseMarginLoan(loan, currency);
+    transaction = self.parseMarginLoan(loan, currency = currency);
     return extend(transaction, Dict{Symbol, Any}(
     Symbol("amount") => amount
 ))
 
 end
-function parseMarginLoan(self::Htx, info, currency=nothing)
+function parseMarginLoan(self::Htx, info; currency=nothing)
     timestamp = safeInteger(info, "repayTime");
     return Dict{Symbol, Any}(
     Symbol("id") => safeString2(info, "repayId", "data"),
-    Symbol("currency") => self.safeCurrencyCode(nothing, currency),
+    Symbol("currency") => self.safeCurrencyCode(nothing, currency = currency),
     Symbol("amount") => nothing,
     Symbol("symbol") => nothing,
     Symbol("timestamp") => timestamp,
@@ -6914,7 +7784,25 @@ function parseMarginLoan(self::Htx, info, currency=nothing)
 )
 
 end
-function fetchSettlementHistory(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+Fetches historical settlement records
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the settlement history for
+- `since`::int, optional: timestamp in ms, value range = current time - 90 days，default = current time - 90 days
+- `limit`::int, optional: page items, default 20, shall not exceed 50
+- `params`::object, optional: exchange specific params
+- `params.until`::int, optional: timestamp in ms, value range = start_time -> current time，default = current time
+- `params.page_index`::int, optional: page index, default page 1 if not filled
+- `params.code`::int, optional: unified currency code, can be used when symbol is undefined
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+function fetchSettlementHistory(self::Htx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchSettlementHistory() requires a symbol argument")));
     end
@@ -6947,7 +7835,7 @@ function fetchSettlementHistory(self::Htx, symbol=nothing, since=nothing, limit=
         response = Base.fetch(self.contractPublicGetApiV1ContractSettlementRecords(extend(request, params)));
     end
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        dataLinear = self.safeList(response, "data", []);
+        dataLinear = self.safeList(response, "data", defaultValue = []);
         settlementsLinear = self.parseSettlements(dataLinear, market);
             return sortBy(settlementsLinear, "timestamp")
     end
@@ -6957,16 +7845,27 @@ function fetchSettlementHistory(self::Htx, symbol=nothing, since=nothing, limit=
     return sortBy(settlements, "timestamp")
 
 end
-function fetchDepositWithdrawFees(self::Htx, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Htx; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.spotPublicGetV2ReferenceCurrencies(params));
     data = self.safeList(response, "data");
-    return self.parseDepositWithdrawFees(data, codes, "currency")
+    return self.parseDepositWithdrawFees(data, codes = codes, currencyIdKey = "currency")
 
 end
-function parseDepositWithdrawFee(self::Htx, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Htx, fee; currency=nothing)
     chains = safeValue(fee, "chains", []);
     code = safeString(currency, "code");
     result = self.depositWithdrawFee(fee);
@@ -6975,7 +7874,7 @@ function parseDepositWithdrawFee(self::Htx, fee, currency=nothing)
         chainEntry = get(chains, j + 1, nothing);
         networkId = safeString(chainEntry, "chain");
         withdrawFeeType = safeString(chainEntry, "withdrawFeeType");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         withdrawFee = nothing;
         withdrawResult = nothing;
         if functions.ccxtruthy(withdrawFeeType == "fixed")
@@ -7000,7 +7899,7 @@ function parseDepositWithdrawFee(self::Htx, fee, currency=nothing)
                 )
             );
         end
-        result = self.assignDefaultDepositWithdrawFees(result, currency);
+        result = self.assignDefaultDepositWithdrawFees(result, currency = currency);
         j += 1
     end
     return result
@@ -7041,14 +7940,31 @@ function parseSettlement(self::Htx, settlement, market)
     marketId = safeString(settlement, "contract_code");
     return Dict{Symbol, Any}(
     Symbol("info") => settlement,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("price") => self.safeNumber(settlement, "settlement_price"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 )
 
 end
-function fetchLiquidations(self::Htx, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the public liquidations of a trading pair
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the huobi api endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+- `params.tradeType`::int, optional: *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchLiquidations(self::Htx, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7081,16 +7997,16 @@ function fetchLiquidations(self::Htx, symbol, since=nothing, limit=nothing, para
     else
         throw(NotSupported(string(self.id, " fetchLiquidations() does not support ", get(market, Symbol("type"), nothing), " orders")));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseLiquidations(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLiquidations(data, market = market, since = since, limit = limit)
 
 end
-function parseLiquidation(self::Htx, liquidation, market=nothing)
+function parseLiquidation(self::Htx, liquidation; market=nothing)
     marketId = safeString(liquidation, "contract_code");
     timestamp = safeInteger2(liquidation, "created_at", "liquidation_time");
     return self.safeLiquidation(Dict{Symbol, Any}(
     Symbol("info") => liquidation,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("contracts") => self.safeNumber(liquidation, "volume"),
     Symbol("contractSize") => self.safeNumber(market, "contractSize"),
     Symbol("price") => self.safeNumber2(liquidation, "price", "bankrupt_price"),
@@ -7102,7 +8018,26 @@ function parseLiquidation(self::Htx, liquidation, market=nothing)
 ))
 
 end
-function closePosition(self::Htx, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a contract market
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958953a715    // USDT-M
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
+see: https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `side`::string: 'buy' or 'sell', the side of the closing order, opposite side as position side
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
+- `params.marginMode`::object, optional: 'cross' or 'isolated', required for linear markets EXCHANGE SPECIFIC PARAMETERS
+- `params.amount`::float, optional: order quantity
+- `params.order_price_type`::string, optional: 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
+- `params.position_side`::string, optional: linear swap supports 'long', 'short' and 'both', 'both' is the default
+
+# Returns
+- [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closePosition(self::Htx, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7121,7 +8056,7 @@ function closePosition(self::Htx, symbol, side=nothing, params=Dict())
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("closePosition", params, "cross");
+        (marginMode, params) = self.handleMarginModeAndParams("closePosition", params = params, defaultValue = "cross");
         request[Symbol("margin_mode")] = marginMode;
         response = Base.fetch(self.contractPrivatePostV5TradePosition(extend(request, params)));
     else
@@ -7140,16 +8075,29 @@ function closePosition(self::Htx, symbol, side=nothing, params=Dict())
         end
     end
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-            return self.parseOrder(data, market)
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+            return self.parseOrder(data, market = market)
     end
     if functions.ccxtruthy(response == nothing)
         throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function setPositionMode(self::Htx, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959443cae3
+
+# Arguments
+- `hedged`::bool: set to true to for hedged mode, must be set separately for each market in isolated margin mode, only valid for linear markets
+- `symbol`::string, optional: unified market symbol, required for isolated margin mode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: "cross" (default) or "isolated"
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Htx, hedged; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7168,11 +8116,24 @@ function setPositionMode(self::Htx, hedged, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchPositionsADLRank(self::Htx, symbols=nothing, params=Dict())
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
+see: https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+see: https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+function fetchPositionsADLRank(self::Htx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
         symbolsLength = length(symbols);
@@ -7182,9 +8143,9 @@ function fetchPositionsADLRank(self::Htx, symbols=nothing, params=Dict())
         end
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchPositionsADLRank", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchPositionsADLRank", market = market, params = params, defaultValue = "linear");
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchPositionsADLRank", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchPositionsADLRank", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         marketType = "future";
     end
@@ -7200,16 +8161,16 @@ function fetchPositionsADLRank(self::Htx, symbols=nothing, params=Dict())
             throw(NotSupported(string(self.id, " fetchPositionsADLRank() not support this market type")));
         end
     end
-    data = self.safeList(response, "data", []);
-    return self.parseADLRanks(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseADLRanks(data, symbols = symbols)
 
 end
-function parseADLRank(self::Htx, info, market=nothing)
+function parseADLRank(self::Htx, info; market=nothing)
     marketId = safeString(info, "contract_code");
     timestamp = safeInteger(info, "created_time");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("rank") => safeInteger(info, "adl_risk_percent"),
     Symbol("rating") => nothing,
     Symbol("percentage") => nothing,
@@ -7225,1863 +8186,1863 @@ Base.getproperty(self::Htx, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v2PublicGetReferenceCurrencies(self::Htx, params=Dict(), context=Dict())
-    return request(self, "reference/currencies", "v2Public", "GET", params, nothing, nothing, Dict())
+    return request(self, "reference/currencies"; api="v2Public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetMarketStatus(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market-status", "v2Public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market-status"; api="v2Public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountLedger(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/ledger", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/ledger"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountWithdrawQuota(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/withdraw/quota", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/withdraw/quota"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountWithdrawAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/withdraw/address", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/withdraw/address"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountDepositAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/deposit/address", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/deposit/address"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/repayment", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/repayment"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetReferenceTransactFeeRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "reference/transact-fee-rate", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "reference/transact-fee-rate"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountAssetValuation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/asset-valuation", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/asset-valuation"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetPointAccount(self::Htx, params=Dict(), context=Dict())
-    return request(self, "point/account", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "point/account"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSubUserUserList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/user-list", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-user/user-list"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSubUserUserState(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/user-state", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-user/user-state"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSubUserAccountList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/account-list", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-user/account-list"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSubUserDepositAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/deposit-address", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-user/deposit-address"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSubUserQueryDeposit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/query-deposit", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub-user/query-deposit"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetUserApiKey(self::Htx, params=Dict(), context=Dict())
-    return request(self, "user/api-key", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/api-key"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetUserUid(self::Htx, params=Dict(), context=Dict())
-    return request(self, "user/uid", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/uid"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAlgoOrdersOpening(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders/opening", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo-orders/opening"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAlgoOrdersHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders/history", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo-orders/history"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAlgoOrdersSpecific(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders/specific", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "algo-orders/specific"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetC2cOffers(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/offers", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/offers"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetC2cOffer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/offer", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/offer"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetC2cTransactions(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/transactions", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/transactions"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetC2cRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/repayment", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/repayment"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetC2cAccount(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/account", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "c2c/account"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetEtpReference(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/reference", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp/reference"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetEtpTransactions(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/transactions", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp/transactions"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetEtpTransaction(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/transaction", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp/transaction"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetEtpRebalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/rebalance", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp/rebalance"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetEtpLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/limit", "v2Private", "GET", params, nothing, nothing, Dict())
+    return request(self, "etp/limit"; api="v2Private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/transfer"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/repayment", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/repayment"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostPointTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "point/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "point/transfer"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserManagement(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/management", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/management"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserCreation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/creation", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/creation"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserTradableMarket(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/tradable-market", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/tradable-market"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserTransferability(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/transferability", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/transferability"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserApiKeyGeneration(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-generation", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/api-key-generation"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserApiKeyModification(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-modification", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/api-key-modification"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserApiKeyDeletion(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-deletion", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/api-key-deletion"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSubUserDeductMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/deduct-mode", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "sub-user/deduct-mode"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAlgoOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo-orders"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAlgoOrdersCancelAllAfter(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders/cancel-all-after", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo-orders/cancel-all-after"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAlgoOrdersCancellation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders/cancellation", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "algo-orders/cancellation"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostC2cOffer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/offer", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "c2c/offer"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostC2cCancellation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/cancellation", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "c2c/cancellation"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostC2cCancelAll(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/cancel-all", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "c2c/cancel-all"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostC2cRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/repayment", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "c2c/repayment"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostC2cTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "c2c/transfer"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostEtpCreation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/creation", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "etp/creation"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostEtpRedemption(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/redemption", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "etp/redemption"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostEtpTransactIdCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/{transactId}/cancel", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "etp/{transactId}/cancel"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostEtpBatchCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/batch-cancel", "v2Private", "POST", params, nothing, nothing, Dict())
+    return request(self, "etp/batch-cancel"; api="v2Private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCommonSymbols(self::Htx, params=Dict(), context=Dict())
-    return request(self, "common/symbols", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "common/symbols"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCommonCurrencys(self::Htx, params=Dict(), context=Dict())
-    return request(self, "common/currencys", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "common/currencys"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCommonTimestamp(self::Htx, params=Dict(), context=Dict())
-    return request(self, "common/timestamp", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "common/timestamp"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCommonExchange(self::Htx, params=Dict(), context=Dict())
-    return request(self, "common/exchange", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "common/exchange"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSettingsCurrencys(self::Htx, params=Dict(), context=Dict())
-    return request(self, "settings/currencys", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "settings/currencys"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountAccounts(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountAccountsIdBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/accounts/{id}/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/accounts/{id}/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountAccountsSubUid(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/accounts/{sub-uid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/accounts/{sub-uid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "account/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCrossMarginLoanInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/loan-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/loan-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginLoanInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "margin/loan-info", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/loan-info"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFeeFeeRateGet(self::Htx, params=Dict(), context=Dict())
-    return request(self, "fee/fee-rate/get", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fee/fee-rate/get"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOpenOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/openOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/openOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOrdersId(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/orders/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOrdersIdMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}/matchresults", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/orders/{id}/matchresults"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOrdersGetClientOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/getClientOrder", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/orders/getClientOrder"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/matchresults", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order/matchresults"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetQueryDepositWithdraw(self::Htx, params=Dict(), context=Dict())
-    return request(self, "query/deposit-withdraw", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "query/deposit-withdraw"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginLoanOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "margin/loan-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/loan-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMarginAccountsBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/accounts/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCrossMarginLoanOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/loan-orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/loan-orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetCrossMarginAccountsBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/accounts/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPointsActions(self::Htx, params=Dict(), context=Dict())
-    return request(self, "points/actions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "points/actions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPointsOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "points/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "points/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubuserAggregateBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "subuser/aggregate-balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "subuser/aggregate-balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStableCoinExchangeRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "stable-coin/exchange_rate", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "stable-coin/exchange_rate"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStableCoinQuote(self::Htx, params=Dict(), context=Dict())
-    return request(self, "stable-coin/quote", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "stable-coin/quote"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostAccountTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "account/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFuturesTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "futures/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderBatchOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/batch-orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/batch-orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOrdersPlace(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/place", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/orders/place"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOrdersSubmitCancelClientOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/submitCancelClientOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/orders/submitCancelClientOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOrdersBatchCancelOpenOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/batchCancelOpenOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/orders/batchCancelOpenOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOrdersIdSubmitcancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}/submitcancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/orders/{id}/submitcancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderOrdersBatchcancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/batchcancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order/orders/batchcancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDwWithdrawApiCreate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "dw/withdraw/api/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dw/withdraw/api/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDwWithdrawVirtualIdCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "dw/withdraw-virtual/{id}/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dw/withdraw-virtual/{id}/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDwTransferInMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "dw/transfer-in/margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dw/transfer-in/margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDwTransferOutMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "dw/transfer-out/margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "dw/transfer-out/margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "margin/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMarginOrdersIdRepay(self::Htx, params=Dict(), context=Dict())
-    return request(self, "margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/orders/{id}/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCrossMarginTransferIn(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/transfer-in", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/transfer-in"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCrossMarginTransferOut(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/transfer-out", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/transfer-out"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCrossMarginOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCrossMarginOrdersIdRepay(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "cross-margin/orders/{id}/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostStableCoinExchange(self::Htx, params=Dict(), context=Dict())
-    return request(self, "stable-coin/exchange", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "stable-coin/exchange"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSubuserTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "subuser/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "subuser/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function statusPublicSpotGetApiV2SummaryJson(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v2/summary.json", ["status", "public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v2/summary.json"; api=["status", "public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function statusPublicFutureInverseGetApiV2SummaryJson(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v2/summary.json", ["status", "public", "future", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v2/summary.json"; api=["status", "public", "future", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function statusPublicFutureLinearGetApiV2SummaryJson(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v2/summary.json", ["status", "public", "future", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v2/summary.json"; api=["status", "public", "future", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function statusPublicSwapInverseGetApiV2SummaryJson(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v2/summary.json", ["status", "public", "swap", "inverse"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v2/summary.json"; api=["status", "public", "swap", "inverse"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function statusPublicSwapLinearGetApiV2SummaryJson(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v2/summary.json", ["status", "public", "swap", "linear"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v2/summary.json"; api=["status", "public", "swap", "linear"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV2MarketStatus(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/market-status", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/market-status"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV1CommonSymbols(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/common/symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/common/symbols"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV1CommonCurrencys(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/common/currencys", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/common/currencys"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV2SettingsCommonCurrencies(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/settings/common/currencies", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/settings/common/currencies"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV2ReferenceCurrencies(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/reference/currencies", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/reference/currencies"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV1CommonTimestamp(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/common/timestamp", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/common/timestamp"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV1CommonExchange(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/common/exchange", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/common/exchange"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV1SettingsCommonChains(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/settings/common/chains", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/settings/common/chains"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV1SettingsCommonCurrencys(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/settings/common/currencys", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/settings/common/currencys"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV1SettingsCommonSymbols(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/settings/common/symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/settings/common/symbols"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV2SettingsCommonSymbols(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/settings/common/symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/settings/common/symbols"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV1SettingsCommonMarketSymbols(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/settings/common/market-symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/settings/common/market-symbols"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetMarketHistoryCandles(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/history/candles", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/history/candles"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetMarketHistoryKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/history/kline", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/history/kline"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetMarketDetailMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/detail/merged", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/detail/merged"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetMarketTickers(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/tickers", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/tickers"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetMarketDetail(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/detail", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/detail"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetMarketDepth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/depth"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetMarketTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/trade", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/trade"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetMarketHistoryTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/history/trade", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/history/trade"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetMarketEtp(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/etp", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/etp"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV2EtpReference(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/reference", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/etp/reference"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPublicGetV2EtpRebalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/rebalance", ["spot", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/etp/rebalance"; api=["spot", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1AccountAccounts(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/account/accounts", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/account/accounts"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1AccountAccountsAccountIdBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/account/accounts/{account-id}/balance", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/account/accounts/{account-id}/balance"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2AccountValuation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/valuation", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/valuation"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2AccountAssetValuation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/asset-valuation", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/asset-valuation"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1AccountHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/account/history", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/account/history"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2AccountLedger(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/ledger", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/ledger"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2PointAccount(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/point/account", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/point/account"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2AccountDepositAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/deposit/address", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/deposit/address"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2AccountWithdrawQuota(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/withdraw/quota", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/withdraw/quota"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2AccountWithdrawAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/withdraw/address", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/withdraw/address"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2ReferenceCurrencies(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/reference/currencies", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/reference/currencies"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1QueryDepositWithdraw(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/query/deposit-withdraw", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/query/deposit-withdraw"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1QueryWithdrawClientOrderId(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/query/withdraw/client-order-id", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/query/withdraw/client-order-id"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2UserApiKey(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/user/api-key", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user/api-key"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2UserUid(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/user/uid", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user/uid"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2SubUserUserList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/user-list", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/user-list"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2SubUserUserState(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/user-state", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/user-state"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2SubUserAccountList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/account-list", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/account-list"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2SubUserDepositAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/deposit-address", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/deposit-address"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2SubUserQueryDeposit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/query-deposit", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/query-deposit"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1SubuserAggregateBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/subuser/aggregate-balance", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/subuser/aggregate-balance"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1AccountAccountsSubUid(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/account/accounts/{sub-uid}", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/account/accounts/{sub-uid}"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1OrderOpenOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/openOrders", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/order/openOrders"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1OrderOrdersOrderId(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/{order-id}", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/order/orders/{order-id}"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1OrderOrdersGetClientOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/getClientOrder", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/order/orders/getClientOrder"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1OrderOrdersOrderIdMatchresult(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/{order-id}/matchresult", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/order/orders/{order-id}/matchresult"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1OrderOrdersOrderIdMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/{order-id}/matchresults", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/order/orders/{order-id}/matchresults"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1OrderOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/order/orders"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1OrderHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/history", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/order/history"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1OrderMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/matchresults", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/order/matchresults"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2ReferenceTransactFeeRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/reference/transact-fee-rate", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/reference/transact-fee-rate"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2AlgoOrdersOpening(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders/opening", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/algo-orders/opening"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2AlgoOrdersHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders/history", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/algo-orders/history"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2AlgoOrdersSpecific(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders/specific", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/algo-orders/specific"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1MarginLoanInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/margin/loan-info", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/margin/loan-info"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1MarginLoanOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/margin/loan-orders", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/margin/loan-orders"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1MarginAccountsBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/margin/accounts/balance", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/margin/accounts/balance"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1CrossMarginLoanInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/loan-info", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/cross-margin/loan-info"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1CrossMarginLoanOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/loan-orders", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/cross-margin/loan-orders"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1CrossMarginAccountsBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/accounts/balance", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/cross-margin/accounts/balance"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2AccountRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/repayment", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/repayment"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV5AccountUniversalTransferRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/universal_transfer_records", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/universal_transfer_records"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1StableCoinQuote(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/stable-coin/quote", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/stable-coin/quote"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV1StableCoinExchangeRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/stable_coin/exchange_rate", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v1/stable_coin/exchange_rate"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2EtpTransactions(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/transactions", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/etp/transactions"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2EtpTransaction(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/transaction", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/etp/transaction"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivateGetV2EtpLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/limit", ["spot", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/etp/limit"; api=["spot", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1AccountTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/account/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/account/transfer"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1FuturesTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/futures/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/futures/transfer"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2PointTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/point/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/point/transfer"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2AccountTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/account/transfer"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1DwWithdrawApiCreate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/dw/withdraw/api/create", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/dw/withdraw/api/create"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/dw/withdraw-virtual/{withdraw-id}/cancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/dw/withdraw-virtual/{withdraw-id}/cancel"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2SubUserDeductMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/deduct-mode", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/deduct-mode"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2SubUserCreation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/creation", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/creation"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2SubUserManagement(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/management", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/management"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2SubUserTradableMarket(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/tradable-market", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/tradable-market"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2SubUserTransferability(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/transferability", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/transferability"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2SubUserApiKeyGeneration(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/api-key-generation", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/api-key-generation"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2SubUserApiKeyModification(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/api-key-modification", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/api-key-modification"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2SubUserApiKeyDeletion(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/api-key-deletion", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/sub-user/api-key-deletion"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1SubuserTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/subuser/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/subuser/transfer"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1TrustUserActiveCredit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/trust/user/active/credit", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/trust/user/active/credit"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1OrderOrdersPlace(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/place", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/order/orders/place"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1OrderBatchOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/batch-orders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/order/batch-orders"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1OrderAutoPlace(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/auto/place", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/order/auto/place"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1OrderOrdersOrderIdSubmitcancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/{order-id}/submitcancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/order/orders/{order-id}/submitcancel"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1OrderOrdersSubmitCancelClientOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/submitCancelClientOrder", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/order/orders/submitCancelClientOrder"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/batchCancelOpenOrders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/order/orders/batchCancelOpenOrders"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1OrderOrdersBatchcancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/batchcancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/order/orders/batchcancel"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2AlgoOrdersCancelAllAfter(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders/cancel-all-after", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/algo-orders/cancel-all-after"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2AlgoOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/algo-orders"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2AlgoOrdersCancellation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders/cancellation", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/algo-orders/cancellation"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2AccountRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/repayment", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/account/repayment"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1DwTransferInMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/dw/transfer-in/margin", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/dw/transfer-in/margin"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1DwTransferOutMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/dw/transfer-out/margin", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/dw/transfer-out/margin"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1MarginOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/margin/orders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/margin/orders"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1MarginOrdersOrderIdRepay(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/margin/orders/{order-id}/repay", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/margin/orders/{order-id}/repay"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1CrossMarginTransferIn(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/transfer-in", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/cross-margin/transfer-in"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1CrossMarginTransferOut(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/transfer-out", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/cross-margin/transfer-out"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1CrossMarginOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/orders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/cross-margin/orders"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1CrossMarginOrdersOrderIdRepay(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/orders/{order-id}/repay", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/cross-margin/orders/{order-id}/repay"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV1StableCoinExchange(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/stable-coin/exchange", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v1/stable-coin/exchange"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2EtpCreation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/creation", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/etp/creation"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2EtpRedemption(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/redemption", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/etp/redemption"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2EtpTransactIdCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/{transactId}/cancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/etp/{transactId}/cancel"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotPrivatePostV2EtpBatchCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/batch-cancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/etp/batch-cancel"; api=["spot", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1Timestamp(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/timestamp", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/timestamp"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetHeartbeat(self::Htx, params=Dict(), context=Dict())
-    return request(self, "heartbeat/", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "heartbeat/"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractContractInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_contract_info", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_contract_info"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractIndex(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_index", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_index"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractQueryElements(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_query_elements", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_query_elements"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractPriceLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_price_limit"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_open_interest"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractDeliveryPrice(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_delivery_price", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_delivery_price"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetMarketDepth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/depth"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetMarketBbo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/bbo", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/bbo"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetMarketHistoryKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/history/kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/history/kline"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistoryMarkPriceKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/mark_price_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/mark_price_kline"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetMarketDetailMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/detail/merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/detail/merged"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetMarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/detail/batch_merged"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV2MarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/market/detail/batch_merged"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetMarketTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/trade"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetMarketHistoryTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/history/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/history/trade"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractRiskInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_risk_info", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_risk_info"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractInsuranceFund(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_insurance_fund", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_insurance_fund"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractAdjustfactor(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_adjustfactor"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractHisOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_his_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_his_open_interest"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractLadderMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_ladder_margin"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractApiState(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_api_state", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_api_state"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractEliteAccountRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_elite_account_ratio"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractElitePositionRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_elite_position_ratio"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_liquidation_orders"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractSettlementRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_settlement_records", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_settlement_records"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistoryIndex(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/index", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/index"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistoryBasis(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/basis", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/basis"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV1ContractEstimatedSettlementPrice(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_estimated_settlement_price"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetApiV3ContractLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v3/contract_liquidation_orders"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapContractInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_contract_info", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_contract_info"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapIndex(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_index", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_index"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapQueryElements(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_query_elements", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_query_elements"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapPriceLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_price_limit"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_open_interest"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapExMarketDepth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/depth", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-ex/market/depth"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapExMarketBbo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/bbo", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-ex/market/bbo"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapExMarketHistoryKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/history/kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-ex/market/history/kline"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistorySwapMarkPriceKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/swap_mark_price_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/swap_mark_price_kline"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapExMarketDetailMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/detail/merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-ex/market/detail/merged"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV2SwapExMarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/swap-ex/market/detail/batch_merged"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistorySwapPremiumIndexKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/swap_premium_index_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/swap_premium_index_kline"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapExMarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-ex/market/detail/batch_merged"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapExMarketTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-ex/market/trade"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapExMarketHistoryTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/history/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-ex/market/history/trade"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapRiskInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_risk_info", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_risk_info"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapInsuranceFund(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_insurance_fund", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_insurance_fund"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapAdjustfactor(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_adjustfactor"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapHisOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_his_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_his_open_interest"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapLadderMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_ladder_margin"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapApiState(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_api_state", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_api_state"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapEliteAccountRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_elite_account_ratio"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapElitePositionRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_elite_position_ratio"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapEstimatedSettlementPrice(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_estimated_settlement_price"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_liquidation_orders"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapSettlementRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_settlement_records", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_settlement_records"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapFundingRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_funding_rate"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapBatchFundingRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_batch_funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_batch_funding_rate"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1SwapHistoricalFundingRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_historical_funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_historical_funding_rate"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV3SwapLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v3/swap_liquidation_orders"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistorySwapEstimatedRateKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/swap_estimated_rate_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/swap_estimated_rate_kline"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistorySwapBasis(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/swap_basis", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/swap_basis"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapContractInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_contract_info", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_contract_info"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapIndex(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_index", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_index"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapQueryElements(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_query_elements", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_query_elements"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapPriceLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_price_limit"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapExMarketDepth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/depth", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-ex/market/depth"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapExMarketBbo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/bbo", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-ex/market/bbo"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapExMarketHistoryKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/history/kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-ex/market/history/kline"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/linear_swap_mark_price_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/linear_swap_mark_price_kline"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapExMarketDetailMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/detail/merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-ex/market/detail/merged"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapExMarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-ex/market/detail/batch_merged"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV2LinearSwapExMarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/linear-swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/linear-swap-ex/market/detail/batch_merged"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapExMarketTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-ex/market/trade"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapExMarketHistoryTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/history/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-ex/market/history/trade"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/linear-swap-api/v1/swap_insurance_fund", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/linear-swap-api/v1/swap_insurance_fund"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapAdjustfactor(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_adjustfactor"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_cross_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_cross_adjustfactor"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapHisOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_his_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_his_open_interest"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapLadderMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_ladder_margin"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapCrossLadderMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_cross_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_cross_ladder_margin"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapApiState(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_api_state", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_api_state"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapEliteAccountRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_elite_account_ratio"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapElitePositionRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_elite_position_ratio"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapSettlementRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_settlement_records", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_settlement_records"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV3SwapLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v3/swap_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v3/swap_liquidation_orders"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/linear_swap_premium_index_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/linear_swap_premium_index_kline"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/linear_swap_estimated_rate_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/linear_swap_estimated_rate_kline"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetIndexMarketHistoryLinearSwapBasis(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/linear_swap_basis", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "index/market/history/linear_swap_basis"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "linear-swap-api/v1/swap_estimated_settlement_price"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV5MarketFundingRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/funding_rate"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV5MarketFundingRateHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/funding_rate_history", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/funding_rate_history"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV5MarketOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/open_interest"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV5MarketLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/liquidation_orders"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV5MarketSettlementHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/settlement_history", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/settlement_history"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV5MarketEliteAccountRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/elite_account_ratio"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV5MarketElitePositionRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/elite_position_ratio"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV5MarketEstimatedSettlementPrice(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/estimated_settlement_price"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPublicGetV5MarketPriceLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/price_limit"; api=["contract", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetApiV1ContractSubAuthList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_auth_list", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_sub_auth_list"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetApiV1ContractApiTradingStatus(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_api_trading_status", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_api_trading_status"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetSwapApiV1SwapSubAuthList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_auth_list", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_sub_auth_list"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetSwapApiV1SwapApiTradingStatus(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_api_trading_status", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_api_trading_status"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5AccountAssetMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/asset_mode", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/asset_mode"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5AccountBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/balance", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/balance"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5AccountBills(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/bills", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/bills"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5AccountFeeDeductionCurrency(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/fee_deduction_currency", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/account/fee_deduction_currency"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5TradePositionOpens(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/position/opens", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/position/opens"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5TradeOrderOpens(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/order/opens", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/order/opens"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5TradeOrderDetails(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/order/details", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/order/details"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5TradeOrderHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/order/history", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/order/history"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5TradeOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/order", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/order"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5PositionLever(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/lever", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/position/lever"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5PositionMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/mode", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/position/mode"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5PositionRiskLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/risk/limit", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/position/risk/limit"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5PositionRiskLimitTier(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/risk/limit_tier", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/position/risk/limit_tier"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5MarketRiskLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/risk/limit", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/risk/limit"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5MarketAssetsDeductionCurrency(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/assets_deduction_currency", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/assets_deduction_currency"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5MarketMultiAssetsMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/multi_assets_margin", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/market/multi_assets_margin"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5AlgoOrderOpens(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/algo/order/opens", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/algo/order/opens"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5AlgoOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/algo/order", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/algo/order"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivateGetV5AlgoOrderHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/algo/order/history", ["contract", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v5/algo/order/history"; api=["contract", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractBalanceValuation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_balance_valuation", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_balance_valuation"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractAccountInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_account_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_position_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractSubAuth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_auth", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_sub_auth"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractSubAccountList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_account_list", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_sub_account_list"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractSubAccountInfoList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_account_info_list", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_sub_account_info_list"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractSubAccountInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_sub_account_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractSubPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_sub_position_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractFinancialRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_financial_record"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractFinancialRecordExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_financial_record_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractUserSettlementRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_user_settlement_records", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_user_settlement_records"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractOrderLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_order_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_order_limit"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractFee(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_fee", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_fee"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTransferLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_transfer_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_transfer_limit"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractPositionLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_position_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_position_limit"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractAccountPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_account_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_account_position_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractMasterSubTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_master_sub_transfer", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_master_sub_transfer"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractMasterSubTransferRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_master_sub_transfer_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_master_sub_transfer_record"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractAvailableLevelRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_available_level_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_available_level_rate"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV3ContractFinancialRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/contract_financial_record"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV3ContractFinancialRecordExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/contract_financial_record_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractCancelAfter(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract-cancel-after", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract-cancel-after"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractBatchorder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_batchorder", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_batchorder"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_cancel"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_cancelall"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractSwitchLeverRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_switch_lever_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_switch_lever_rate"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1LightningClosePosition(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/lightning_close_position", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/lightning_close_position"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractOrderInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_order_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_order_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractOrderDetail(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_order_detail", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_order_detail"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_openorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_hisorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractHisordersExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_hisorders_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_matchresults"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractMatchresultsExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_matchresults_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV3ContractHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/contract_hisorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV3ContractHisordersExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/contract_hisorders_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV3ContractMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/contract_matchresults"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV3ContractMatchresultsExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v3/contract_matchresults_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTriggerOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_trigger_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_trigger_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTriggerCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_trigger_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_trigger_cancel"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTriggerCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_trigger_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_trigger_cancelall"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTriggerOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_trigger_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_trigger_openorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTriggerHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_trigger_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_trigger_hisorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTpslOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_tpsl_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTpslCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_tpsl_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_tpsl_cancel"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTpslCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_tpsl_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_tpsl_cancelall"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTpslOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_tpsl_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_tpsl_openorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTpslHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_tpsl_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_tpsl_hisorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractRelationTpslOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_relation_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_relation_tpsl_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTrackOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_track_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_track_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTrackCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_track_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_track_cancel"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTrackCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_track_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_track_cancelall"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTrackOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_track_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_track_openorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostApiV1ContractTrackHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_track_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "api/v1/contract_track_hisorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapBalanceValuation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_balance_valuation", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_balance_valuation"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapAccountInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_account_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_position_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapAccountPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_account_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_account_position_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSubAuth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_auth", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_sub_auth"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSubAccountList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_account_list", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_sub_account_list"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSubAccountInfoList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_account_info_list", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_sub_account_info_list"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSubAccountInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_sub_account_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSubPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_sub_position_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapFinancialRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_financial_record"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapFinancialRecordExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_financial_record_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapUserSettlementRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_user_settlement_records", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_user_settlement_records"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapAvailableLevelRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_available_level_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_available_level_rate"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapOrderLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_order_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_order_limit"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapFee(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_fee", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_fee"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTransferLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_transfer_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_transfer_limit"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapPositionLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_position_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_position_limit"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapMasterSubTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_master_sub_transfer", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_master_sub_transfer"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapMasterSubTransferRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_master_sub_transfer_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_master_sub_transfer_record"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapFinancialRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v3/swap_financial_record"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapFinancialRecordExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v3/swap_financial_record_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapCancelAfter(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap-cancel-after", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap-cancel-after"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapBatchorder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_batchorder", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_batchorder"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_cancel"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_cancelall"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapLightningClosePosition(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_lightning_close_position", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_lightning_close_position"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSwitchLeverRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_switch_lever_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_switch_lever_rate"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapOrderInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_order_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_order_info"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapOrderDetail(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_order_detail", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_order_detail"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_openorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_hisorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapHisordersExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_hisorders_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_matchresults"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapMatchresultsExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_matchresults_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v3/swap_matchresults"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapMatchresultsExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v3/swap_matchresults_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v3/swap_hisorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapHisordersExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v3/swap_hisorders_exact"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTriggerOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_trigger_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_trigger_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTriggerCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_trigger_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_trigger_cancel"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTriggerCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_trigger_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_trigger_cancelall"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTriggerOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_trigger_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_trigger_openorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTriggerHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_trigger_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_trigger_hisorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTpslOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_tpsl_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTpslCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_tpsl_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_tpsl_cancel"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTpslCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_tpsl_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_tpsl_cancelall"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTpslOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_tpsl_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_tpsl_openorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTpslHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_tpsl_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_tpsl_hisorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapRelationTpslOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_relation_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_relation_tpsl_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTrackOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_track_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_track_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTrackCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_track_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_track_cancel"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTrackCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_track_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_track_cancelall"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTrackOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_track_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_track_openorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTrackHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_track_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap-api/v1/swap_track_hisorders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5AccountAssetMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/asset_mode", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/asset_mode"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5TradeOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5TradeBatchOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/batch_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/batch_orders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5TradeCancelOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/cancel_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/cancel_order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5TradeCancelBatchOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/cancel_batch_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/cancel_batch_orders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5TradeCancelAllOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/cancel_all_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/cancel_all_orders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5TradeCancelAfter(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/cancel-after", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/cancel-after"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5TradePosition(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/position", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/position"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5TradePositionAll(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/position_all", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/trade/position_all"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5PositionLever(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/lever", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/lever"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5PositionMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/mode", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/mode"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5PositionMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/margin", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/position/margin"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5AccountFeeDeductionCurrency(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/fee_deduction_currency", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/account/fee_deduction_currency"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5AlgoOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/algo/order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/algo/order"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractPrivatePostV5AlgoCancelOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/algo/cancel_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v5/algo/cancel_orders"; api=["contract", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Htx(; kwargs...)
@@ -9145,3 +10106,1158 @@ function Htx(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Htx_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Htx_fetchStatus
+
+function __ccxt_doc_Htx_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Htx_fetchTime
+
+function __ccxt_doc_Htx_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Htx_fetchTradingFee
+
+function __ccxt_doc_Htx_fetchTradingLimitsById() end
+"""
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+
+# Arguments
+- `id`::string: market id
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the limits object of a market structure
+"""
+__ccxt_doc_Htx_fetchTradingLimitsById
+
+function __ccxt_doc_Htx_fetchMarkets() end
+"""
+retrieves data on all markets for huobi
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Htx_fetchMarkets
+
+function __ccxt_doc_Htx_fetchMarketsByTypeAndSubType() end
+"""
+retrieves data on all markets of a certain type and/or subtype
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+
+# Arguments
+- `type`::string, optional: 'spot', 'swap' or 'future'
+- `subType`::string, optional: 'linear' or 'inverse'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Htx_fetchMarketsByTypeAndSubType
+
+function __ccxt_doc_Htx_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Htx_fetchTicker
+
+function __ccxt_doc_Htx_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Htx_fetchTickers
+
+function __ccxt_doc_Htx_fetchLastPrices() end
+"""
+fetches the last price for multiple markets
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
+see: https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
+see: https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003 inverse swap
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the last prices
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of lastprices structures
+"""
+__ccxt_doc_Htx_fetchLastPrices
+
+function __ccxt_doc_Htx_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Htx_fetchOrderBook
+
+function __ccxt_doc_Htx_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Htx_fetchOrderTrades
+
+function __ccxt_doc_Htx_fetchSpotOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Htx_fetchSpotOrderTrades
+
+function __ccxt_doc_Htx_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195898804f0
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Htx_fetchMyTrades
+
+function __ccxt_doc_Htx_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Htx_fetchTrades
+
+function __ccxt_doc_Htx_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.useHistoricalEndpointForSpot`::string, optional: true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Htx_fetchOHLCV
+
+function __ccxt_doc_Htx_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Htx_fetchAccounts
+
+function __ccxt_doc_Htx_fetchAccountIdByType() end
+"""
+fetch all the accounts by a type and marginModeassociated with a profile
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+
+# Arguments
+- `type`::string: 'spot', 'swap' or 'future
+- `marginMode`::string, optional: 'cross' or 'isolated'
+- `symbol`::string, optional: unified ccxt market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Htx_fetchAccountIdByType
+
+function __ccxt_doc_Htx_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Htx_fetchCurrencies
+
+function __ccxt_doc_Htx_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: spot, margin, future or swap
+- `params.subType`::string, optional: linear or inverse
+- `params.multiAssetMode`::bool, optional: set to true if you are using multi-asset mode for USDT-margined contracts
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Htx_fetchBalance
+
+function __ccxt_doc_Htx_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-196a8401f83
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *linear only* set to true if you want to fetch a trigger order
+- `params.stopLossTakeProfit`::bool, optional: *linear only* set to true if you want to fetch a stop-loss take-profit order
+- `params.stopLoss`::bool, optional: *linear only* set to true if you want to fetch a stop-loss order
+- `params.takeProfit`::bool, optional: *linear only* set to true if you want to fetch a take-profit order
+- `params.trailing`::bool, optional: *linear only* set to true if you want to fetch a trailing order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_fetchOrder
+
+function __ccxt_doc_Htx_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.trigger`::bool, optional: *contract only* if the orders are trigger trigger orders or not
+- `params.trailing`::bool, optional: *contract only* set to true if you want to fetch trailing stop orders
+- `params.stopLossTakeProfit`::bool, optional: *contract only* if the orders are stop-loss and take-profit orders
+- `params.stopLoss`::bool, optional: *contract only* set to true if you want to fetch stop loss orders
+- `params.takeProfit`::bool, optional: *contract only* set to true if you want to fetch take profit orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_fetchOrders
+
+function __ccxt_doc_Htx_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_fetchCanceledOrders
+
+function __ccxt_doc_Htx_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_fetchClosedOrders
+
+function __ccxt_doc_Htx_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589587da5
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b9754d736
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *contract only* if the orders are trigger trigger orders or not
+- `params.stopLossTakeProfit`::bool, optional: *contract only* if the orders are stop-loss or take-profit orders
+- `params.stopLoss`::bool, optional: *linear swap contract only* if the orders are stop-loss orders
+- `params.takeProfit`::bool, optional: *linear swap contract only* if the orders are take-profit orders
+- `params.trailing`::bool, optional: *contract only* set to true if you want to fetch trailing stop orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_fetchOpenOrders
+
+function __ccxt_doc_Htx_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Htx_createTrailingPercentOrder() end
+"""
+create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency, or number of contracts
+- `price`::float, optional: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+- `trailingPercent`::float: the percent to trail away from the current market price
+- `trailingTriggerPrice`::float: the price to activate a trailing order, default uses the price argument
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_createTrailingPercentOrder
+
+function __ccxt_doc_Htx_createSpotOrderRequest() end
+"""
+helper function to build request
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: supports 'IOC' and 'FOK'
+- `params.cost`::float, optional: the quote quantity that can be used as an alternative for the amount for market buy orders
+
+# Returns
+- request to be sent to the exchange
+"""
+__ccxt_doc_Htx_createSpotOrderRequest
+
+function __ccxt_doc_Htx_createOrder() end
+"""
+create a trade order
+see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                       // spot, margin
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order            // coin-m swap
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order       // coin-m swap trigger
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588768fe7 // usdt-m swap cross and isolated
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b933812c9 // usdt-m swap cross and isolated trigger and trailing orders
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position
+see: https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                            // coin-m futures
+see: https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                       // coin-m futures contract trigger
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price a trigger order is triggered at
+- `params.triggerType`::string, optional: *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
+- `params.stopLossPrice`::float, optional: *contract only* the price a stop-loss order is triggered at
+- `params.takeProfitPrice`::float, optional: *contract only* the price a take-profit order is triggered at
+- `params.operator`::string, optional: *spot and margin only* gte or lte, trigger price condition
+- `params.offset`::string, optional: *contract only* 'both' (linear only), 'open', or 'close', required in hedge mode and for inverse markets
+- `params.postOnly`::bool, optional: *contract only* true or false
+- `params.leverRate`::int, optional: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
+- `params.timeInForce`::string, optional: supports 'IOC' and 'FOK'
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.trailingPercent`::float, optional: *contract only* the percent to trail away from the current market price
+- `params.trailingTriggerPrice`::float, optional: *contract only* the price to trigger a trailing order, default uses the price argument
+- `params.hedged`::bool, optional: *contract only* true for hedged mode, false for one way mode, default is false
+- `params.marginMode`::string, optional: linear swap supports 'cross' and 'isolated', 'cross' is the default
+- `params.position_side`::string, optional: linear swap supports 'long', 'short' and 'both', 'both' is the default
+- `params.takeProfit`::object, optional: *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.takeProfit.price`::float, optional: take profit price for take profit orders
+- `params.takeProfit.type`::string, optional: market is the default, limit, optimal_5, optimal_10, optimal_20
+- `params.stopLoss`::object, optional: *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.stopLoss.price`::float, optional: stop loss price for stop loss orders
+- `params.stopLoss.type`::string, optional: market is the default, limit, optimal_5, optimal_10, optimal_20
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_createOrder
+
+function __ccxt_doc_Htx_createOrders() end
+"""
+create a list of trade orders
+see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
+see: https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958935dae1
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_createOrders
+
+function __ccxt_doc_Htx_cancelOrder() end
+"""
+cancels an open order
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958947efe6
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b935d4997
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *contract only* if the order is a trigger trigger order or not
+- `params.stopLossTakeProfit`::bool, optional: *contract only* if the order is a stop-loss or take-profit order
+- `params.stopLoss`::bool, optional: *contract only* if the order is a stop-loss order
+- `params.takeProfit`::bool, optional: *contract only* if the order is a take-profit order
+- `params.trailing`::bool, optional: *contract only* set to true if you want to cancel a trailing order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_cancelOrder
+
+function __ccxt_doc_Htx_cancelOrders() end
+"""
+cancel multiple orders
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894d0de8
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *contract only* if the orders are trigger trigger orders or not
+- `params.stopLossTakeProfit`::bool, optional: *contract only* if the orders are stop-loss or take-profit orders
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_cancelOrders
+
+function __ccxt_doc_Htx_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894f0cf6
+
+# Arguments
+- `symbol`::string: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: *contract only* if the orders are trigger trigger orders or not
+- `params.stopLossTakeProfit`::bool, optional: *contract only* if the orders are stop-loss or take-profit orders
+- `params.trailing`::bool, optional: *contract only* set to true if you want to cancel all trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Htx_cancelAllOrders
+
+function __ccxt_doc_Htx_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Htx_cancelAllOrdersAfter
+
+function __ccxt_doc_Htx_fetchDepositAddressesByNetwork() end
+"""
+fetch a dictionary of addresses for a currency, indexed by network
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+"""
+__ccxt_doc_Htx_fetchDepositAddressesByNetwork
+
+function __ccxt_doc_Htx_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Htx_fetchDepositAddress
+
+function __ccxt_doc_Htx_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Htx_fetchDeposits
+
+function __ccxt_doc_Htx_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-for-existed-withdraws-and-deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Htx_fetchWithdrawals
+
+function __ccxt_doc_Htx_withdraw() end
+"""
+make a withdrawal
+see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Htx_withdraw
+
+function __ccxt_doc_Htx_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
+see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
+see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
+see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from 'spot', 'future', 'swap'
+- `toAccount`::string: account to transfer to 'spot', 'future', 'swap'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: used for isolated margin transfer
+- `params.subType`::string, optional: 'linear' or 'inverse', only used when transfering to/from swap accounts
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Htx_transfer
+
+function __ccxt_doc_Htx_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://www.huobi.com/en-us/opend/newApiPages/
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.status`::string, optional: transfer status: 'success', 'pending', 'failed'
+- `params.from`::int, optional: the starting ID for pagination
+- `params.direct`::string, optional: pagination direction: 'prev' or 'next', default 'next'
+- `params.until`::int, optional: the latest time in ms to fetch transfers for
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Htx_fetchTransfers
+
+function __ccxt_doc_Htx_fetchIsolatedBorrowRates() end
+"""
+fetch the borrow interest rates of all currencies
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
+"""
+__ccxt_doc_Htx_fetchIsolatedBorrowRates
+
+function __ccxt_doc_Htx_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97ea5941
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: the earliest time in ms to fetch funding rate history for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Htx_fetchFundingRateHistory
+
+function __ccxt_doc_Htx_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97d0c0bf
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Htx_fetchFundingRate
+
+function __ccxt_doc_Htx_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Htx_fetchFundingRates
+
+function __ccxt_doc_Htx_fetchBorrowInterest() end
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
+see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated
+
+# Arguments
+- `code`::string: unified currency code
+- `symbol`::string: unified market symbol when fetch interest in isolated markets
+- `since`::int, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+__ccxt_doc_Htx_fetchBorrowInterest
+
+function __ccxt_doc_Htx_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Htx_fetchFundingHistory
+
+function __ccxt_doc_Htx_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959439f997
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
+see: https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  // Coin-m futures
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.position_side`::string, optional: linear swap supports 'long', 'short' and 'both', 'both' is the default
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Htx_setLeverage
+
+function __ccxt_doc_Htx_fetchPositions() end
+"""
+fetch all open positions
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: 'linear' or 'inverse'
+- `params.type`::string, optional: *inverse only* 'future', or 'swap'
+- `params.marginMode`::string, optional: *linear only* 'cross' or 'isolated'
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Htx_fetchPositions
+
+function __ccxt_doc_Htx_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Htx_fetchPosition
+
+function __ccxt_doc_Htx_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Htx_fetchLedger
+
+function __ccxt_doc_Htx_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Htx_fetchLeverageTiers
+
+function __ccxt_doc_Htx_fetchOpenInterestHistory() end
+"""
+Retrieves the open interest history of a currency
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `timeframe`::string: '1h', '4h', '12h', or '1d'
+- `since`::int, optional: Not used by huobi api, but response parsed by CCXT
+- `limit`::int, optional: Default：48，Data Range [1,200]
+- `params`::object, optional: Exchange specific parameters
+- `params.amount_type`::int, optional: *required* Open interest unit. 1-cont，2-cryptocurrency
+- `params.pair`::int, optional: eg BTC-USDT *Only for USDT-M*
+
+# Returns
+- an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Htx_fetchOpenInterestHistory
+
+function __ccxt_doc_Htx_fetchOpenInterests() end
+"""
+Retrieves the open interest for a list of symbols
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+
+# Arguments
+- `symbols`::array, optional: a list of unified CCXT market symbols
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Htx_fetchOpenInterests
+
+function __ccxt_doc_Htx_fetchOpenInterest() end
+"""
+Retrieves the open interest of a currency
+see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97fb53f2
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Htx_fetchOpenInterest
+
+function __ccxt_doc_Htx_borrowIsolatedMargin() end
+"""
+create a loan to borrow margin
+see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+
+# Arguments
+- `symbol`::string: unified market symbol, required for isolated margin
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Htx_borrowIsolatedMargin
+
+function __ccxt_doc_Htx_borrowCrossMargin() end
+"""
+create a loan to borrow margin
+see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Htx_borrowCrossMargin
+
+function __ccxt_doc_Htx_repayIsolatedMargin() end
+"""
+repay borrowed margin and interest
+see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Htx_repayIsolatedMargin
+
+function __ccxt_doc_Htx_repayCrossMargin() end
+"""
+repay borrowed margin and interest
+see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Htx_repayCrossMargin
+
+function __ccxt_doc_Htx_fetchSettlementHistory() end
+"""
+Fetches historical settlement records
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the settlement history for
+- `since`::int, optional: timestamp in ms, value range = current time - 90 days，default = current time - 90 days
+- `limit`::int, optional: page items, default 20, shall not exceed 50
+- `params`::object, optional: exchange specific params
+- `params.until`::int, optional: timestamp in ms, value range = start_time -> current time，default = current time
+- `params.page_index`::int, optional: page index, default page 1 if not filled
+- `params.code`::int, optional: unified currency code, can be used when symbol is undefined
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+__ccxt_doc_Htx_fetchSettlementHistory
+
+function __ccxt_doc_Htx_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Htx_fetchDepositWithdrawFees
+
+function __ccxt_doc_Htx_fetchLiquidations() end
+"""
+retrieves the public liquidations of a trading pair
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
+see: https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the huobi api endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+- `params.tradeType`::int, optional: *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Htx_fetchLiquidations
+
+function __ccxt_doc_Htx_closePosition() end
+"""
+closes open positions for a contract market
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958953a715    // USDT-M
+see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
+see: https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `side`::string: 'buy' or 'sell', the side of the closing order, opposite side as position side
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
+- `params.marginMode`::object, optional: 'cross' or 'isolated', required for linear markets EXCHANGE SPECIFIC PARAMETERS
+- `params.amount`::float, optional: order quantity
+- `params.order_price_type`::string, optional: 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
+- `params.position_side`::string, optional: linear swap supports 'long', 'short' and 'both', 'both' is the default
+
+# Returns
+- [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Htx_closePosition
+
+function __ccxt_doc_Htx_setPositionMode() end
+"""
+set hedged to true or false
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959443cae3
+
+# Arguments
+- `hedged`::bool: set to true to for hedged mode, must be set separately for each market in isolated margin mode, only valid for linear markets
+- `symbol`::string, optional: unified market symbol, required for isolated margin mode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: "cross" (default) or "isolated"
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Htx_setPositionMode
+
+function __ccxt_doc_Htx_fetchPositionsADLRank() end
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
+see: https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+see: https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+__ccxt_doc_Htx_fetchPositionsADLRank

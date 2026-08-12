@@ -579,7 +579,7 @@ function describe(self::Deepcoin, )
 ))
 
 end
-function handleMarketTypeAndParams(self::Deepcoin, methodName, market=nothing, params=Dict(), defaultValue=nothing)
+function handleMarketTypeAndParams(self::Deepcoin, methodName; market=nothing, params=Dict(), defaultValue=nothing)
     instType = safeString(params, "instType");
     params = omit(params, "instType");
     type_var = safeString(params, "type");
@@ -588,27 +588,37 @@ function handleMarketTypeAndParams(self::Deepcoin, methodName, market=nothing, p
     Symbol("type") => instType
 ));
     end
-    return handleMarketTypeAndParams(self.parent, methodName, market, params, defaultValue)
+    return handleMarketTypeAndParams(self.parent, methodName, market = market, params = params, defaultValue = defaultValue)
 
 end
 function convertToInstrumentType(self::Deepcoin, type_var)
-    exchangeTypes = self.safeDict(self.options, "exchangeType", Dict{Symbol, Any}());
+    exchangeTypes = self.safeDict(self.options, "exchangeType", defaultValue = Dict{Symbol, Any}());
     return safeString(exchangeTypes, type_var, type_var)
 
 end
-function fetchMarkets(self::Deepcoin, params=Dict())
+"""
+retrieves data on all markets for okcoin
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getBaseInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Deepcoin; params=Dict())
     types = ["spot", "swap"];
     fetchMarketsOption = self.safeDict(self.options, "fetchMarkets");
     if functions.ccxtruthy(fetchMarketsOption != nothing)
-        types = self.safeList(fetchMarketsOption, "types", types);
+        types = self.safeList(fetchMarketsOption, "types", defaultValue = types);
     else
-        types = self.safeList(self.options, "fetchMarkets", types);
+        types = self.safeList(self.options, "fetchMarkets", defaultValue = types);
     end
     promises = [];
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(types)))
-        push!(promises, self.fetchMarketsByType(get(types, i + 1, nothing), params));
+        push!(promises, self.fetchMarketsByType(get(types, i + 1, nothing), params = params));
         i += 1
     end
     promises = Base.fetch(asyncmap(Base.fetch, promises));
@@ -620,12 +630,12 @@ function fetchMarkets(self::Deepcoin, params=Dict())
     return result
 
 end
-function fetchMarketsByType(self::Deepcoin, type_var, params=Dict())
+function fetchMarketsByType(self::Deepcoin, type_var; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("instType") => self.convertToInstrumentType(type_var)
     );
     response = Base.fetch(self.publicGetDeepcoinMarketInstruments(extend(request, params)));
-    dataResponse = self.safeList(response, "data", []);
+    dataResponse = self.safeList(response, "data", defaultValue = []);
     return self.parseMarkets(dataResponse)
 
 end
@@ -648,7 +658,7 @@ function parseMarket(self::Deepcoin, market)
         settle = self.safeCurrencyCode(settleId);
         symbol = string(symbol, ":", settle);
     end
-    fees = self.safeDict2(self.fees, type_var, "trading", Dict{Symbol, Any}());
+    fees = self.safeDict2(self.fees, type_var, "trading", defaultValue = Dict{Symbol, Any}());
     maxLeverage = safeString(market, "lever", "1");
     maxLeverage = stringMax(maxLeverage, "1");
     maxMarketSize = safeString(market, "maxMktSz");
@@ -708,8 +718,8 @@ function parseMarket(self::Deepcoin, market)
 ))
 
 end
-function setMarkets(self::Deepcoin, markets, currencies=nothing)
-    result = setMarkets(self.parent, markets, currencies);
+function setMarkets(self::Deepcoin, markets; currencies=nothing)
+    result = setMarkets(self.parent, markets, currencies = currencies);
     symbols = objectKeys(result);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
@@ -726,7 +736,19 @@ function setMarkets(self::Deepcoin, markets, currencies=nothing)
     return result
 
 end
-function fetchOrderBook(self::Deepcoin, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.deepcoin.com/docs/DeepCoinMarket/marketBooks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Deepcoin, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -739,22 +761,41 @@ function fetchOrderBook(self::Deepcoin, symbol, limit=nothing, params=Dict())
         Symbol("sz") => limit
     );
     response = Base.fetch(self.publicGetDeepcoinMarketBooks(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrderBook(data, symbol, nothing, "bids", "asks", 0, 1)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrderBook(data, symbol, timestamp = nothing, bidsKey = "bids", asksKey = "asks", priceKey = 0, amountKey = 1)
 
 end
-function fetchOHLCV(self::Deepcoin, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getKlineData
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getIndexKlineData
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getMarkKlineData
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Deepcoin, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     maxLimit = 300;
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
         params = extend(params, Dict{Symbol, Any}(
     Symbol("calculateUntil") => true
 ));
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxLimit))
     end
     market = self.market(symbol);
     price = safeString(params, "price");
@@ -772,7 +813,7 @@ function fetchOHLCV(self::Deepcoin, symbol, timeframe="1m", since=nothing, limit
         request[Symbol("after")] = until;
         params = omit(params, "until");
     end
-    calculateUntil = self.safeBool(params, "calculateUntil", false);
+    calculateUntil = self.safeBool(params, "calculateUntil", defaultValue = false);
     if functions.ccxtruthy(calculateUntil)
         params = omit(params, "calculateUntil");
         if functions.ccxtruthy(since != nothing)
@@ -794,30 +835,41 @@ function fetchOHLCV(self::Deepcoin, symbol, timeframe="1m", since=nothing, limit
     else
         response = Base.fetch(self.publicGetDeepcoinMarketCandles(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchTickers(self::Deepcoin, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getMarketTickers
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Deepcoin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
-    market = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
+    market = self.getMarketFromSymbols(symbols = symbols);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("instType") => self.convertToInstrumentType(marketType)
     );
     response = Base.fetch(self.publicGetDeepcoinMarketTickers(extend(request, params)));
-    tickers = self.safeList(response, "data", []);
-    return self.parseTickers(tickers, symbols)
+    tickers = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function parseTicker(self::Deepcoin, ticker, market=nothing)
+function parseTicker(self::Deepcoin, ticker; market=nothing)
     timestamp = safeInteger(ticker, "ts");
     marketId = safeString(ticker, "instId");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     symbol = get(market, Symbol("symbol"), nothing);
     last_var = safeString(ticker, "last");
     open = safeString(ticker, "open24h");
@@ -853,10 +905,23 @@ function parseTicker(self::Deepcoin, ticker, market=nothing)
     Symbol("markPrice") => nothing,
     Symbol("indexPrice") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Deepcoin, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getTrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (default 100, max 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Deepcoin, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -870,8 +935,8 @@ function fetchTrades(self::Deepcoin, symbol, since=nothing, limit=nothing, param
     productGroup = self.getProductGroupFromMarket(market);
     request[Symbol("productGroup")] = productGroup;
     response = Base.fetch(self.publicGetDeepcoinMarketTrades(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
 function getProductGroupFromMarket(self::Deepcoin, market)
@@ -886,9 +951,9 @@ function getProductGroupFromMarket(self::Deepcoin, market)
     return productGroup
 
 end
-function parseTrade(self::Deepcoin, trade, market=nothing)
+function parseTrade(self::Deepcoin, trade; market=nothing)
     marketId = safeString(trade, "instId");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(trade, "ts");
     side = safeString(trade, "side");
     execType = safeString(trade, "execType");
@@ -916,7 +981,7 @@ function parseTrade(self::Deepcoin, trade, market=nothing)
     Symbol("amount") => safeString2(trade, "fillSz", "sz"),
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
 function parseTakerOrMaker(self::Deepcoin, execType)
@@ -927,12 +992,23 @@ function parseTakerOrMaker(self::Deepcoin, execType)
     return safeString(types, execType, execType)
 
 end
-function fetchBalance(self::Deepcoin, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBalance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: "spot" or "swap", the market type for the balance
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Deepcoin; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params, defaultValue = marketType);
     request = Dict{Symbol, Any}(
         Symbol("instType") => self.convertToInstrumentType(marketType)
     );
@@ -946,7 +1022,7 @@ function parseBalance(self::Deepcoin, response)
         Symbol("timestamp") => nothing,
         Symbol("datetime") => nothing
     );
-    balances = self.safeList(response, "data", []);
+    balances = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         balance = get(balances, i + 1, nothing);
@@ -962,14 +1038,29 @@ function parseBalance(self::Deepcoin, response)
     return self.safeBalance(result)
 
 end
-function fetchDeposits(self::Deepcoin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://www.deepcoin.com/docs/assets/deposit
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Deepcoin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "code", nothing, 1, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", symbol = code, since = since, limit = limit, params = params, cursorReceived = "code", cursorSent = nothing, cursorIncrement = 1, maxEntriesPerRequest = 50))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -989,22 +1080,37 @@ function fetchDeposits(self::Deepcoin, code=nothing, since=nothing, limit=nothin
         params = omit(params, "until");
     end
     response = Base.fetch(self.privateGetDeepcoinAssetDepositList(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    items = self.safeList(data, "data", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    items = self.safeList(data, "data", defaultValue = []);
     transactionParams = Dict{Symbol, Any}(
         Symbol("type") => "deposit"
     );
-    return self.parseTransactions(items, currency, since, limit, transactionParams)
+    return self.parseTransactions(items, currency = currency, since = since, limit = limit, params = transactionParams)
 
 end
-function fetchWithdrawals(self::Deepcoin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://www.deepcoin.com/docs/assets/withdraw
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for (default 24 hours ago)
+- `limit`::int, optional: the maximum number of transfer structures to retrieve (default 50, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for (default time now)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Deepcoin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "code", nothing, 1, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", symbol = code, since = since, limit = limit, params = params, cursorReceived = "code", cursorSent = nothing, cursorIncrement = 1, maxEntriesPerRequest = 50))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -1024,22 +1130,22 @@ function fetchWithdrawals(self::Deepcoin, code=nothing, since=nothing, limit=not
         params = omit(params, "until");
     end
     response = Base.fetch(self.privateGetDeepcoinAssetWithdrawList(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    items = self.safeList(data, "data", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    items = self.safeList(data, "data", defaultValue = []);
     transactionParams = Dict{Symbol, Any}(
         Symbol("type") => "withdrawal"
     );
-    return self.parseTransactions(items, currency, since, limit, transactionParams)
+    return self.parseTransactions(items, currency = currency, since = since, limit = limit, params = transactionParams)
 
 end
-function parseTransaction(self::Deepcoin, transaction, currency=nothing)
+function parseTransaction(self::Deepcoin, transaction; currency=nothing)
     txid = safeString(transaction, "txHash");
     currencyId = safeString(transaction, "coin");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     amount = self.safeNumber(transaction, "amount");
     timestamp = safeTimestamp(transaction, "createTime");
     networkId = safeString(transaction, "chainName");
-    network = self.networkIdToCode(networkId, code);
+    network = self.networkIdToCode(networkId = networkId, currencyCode = code);
     status = self.parseTransactionStatus(safeString(transaction, "status"));
     return Dict{Symbol, Any}(
     Symbol("info") => transaction,
@@ -1076,7 +1182,18 @@ function parseTransactionStatus(self::Deepcoin, status)
     return safeString(statuses, status, status)
 
 end
-function fetchDepositAddresses(self::Deepcoin, codes=nothing, params=Dict())
+"""
+fetch deposit addresses for multiple currencies and chain types
+see: https://www.deepcoin.com/docs/assets/chainlist
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddresses(self::Deepcoin; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1094,28 +1211,40 @@ function fetchDepositAddresses(self::Deepcoin, codes=nothing, params=Dict())
         Symbol("lang") => "en"
     );
     response = Base.fetch(self.privateGetDeepcoinAssetRechargeChainList(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    list = self.safeList(data, "list", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    list = self.safeList(data, "list", defaultValue = []);
     additionalParams = Dict{Symbol, Any}(
         Symbol("currency") => code
     );
-    return self.parseDepositAddresses(list, codes, false, additionalParams)
+    return self.parseDepositAddresses(list, codes = codes, indexed = false, params = additionalParams)
 
 end
-function fetchDepositAddress(self::Deepcoin, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.deepcoin.com/docs/assets/chainlist
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: unified network code for deposit chain
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Deepcoin, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     network = safeString(params, "network");
-    defaultNetworks = self.safeDict(self.options, "defaultNetworks", Dict{Symbol, Any}());
+    defaultNetworks = self.safeDict(self.options, "defaultNetworks", defaultValue = Dict{Symbol, Any}());
     defaultNetwork = safeString(defaultNetworks, code);
     network = functions.ccxtruthy(network) ? network : defaultNetwork;
     if functions.ccxtruthy(network != nothing)
         params = omit(params, "network");
     end
-    addressess = Base.fetch(self.fetchDepositAddresses([code], params));
+    addressess = Base.fetch(self.fetchDepositAddresses(codes = [code], params = params));
     len = length(addressess);
-    address = self.safeDict(addressess, 0, Dict{Symbol, Any}());
+    address = self.safeDict(addressess, 0, defaultValue = Dict{Symbol, Any}());
     if functions.ccxtruthy(@functions.ccxt_and((network != nothing), (functions.ccxt_gt(len, 1))))
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, len))
@@ -1130,26 +1259,41 @@ function fetchDepositAddress(self::Deepcoin, code, params=Dict())
     return address
 
 end
-function parseDepositAddress(self::Deepcoin, response, currency=nothing)
+function parseDepositAddress(self::Deepcoin, response; currency=nothing)
     chain = safeString(response, "chain");
     address = safeString(response, "address");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     code = safeString(currency, "code");
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => nothing,
-    Symbol("network") => self.networkIdToCode(chain, code),
+    Symbol("network") => self.networkIdToCode(networkId = chain, currencyCode = code),
     Symbol("address") => address,
     Symbol("tag") => safeString(response, "memo")
 )
 
 end
-function fetchLedger(self::Deepcoin, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBills
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+- `params.type`::string, optional: 'spot' or 'swap', the market type for the ledger (default 'spot')
+
+# Returns
+- a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Deepcoin; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     marketType = "spot";
-    (marketType, params) = self.handleMarketTypeAndParams("fetchLedger", nothing, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchLedger", market = nothing, params = params, defaultValue = marketType);
     request = Dict{Symbol, Any}(
         Symbol("instType") => self.convertToInstrumentType(marketType)
     );
@@ -1170,17 +1314,17 @@ function fetchLedger(self::Deepcoin, code=nothing, since=nothing, limit=nothing,
         params = omit(params, "until");
     end
     response = Base.fetch(self.privateGetDeepcoinAccountBills(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseLedger(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLedger(data, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Deepcoin, item, currency=nothing)
+function parseLedgerEntry(self::Deepcoin, item; currency=nothing)
     timestamp = safeInteger(item, "ts");
     change = safeString(item, "balChg");
     amount = stringAbs(change);
     direction = functions.ccxtruthy(stringLt(change, "0")) ? "out" : "in";
     currencyId = safeString(item, "ccy");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     type_var = safeString(item, "type");
     return self.safeLedgerEntry(Dict{Symbol, Any}(
     Symbol("info") => item,
@@ -1198,7 +1342,7 @@ function parseLedgerEntry(self::Deepcoin, item, currency=nothing)
     Symbol("after") => safeString(item, "bal"),
     Symbol("status") => nothing,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Deepcoin, type_var)
@@ -1212,7 +1356,22 @@ function parseLedgerEntryType(self::Deepcoin, type_var)
     return safeString(ledgerType, type_var, type_var)
 
 end
-function transfer(self::Deepcoin, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://www.deepcoin.com/docs/assets/transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
+- `toAccount`::string: account to transfer to ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.userId`::string, optional: user id
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Deepcoin, code, amount, fromAccount, toAccount; params=Dict())
     userId = nothing;
     (userId, params) = self.handleOptionAndParams(params, "transfer", "userId");
     userId = functions.ccxtruthy(userId) ? userId : safeString(params, "uid");
@@ -1223,7 +1382,7 @@ function transfer(self::Deepcoin, code, amount, fromAccount, toAccount, params=D
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(accountsByType, fromAccount, fromAccount);
     toId = safeString(accountsByType, toAccount, toAccount);
     request = Dict{Symbol, Any}(
@@ -1234,10 +1393,10 @@ function transfer(self::Deepcoin, code, amount, fromAccount, toAccount, params=D
         Symbol("uid") => userId
     );
     response = Base.fetch(self.privatePostDeepcoinAssetTransfer(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    transfer = self.parseTransfer(data, currency);
-    transferOptions = self.safeDict(self.options, "transfer", Dict{Symbol, Any}());
-    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", true);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    transfer = self.parseTransfer(data, currency = currency);
+    transferOptions = self.safeDict(self.options, "transfer", defaultValue = Dict{Symbol, Any}());
+    fillResponseFromRequest = self.safeBool(transferOptions, "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         transfer[Symbol("fromAccount")] = fromAccount;
         transfer[Symbol("toAccount")] = toAccount;
@@ -1246,9 +1405,9 @@ function transfer(self::Deepcoin, code, amount, fromAccount, toAccount, params=D
     return transfer
 
 end
-function parseTransfer(self::Deepcoin, transfer, currency=nothing)
+function parseTransfer(self::Deepcoin, transfer; currency=nothing)
     status = safeString(transfer, "retCode");
-    currencyCode = self.safeCurrencyCode(nothing, currency);
+    currencyCode = self.safeCurrencyCode(nothing, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
     Symbol("id") => nothing,
@@ -1269,24 +1428,50 @@ function parseTransferStatus(self::Deepcoin, status)
     return "failed"
 
 end
-function createOrder(self::Deepcoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.deepcoin.com/docs/DeepCoinTrade/order
+see: https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+- `params.timeInForce`::string, optional: *non trigger orders only* 'GTC' (Good Till Cancel), 'IOC' (Immediate Or Cancel) or 'PO' (Post Only)
+- `params.postOnly`::bool, optional: *non trigger orders only* true to place a post only order
+- `params.reduceOnly`::bool, optional: *non trigger orders only* a mark to reduce the position size for margin, swap and future orders
+- `params.triggerPrice`::float, optional: the price a trigger order is triggered at
+- `params.stopLoss.triggerPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfit.triggerPrice`::float, optional: the price that a take profit order is triggered at
+- `params.positionSide`::string, optional: if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
+- `params.hedged`::bool, optional: *swap only* true for hedged mode, false for one way mode
+- `params.marginMode`::string, optional: *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Deepcoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     triggerPrice = safeString(params, "triggerPrice");
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = nothing;
     if functions.ccxtruthy(triggerPrice != nothing)
         response = Base.fetch(self.privatePostDeepcoinTradeTriggerOrder(request));
     else
         response = Base.fetch(self.privatePostDeepcoinTradeOrder(request));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function createOrderRequest(self::Deepcoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Deepcoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1303,13 +1488,13 @@ function createOrderRequest(self::Deepcoin, symbol, type_var, side, amount, pric
         end
     end
     if functions.ccxtruthy(isTriggerOrder)
-            return self.createTriggerOrderRequest(symbol, type_var, side, amount, price, params)
+            return self.createTriggerOrderRequest(symbol, type_var, side, amount, price = price, params = params)
     else
-        return self.createRegularOrderRequest(symbol, type_var, side, amount, price, params)
+        return self.createRegularOrderRequest(symbol, type_var, side, amount, price = price, params = params)
     end
 
 end
-function createRegularOrderRequest(self::Deepcoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createRegularOrderRequest(self::Deepcoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1329,13 +1514,13 @@ function createRegularOrderRequest(self::Deepcoin, symbol, type_var, side, amoun
         request[Symbol("clOrdId")] = clientOrderId;
         params = omit(params, "clientOrderId");
     end
-    stopLoss = self.safeDict(params, "stopLoss", Dict{Symbol, Any}());
+    stopLoss = self.safeDict(params, "stopLoss", defaultValue = Dict{Symbol, Any}());
     stopLossPrice = safeString(stopLoss, "triggerPrice");
     if functions.ccxtruthy(stopLossPrice != nothing)
         params = omit(params, ["stopLoss"]);
         request[Symbol("slTriggerPx")] = self.priceToPrecision(symbol, stopLossPrice);
     end
-    takeProfit = self.safeDict(params, "takeProfit", Dict{Symbol, Any}());
+    takeProfit = self.safeDict(params, "takeProfit", defaultValue = Dict{Symbol, Any}());
     takeProfitPrice = safeString(takeProfit, "triggerPrice");
     if functions.ccxtruthy(takeProfitPrice != nothing)
         params = omit(params, ["takeProfit"]);
@@ -1368,13 +1553,13 @@ function createRegularOrderRequest(self::Deepcoin, symbol, type_var, side, amoun
     else
         request[Symbol("sz")] = self.amountToPrecision(symbol, amount);
         marginMode = "cross";
-        (marginMode, params) = self.handleMarginModeAndParams("createOrder", params, marginMode);
+        (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params, defaultValue = marginMode);
         request[Symbol("tdMode")] = marginMode;
         mrgPosition = "merge";
-        (mrgPosition, params) = self.handleOptionAndParams(params, "createOrder", "mrgPosition", mrgPosition);
+        (mrgPosition, params) = self.handleOptionAndParams(params, "createOrder", "mrgPosition", defaultValue = mrgPosition);
         request[Symbol("mrgPosition")] = mrgPosition;
         posSide = nothing;
-        reduceOnly = self.safeBool(params, "reduceOnly", false);
+        reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
         if functions.ccxtruthy(reduceOnly)
             if functions.ccxtruthy(side == "buy")
                 posSide = "short";
@@ -1393,7 +1578,7 @@ function createRegularOrderRequest(self::Deepcoin, symbol, type_var, side, amoun
     return extend(request, params)
 
 end
-function createTriggerOrderRequest(self::Deepcoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createTriggerOrderRequest(self::Deepcoin, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1416,12 +1601,12 @@ function createTriggerOrderRequest(self::Deepcoin, symbol, type_var, side, amoun
         throw(ArgumentsRequired(string(self.id, " createOrder() requires a price argument for limit trigger orders")));
     end
     marginMode = "cross";
-    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params, marginMode);
+    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params, defaultValue = marginMode);
     isCrossMargin = 1;
     if functions.ccxtruthy(marginMode == "isolated")
         isCrossMargin = 0;
     end
-    reduceOnly = self.safeBool(params, "reduceOnly", false);
+    reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
     params = omit(params, "reduceOnly");
     request[Symbol("isCrossMargin")] = isCrossMargin;
     request[Symbol("tdMode")] = marginMode;
@@ -1441,18 +1626,18 @@ function createTriggerOrderRequest(self::Deepcoin, symbol, type_var, side, amoun
         end
     end
     mrgPosition = "merge";
-    (mrgPosition, params) = self.handleOptionAndParams(params, "createOrder", "mrgPosition", mrgPosition);
+    (mrgPosition, params) = self.handleOptionAndParams(params, "createOrder", "mrgPosition", defaultValue = mrgPosition);
     request[Symbol("mrgPosition")] = mrgPosition;
     return extend(request, params)
 
 end
 function handleTypePostOnlyAndTimeInForce(self::Deepcoin, type_var, params)
     postOnly = false;
-    (postOnly, params) = self.handlePostOnly(type_var == "market", type_var == "post_only", params);
+    (postOnly, params) = self.handlePostOnly(type_var == "market", type_var == "post_only", params = params);
     if functions.ccxtruthy(postOnly)
         type_var = "post_only";
     end
-    timeInForce = self.handleTimeInForce(params);
+    timeInForce = self.handleTimeInForce(params = params);
     params = omit(params, "timeInForce");
     if functions.ccxtruthy(@functions.ccxt_and((timeInForce != nothing), (timeInForce == "IOC")))
         type_var = "ioc";
@@ -1460,28 +1645,74 @@ function handleTypePostOnlyAndTimeInForce(self::Deepcoin, type_var, params)
     return [type_var, params]
 
 end
-function createMarketOrderWithCost(self::Deepcoin, symbol, side, cost, params=Dict())
+"""
+create a market order by providing the symbol, side and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketOrderWithCost(self::Deepcoin, symbol, side, cost; params=Dict())
     params = extend(params, Dict{Symbol, Any}(
     Symbol("cost") => cost
 ));
-    return Base.fetch(self.createOrder(symbol, "market", side, 0, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", side, 0, price = nothing, params = params))
 
 end
-function createMarketBuyOrderWithCost(self::Deepcoin, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Deepcoin, symbol, cost; params=Dict())
     params = extend(params, Dict{Symbol, Any}(
     Symbol("cost") => cost
 ));
-    return Base.fetch(self.createOrder(symbol, "market", "buy", 0, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", 0, price = nothing, params = params))
 
 end
-function createMarketSellOrderWithCost(self::Deepcoin, symbol, cost, params=Dict())
+"""
+create a market sell order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketSellOrderWithCost(self::Deepcoin, symbol, cost; params=Dict())
     params = extend(params, Dict{Symbol, Any}(
     Symbol("cost") => cost
 ));
-    return Base.fetch(self.createOrder(symbol, "market", "sell", 0, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "sell", 0, price = nothing, params = params))
 
 end
-function fetchClosedOrder(self::Deepcoin, id, symbol=nothing, params=Dict())
+"""
+fetches information on a closed order made by the user
+see: https://www.deepcoin.com/docs/DeepCoinTrade/finishOrderByID
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrder(self::Deepcoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1494,12 +1725,24 @@ function fetchClosedOrder(self::Deepcoin, id, symbol=nothing, params=Dict())
         Symbol("ordId") => id
     );
     response = Base.fetch(self.privateGetDeepcoinTradeFinishOrderByID(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    entry = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseOrder(entry, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    entry = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(entry, market = market)
 
 end
-function fetchOpenOrder(self::Deepcoin, id, symbol=nothing, params=Dict())
+"""
+fetch an open order by it's id
+see: https://www.deepcoin.com/docs/DeepCoinTrade/orderByID
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrder(self::Deepcoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1512,27 +1755,46 @@ function fetchOpenOrder(self::Deepcoin, id, symbol=nothing, params=Dict())
         Symbol("ordId") => id
     );
     response = Base.fetch(self.privateGetDeepcoinTradeOrderByID(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     len = length(data);
     if functions.ccxtruthy(len == 0)
         throw(OrderNotFound(string(self.id, " fetchOpenOrder() could not find order id ", id)));
     end
-    entry = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseOrder(entry, market)
+    entry = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(entry, market = market)
 
 end
-function fetchCanceledAndClosedOrders(self::Deepcoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled and closed orders made by the user
+see: https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+see: https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersHistory
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether to fetch trigger/algo orders (default false)
+- `params.type`::string, optional: *non trigger orders only* 'spot' or 'swap', the market type for the orders
+- `params.state`::string, optional: *non trigger orders only* 'canceled' or 'filled', the order state to filter by
+- `params.OrderType`::string, optional: *trigger orders only* 'limit' or 'market'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Deepcoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol = symbol, since = since, limit = limit, params = params))
     end
-    trigger = self.safeBool(params, "trigger", false);
+    trigger = self.safeBool(params, "trigger", defaultValue = false);
     methodName = "fetchCanceledAndClosedOrders";
-    (methodName, params) = self.handleParamString(params, "methodName", methodName);
+    (methodName, params) = self.handleParamString(params, "methodName", defaultValue = methodName);
     market = nothing;
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbol != nothing)
@@ -1540,7 +1802,7 @@ function fetchCanceledAndClosedOrders(self::Deepcoin, symbol=nothing, since=noth
         request[Symbol("instId")] = get(market, Symbol("id"), nothing);
     end
     marketType = "spot";
-    (marketType, params) = self.handleMarketTypeAndParams(methodName, market, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams(methodName, market = market, params = params, defaultValue = marketType);
     request[Symbol("instType")] = self.convertToInstrumentType(marketType);
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
@@ -1558,11 +1820,25 @@ function fetchCanceledAndClosedOrders(self::Deepcoin, symbol=nothing, since=noth
     else
         response = Base.fetch(self.privateGetDeepcoinTradeOrdersHistory(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchCanceledOrders(self::Deepcoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', the market type for the orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Deepcoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     methodName = "fetchCanceledOrders";
     params = extend(params, Dict{Symbol, Any}(
     Symbol("methodName") => methodName
@@ -1570,10 +1846,24 @@ function fetchCanceledOrders(self::Deepcoin, symbol=nothing, since=nothing, limi
     params = extend(params, Dict{Symbol, Any}(
     Symbol("state") => "canceled"
 ));
-    return Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, params))
+    return Base.fetch(self.fetchCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchClosedOrders(self::Deepcoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', the market type for the orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Deepcoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     methodName = "fetchClosedOrders";
     params = extend(params, Dict{Symbol, Any}(
     Symbol("methodName") => methodName
@@ -1581,10 +1871,27 @@ function fetchClosedOrders(self::Deepcoin, symbol=nothing, since=nothing, limit=
     params = extend(params, Dict{Symbol, Any}(
     Symbol("state") => "filled"
 ));
-    return Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, params))
+    return Base.fetch(self.fetchCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOpenOrders(self::Deepcoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.deepcoin.com/docs/DeepCoinTrade/ordersPendingV2
+see: https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersPending
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether to fetch trigger/algo orders (default false)
+- `params.index`::int, optional: *non trigger orders only* pagination index, default is 1
+- `params.orderType`::string, optional: *trigger orders only* 'limit' or 'market'
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Deepcoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1599,7 +1906,7 @@ function fetchOpenOrders(self::Deepcoin, symbol=nothing, since=nothing, limit=no
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    trigger = self.safeBool(params, "trigger", false);
+    trigger = self.safeBool(params, "trigger", defaultValue = false);
     response = nothing;
     if functions.ccxtruthy(trigger)
         params = omit(params, "trigger");
@@ -1609,13 +1916,26 @@ function fetchOpenOrders(self::Deepcoin, symbol=nothing, since=nothing, limit=no
         request[Symbol("index")] = index;
         response = Base.fetch(self.privateGetDeepcoinTradeV2OrdersPending(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit, Dict{Symbol, Any}(
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit, params = Dict{Symbol, Any}(
     Symbol("status") => "open"
 ))
 
 end
-function cancelOrder(self::Deepcoin, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.deepcoin.com/docs/DeepCoinTrade/cancelOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order (default false)
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Deepcoin, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1628,18 +1948,31 @@ function cancelOrder(self::Deepcoin, id, symbol=nothing, params=Dict())
         Symbol("ordId") => id
     );
     response = nothing;
-    trigger = self.safeBool(params, "trigger", false);
+    trigger = self.safeBool(params, "trigger", defaultValue = false);
     if functions.ccxtruthy(trigger)
         params = omit(params, "trigger");
         response = Base.fetch(self.privatePostDeepcoinTradeCancelTriggerOrder(extend(request, params)));
     else
         response = Base.fetch(self.privatePostDeepcoinTradeCancelOrder(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function cancelAllOrders(self::Deepcoin, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://www.deepcoin.com/docs/DeepCoinTrade/cancelAllOrder
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+- `params.merged`::bool, optional: *swap only* true for merged positions, false for split positions (default true)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Deepcoin; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1660,7 +1993,7 @@ function cancelAllOrders(self::Deepcoin, symbol=nothing, params=Dict())
         end
     end
     merged = true;
-    (merged, params) = self.handleOptionAndParams(params, "cancelAllOrders", "merged", merged);
+    (merged, params) = self.handleOptionAndParams(params, "cancelAllOrders", "merged", defaultValue = merged);
     isMergedMode = functions.ccxtruthy(merged) ? 1 : 0;
     request = Dict{Symbol, Any}(
         Symbol("InstrumentID") => get(market, Symbol("id"), nothing),
@@ -1669,11 +2002,30 @@ function cancelAllOrders(self::Deepcoin, symbol=nothing, params=Dict())
         Symbol("IsMergeMode") => isMergedMode
     );
     response = Base.fetch(self.privatePostDeepcoinTradeSwapCancelAll(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market)
 
 end
-function editOrder(self::Deepcoin, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://www.deepcoin.com/docs/DeepCoinTrade/replaceOrder
+see: https://www.deepcoin.com/docs/DeepCoinTrade/replaceTPSL
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string, optional: unified symbol of the market to create an order in (not used in deepcoin editOrder)
+- `type`::string, optional: 'market' or 'limit' (not used in deepcoin editOrder)
+- `side`::string, optional: 'buy' or 'sell' (not used in deepcoin editOrder)
+- `amount`::float, optional: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Deepcoin, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1721,11 +2073,22 @@ function editOrder(self::Deepcoin, id, symbol, type_var, side, amount=nothing, p
         end
         response = Base.fetch(self.privatePostDeepcoinTradeReplaceOrder(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(data)
 
 end
-function cancelOrders(self::Deepcoin, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Deepcoin, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1740,13 +2103,13 @@ function cancelOrders(self::Deepcoin, ids, symbol=nothing, params=Dict())
         Symbol("OrderSysIDs") => ids
     );
     response = Base.fetch(self.privatePostDeepcoinTradeBatchCancelOrder(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market)
 
 end
-function parseOrder(self::Deepcoin, order, market=nothing)
+function parseOrder(self::Deepcoin, order; market=nothing)
     marketId = safeString(order, "instId");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(order, "cTime");
     timestampString = safeString(order, "cTime", "");
     if functions.ccxtruthy(functions.ccxt_lt(length(timestampString), 13))
@@ -1793,7 +2156,7 @@ function parseOrder(self::Deepcoin, order, market=nothing)
     Symbol("reduceOnly") => nothing,
     Symbol("postOnly") => functions.ccxtruthy(orderType) ? (orderType == "post_only") : nothing,
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Deepcoin, status)
@@ -1827,7 +2190,18 @@ function parseOrderTimeInForce(self::Deepcoin, type_var)
     return safeString(timeInForces, type_var, type_var)
 
 end
-function fetchPositionsForSymbol(self::Deepcoin, symbol, params=Dict())
+"""
+fetch open positions for a single market fetch all open positions for specific symbol
+see: https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsForSymbol(self::Deepcoin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1838,34 +2212,45 @@ function fetchPositionsForSymbol(self::Deepcoin, symbol, params=Dict())
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetDeepcoinAccountPositions(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parsePositions(data, [get(market, Symbol("symbol"), nothing)])
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parsePositions(data, symbols = [get(market, Symbol("symbol"), nothing)])
 
 end
-function fetchPositions(self::Deepcoin, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Deepcoin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, nothing, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true);
     marketType = "swap";
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
         firstSymbol = safeString(symbols, 0);
         market = self.market(firstSymbol);
     end
-    (marketType, params) = self.handleMarketTypeAndParams("fetchPositions", market, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchPositions", market = market, params = params, defaultValue = marketType);
     instrumentType = self.convertToInstrumentType(marketType);
     request = Dict{Symbol, Any}(
         Symbol("instType") => instrumentType
     );
     response = Base.fetch(self.privateGetDeepcoinAccountPositions(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parsePositions(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parsePositions(data, symbols = symbols)
 
 end
-function parsePosition(self::Deepcoin, position, market=nothing)
+function parsePosition(self::Deepcoin, position; market=nothing)
     marketId = safeString(position, "instId");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(position, "cTime");
     return self.safePosition(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -1899,7 +2284,21 @@ function parsePosition(self::Deepcoin, position, market=nothing)
 ))
 
 end
-function setLeverage(self::Deepcoin, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.deepcoin.com/docs/DeepCoinAccount/accountSetLeverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' (default is cross)
+- `params.mrgPosition`::string, optional: 'merge' or 'split', default is merge
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Deepcoin, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -1911,12 +2310,12 @@ function setLeverage(self::Deepcoin, leverage, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     marginMode = "cross";
-    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params, marginMode);
+    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params, defaultValue = marginMode);
     if functions.ccxtruthy(@functions.ccxt_and((marginMode != "cross"), (marginMode != "isolated")))
         throw(BadRequest(string(self.id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")));
     end
     mrgPosition = "merge";
-    (mrgPosition, params) = self.handleOptionAndParams(params, "setLeverage", "mrgPosition", mrgPosition);
+    (mrgPosition, params) = self.handleOptionAndParams(params, "setLeverage", "mrgPosition", defaultValue = mrgPosition);
     if functions.ccxtruthy(@functions.ccxt_and(mrgPosition != "merge", mrgPosition != "split"))
         throw(BadRequest(string(self.id, " setLeverage() mrgPosition parameter must be either merge or split")));
     end
@@ -1930,18 +2329,30 @@ function setLeverage(self::Deepcoin, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchFundingRates(self::Deepcoin, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Deepcoin; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, "swap", true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = "swap", allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     subType = "linear";
     firstMarket = nothing;
     if functions.ccxtruthy(symbols != nothing)
         firstSymbol = safeString(symbols, 0);
         firstMarket = self.market(firstSymbol);
     end
-    (subType, params) = self.handleSubTypeAndParams("fetchFundingRates", firstMarket, params, subType);
+    (subType, params) = self.handleSubTypeAndParams("fetchFundingRates", market = firstMarket, params = params, defaultValue = subType);
     instType = "SwapU";
     if functions.ccxtruthy(subType == "inverse")
         instType = "Swap";
@@ -1952,12 +2363,23 @@ function fetchFundingRates(self::Deepcoin, symbols=nothing, params=Dict())
         Symbol("instType") => instType
     );
     response = Base.fetch(self.publicGetDeepcoinTradeFundRateCurrentFundingRate(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rates = self.safeList(data, "current_fund_rates", []);
-    return self.parseFundingRates(rates, symbols)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rates = self.safeList(data, "current_fund_rates", defaultValue = []);
+    return self.parseFundingRates(rates, symbols = symbols)
 
 end
-function fetchFundingRate(self::Deepcoin, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Deepcoin, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1970,15 +2392,15 @@ function fetchFundingRate(self::Deepcoin, symbol, params=Dict())
         Symbol("instType") => self.getProductGroupFromMarket(market)
     );
     response = Base.fetch(self.publicGetDeepcoinTradeFundRateCurrentFundingRate(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rates = self.safeList(data, "current_fund_rates", []);
-    entry = self.safeDict(rates, 0, Dict{Symbol, Any}());
-    return self.parseFundingRate(entry, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rates = self.safeList(data, "current_fund_rates", defaultValue = []);
+    entry = self.safeDict(rates, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(entry, market = market)
 
 end
-function parseFundingRate(self::Deepcoin, contract, market=nothing)
+function parseFundingRate(self::Deepcoin, contract; market=nothing)
     marketId = safeString2(contract, "instrumentId", "instrumentID");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
     Symbol("symbol") => symbol,
@@ -2001,7 +2423,21 @@ function parseFundingRate(self::Deepcoin, contract, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Deepcoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://www.deepcoin.com/docs/DeepCoinTrade/fundingRateHistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.page`::int, optional: pagination page number
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Deepcoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -2016,15 +2452,15 @@ function fetchFundingRateHistory(self::Deepcoin, symbol=nothing, since=nothing, 
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.publicGetDeepcoinTradeFundRateHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseFundingRateHistories(rows, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseFundingRateHistories(rows, market = market, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Deepcoin, info, market=nothing)
+function parseFundingRateHistory(self::Deepcoin, info; market=nothing)
     timestamp = safeTimestamp(info, "CreateTime");
     instrumentID = safeString2(info, "instrumentID", "instrumentId");
-    market = self.safeMarket(instrumentID, market, nothing, "swap");
+    market = self.safeMarket(marketId = instrumentID, market = market, delimiter = nothing, marketType = "swap");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -2034,21 +2470,37 @@ function parseFundingRateHistory(self::Deepcoin, info, market=nothing)
 )
 
 end
-function fetchMyTrades(self::Deepcoin, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch
+- `params.type`::string, optional: 'spot' or 'swap', the market type for the trades (default is 'spot')
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Deepcoin; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     marketType = "spot";
-    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params, marketType);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market = market, params = params, defaultValue = marketType);
     request = Dict{Symbol, Any}(
         Symbol("instType") => self.convertToInstrumentType(marketType)
     );
@@ -2067,11 +2519,26 @@ function fetchMyTrades(self::Deepcoin, symbol=nothing, since=nothing, limit=noth
         request[Symbol("end")] = until;
     end
     response = Base.fetch(self.privateGetDeepcoinTradeFills(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchOrderTrades(self::Deepcoin, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', the market type for the trades
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Deepcoin, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2082,10 +2549,25 @@ function fetchOrderTrades(self::Deepcoin, id, symbol=nothing, since=nothing, lim
     params = extend(Dict{Symbol, Any}(
     Symbol("ordId") => id
 ), params);
-    return Base.fetch(self.fetchMyTrades(symbol, since, limit, params))
+    return Base.fetch(self.fetchMyTrades(symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function closePosition(self::Deepcoin, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a market
+see: https://www.deepcoin.com/docs/DeepCoinTrade/batchClosePosition
+see: https://www.deepcoin.com/docs/DeepCoinTrade/closePositionByIds
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: not used by deepcoin
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::any, optional: the id of the position you would like to close
+- `params.positionIds`::any, optional: list of position ids to close (for batch closing)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function closePosition(self::Deepcoin, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2107,11 +2589,11 @@ function closePosition(self::Deepcoin, symbol, side=nothing, params=Dict())
         end
         response = Base.fetch(self.privatePostDeepcoinTradeClosePositionByIds(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrder(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrder(data, market = market)
 
 end
-function sign(self::Deepcoin, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Deepcoin, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     requestPath = path;
     if functions.ccxtruthy(method == "GET")
         query = self.urlencode(params);
@@ -2148,7 +2630,7 @@ function sign(self::Deepcoin, path, api="public", method="GET", params=Dict(), h
 
 end
 function handleErrors(self::Deepcoin, code, reason, url, method, headers, body, response, requestHeaders, requestBody)
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     msg = safeString(response, "msg");
     messageCode = safeString(response, "code");
     sCode = safeString(data, "sCode");
@@ -2161,7 +2643,7 @@ function handleErrors(self::Deepcoin, code, reason, url, method, headers, body, 
     if functions.ccxtruthy(errorList != nothing)
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(errorList)))
-            entry = self.safeDict(errorList, i, Dict{Symbol, Any}());
+            entry = self.safeDict(errorList, i, defaultValue = Dict{Symbol, Any}());
             errorCode = safeString(entry, "errorCode");
             i += 1
         end
@@ -2182,7 +2664,7 @@ function handleErrors(self::Deepcoin, code, reason, url, method, headers, body, 
         self.throwBroadlyMatchedException(get(self.exceptions, Symbol("broad"), nothing), msg, feedback);
         throw(ExchangeError(feedback));
     else
-        list = self.safeList(data, "list", []);
+        list = self.safeList(data, "list", defaultValue = []);
         if functions.ccxtruthy(@functions.ccxt_and((ccxt_in("list", data)), (list == nothing)))
             throw(NullResponse(feedback));
         end
@@ -2197,215 +2679,215 @@ Base.getproperty(self::Deepcoin, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetDeepcoinMarketBooks(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/books", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/market/books"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDeepcoinMarketCandles(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/market/candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDeepcoinMarketInstruments(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/instruments", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/market/instruments"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDeepcoinMarketTickers(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/market/tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDeepcoinMarketIndexCandles(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/index-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/market/index-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDeepcoinMarketTrades(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/market/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDeepcoinMarketMarkPriceCandles(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/mark-price-candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/market/mark-price-candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDeepcoinMarketStepMargin(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/step-margin", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/market/step-margin"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDeepcoinTradeFundingRate(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/funding-rate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/funding-rate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDeepcoinTradeFundRateCurrentFundingRate(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/fund-rate/current-funding-rate", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/fund-rate/current-funding-rate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDeepcoinTradeFundRateHistory(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/fund-rate/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/fund-rate/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinAccountBalances(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/account/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/account/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinAccountBills(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/account/bills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/account/bills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinAccountPositions(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/account/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/account/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinTradeFills(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinTradeOrderByID(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/orderByID", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/orderByID"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinTradeFinishOrderByID(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/finishOrderByID", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/finishOrderByID"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinTradeOrdersHistory(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/orders-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/orders-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinTradeV2OrdersPending(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/v2/orders-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/v2/orders-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinTradeTriggerOrdersPending(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/trigger-orders-pending", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/trigger-orders-pending"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinTradeTriggerOrdersHistory(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/trigger-orders-history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/trigger-orders-history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinCopytradingSupportContracts(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/support-contracts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/copytrading/support-contracts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinCopytradingLeaderPosition(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/leader-position", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/copytrading/leader-position"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinCopytradingEstimateProfit(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/estimate-profit", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/copytrading/estimate-profit"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinCopytradingHistoryProfit(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/history-profit", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/copytrading/history-profit"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinCopytradingFollowerRank(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/follower-rank", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/copytrading/follower-rank"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinInternalTransferSupport(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/internal-transfer/support", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/internal-transfer/support"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinInternalTransferHistoryOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/internal-transfer/history-order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/internal-transfer/history-order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinRebateConfig(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/rebate/config", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/rebate/config"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinAgentsUsers(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/agents/users", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/agents/users"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinAgentsUsersRebateList(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/agents/users/rebate-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/agents/users/rebate-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinAgentsUsersRebates(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/agents/users/rebates", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/agents/users/rebates"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinAssetDepositList(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/asset/deposit-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/asset/deposit-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinAssetWithdrawList(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/asset/withdraw-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/asset/withdraw-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinAssetRechargeChainList(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/asset/recharge-chain-list", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/asset/recharge-chain-list"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinListenkeyAcquire(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/listenkey/acquire", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/listenkey/acquire"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeepcoinListenkeyExtend(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/listenkey/extend", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/listenkey/extend"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinAccountSetLeverage(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/account/set-leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/account/set-leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinTradeOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinTradeReplaceOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/replace-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/replace-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinTradeCancelOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/cancel-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/cancel-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinTradeBatchCancelOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/batch-cancel-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/batch-cancel-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinTradeCancelTriggerOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/cancel-trigger-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/cancel-trigger-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinTradeSwapCancelAll(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/swap/cancel-all", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/swap/cancel-all"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinTradeTriggerOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/trigger-order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/trigger-order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinTradeBatchClosePosition(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/batch-close-position", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/batch-close-position"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinTradeReplaceOrderSltp(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/replace-order-sltp", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/replace-order-sltp"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinTradeClosePositionByIds(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/close-position-by-ids", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/trade/close-position-by-ids"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinCopytradingLeaderSettings(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/leader-settings", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/copytrading/leader-settings"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinCopytradingSetContracts(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/set-contracts", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/copytrading/set-contracts"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinInternalTransfer(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/internal-transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/internal-transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinRebateConfig(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/rebate/config", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/rebate/config"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDeepcoinAssetTransfer(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/asset/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deepcoin/asset/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Deepcoin(; kwargs...)
@@ -2469,3 +2951,592 @@ function Deepcoin(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Deepcoin_fetchMarkets() end
+"""
+retrieves data on all markets for okcoin
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getBaseInfo
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Deepcoin_fetchMarkets
+
+function __ccxt_doc_Deepcoin_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.deepcoin.com/docs/DeepCoinMarket/marketBooks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Deepcoin_fetchOrderBook
+
+function __ccxt_doc_Deepcoin_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getKlineData
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getIndexKlineData
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getMarkKlineData
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Deepcoin_fetchOHLCV
+
+function __ccxt_doc_Deepcoin_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getMarketTickers
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Deepcoin_fetchTickers
+
+function __ccxt_doc_Deepcoin_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.deepcoin.com/docs/DeepCoinMarket/getTrades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch (default 100, max 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Deepcoin_fetchTrades
+
+function __ccxt_doc_Deepcoin_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBalance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: "spot" or "swap", the market type for the balance
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Deepcoin_fetchBalance
+
+function __ccxt_doc_Deepcoin_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://www.deepcoin.com/docs/assets/deposit
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Deepcoin_fetchDeposits
+
+function __ccxt_doc_Deepcoin_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://www.deepcoin.com/docs/assets/withdraw
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for (default 24 hours ago)
+- `limit`::int, optional: the maximum number of transfer structures to retrieve (default 50, max 200)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch transfers for (default time now)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Deepcoin_fetchWithdrawals
+
+function __ccxt_doc_Deepcoin_fetchDepositAddresses() end
+"""
+fetch deposit addresses for multiple currencies and chain types
+see: https://www.deepcoin.com/docs/assets/chainlist
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Deepcoin_fetchDepositAddresses
+
+function __ccxt_doc_Deepcoin_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.deepcoin.com/docs/assets/chainlist
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: unified network code for deposit chain
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Deepcoin_fetchDepositAddress
+
+function __ccxt_doc_Deepcoin_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBills
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: timestamp in ms of the earliest ledger entry
+- `limit`::int, optional: max number of ledger entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest ledger entry
+- `params.type`::string, optional: 'spot' or 'swap', the market type for the ledger (default 'spot')
+
+# Returns
+- a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Deepcoin_fetchLedger
+
+function __ccxt_doc_Deepcoin_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://www.deepcoin.com/docs/assets/transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
+- `toAccount`::string: account to transfer to ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.userId`::string, optional: user id
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Deepcoin_transfer
+
+function __ccxt_doc_Deepcoin_createOrder() end
+"""
+create a trade order
+see: https://www.deepcoin.com/docs/DeepCoinTrade/order
+see: https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+- `params.timeInForce`::string, optional: *non trigger orders only* 'GTC' (Good Till Cancel), 'IOC' (Immediate Or Cancel) or 'PO' (Post Only)
+- `params.postOnly`::bool, optional: *non trigger orders only* true to place a post only order
+- `params.reduceOnly`::bool, optional: *non trigger orders only* a mark to reduce the position size for margin, swap and future orders
+- `params.triggerPrice`::float, optional: the price a trigger order is triggered at
+- `params.stopLoss.triggerPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfit.triggerPrice`::float, optional: the price that a take profit order is triggered at
+- `params.positionSide`::string, optional: if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
+- `params.hedged`::bool, optional: *swap only* true for hedged mode, false for one way mode
+- `params.marginMode`::string, optional: *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_createOrder
+
+function __ccxt_doc_Deepcoin_createMarketOrderWithCost() end
+"""
+create a market order by providing the symbol, side and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_createMarketOrderWithCost
+
+function __ccxt_doc_Deepcoin_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Deepcoin_createMarketSellOrderWithCost() end
+"""
+create a market sell order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_createMarketSellOrderWithCost
+
+function __ccxt_doc_Deepcoin_fetchClosedOrder() end
+"""
+fetches information on a closed order made by the user
+see: https://www.deepcoin.com/docs/DeepCoinTrade/finishOrderByID
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_fetchClosedOrder
+
+function __ccxt_doc_Deepcoin_fetchOpenOrder() end
+"""
+fetch an open order by it's id
+see: https://www.deepcoin.com/docs/DeepCoinTrade/orderByID
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_fetchOpenOrder
+
+function __ccxt_doc_Deepcoin_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple canceled and closed orders made by the user
+see: https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+see: https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersHistory
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether to fetch trigger/algo orders (default false)
+- `params.type`::string, optional: *non trigger orders only* 'spot' or 'swap', the market type for the orders
+- `params.state`::string, optional: *non trigger orders only* 'canceled' or 'filled', the order state to filter by
+- `params.OrderType`::string, optional: *trigger orders only* 'limit' or 'market'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Deepcoin_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', the market type for the orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_fetchCanceledOrders
+
+function __ccxt_doc_Deepcoin_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', the market type for the orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_fetchClosedOrders
+
+function __ccxt_doc_Deepcoin_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.deepcoin.com/docs/DeepCoinTrade/ordersPendingV2
+see: https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersPending
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether to fetch trigger/algo orders (default false)
+- `params.index`::int, optional: *non trigger orders only* pagination index, default is 1
+- `params.orderType`::string, optional: *trigger orders only* 'limit' or 'market'
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_fetchOpenOrders
+
+function __ccxt_doc_Deepcoin_cancelOrder() end
+"""
+cancels an open order
+see: https://www.deepcoin.com/docs/DeepCoinTrade/cancelOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order (default false)
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_cancelOrder
+
+function __ccxt_doc_Deepcoin_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://www.deepcoin.com/docs/DeepCoinTrade/cancelAllOrder
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+- `params.merged`::bool, optional: *swap only* true for merged positions, false for split positions (default true)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_cancelAllOrders
+
+function __ccxt_doc_Deepcoin_editOrder() end
+"""
+edit a trade order
+see: https://www.deepcoin.com/docs/DeepCoinTrade/replaceOrder
+see: https://www.deepcoin.com/docs/DeepCoinTrade/replaceTPSL
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string, optional: unified symbol of the market to create an order in (not used in deepcoin editOrder)
+- `type`::string, optional: 'market' or 'limit' (not used in deepcoin editOrder)
+- `side`::string, optional: 'buy' or 'sell' (not used in deepcoin editOrder)
+- `amount`::float, optional: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.stopLossPrice`::float, optional: the price that a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: the price that a take profit order is triggered at
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_editOrder
+
+function __ccxt_doc_Deepcoin_cancelOrders() end
+"""
+cancel multiple orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_cancelOrders
+
+function __ccxt_doc_Deepcoin_fetchPositionsForSymbol() end
+"""
+fetch open positions for a single market fetch all open positions for specific symbol
+see: https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Deepcoin_fetchPositionsForSymbol
+
+function __ccxt_doc_Deepcoin_fetchPositions() end
+"""
+fetch all open positions
+see: https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Deepcoin_fetchPositions
+
+function __ccxt_doc_Deepcoin_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.deepcoin.com/docs/DeepCoinAccount/accountSetLeverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' (default is cross)
+- `params.mrgPosition`::string, optional: 'merge' or 'split', default is merge
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Deepcoin_setLeverage
+
+function __ccxt_doc_Deepcoin_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse"
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Deepcoin_fetchFundingRates
+
+function __ccxt_doc_Deepcoin_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Deepcoin_fetchFundingRate
+
+function __ccxt_doc_Deepcoin_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://www.deepcoin.com/docs/DeepCoinTrade/fundingRateHistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.page`::int, optional: pagination page number
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Deepcoin_fetchFundingRateHistory
+
+function __ccxt_doc_Deepcoin_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trade to fetch
+- `params.type`::string, optional: 'spot' or 'swap', the market type for the trades (default is 'spot')
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Deepcoin_fetchMyTrades
+
+function __ccxt_doc_Deepcoin_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap', the market type for the trades
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Deepcoin_fetchOrderTrades
+
+function __ccxt_doc_Deepcoin_closePosition() end
+"""
+closes open positions for a market
+see: https://www.deepcoin.com/docs/DeepCoinTrade/batchClosePosition
+see: https://www.deepcoin.com/docs/DeepCoinTrade/closePositionByIds
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: not used by deepcoin
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::any, optional: the id of the position you would like to close
+- `params.positionIds`::any, optional: list of position ids to close (for batch closing)
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Deepcoin_closePosition

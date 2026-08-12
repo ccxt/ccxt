@@ -412,7 +412,17 @@ function describe(self::Hollaex, )
 ))
 
 end
-function fetchMarkets(self::Hollaex, params=Dict())
+"""
+retrieves data on all markets for hollaex
+see: https://apidocs.hollaex.com/#constants
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Hollaex; params=Dict())
     response = Base.fetch(self.publicGetConstants(params));
     pairs_var = safeValue(response, "pairs", Dict{Symbol, Any}());
     keys_var = objectKeys(pairs_var);
@@ -479,9 +489,19 @@ function fetchMarkets(self::Hollaex, params=Dict())
     return result
 
 end
-function fetchCurrencies(self::Hollaex, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://apidocs.hollaex.com/#constants
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Hollaex; params=Dict())
     response = Base.fetch(self.publicGetConstants(params));
-    coins = self.safeDict(response, "coins", Dict{Symbol, Any}());
+    coins = self.safeDict(response, "coins", defaultValue = Dict{Symbol, Any}());
     values_var = objectValues(coins);
     return self.parseCurrencies(values_var)
 
@@ -489,17 +509,17 @@ end
 function parseCurrency(self::Hollaex, rawCurrency)
     id = safeString(rawCurrency, "symbol");
     code = self.safeCurrencyCode(id);
-    withdrawalLimits = self.safeList(rawCurrency, "withdrawal_limits", []);
+    withdrawalLimits = self.safeList(rawCurrency, "withdrawal_limits", defaultValue = []);
     rawType = safeString(rawCurrency, "type");
     type_var = functions.ccxtruthy((rawType == "blockchain")) ? "crypto" : "other";
-    rawNetworks = self.safeDict(rawCurrency, "withdrawal_fees", Dict{Symbol, Any}());
+    rawNetworks = self.safeDict(rawCurrency, "withdrawal_fees", defaultValue = Dict{Symbol, Any}());
     networks = Dict{Symbol, Any}();
     networkIds = objectKeys(rawNetworks);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkIds)))
         networkId = get(networkIds, j + 1, nothing);
         networkEntry = self.safeDict(rawNetworks, networkId);
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -546,7 +566,19 @@ function parseCurrency(self::Hollaex, rawCurrency)
 ))
 
 end
-function fetchOrderBooks(self::Hollaex, symbols=nothing, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+see: https://apidocs.hollaex.com/#orderbooks
+
+# Arguments
+- `symbols`::any: not used by fetchOrderBooks ()
+- `limit`::int, optional: not used by fetchOrderBooks ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
+"""
+function fetchOrderBooks(self::Hollaex; symbols=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -556,16 +588,28 @@ function fetchOrderBooks(self::Hollaex, symbols=nothing, limit=nothing, params=D
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
-        orderbook = self.safeDict(response, marketId, Dict{Symbol, Any}());
-        symbol = self.safeSymbol(marketId, nothing, "-");
+        orderbook = self.safeDict(response, marketId, defaultValue = Dict{Symbol, Any}());
+        symbol = self.safeSymbol(marketId, market = nothing, delimiter = "-");
         timestamp = self.parse8601(safeString(orderbook, "timestamp"));
-        result[Symbol(symbol)] = self.parseOrderBook(orderbook, symbol, timestamp);
+        result[Symbol(symbol)] = self.parseOrderBook(orderbook, symbol, timestamp = timestamp);
         i += 1
     end
     return result
 
 end
-function fetchOrderBook(self::Hollaex, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://apidocs.hollaex.com/#orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Hollaex, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -576,10 +620,21 @@ function fetchOrderBook(self::Hollaex, symbol, limit=nothing, params=Dict())
     response = Base.fetch(self.publicGetOrderbook(extend(request, params)));
     orderbook = safeValue(response, get(market, Symbol("id"), nothing));
     timestamp = self.parse8601(safeString(orderbook, "timestamp"));
-    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp)
+    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = timestamp)
 
 end
-function fetchTicker(self::Hollaex, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://apidocs.hollaex.com/#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Hollaex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -588,19 +643,30 @@ function fetchTicker(self::Hollaex, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTicker(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchTickers(self::Hollaex, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://apidocs.hollaex.com/#tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Hollaex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetTickers(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function parseTickers(self::Hollaex, tickers, symbols=nothing, params=Dict())
+function parseTickers(self::Hollaex, tickers; symbols=nothing, params=Dict())
     result = Dict{Symbol, Any}();
     keys_var = objectKeys(tickers);
     i = 0
@@ -608,17 +674,17 @@ function parseTickers(self::Hollaex, tickers, symbols=nothing, params=Dict())
         key = get(keys_var, i + 1, nothing);
         ticker = get(tickers, Symbol(key), nothing);
         marketId = safeString(ticker, "symbol", key);
-        market = self.safeMarket(marketId, nothing, "-");
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = "-");
         symbol = get(market, Symbol("symbol"), nothing);
-        result[Symbol(symbol)] = extend(self.parseTicker(ticker, market), params);
+        result[Symbol(symbol)] = extend(self.parseTicker(ticker, market = market), params);
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function parseTicker(self::Hollaex, ticker, market=nothing)
+function parseTicker(self::Hollaex, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = self.parse8601(safeString2(ticker, "time", "timestamp"));
     close = safeString(ticker, "close");
@@ -643,10 +709,23 @@ function parseTicker(self::Hollaex, ticker, market=nothing)
     Symbol("average") => nothing,
     Symbol("baseVolume") => safeString(ticker, "volume"),
     Symbol("quoteVolume") => nothing
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Hollaex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://apidocs.hollaex.com/#trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Hollaex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -655,13 +734,13 @@ function fetchTrades(self::Hollaex, symbol, since=nothing, limit=nothing, params
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTrades(extend(request, params)));
-    trades = self.safeList(response, get(market, Symbol("id"), nothing), []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, get(market, Symbol("id"), nothing), defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Hollaex, trade, market=nothing)
+function parseTrade(self::Hollaex, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     symbol = get(market, Symbol("symbol"), nothing);
     datetime = safeString(trade, "timestamp");
     timestamp = self.parse8601(datetime);
@@ -692,10 +771,20 @@ function parseTrade(self::Hollaex, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTradingFees(self::Hollaex, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://apidocs.hollaex.com/#tiers
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Hollaex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -724,7 +813,22 @@ function fetchTradingFees(self::Hollaex, params=Dict())
     return result
 
 end
-function fetchOHLCV(self::Hollaex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+hollaex has large gaps between candles, so it's recommended to specify since
+see: https://apidocs.hollaex.com/#chart
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (max 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Hollaex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -735,9 +839,9 @@ function fetchOHLCV(self::Hollaex, symbol, timeframe="1m", since=nothing, limit=
     );
     paginate = false;
     maxLimit = 500;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", paginate);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = paginate);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = maxLimit))
     end
     until = safeInteger(params, "until");
     timeDelta = self.parseTimeframe(timeframe) * maxLimit * 1000;
@@ -753,10 +857,10 @@ function fetchOHLCV(self::Hollaex, symbol, timeframe="1m", since=nothing, limit=
     request[Symbol("to")] = self.parseToInt(until / 1000);
     params = omit(params, "until");
     response = Base.fetch(self.publicGetChart(extend(request, params)));
-    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Hollaex, ohlcv, market=nothing)
+function parseOHLCV(self::Hollaex, ohlcv; market=nothing)
     return [self.parse8601(safeString(ohlcv, "time")), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
@@ -787,7 +891,17 @@ function parseBalance(self::Hollaex, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Hollaex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://apidocs.hollaex.com/#get-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Hollaex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -795,7 +909,19 @@ function fetchBalance(self::Hollaex, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOpenOrder(self::Hollaex, id, symbol=nothing, params=Dict())
+"""
+fetch an open order by it's id
+see: https://apidocs.hollaex.com/#get-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by fetchOpenOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrder(self::Hollaex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -806,21 +932,59 @@ function fetchOpenOrder(self::Hollaex, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOpenOrders(self::Hollaex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://apidocs.hollaex.com/#get-all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Hollaex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("open") => true
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchClosedOrders(self::Hollaex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://apidocs.hollaex.com/#get-all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Hollaex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("open") => false
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchOrder(self::Hollaex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://apidocs.hollaex.com/#get-order
+
+# Arguments
+- `id`::string:
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Hollaex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -835,7 +999,20 @@ function fetchOrder(self::Hollaex, id, symbol=nothing, params=Dict())
     return self.parseOrder(order)
 
 end
-function fetchOrders(self::Hollaex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://apidocs.hollaex.com/#get-all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Hollaex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -852,8 +1029,8 @@ function fetchOrders(self::Hollaex, symbol=nothing, since=nothing, limit=nothing
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetOrders(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
 function parseOrderStatus(self::Hollaex, status)
@@ -866,9 +1043,9 @@ function parseOrderStatus(self::Hollaex, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Hollaex, order, market=nothing)
+function parseOrder(self::Hollaex, order; market=nothing)
     marketId = safeString(order, "symbol");
-    symbol = self.safeSymbol(marketId, market, "-");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "-");
     id = safeString(order, "id");
     timestamp = self.parse8601(safeString(order, "created_at"));
     type_var = safeString(order, "type");
@@ -878,7 +1055,7 @@ function parseOrder(self::Hollaex, order, market=nothing)
     filled = safeString(order, "filled");
     status = self.parseOrderStatus(safeString(order, "status"));
     meta = safeValue(order, "meta", Dict{Symbol, Any}());
-    postOnly = self.safeBool(meta, "post_only", false);
+    postOnly = self.safeBool(meta, "post_only", defaultValue = false);
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("clientOrderId") => nothing,
@@ -901,10 +1078,27 @@ function parseOrder(self::Hollaex, order, market=nothing)
     Symbol("fee") => nothing,
     Symbol("info") => order,
     Symbol("average") => nothing
-), market)
+), market = market)
 
 end
-function createOrder(self::Hollaex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://apidocs.hollaex.com/#create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Hollaex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -917,9 +1111,9 @@ function createOrder(self::Hollaex, symbol, type_var, side, amount, price=nothin
     );
     triggerPrice = self.safeNumberN(params, ["triggerPrice", "stopPrice", "stop"]);
     meta = safeValue(params, "meta", Dict{Symbol, Any}());
-    exchangeSpecificParam = self.safeBool(meta, "post_only", false);
+    exchangeSpecificParam = self.safeBool(meta, "post_only", defaultValue = false);
     isMarketOrder = type_var == "market";
-    postOnly = self.isPostOnly(isMarketOrder, exchangeSpecificParam, params);
+    postOnly = self.isPostOnly(isMarketOrder, exchangeSpecificParam, params = params);
     if functions.ccxtruthy(!functions.ccxtruthy(isMarketOrder))
         request[Symbol("price")] = self.priceToPrecision(symbol, price);
     end
@@ -933,10 +1127,22 @@ function createOrder(self::Hollaex, symbol, type_var, side, amount, price=nothin
     end
     params = omit(params, ["postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"]);
     response = Base.fetch(self.privatePostOrder(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Hollaex, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://apidocs.hollaex.com/#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Hollaex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -947,7 +1153,18 @@ function cancelOrder(self::Hollaex, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function cancelAllOrders(self::Hollaex, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://apidocs.hollaex.com/#cancel-all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Hollaex; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -959,10 +1176,23 @@ function cancelAllOrders(self::Hollaex, symbol=nothing, params=Dict())
     market = self.market(symbol);
     request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     response = Base.fetch(self.privateDeleteOrderAll(extend(request, params)));
-    return self.parseOrders(response, market)
+    return self.parseOrders(response, market = market)
 
 end
-function fetchMyTrades(self::Hollaex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://apidocs.hollaex.com/#get-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Hollaex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -979,11 +1209,11 @@ function fetchMyTrades(self::Hollaex, symbol=nothing, since=nothing, limit=nothi
         request[Symbol("start_date")] = self.iso8601(since);
     end
     response = Base.fetch(self.privateGetUserTrades(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function parseDepositAddress(self::Hollaex, depositAddress, currency=nothing)
+function parseDepositAddress(self::Hollaex, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
     tag = nothing;
     if functions.ccxtruthy(address != nothing)
@@ -991,9 +1221,9 @@ function parseDepositAddress(self::Hollaex, depositAddress, currency=nothing)
         address = safeString(parts, 0);
         tag = safeString(parts, 1);
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     currencyId = safeString(depositAddress, "currency");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     network = safeString(depositAddress, "network");
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
@@ -1004,7 +1234,18 @@ function parseDepositAddress(self::Hollaex, depositAddress, currency=nothing)
 )
 
 end
-function fetchDepositAddresses(self::Hollaex, codes=nothing, params=Dict())
+"""
+fetch deposit addresses for multiple currencies and chain types
+see: https://apidocs.hollaex.com/#get-user
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddresses(self::Hollaex; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1013,10 +1254,23 @@ function fetchDepositAddresses(self::Hollaex, codes=nothing, params=Dict())
     response = Base.fetch(self.privateGetUser(params));
     wallet = safeValue(response, "wallet", []);
     addresses = functions.ccxtruthy((network == nothing)) ? wallet : filterBy(wallet, "network", network);
-    return self.parseDepositAddresses(addresses, codes)
+    return self.parseDepositAddresses(addresses, codes = codes)
 
 end
-function fetchDeposits(self::Hollaex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://apidocs.hollaex.com/#get-deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Hollaex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1033,11 +1287,23 @@ function fetchDeposits(self::Hollaex, code=nothing, since=nothing, limit=nothing
         request[Symbol("start_date")] = self.iso8601(since);
     end
     response = Base.fetch(self.privateGetUserDeposits(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawal(self::Hollaex, id, code=nothing, params=Dict())
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://apidocs.hollaex.com/#get-withdrawals
+
+# Arguments
+- `id`::string: withdrawal id
+- `code`::string: unified currency code of the currency withdrawn, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawal(self::Hollaex, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1051,11 +1317,24 @@ function fetchWithdrawal(self::Hollaex, id, code=nothing, params=Dict())
     end
     response = Base.fetch(self.privateGetUserWithdrawals(extend(request, params)));
     data = safeValue(response, "data", []);
-    transaction = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTransaction(transaction, currency)
+    transaction = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(transaction, currency = currency)
 
 end
-function fetchWithdrawals(self::Hollaex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://apidocs.hollaex.com/#get-withdrawals
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Hollaex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1072,11 +1351,11 @@ function fetchWithdrawals(self::Hollaex, code=nothing, since=nothing, limit=noth
         request[Symbol("start_date")] = self.iso8601(since);
     end
     response = Base.fetch(self.privateGetUserWithdrawals(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Hollaex, transaction, currency=nothing)
+function parseTransaction(self::Hollaex, transaction; currency=nothing)
     id = safeString(transaction, "id");
     txid = safeString(transaction, "transaction_id");
     timestamp = self.parse8601(safeString(transaction, "created_at"));
@@ -1097,7 +1376,7 @@ function parseTransaction(self::Hollaex, transaction, currency=nothing)
         tagTo = tag;
     end
     currencyId = safeString(transaction, "currency");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     status = safeValue(transaction, "status");
     dismissed = safeValue(transaction, "dismissed");
     rejected = safeValue(transaction, "rejected");
@@ -1114,7 +1393,7 @@ function parseTransaction(self::Hollaex, transaction, currency=nothing)
 
     end
     feeCurrencyId = safeString(transaction, "fee_coin");
-    feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId, currency);
+    feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId, currency = currency);
     feeCost = self.safeNumber(transaction, "fee");
     fee = nothing;
     if functions.ccxtruthy(feeCost != nothing)
@@ -1147,9 +1426,23 @@ function parseTransaction(self::Hollaex, transaction, currency=nothing)
 )
 
 end
-function withdraw(self::Hollaex, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://apidocs.hollaex.com/#withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Hollaex, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1166,13 +1459,13 @@ function withdraw(self::Hollaex, code, amount, address, tag=nothing, params=Dict
         Symbol("currency") => get(currency, Symbol("id"), nothing),
         Symbol("amount") => amount,
         Symbol("address") => address,
-        Symbol("network") => self.networkCodeToId(network, code)
+        Symbol("network") => self.networkCodeToId(network, currencyCode = code)
     );
     response = Base.fetch(self.privatePostUserWithdrawal(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseDepositWithdrawFee(self::Hollaex, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Hollaex, fee; currency=nothing)
     result = Dict{Symbol, Any}(
         Symbol("info") => fee,
         Symbol("withdraw") => Dict{Symbol, Any}(
@@ -1202,7 +1495,7 @@ function parseDepositWithdrawFee(self::Hollaex, fee, currency=nothing)
             value = get(withdrawalFees, Symbol(key), nothing);
             currencyId = safeString(value, "symbol");
             currencyCode = self.safeCurrencyCode(currencyId);
-            networkCode = self.networkIdToCode(key, currencyCode);
+            networkCode = self.networkIdToCode(networkId = key, currencyCode = currencyCode);
             if functions.ccxtruthy(networkCode == nothing)
                 throw(ArgumentsRequired(string(self.id, " requires a networkCode argument")));
             end
@@ -1219,13 +1512,24 @@ function parseDepositWithdrawFee(self::Hollaex, fee, currency=nothing)
     return result
 
 end
-function fetchDepositWithdrawFees(self::Hollaex, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://apidocs.hollaex.com/#constants
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Hollaex; codes=nothing, params=Dict())
     response = Base.fetch(self.publicGetConstants(params));
-    coins = self.safeDict(response, "coins", Dict{Symbol, Any}());
-    return self.parseDepositWithdrawFees(coins, codes, "symbol")
+    coins = self.safeDict(response, "coins", defaultValue = Dict{Symbol, Any}());
+    return self.parseDepositWithdrawFees(coins, codes = codes, currencyIdKey = "symbol")
 
 end
-function sign(self::Hollaex, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Hollaex, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     query = omit(params, self.extractParams(path));
     path = string("/", self.version, "/", self.implodeParams(path, params));
     if functions.ccxtruthy(@functions.ccxt_or((method == "GET"), (method == "DELETE")))
@@ -1283,119 +1587,119 @@ Base.getproperty(self::Hollaex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetHealth(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "health", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "health"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetConstants(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "constants", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "constants"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetKit(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "kit", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "kit"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTiers(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "tiers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tiers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickers(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbook(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbooks(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "orderbooks", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbooks"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTrades(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetChart(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "chart", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "chart"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCharts(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "charts", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "charts"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetMinicharts(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "minicharts", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "minicharts"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOraclePrices(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "oracle/prices", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "oracle/prices"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetQuickTrade(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "quick-trade", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "quick-trade"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUdfConfig(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "udf/config", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "udf/config"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUdfHistory(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "udf/history", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "udf/history"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetUdfSymbols(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "udf/symbols", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "udf/symbols"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUser(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserBalance(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserDeposits(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/deposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/deposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserWithdrawals(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/withdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/withdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserWithdrawalFee(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/withdrawal/fee", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/withdrawal/fee"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserTrades(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrders(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrder(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserWithdrawal(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrder(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrderAll(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "order/all", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order/all"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrder(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Hollaex(; kwargs...)
@@ -1459,3 +1763,384 @@ function Hollaex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Hollaex_fetchMarkets() end
+"""
+retrieves data on all markets for hollaex
+see: https://apidocs.hollaex.com/#constants
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Hollaex_fetchMarkets
+
+function __ccxt_doc_Hollaex_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://apidocs.hollaex.com/#constants
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Hollaex_fetchCurrencies
+
+function __ccxt_doc_Hollaex_fetchOrderBooks() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+see: https://apidocs.hollaex.com/#orderbooks
+
+# Arguments
+- `symbols`::any: not used by fetchOrderBooks ()
+- `limit`::int, optional: not used by fetchOrderBooks ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
+"""
+__ccxt_doc_Hollaex_fetchOrderBooks
+
+function __ccxt_doc_Hollaex_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://apidocs.hollaex.com/#orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Hollaex_fetchOrderBook
+
+function __ccxt_doc_Hollaex_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://apidocs.hollaex.com/#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Hollaex_fetchTicker
+
+function __ccxt_doc_Hollaex_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://apidocs.hollaex.com/#tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Hollaex_fetchTickers
+
+function __ccxt_doc_Hollaex_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://apidocs.hollaex.com/#trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Hollaex_fetchTrades
+
+function __ccxt_doc_Hollaex_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://apidocs.hollaex.com/#tiers
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Hollaex_fetchTradingFees
+
+function __ccxt_doc_Hollaex_fetchOHLCV() end
+"""
+hollaex has large gaps between candles, so it's recommended to specify since
+see: https://apidocs.hollaex.com/#chart
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch (max 500)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Hollaex_fetchOHLCV
+
+function __ccxt_doc_Hollaex_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://apidocs.hollaex.com/#get-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Hollaex_fetchBalance
+
+function __ccxt_doc_Hollaex_fetchOpenOrder() end
+"""
+fetch an open order by it's id
+see: https://apidocs.hollaex.com/#get-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by fetchOpenOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hollaex_fetchOpenOrder
+
+function __ccxt_doc_Hollaex_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://apidocs.hollaex.com/#get-all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hollaex_fetchOpenOrders
+
+function __ccxt_doc_Hollaex_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://apidocs.hollaex.com/#get-all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hollaex_fetchClosedOrders
+
+function __ccxt_doc_Hollaex_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://apidocs.hollaex.com/#get-order
+
+# Arguments
+- `id`::string:
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hollaex_fetchOrder
+
+function __ccxt_doc_Hollaex_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://apidocs.hollaex.com/#get-all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hollaex_fetchOrders
+
+function __ccxt_doc_Hollaex_createOrder() end
+"""
+create a trade order
+see: https://apidocs.hollaex.com/#create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order is triggered at
+- `params.postOnly`::bool, optional: if true, the order will only be posted to the order book and not executed immediately
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hollaex_createOrder
+
+function __ccxt_doc_Hollaex_cancelOrder() end
+"""
+cancels an open order
+see: https://apidocs.hollaex.com/#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hollaex_cancelOrder
+
+function __ccxt_doc_Hollaex_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://apidocs.hollaex.com/#cancel-all-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Hollaex_cancelAllOrders
+
+function __ccxt_doc_Hollaex_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://apidocs.hollaex.com/#get-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Hollaex_fetchMyTrades
+
+function __ccxt_doc_Hollaex_fetchDepositAddresses() end
+"""
+fetch deposit addresses for multiple currencies and chain types
+see: https://apidocs.hollaex.com/#get-user
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Hollaex_fetchDepositAddresses
+
+function __ccxt_doc_Hollaex_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://apidocs.hollaex.com/#get-deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hollaex_fetchDeposits
+
+function __ccxt_doc_Hollaex_fetchWithdrawal() end
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://apidocs.hollaex.com/#get-withdrawals
+
+# Arguments
+- `id`::string: withdrawal id
+- `code`::string: unified currency code of the currency withdrawn, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hollaex_fetchWithdrawal
+
+function __ccxt_doc_Hollaex_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://apidocs.hollaex.com/#get-withdrawals
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hollaex_fetchWithdrawals
+
+function __ccxt_doc_Hollaex_withdraw() end
+"""
+make a withdrawal
+see: https://apidocs.hollaex.com/#withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Hollaex_withdraw
+
+function __ccxt_doc_Hollaex_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://apidocs.hollaex.com/#constants
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Hollaex_fetchDepositWithdrawFees

@@ -556,7 +556,7 @@ function createExpiredOptionMarket(self::Delta, symbol)
     datetime = self.convertExpireDate(expiry);
     timestamp = self.parse8601(datetime);
     optionTypeUnified = functions.ccxtruthy((optionType == "C")) ? "call" : "put";
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => string(optionType, "-", base, "-", strike, "-", expiry),
     Symbol("symbol") => string(base, "/", quote_var, ":", settle, "-", expiry, "-", strike, "-", optionType),
     Symbol("base") => base,
@@ -602,23 +602,41 @@ function createExpiredOptionMarket(self::Delta, symbol)
 ))
 
 end
-function safeMarket(self::Delta, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
+function safeMarket(self::Delta; marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = @functions.ccxt_and((marketId != nothing), (@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((endswith(marketId, "-C")), (endswith(marketId, "-P"))), (startswith(marketId, "C-"))), (startswith(marketId, "P-")))));
     if functions.ccxtruthy(@functions.ccxt_and(isOption, (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
-    return safeMarket(self.parent, marketId, market, delimiter, marketType)
+    return safeMarket(self.parent, marketId = marketId, market = market, delimiter = delimiter, marketType = marketType)
 
 end
-function fetchTime(self::Delta, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Delta; params=Dict())
     response = Base.fetch(self.publicGetSettings(params));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     return safeIntegerProduct(result, "server_time", 0.001)
 
 end
-function fetchStatus(self::Delta, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Delta; params=Dict())
     response = Base.fetch(self.publicGetSettings(params));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
     underMaintenance = safeString(result, "under_maintenance");
     status = functions.ccxtruthy((underMaintenance == "true")) ? "maintenance" : "ok";
     updated = safeIntegerProduct(result, "server_time", 0.001, milliseconds());
@@ -631,9 +649,19 @@ function fetchStatus(self::Delta, params=Dict())
 )
 
 end
-function fetchCurrencies(self::Delta, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.delta.exchange/#get-list-of-all-assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Delta; params=Dict())
     response = Base.fetch(self.publicGetAssets(params));
-    currencies = self.safeList(response, "result", []);
+    currencies = self.safeList(response, "result", defaultValue = []);
     return self.parseCurrencies(currencies)
 
 end
@@ -641,13 +669,13 @@ function parseCurrency(self::Delta, rawCurrency)
     id = safeString(rawCurrency, "symbol");
     numericId = safeInteger(rawCurrency, "id");
     code = self.safeCurrencyCode(id);
-    chains = self.safeList(rawCurrency, "networks", []);
+    chains = self.safeList(rawCurrency, "networks", defaultValue = []);
     networks = Dict{Symbol, Any}();
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "network");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -682,7 +710,7 @@ function parseCurrency(self::Delta, rawCurrency)
     Symbol("deposit") => safeString(rawCurrency, "deposit_status") == "enabled",
     Symbol("withdraw") => safeString(rawCurrency, "withdrawal_status") == "enabled",
     Symbol("fee") => self.safeNumber(rawCurrency, "base_withdrawal_fee"),
-    Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(rawCurrency, "precision"))),
+    Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(rawCurrency, "precision"))),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("amount") => Dict{Symbol, Any}(
             Symbol("min") => nothing,
@@ -698,8 +726,8 @@ function parseCurrency(self::Delta, rawCurrency)
 ))
 
 end
-function loadMarkets(self::Delta, reload=false, params=Dict())
-    markets = Base.fetch(loadMarkets(self.parent, reload, params));
+function loadMarkets(self::Delta; reload=false, params=Dict())
+    markets = Base.fetch(loadMarkets(self.parent, reload = reload, params = params));
     currenciesByNumericId = self.safeDict(self.options, "currenciesByNumericId");
     if functions.ccxtruthy(@functions.ccxt_or((currenciesByNumericId == nothing), reload))
         self.options[Symbol("currenciesByNumericId")] = self.indexByStringifiedNumericId(self.currencies);
@@ -731,9 +759,19 @@ function indexByStringifiedNumericId(self::Delta, input)
     return result
 
 end
-function fetchMarkets(self::Delta, params=Dict())
+"""
+retrieves data on all markets for delta
+see: https://docs.delta.exchange/#get-list-of-products
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Delta; params=Dict())
     response = Base.fetch(self.publicGetProducts(params));
-    markets = self.safeList(response, "result", []);
+    markets = self.safeList(response, "result", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
@@ -742,10 +780,10 @@ function fetchMarkets(self::Delta, params=Dict())
         if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((type_var == "options_combos"), (type_var == "binary_call_options")), (type_var == "binary_put_options")))
             i += 1; continue
         end
-        quotingAsset = self.safeDict(market, "quoting_asset", Dict{Symbol, Any}());
-        underlyingAsset = self.safeDict(market, "underlying_asset", Dict{Symbol, Any}());
+        quotingAsset = self.safeDict(market, "quoting_asset", defaultValue = Dict{Symbol, Any}());
+        underlyingAsset = self.safeDict(market, "underlying_asset", defaultValue = Dict{Symbol, Any}());
         settlingAsset = self.safeDict(market, "settling_asset");
-        productSpecs = self.safeDict(market, "product_specs", Dict{Symbol, Any}());
+        productSpecs = self.safeDict(market, "product_specs", defaultValue = Dict{Symbol, Any}());
         baseId = safeString(underlyingAsset, "symbol");
         quoteId = safeString(quotingAsset, "symbol");
         settleId = safeString(settlingAsset, "symbol");
@@ -767,7 +805,7 @@ function fetchMarkets(self::Delta, params=Dict())
         contractSize = self.safeNumber(market, "contract_value");
         amountPrecision = nothing;
         if functions.ccxtruthy(spot)
-            amountPrecision = self.parseNumber(self.parsePrecision(safeString(productSpecs, "underlying_precision")));
+            amountPrecision = self.parseNumber(self.parsePrecision(precision = safeString(productSpecs, "underlying_precision")));
         else
             amountPrecision = self.parseNumber("1");
         end
@@ -798,7 +836,7 @@ function fetchMarkets(self::Delta, params=Dict())
             end
         end
         state = safeString(market, "state");
-        push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("numericId") => numericId,
     Symbol("symbol") => symbol,
@@ -855,12 +893,12 @@ function fetchMarkets(self::Delta, params=Dict())
     return result
 
 end
-function parseTicker(self::Delta, ticker, market=nothing)
+function parseTicker(self::Delta, ticker; market=nothing)
     timestamp = safeIntegerProduct(ticker, "timestamp", 0.001);
     marketId = safeString(ticker, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     last_var = safeString(ticker, "close");
-    quotes = self.safeDict(ticker, "quotes", Dict{Symbol, Any}());
+    quotes = self.safeDict(ticker, "quotes", defaultValue = Dict{Symbol, Any}());
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => timestamp,
@@ -884,25 +922,47 @@ function parseTicker(self::Delta, ticker, market=nothing)
     Symbol("markPrice") => self.safeNumber(ticker, "mark_price"),
     Symbol("indexPrice") => self.safeNumber(ticker, "spot_price"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Delta, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Delta, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTickersSymbol(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTicker(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(result, market = market)
 
 end
-function fetchTickers(self::Delta, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.delta.exchange/#get-tickers-for-products
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Delta; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.publicGetTickers(params));
-    tickers = self.safeList(response, "result", []);
+    tickers = self.safeList(response, "result", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
@@ -918,10 +978,22 @@ function fetchTickers(self::Delta, symbols=nothing, params=Dict())
         end
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchOrderBook(self::Delta, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.delta.exchange/#get-l2-orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Delta, symbol; limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -931,20 +1003,20 @@ function fetchOrderBook(self::Delta, symbol, limit=nothing, params=Dict())
         request[Symbol("depth")] = limit;
     end
     response = Base.fetch(self.publicGetL2orderbookSymbol(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrderBook(result, get(market, Symbol("symbol"), nothing), nothing, "buy", "sell", "price", "size")
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrderBook(result, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "buy", asksKey = "sell", priceKey = "price", amountKey = "size")
 
 end
-function parseTrade(self::Delta, trade, market=nothing)
+function parseTrade(self::Delta, trade; market=nothing)
     id = safeString(trade, "id");
     orderId = safeString(trade, "order_id");
     timestamp = self.parse8601(safeString(trade, "created_at"));
     timestamp = safeIntegerProduct(trade, "timestamp", 0.001, timestamp);
     priceString = safeString(trade, "price");
     amountString = safeString(trade, "size");
-    product = self.safeDict(trade, "product", Dict{Symbol, Any}());
+    product = self.safeDict(trade, "product", defaultValue = Dict{Symbol, Any}());
     marketId = safeString(product, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     sellerRole = safeString(trade, "seller_role");
     side = safeString(trade, "side");
     if functions.ccxtruthy(side == nothing)
@@ -955,7 +1027,7 @@ function parseTrade(self::Delta, trade, market=nothing)
         end
     end
     takerOrMaker = safeString(trade, "role");
-    metaData = self.safeDict(trade, "meta_data", Dict{Symbol, Any}());
+    metaData = self.safeDict(trade, "meta_data", defaultValue = Dict{Symbol, Any}());
     type_var = safeString(metaData, "order_type");
     if functions.ccxtruthy(type_var != nothing)
         type_var = replace(type_var, "_order" => "");
@@ -963,7 +1035,7 @@ function parseTrade(self::Delta, trade, market=nothing)
     feeCostString = safeString(trade, "commission");
     fee = nothing;
     if functions.ccxtruthy(feeCostString != nothing)
-        settlingAsset = self.safeDict(product, "settling_asset", Dict{Symbol, Any}());
+        settlingAsset = self.safeDict(product, "settling_asset", defaultValue = Dict{Symbol, Any}());
         feeCurrencyId = safeString(settlingAsset, "symbol");
         feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId);
         fee = Dict{Symbol, Any}(
@@ -985,25 +1057,53 @@ function parseTrade(self::Delta, trade, market=nothing)
     Symbol("takerOrMaker") => takerOrMaker,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Delta, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.delta.exchange/#get-public-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Delta, symbol; since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTradesSymbol(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseTrades(result, market, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseTrades(result, market = market, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Delta, ohlcv, market=nothing)
+function parseOHLCV(self::Delta, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, "time"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchOHLCV(self::Delta, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::string, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Delta, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1038,16 +1138,16 @@ function fetchOHLCV(self::Delta, symbol, timeframe="1m", since=nothing, limit=no
     end
     params = omit(params, ["price", "until"]);
     response = Base.fetch(self.publicGetHistoryCandles(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseOHLCVs(result, market, timeframe, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOHLCVs(result, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
 function parseBalance(self::Delta, response)
-    balances = self.safeList(response, "result", []);
+    balances = self.safeList(response, "result", defaultValue = []);
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    currenciesByNumericId = self.safeDict(self.options, "currenciesByNumericId", Dict{Symbol, Any}());
+    currenciesByNumericId = self.safeDict(self.options, "currenciesByNumericId", defaultValue = Dict{Symbol, Any}());
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         balance = get(balances, i + 1, nothing);
@@ -1063,33 +1163,65 @@ function parseBalance(self::Delta, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Delta, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.delta.exchange/#get-wallet-balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Delta; params=Dict())
     Base.fetch(self.loadMarkets());
     response = Base.fetch(self.privateGetWalletBalances(params));
     return self.parseBalance(response)
 
 end
-function fetchPosition(self::Delta, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://docs.delta.exchange/#get-position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Delta, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("product_id") => get(market, Symbol("numericId"), nothing)
     );
     response = Base.fetch(self.privateGetPositions(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parsePosition(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parsePosition(result, market = market)
 
 end
-function fetchPositions(self::Delta, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.delta.exchange/#get-margined-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Delta; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     response = Base.fetch(self.privateGetPositionsMargined(params));
-    result = self.safeList(response, "result", []);
-    return self.parsePositions(result, symbols)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parsePositions(result, symbols = symbols)
 
 end
-function parsePosition(self::Delta, position, market=nothing)
+function parsePosition(self::Delta, position; market=nothing)
     marketId = safeString(position, "product_symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeIntegerProduct(position, "timestamp", 0.001);
     sizeString = safeString(position, "size");
@@ -1140,7 +1272,7 @@ function parseOrderStatus(self::Delta, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Delta, order, market=nothing)
+function parseOrder(self::Delta, order; market=nothing)
     id = safeString(order, "id");
     clientOrderId = safeString(order, "client_order_id");
     createdAt = safeString(order, "created_at");
@@ -1153,7 +1285,7 @@ function parseOrder(self::Delta, order, market=nothing)
         end
     end
     marketId = safeString(order, "product_id");
-    marketsByNumericId = self.safeDict(self.options, "marketsByNumericId", Dict{Symbol, Any}());
+    marketsByNumericId = self.safeDict(self.options, "marketsByNumericId", defaultValue = Dict{Symbol, Any}());
     market = safeValue(marketsByNumericId, marketId, market);
     symbol = functions.ccxtruthy((market == nothing)) ? marketId : get(market, Symbol("symbol"), nothing);
     status = self.parseOrderStatus(safeString(order, "state"));
@@ -1171,7 +1303,7 @@ function parseOrder(self::Delta, order, market=nothing)
     if functions.ccxtruthy(feeCostString != nothing)
         feeCurrencyCode = nothing;
         if functions.ccxtruthy(market != nothing)
-            settlingAsset = self.safeDict(get(market, Symbol("info"), nothing), "settling_asset", Dict{Symbol, Any}());
+            settlingAsset = self.safeDict(get(market, Symbol("info"), nothing), "settling_asset", defaultValue = Dict{Symbol, Any}());
             feeCurrencyId = safeString(settlingAsset, "symbol");
             feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId);
         end
@@ -1199,10 +1331,26 @@ function parseOrder(self::Delta, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => fee,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function createOrder(self::Delta, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.delta.exchange/#place-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.reduceOnly`::bool, optional: *contract only* indicates if this order is to reduce the size of a position
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Delta, symbol, type_var, side, amount; price=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     orderType = string(type_var, "_order");
     market = self.market(symbol);
@@ -1226,11 +1374,27 @@ function createOrder(self::Delta, symbol, type_var, side, amount, price=nothing,
         params = omit(params, "reduceOnly");
     end
     response = Base.fetch(self.privatePostOrders(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(result, market = market)
 
 end
-function editOrder(self::Delta, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://docs.delta.exchange/#edit-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Delta, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1248,11 +1412,23 @@ function editOrder(self::Delta, id, symbol, type_var, side, amount=nothing, pric
         request[Symbol("limit_price")] = self.priceToPrecision(symbol, price);
     end
     response = Base.fetch(self.privatePutOrders(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(result, market = market)
 
 end
-function cancelOrder(self::Delta, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.delta.exchange/#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Delta, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -1263,11 +1439,22 @@ function cancelOrder(self::Delta, id, symbol=nothing, params=Dict())
         Symbol("product_id") => get(market, Symbol("numericId"), nothing)
     );
     response = Base.fetch(self.privateDeleteOrders(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(result, market = market)
 
 end
-function cancelAllOrders(self::Delta, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://docs.delta.exchange/#cancel-all-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Delta; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -1282,7 +1469,21 @@ function cancelAllOrders(self::Delta, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchOrder(self::Delta, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.delta.exchange/#get-order-by-id
+see: https://docs.delta.exchange/#get-order-by-client-oid
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id of the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Delta, id; symbol=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -1299,19 +1500,45 @@ function fetchOrder(self::Delta, id, symbol=nothing, params=Dict())
         request[Symbol("order_id")] = id;
         response = Base.fetch(self.privateGetOrdersOrderId(extend(request, params)));
     end
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOrder(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(result, market = market)
 
 end
-function fetchOpenOrders(self::Delta, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersWithMethod("privateGetOrders", symbol, since, limit, params))
+"""
+fetch all unfilled currently open orders
+see: https://docs.delta.exchange/#get-active-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Delta; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersWithMethod("privateGetOrders", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchClosedOrders(self::Delta, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersWithMethod("privateGetOrdersHistory", symbol, since, limit, params))
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.delta.exchange/#get-order-history-cancelled-and-closed
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Delta; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersWithMethod("privateGetOrdersHistory", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOrdersWithMethod(self::Delta, method, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrdersWithMethod(self::Delta, method; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1331,11 +1558,24 @@ function fetchOrdersWithMethod(self::Delta, method, symbol=nothing, since=nothin
     elseif functions.ccxtruthy(method == "privateGetOrdersHistory")
         response = Base.fetch(self.privateGetOrdersHistory(extend(request, params)));
     end
-    result = self.safeList(response, "result", []);
-    return self.parseOrders(result, market, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseOrders(result, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Delta, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.delta.exchange/#get-user-fills-by-filters
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Delta; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1350,11 +1590,24 @@ function fetchMyTrades(self::Delta, symbol=nothing, since=nothing, limit=nothing
         request[Symbol("page_size")] = limit;
     end
     response = Base.fetch(self.privateGetFills(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseTrades(result, market, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseTrades(result, market = market, since = since, limit = limit)
 
 end
-function fetchLedger(self::Delta, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://docs.delta.exchange/#get-wallet-transactions
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Delta; code=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -1366,8 +1619,8 @@ function fetchLedger(self::Delta, code=nothing, since=nothing, limit=nothing, pa
         request[Symbol("page_size")] = limit;
     end
     response = Base.fetch(self.privateGetWalletTransactions(extend(request, params)));
-    result = self.safeList(response, "result", []);
-    return self.parseLedger(result, currency, since, limit)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseLedger(result, currency = currency, since = since, limit = limit)
 
 end
 function parseLedgerEntryType(self::Delta, type_var)
@@ -1383,11 +1636,11 @@ function parseLedgerEntryType(self::Delta, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseLedgerEntry(self::Delta, item, currency=nothing)
+function parseLedgerEntry(self::Delta, item; currency=nothing)
     id = safeString(item, "uuid");
     direction = nothing;
     account = nothing;
-    metaData = self.safeDict(item, "meta_data", Dict{Symbol, Any}());
+    metaData = self.safeDict(item, "meta_data", defaultValue = Dict{Symbol, Any}());
     referenceId = safeString(metaData, "transaction_id");
     referenceAccount = nothing;
     type_var = safeString(item, "transaction_type");
@@ -1422,10 +1675,21 @@ function parseLedgerEntry(self::Delta, item, currency=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
-function fetchDepositAddress(self::Delta, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: unified network code
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Delta, code; params=Dict())
     Base.fetch(self.loadMarkets());
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -1433,30 +1697,41 @@ function fetchDepositAddress(self::Delta, code, params=Dict())
     );
     networkCode = safeStringUpper(params, "network");
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("network")] = self.networkCodeToId(networkCode, code);
+        request[Symbol("network")] = self.networkCodeToId(networkCode, currencyCode = code);
         params = omit(params, "network");
     end
     response = Base.fetch(self.privateGetDepositsAddress(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseDepositAddress(result, currency)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseDepositAddress(result, currency = currency)
 
 end
-function parseDepositAddress(self::Delta, depositAddress, currency=nothing)
+function parseDepositAddress(self::Delta, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
     marketId = safeString(depositAddress, "asset_symbol");
     networkId = safeString(depositAddress, "network");
-    code = self.safeCurrencyCode(marketId, currency);
-    self.checkAddress(address);
+    code = self.safeCurrencyCode(marketId, currency = currency);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("address") => address,
     Symbol("tag") => safeString(depositAddress, "memo")
 )
 
 end
-function fetchFundingRate(self::Delta, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Delta, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
@@ -1466,29 +1741,40 @@ function fetchFundingRate(self::Delta, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTickersSymbol(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseFundingRate(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(result, market = market)
 
 end
-function fetchFundingRates(self::Delta, symbols=nothing, params=Dict())
+"""
+fetch the funding rate for multiple markets
+see: https://docs.delta.exchange/#get-tickers-for-products
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Delta; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}(
         Symbol("contract_types") => "perpetual_futures"
     );
     response = Base.fetch(self.publicGetTickers(extend(request, params)));
-    rates = self.safeList(response, "result", []);
-    return self.parseFundingRates(rates, symbols)
+    rates = self.safeList(response, "result", defaultValue = []);
+    return self.parseFundingRates(rates, symbols = symbols)
 
 end
-function parseFundingRate(self::Delta, contract, market=nothing)
+function parseFundingRate(self::Delta, contract; market=nothing)
     timestamp = safeIntegerProduct(contract, "timestamp", 0.001);
     marketId = safeString(contract, "symbol");
     fundingRateString = safeString(contract, "funding_rate");
     fundingRate = stringDiv(fundingRateString, "100");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("markPrice") => self.safeNumber(contract, "mark_price"),
     Symbol("indexPrice") => self.safeNumber(contract, "spot_price"),
     Symbol("interestRate") => nothing,
@@ -1508,15 +1794,39 @@ function parseFundingRate(self::Delta, contract, market=nothing)
 )
 
 end
-function addMargin(self::Delta, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params))
+"""
+add margin
+see: https://docs.delta.exchange/#add-remove-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Delta, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params = params))
 
 end
-function reduceMargin(self::Delta, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params))
+"""
+remove margin from a position
+see: https://docs.delta.exchange/#add-remove-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Delta, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params = params))
 
 end
-function modifyMarginHelper(self::Delta, symbol, amount, type_var, params=Dict())
+function modifyMarginHelper(self::Delta, symbol, amount, type_var; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     amount = string(amount);
@@ -1528,13 +1838,13 @@ function modifyMarginHelper(self::Delta, symbol, amount, type_var, params=Dict()
         Symbol("delta_margin") => amount
     );
     response = Base.fetch(self.privatePostPositionsChangeMargin(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseMarginModification(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginModification(result, market = market)
 
 end
-function parseMarginModification(self::Delta, data, market=nothing)
+function parseMarginModification(self::Delta, data; market=nothing)
     marketId = safeString(data, "product_symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => data,
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -1549,7 +1859,18 @@ function parseMarginModification(self::Delta, data, market=nothing)
 )
 
 end
-function fetchOpenInterest(self::Delta, symbol, params=Dict())
+"""
+retrieves the open interest of a derivative market
+see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Delta, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("contract"), nothing)))
@@ -1559,15 +1880,15 @@ function fetchOpenInterest(self::Delta, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTickersSymbol(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOpenInterest(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOpenInterest(result, market = market)
 
 end
-function parseOpenInterest(self::Delta, interest, market=nothing)
+function parseOpenInterest(self::Delta, interest; market=nothing)
     timestamp = safeIntegerProduct(interest, "timestamp", 0.001);
     marketId = safeString(interest, "symbol");
     return self.safeOpenInterest(Dict{Symbol, Any}(
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("baseVolume") => self.safeNumber(interest, "oi_value"),
     Symbol("quoteVolume") => self.safeNumber(interest, "oi_value_usd"),
     Symbol("openInterestAmount") => self.safeNumber(interest, "oi_contracts"),
@@ -1575,33 +1896,56 @@ function parseOpenInterest(self::Delta, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchLeverage(self::Delta, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://docs.delta.exchange/#get-order-leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Delta, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("product_id") => get(market, Symbol("numericId"), nothing)
     );
     response = Base.fetch(self.privateGetProductsProductIdOrdersLeverage(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseLeverage(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(result, market = market)
 
 end
-function parseLeverage(self::Delta, leverage, market=nothing)
+function parseLeverage(self::Delta, leverage; market=nothing)
     marketId = safeString(leverage, "index_symbol");
     leverageValue = safeInteger(leverage, "leverage");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => safeStringLower(leverage, "margin_mode"),
     Symbol("longLeverage") => leverageValue,
     Symbol("shortLeverage") => leverageValue
 )
 
 end
-function setLeverage(self::Delta, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://docs.delta.exchange/#change-order-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Delta, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -1614,7 +1958,20 @@ function setLeverage(self::Delta, leverage, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePostProductsProductIdOrdersLeverage(extend(request, params)))
 
 end
-function fetchSettlementHistory(self::Delta, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical settlement records
+see: https://docs.delta.exchange/#get-product-settlement-prices
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+function fetchSettlementHistory(self::Delta; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -1627,10 +1984,10 @@ function fetchSettlementHistory(self::Delta, symbol=nothing, since=nothing, limi
         request[Symbol("page_size")] = limit;
     end
     response = Base.fetch(self.publicGetProducts(extend(request, params)));
-    result = self.safeList(response, "result", []);
+    result = self.safeList(response, "result", defaultValue = []);
     settlements = self.parseSettlements(result, market);
     sorted = sortBy(settlements, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, safeString(market, "symbol"), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = safeString(market, "symbol"), since = since, limit = limit)
 
 end
 function parseSettlement(self::Delta, settlement, market)
@@ -1638,7 +1995,7 @@ function parseSettlement(self::Delta, settlement, market)
     marketId = safeString(settlement, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => settlement,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("price") => self.safeNumber(settlement, "settlement_price"),
     Symbol("timestamp") => self.parse8601(datetime),
     Symbol("datetime") => datetime
@@ -1655,23 +2012,34 @@ function parseSettlements(self::Delta, settlements, market)
     return result
 
 end
-function fetchGreeks(self::Delta, symbol, params=Dict())
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+function fetchGreeks(self::Delta, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTickersSymbol(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseGreeks(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseGreeks(result, market = market)
 
 end
-function parseGreeks(self::Delta, greeks, market=nothing)
+function parseGreeks(self::Delta, greeks; market=nothing)
     timestamp = safeIntegerProduct(greeks, "timestamp", 0.001);
     marketId = safeString(greeks, "symbol");
-    symbol = self.safeSymbol(marketId, market);
-    stats = self.safeDict(greeks, "greeks", Dict{Symbol, Any}());
-    quotes = self.safeDict(greeks, "quotes", Dict{Symbol, Any}());
+    symbol = self.safeSymbol(marketId, market = market);
+    stats = self.safeDict(greeks, "greeks", defaultValue = Dict{Symbol, Any}());
+    quotes = self.safeDict(greeks, "quotes", defaultValue = Dict{Symbol, Any}());
     return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => timestamp,
@@ -1695,29 +2063,51 @@ function parseGreeks(self::Delta, greeks, market=nothing)
 )
 
 end
-function closeAllPositions(self::Delta, params=Dict())
+"""
+closes all open positions for a market type
+see: https://docs.delta.exchange/#close-all-positions
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user_id`::int, optional: the users id
+
+# Returns
+- A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closeAllPositions(self::Delta; params=Dict())
     Base.fetch(self.loadMarkets());
     request = Dict{Symbol, Any}(
         Symbol("close_all_portfolio") => true,
         Symbol("close_all_isolated") => true
     );
     response = Base.fetch(self.privatePostPositionsCloseAll(extend(request, params)));
-    position = self.parsePosition(self.safeDict(response, "result", Dict{Symbol, Any}()));
+    position = self.parsePosition(self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}()));
     return [position]
 
 end
-function fetchMarginMode(self::Delta, symbol, params=Dict())
+"""
+fetches the margin mode of a trading pair
+see: https://docs.delta.exchange/#get-user
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Delta, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     response = Base.fetch(self.privateGetProfile(params));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseMarginMode(result, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginMode(result, market = market)
 
 end
-function parseMarginMode(self::Delta, marginMode, market=nothing)
+function parseMarginMode(self::Delta, marginMode; market=nothing)
     symbol = nothing;
     if functions.ccxtruthy(market != nothing)
         symbol = get(market, Symbol("symbol"), nothing);
@@ -1729,8 +2119,21 @@ function parseMarginMode(self::Delta, marginMode, market=nothing)
 )
 
 end
-function setMarginMode(self::Delta, marginMode, symbol=nothing, params=Dict())
-    self.checkRequiredArgument("setMarginMode", marginMode, "marginMode", ["isolated", "portfolio"]);
+"""
+set margin mode to 'isolated' or 'portfolio'
+see: https://docs.delta.exchange/#change-margin-mode
+
+# Arguments
+- `marginMode`::string: 'isolated' or 'portfolio'
+- `symbol`::string, optional: not used by delta.setMarginMode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_user_id`::string: the user id of the subaccount
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Delta, marginMode; symbol=nothing, params=Dict())
+    self.checkRequiredArgument("setMarginMode", marginMode, "marginMode", options = ["isolated", "portfolio"]);
     subaccountUserId = safeString(params, "subaccount_user_id");
     self.checkRequiredArgument("setMarginMode", subaccountUserId, "params[\"subaccount_user_id\"]");
     request = Dict{Symbol, Any}(
@@ -1739,21 +2142,32 @@ function setMarginMode(self::Delta, marginMode, symbol=nothing, params=Dict())
     return Base.fetch(self.privatePutUsersMarginMode(extend(request, params)))
 
 end
-function fetchOption(self::Delta, symbol, params=Dict())
+"""
+fetches option data that is commonly found in an option chain
+see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+function fetchOption(self::Delta, symbol; params=Dict())
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTickersSymbol(extend(request, params)));
-    result = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseOption(result, nothing, market)
+    result = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseOption(result, currency = nothing, market = market)
 
 end
-function parseOption(self::Delta, chain, currency=nothing, market=nothing)
+function parseOption(self::Delta, chain; currency=nothing, market=nothing)
     marketId = safeString(chain, "symbol");
-    market = self.safeMarket(marketId, market);
-    quotes = self.safeDict(chain, "quotes", Dict{Symbol, Any}());
+    market = self.safeMarket(marketId = marketId, market = market);
+    quotes = self.safeDict(chain, "quotes", defaultValue = Dict{Symbol, Any}());
     timestamp = safeIntegerProduct(chain, "timestamp", 0.001);
     return Dict{Symbol, Any}(
     Symbol("info") => chain,
@@ -1776,20 +2190,31 @@ function parseOption(self::Delta, chain, currency=nothing, market=nothing)
 )
 
 end
-function fetchPositionsADLRank(self::Delta, symbols=nothing, params=Dict())
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://docs.delta.exchange/#get-margined-positions
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+function fetchPositionsADLRank(self::Delta; symbols=nothing, params=Dict())
     Base.fetch(self.loadMarkets());
-    symbols = self.marketSymbols(symbols, nothing, true, true, true);
+    symbols = self.marketSymbols(symbols = symbols, type_var = nothing, allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
     response = Base.fetch(self.privateGetPositionsMargined(params));
-    result = self.safeList(response, "result", []);
-    return self.parseADLRanks(result, symbols)
+    result = self.safeList(response, "result", defaultValue = []);
+    return self.parseADLRanks(result, symbols = symbols)
 
 end
-function parseADLRank(self::Delta, info, market=nothing)
+function parseADLRank(self::Delta, info; market=nothing)
     marketId = safeString(info, "product_symbol");
     datetime = safeString(info, "created_at");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("rank") => safeInteger(info, "adl_level"),
     Symbol("rating") => nothing,
     Symbol("percentage") => nothing,
@@ -1798,7 +2223,7 @@ function parseADLRank(self::Delta, info, market=nothing)
 )
 
 end
-function sign(self::Delta, path, api="public", method="GET", params=Dict(), headers=Dict(), body=nothing)
+function sign(self::Delta, path; api="public", method="GET", params=Dict(), headers=Dict(), body=nothing)
     requestPath = string("/", self.version, "/", self.implodeParams(path, params));
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), requestPath);
     query = omit(params, self.extractParams(path));
@@ -1840,7 +2265,7 @@ function handleErrors(self::Delta, code, reason, url, method, headers, body, res
     if functions.ccxtruthy(response == nothing)
             return nothing
     end
-    error = self.safeDict(response, "error", Dict{Symbol, Any}());
+    error = self.safeDict(response, "error", defaultValue = Dict{Symbol, Any}());
     errorCode = safeString(error, "code");
     if functions.ccxtruthy(errorCode != nothing)
         feedback = string(self.id, " ", body);
@@ -1858,211 +2283,211 @@ Base.getproperty(self::Delta, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetAssets(self::Delta, params=Dict(), context=Dict())
-    return request(self, "assets", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "assets"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetIndices(self::Delta, params=Dict(), context=Dict())
-    return request(self, "indices", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "indices"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProducts(self::Delta, params=Dict(), context=Dict())
-    return request(self, "products", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetProductsSymbol(self::Delta, params=Dict(), context=Dict())
-    return request(self, "products/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "products/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickers(self::Delta, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickersSymbol(self::Delta, params=Dict(), context=Dict())
-    return request(self, "tickers/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetL2orderbookSymbol(self::Delta, params=Dict(), context=Dict())
-    return request(self, "l2orderbook/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "l2orderbook/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradesSymbol(self::Delta, params=Dict(), context=Dict())
-    return request(self, "trades/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetStats(self::Delta, params=Dict(), context=Dict())
-    return request(self, "stats", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "stats"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetHistoryCandles(self::Delta, params=Dict(), context=Dict())
-    return request(self, "history/candles", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "history/candles"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetHistorySparklines(self::Delta, params=Dict(), context=Dict())
-    return request(self, "history/sparklines", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "history/sparklines"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSettings(self::Delta, params=Dict(), context=Dict())
-    return request(self, "settings", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "settings"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrders(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersOrderId(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/{order_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{order_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersClientOrderIdClientOid(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/client_order_id/{client_oid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/client_order_id/{client_oid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetProductsProductIdOrdersLeverage(self::Delta, params=Dict(), context=Dict())
-    return request(self, "products/{product_id}/orders/leverage", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "products/{product_id}/orders/leverage"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPositionsMargined(self::Delta, params=Dict(), context=Dict())
-    return request(self, "positions/margined", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "positions/margined"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetPositions(self::Delta, params=Dict(), context=Dict())
-    return request(self, "positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersHistory(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFills(self::Delta, params=Dict(), context=Dict())
-    return request(self, "fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFillsHistoryDownloadCsv(self::Delta, params=Dict(), context=Dict())
-    return request(self, "fills/history/download/csv", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills/history/download/csv"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletBalances(self::Delta, params=Dict(), context=Dict())
-    return request(self, "wallet/balances", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/balances"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletTransactions(self::Delta, params=Dict(), context=Dict())
-    return request(self, "wallet/transactions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/transactions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletTransactionsDownload(self::Delta, params=Dict(), context=Dict())
-    return request(self, "wallet/transactions/download", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/transactions/download"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletsSubAccountsTransferHistory(self::Delta, params=Dict(), context=Dict())
-    return request(self, "wallets/sub_accounts_transfer_history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallets/sub_accounts_transfer_history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUsersTradingPreferences(self::Delta, params=Dict(), context=Dict())
-    return request(self, "users/trading_preferences", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "users/trading_preferences"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetSubAccounts(self::Delta, params=Dict(), context=Dict())
-    return request(self, "sub_accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "sub_accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetProfile(self::Delta, params=Dict(), context=Dict())
-    return request(self, "profile", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "profile"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetRateLimitsQuota(self::Delta, params=Dict(), context=Dict())
-    return request(self, "rate_limits/quota", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "rate_limits/quota"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetHeartbeat(self::Delta, params=Dict(), context=Dict())
-    return request(self, "heartbeat", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "heartbeat"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDepositsAddress(self::Delta, params=Dict(), context=Dict())
-    return request(self, "deposits/address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits/address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersBracket(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/bracket", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/bracket"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersBatch(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostProductsProductIdOrdersLeverage(self::Delta, params=Dict(), context=Dict())
-    return request(self, "products/{product_id}/orders/leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "products/{product_id}/orders/leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionsChangeMargin(self::Delta, params=Dict(), context=Dict())
-    return request(self, "positions/change_margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "positions/change_margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPositionsCloseAll(self::Delta, params=Dict(), context=Dict())
-    return request(self, "positions/close_all", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "positions/close_all"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWalletsSubAccountBalanceTransfer(self::Delta, params=Dict(), context=Dict())
-    return request(self, "wallets/sub_account_balance_transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wallets/sub_account_balance_transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHeartbeatCreate(self::Delta, params=Dict(), context=Dict())
-    return request(self, "heartbeat/create", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "heartbeat/create"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostHeartbeat(self::Delta, params=Dict(), context=Dict())
-    return request(self, "heartbeat", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "heartbeat"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersCancelAfter(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/cancel_after", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/cancel_after"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersLeverage(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOrders(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOrdersBracket(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/bracket", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "orders/bracket"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutOrdersBatch(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutPositionsAutoTopup(self::Delta, params=Dict(), context=Dict())
-    return request(self, "positions/auto_topup", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "positions/auto_topup"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutUsersUpdateMmp(self::Delta, params=Dict(), context=Dict())
-    return request(self, "users/update_mmp", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "users/update_mmp"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutUsersResetMmp(self::Delta, params=Dict(), context=Dict())
-    return request(self, "users/reset_mmp", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "users/reset_mmp"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePutUsersMarginMode(self::Delta, params=Dict(), context=Dict())
-    return request(self, "users/margin_mode", "private", "PUT", params, nothing, nothing, Dict())
+    return request(self, "users/margin_mode"; api="private", method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrders(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersAll(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/all", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/all"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersBatch(self::Delta, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/batch"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Delta(; kwargs...)
@@ -2126,3 +2551,538 @@ function Delta(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Delta_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Delta_fetchTime
+
+function __ccxt_doc_Delta_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Delta_fetchStatus
+
+function __ccxt_doc_Delta_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.delta.exchange/#get-list-of-all-assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Delta_fetchCurrencies
+
+function __ccxt_doc_Delta_fetchMarkets() end
+"""
+retrieves data on all markets for delta
+see: https://docs.delta.exchange/#get-list-of-products
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Delta_fetchMarkets
+
+function __ccxt_doc_Delta_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Delta_fetchTicker
+
+function __ccxt_doc_Delta_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.delta.exchange/#get-tickers-for-products
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Delta_fetchTickers
+
+function __ccxt_doc_Delta_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.delta.exchange/#get-l2-orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Delta_fetchOrderBook
+
+function __ccxt_doc_Delta_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.delta.exchange/#get-public-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Delta_fetchTrades
+
+function __ccxt_doc_Delta_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::string, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Delta_fetchOHLCV
+
+function __ccxt_doc_Delta_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.delta.exchange/#get-wallet-balances
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Delta_fetchBalance
+
+function __ccxt_doc_Delta_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://docs.delta.exchange/#get-position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Delta_fetchPosition
+
+function __ccxt_doc_Delta_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.delta.exchange/#get-margined-positions
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Delta_fetchPositions
+
+function __ccxt_doc_Delta_createOrder() end
+"""
+create a trade order
+see: https://docs.delta.exchange/#place-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.reduceOnly`::bool, optional: *contract only* indicates if this order is to reduce the size of a position
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Delta_createOrder
+
+function __ccxt_doc_Delta_editOrder() end
+"""
+edit a trade order
+see: https://docs.delta.exchange/#edit-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Delta_editOrder
+
+function __ccxt_doc_Delta_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.delta.exchange/#cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Delta_cancelOrder
+
+function __ccxt_doc_Delta_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://docs.delta.exchange/#cancel-all-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Delta_cancelAllOrders
+
+function __ccxt_doc_Delta_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.delta.exchange/#get-order-by-id
+see: https://docs.delta.exchange/#get-order-by-client-oid
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id of the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Delta_fetchOrder
+
+function __ccxt_doc_Delta_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.delta.exchange/#get-active-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Delta_fetchOpenOrders
+
+function __ccxt_doc_Delta_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.delta.exchange/#get-order-history-cancelled-and-closed
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Delta_fetchClosedOrders
+
+function __ccxt_doc_Delta_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.delta.exchange/#get-user-fills-by-filters
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Delta_fetchMyTrades
+
+function __ccxt_doc_Delta_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://docs.delta.exchange/#get-wallet-transactions
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Delta_fetchLedger
+
+function __ccxt_doc_Delta_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: unified network code
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Delta_fetchDepositAddress
+
+function __ccxt_doc_Delta_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Delta_fetchFundingRate
+
+function __ccxt_doc_Delta_fetchFundingRates() end
+"""
+fetch the funding rate for multiple markets
+see: https://docs.delta.exchange/#get-tickers-for-products
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Delta_fetchFundingRates
+
+function __ccxt_doc_Delta_addMargin() end
+"""
+add margin
+see: https://docs.delta.exchange/#add-remove-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Delta_addMargin
+
+function __ccxt_doc_Delta_reduceMargin() end
+"""
+remove margin from a position
+see: https://docs.delta.exchange/#add-remove-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Delta_reduceMargin
+
+function __ccxt_doc_Delta_fetchOpenInterest() end
+"""
+retrieves the open interest of a derivative market
+see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Delta_fetchOpenInterest
+
+function __ccxt_doc_Delta_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://docs.delta.exchange/#get-order-leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Delta_fetchLeverage
+
+function __ccxt_doc_Delta_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://docs.delta.exchange/#change-order-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Delta_setLeverage
+
+function __ccxt_doc_Delta_fetchSettlementHistory() end
+"""
+fetches historical settlement records
+see: https://docs.delta.exchange/#get-product-settlement-prices
+
+# Arguments
+- `symbol`::string: unified market symbol of the settlement history
+- `since`::int, optional: timestamp in ms
+- `limit`::int, optional: number of records
+- `params`::object, optional: exchange specific params
+
+# Returns
+- a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+"""
+__ccxt_doc_Delta_fetchSettlementHistory
+
+function __ccxt_doc_Delta_fetchGreeks() end
+"""
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch greeks for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+"""
+__ccxt_doc_Delta_fetchGreeks
+
+function __ccxt_doc_Delta_closeAllPositions() end
+"""
+closes all open positions for a market type
+see: https://docs.delta.exchange/#close-all-positions
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.user_id`::int, optional: the users id
+
+# Returns
+- A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Delta_closeAllPositions
+
+function __ccxt_doc_Delta_fetchMarginMode() end
+"""
+fetches the margin mode of a trading pair
+see: https://docs.delta.exchange/#get-user
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Delta_fetchMarginMode
+
+function __ccxt_doc_Delta_setMarginMode() end
+"""
+set margin mode to 'isolated' or 'portfolio'
+see: https://docs.delta.exchange/#change-margin-mode
+
+# Arguments
+- `marginMode`::string: 'isolated' or 'portfolio'
+- `symbol`::string, optional: not used by delta.setMarginMode
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subaccount_user_id`::string: the user id of the subaccount
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Delta_setMarginMode
+
+function __ccxt_doc_Delta_fetchOption() end
+"""
+fetches option data that is commonly found in an option chain
+see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+"""
+__ccxt_doc_Delta_fetchOption
+
+function __ccxt_doc_Delta_fetchPositionsADLRank() end
+"""
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+see: https://docs.delta.exchange/#get-margined-positions
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+"""
+__ccxt_doc_Delta_fetchPositionsADLRank

@@ -280,8 +280,8 @@ function describe(self::Mudrex, )
 ))
 
 end
-function sign(self::Mudrex, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
-    apiUrls = self.safeDict(self.urls, "api", Dict{Symbol, Any}());
+function sign(self::Mudrex, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+    apiUrls = self.safeDict(self.urls, "api", defaultValue = Dict{Symbol, Any}());
     base = safeString(apiUrls, api);
     if functions.ccxtruthy(base == nothing)
         throw(ExchangeError(string(self.id, " unknown API namespace: ", api)));
@@ -341,10 +341,10 @@ function handleErrors(self::Mudrex, code, reason, url, method, headers, body, re
     if functions.ccxtruthy(@functions.ccxt_or(response == nothing, !isa(response, Dict)))
             return nothing
     end
-    success = self.safeBool(response, "success", true);
+    success = self.safeBool(response, "success", defaultValue = true);
     if functions.ccxtruthy(!functions.ccxtruthy(success))
-        errors = self.safeList(response, "errors", []);
-        first_var = self.safeDict(errors, 0, Dict{Symbol, Any}());
+        errors = self.safeList(response, "errors", defaultValue = []);
+        first_var = self.safeDict(errors, 0, defaultValue = Dict{Symbol, Any}());
         text = safeString(first_var, "text", json(response));
         errCode = safeString(first_var, "code");
         self.throwExactlyMatchedException(get(self.exceptions, Symbol("exact"), nothing), text, string(self.id, " ", text));
@@ -369,11 +369,27 @@ function handleErrors(self::Mudrex, code, reason, url, method, headers, body, re
     return nothing
 
 end
-function parseOHLCV(self::Mudrex, ohlcv, market=nothing)
+function parseOHLCV(self::Mudrex, ohlcv; market=nothing)
     return [safeTimestamp(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCV(self::Mudrex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.trade.mudrex.com/docs/historical-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.price`::string, optional: "mark" to fetch mark price candles
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Mudrex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -416,19 +432,44 @@ function fetchOHLCV(self::Mudrex, symbol, timeframe="1m", since=nothing, limit=n
     else
         response = Base.fetch(self.marketGetPriceKline(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    assetTicks = self.safeDict(data, "asset_ticks", Dict{Symbol, Any}());
-    ohlcvs = self.safeList(assetTicks, lowercase(assetPair), []);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    assetTicks = self.safeDict(data, "asset_ticks", defaultValue = Dict{Symbol, Any}());
+    ohlcvs = self.safeList(assetTicks, lowercase(assetPair), defaultValue = []);
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchMarkOHLCV(self::Mudrex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOHLCV(symbol, timeframe, since, limit, extend(params, Dict{Symbol, Any}(
+"""
+fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchMarkOHLCV(self::Mudrex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOHLCV(symbol, timeframe = timeframe, since = since, limit = limit, params = extend(params, Dict{Symbol, Any}(
     Symbol("price") => "mark"
 ))))
 
 end
-function fetchTicker(self::Mudrex, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+"""
+function fetchTicker(self::Mudrex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -438,18 +479,29 @@ function fetchTicker(self::Mudrex, symbol, params=Dict())
         Symbol("is_symbol") => 1
     );
     response = Base.fetch(self.privateGetFuturesAssetId(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTicker(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(data, market = market)
 
 end
-function fetchTickers(self::Mudrex, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+"""
+function fetchTickers(self::Mudrex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.privateGetFutures(extend(request, params)));
     data = safeValue(response, "data", []);
-    rows = functions.ccxtruthy(functions.ccxt_isArray(data)) ? data : self.safeList(data, "items", []);
+    rows = functions.ccxtruthy(functions.ccxt_isArray(data)) ? data : self.safeList(data, "items", defaultValue = []);
     resultTickers = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
@@ -458,20 +510,20 @@ function fetchTickers(self::Mudrex, symbols=nothing, params=Dict())
         if functions.ccxtruthy(sym == nothing)
             i += 1; continue
         end
-        m = self.safeMarket(sym);
+        m = self.safeMarket(marketId = sym);
         symbol = get(m, Symbol("symbol"), nothing);
         if functions.ccxtruthy(@functions.ccxt_and(symbols != nothing, !functions.ccxtruthy(inArray(symbol, symbols))))
             i += 1; continue
         end
-        resultTickers[Symbol(symbol)] = self.parseTicker(t, m);
+        resultTickers[Symbol(symbol)] = self.parseTicker(t, market = m);
         i += 1
     end
-    return self.filterByArrayTickers(resultTickers, "symbol", symbols)
+    return self.filterByArrayTickers(resultTickers, "symbol", values = symbols)
 
 end
-function parseTicker(self::Mudrex, ticker, market=nothing)
+function parseTicker(self::Mudrex, ticker; market=nothing)
     ms = safeString(ticker, "symbol");
-    market = self.safeMarket(ms, market);
+    market = self.safeMarket(marketId = ms, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     ts = milliseconds();
     pct = self.safeNumber(ticker, "change_perc");
@@ -496,10 +548,20 @@ function parseTicker(self::Mudrex, ticker, market=nothing)
     Symbol("baseVolume") => nothing,
     Symbol("quoteVolume") => self.safeNumber(ticker, "volume"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchMarkets(self::Mudrex, params=Dict())
+"""
+retrieves data on all markets for the exchange
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Mudrex; params=Dict())
     aggregated = [];
     offset = 0;
     pageLimit = 100;
@@ -513,10 +575,10 @@ function fetchMarkets(self::Mudrex, params=Dict())
         data = safeValue(response, "data", []);
         items = [];
         if functions.ccxtruthy(@functions.ccxt_and(isa(data, Dict), !functions.ccxtruthy(functions.ccxt_isArray(data))))
-            items = self.safeList(data, "items", []);
+            items = self.safeList(data, "items", defaultValue = []);
             itemsLength = length(items);
             if functions.ccxtruthy(!functions.ccxtruthy(itemsLength))
-                items = self.safeList(data, "results", []);
+                items = self.safeList(data, "results", defaultValue = []);
                 itemsLength = length(items);
             end
             if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(itemsLength), (ccxt_in("symbol", data))))
@@ -564,7 +626,7 @@ function parseMarket(self::Mudrex, asset)
     end
     priceStep = safeString(asset, "price_step", "0.01");
     qtyStep = safeString(asset, "quantity_step", "0.001");
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => ms,
     Symbol("lowercaseId") => nothing,
     Symbol("symbol") => symbol,
@@ -586,7 +648,7 @@ function parseMarket(self::Mudrex, asset)
     Symbol("inverse") => false,
     Symbol("taker") => self.safeNumber(get(self.fees, Symbol("trading"), nothing), "taker"),
     Symbol("maker") => self.safeNumber(get(self.fees, Symbol("trading"), nothing), "maker"),
-    Symbol("contractSize") => self.safeNumber(asset, "contract_size", 1),
+    Symbol("contractSize") => self.safeNumber(asset, "contract_size", defaultNumber = 1),
     Symbol("expiry") => nothing,
     Symbol("expiryDatetime") => nothing,
     Symbol("strike") => nothing,
@@ -614,12 +676,24 @@ function parseMarket(self::Mudrex, asset)
 ))
 
 end
-function fetchBalance(self::Mudrex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'swap' (default) or 'spot' - which wallet balance to fetch
+- `params.trade_currency`::string, optional: the settlement currency to query the balance for
+
+# Returns
+- a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+"""
+function fetchBalance(self::Mudrex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params, "swap");
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params, defaultValue = "swap");
     requested = safeStringN(params, ["trade_currency", "tradeCurrency", "currency"]);
     params = omit(params, ["trade_currency", "tradeCurrency", "currency"]);
     request = Dict{Symbol, Any}();
@@ -647,7 +721,7 @@ function fetchBalance(self::Mudrex, params=Dict())
 
 end
 function parseBalance(self::Mudrex, response)
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     currency = safeString(response, "currency", "USDT");
     timestamp = milliseconds();
     result = Dict{Symbol, Any}(
@@ -668,7 +742,18 @@ function parseBalance(self::Mudrex, response)
     return self.safeBalance(result)
 
 end
-function fetchLeverage(self::Mudrex, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+"""
+function fetchLeverage(self::Mudrex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -678,7 +763,7 @@ function fetchLeverage(self::Mudrex, symbol, params=Dict())
         Symbol("is_symbol") => 1
     );
     response = Base.fetch(self.privateGetFuturesAssetIdLeverage(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("symbol") => symbol,
@@ -688,7 +773,20 @@ function fetchLeverage(self::Mudrex, symbol, params=Dict())
 )
 
 end
-function setLeverage(self::Mudrex, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginType`::string, optional: 'ISOLATED' (default) or 'CROSSED'
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Mudrex, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol")));
     end
@@ -708,7 +806,32 @@ function setLeverage(self::Mudrex, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function createOrder(self::Mudrex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price to fulfill the order, in units of the quote currency (also required for market orders on this exchange)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::int, optional: leverage for the order, required if setLeverage() was not called beforehand
+- `params.reduceOnly`::bool, optional: true if the order is reduce only
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the trigger price of the take-profit order attached to this order
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the trigger price of the stop-loss order attached to this order
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.takeProfitPrice`::float, optional: the trigger price for a standalone take-profit order on an existing position (requires params.positionId)
+- `params.stopLossPrice`::float, optional: the trigger price for a standalone stop-loss order on an existing position (requires params.positionId)
+- `params.positionId`::string, optional: the id of the position the standalone stopLossPrice/takeProfitPrice order is attached to
+- `params.trade_currency`::string, optional: the settlement currency for the order
+
+# Returns
+- an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+"""
+function createOrder(self::Mudrex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -733,8 +856,8 @@ function createOrder(self::Mudrex, symbol, type_var, side, amount, price=nothing
             riskRequest[Symbol("stoploss_price")] = self.priceToPrecision(symbol, stopLossPrice);
         end
         riskResponse = Base.fetch(self.privatePostFuturesPositionsPositionIdRiskorder(extend(riskRequest, params)));
-        riskData = self.safeDict(riskResponse, "data", riskResponse);
-            return self.parseOrder(riskData, market)
+        riskData = self.safeDict(riskResponse, "data", defaultValue = riskResponse);
+            return self.parseOrder(riskData, market = market)
     end
     lev = safeInteger(params, "leverage", 1);
     if functions.ccxtruthy(@functions.ccxt_and((type_var == "market"), (price == nothing)))
@@ -748,7 +871,7 @@ function createOrder(self::Mudrex, symbol, type_var, side, amount, price=nothing
         Symbol("order_price") => self.priceToPrecision(symbol, price),
         Symbol("order_type") => functions.ccxtruthy((side == "buy")) ? "LONG" : "SHORT",
         Symbol("trigger_type") => functions.ccxtruthy((type_var == "market")) ? "MARKET" : "LIMIT",
-        Symbol("reduce_only") => self.safeBool(params, "reduceOnly", false)
+        Symbol("reduce_only") => self.safeBool(params, "reduceOnly", defaultValue = false)
     );
     takeProfit = self.safeDict(params, "takeProfit");
     stopLoss = self.safeDict(params, "stopLoss");
@@ -762,13 +885,29 @@ function createOrder(self::Mudrex, symbol, type_var, side, amount, price=nothing
     end
     params = omit(params, ["leverage", "reduceOnly", "takeProfit", "stopLoss"]);
     response = Base.fetch(self.privatePostFuturesAssetIdOrder(extend(request, params)));
-    data = self.safeDict(response, "data", response);
+    data = self.safeDict(response, "data", defaultValue = response);
     data[Symbol("order_type")] = get(request, Symbol("order_type"), nothing);
     data[Symbol("trigger_type")] = get(request, Symbol("trigger_type"), nothing);
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function editOrder(self::Mudrex, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+"""
+function editOrder(self::Mudrex, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -786,8 +925,8 @@ function editOrder(self::Mudrex, id, symbol, type_var, side, amount=nothing, pri
         request[Symbol("order_price")] = self.priceToPrecision(symbol, price);
     end
     response = Base.fetch(self.privatePatchFuturesOrdersOrderId(extend(request, params)));
-    data = self.safeDict(response, "data", response);
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = response);
+    return self.parseOrder(data, market = market)
 
 end
 function parseOrderStatus(self::Mudrex, status)
@@ -807,9 +946,9 @@ function parseOrderStatus(self::Mudrex, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Mudrex, order, market=nothing)
+function parseOrder(self::Mudrex, order; market=nothing)
     oms = safeString(order, "symbol");
-    market = self.safeMarket(oms, market);
+    market = self.safeMarket(marketId = oms, market = market);
     oid = safeString2(order, "order_id", "id");
     rawSide = safeStringUpper(order, "order_type");
     side = nothing;
@@ -857,10 +996,22 @@ function parseOrder(self::Mudrex, order, market=nothing)
     Symbol("fees") => [],
     Symbol("lastUpdateTimestamp") => nothing,
     Symbol("reduceOnly") => self.safeBool(order, "reduce_only")
-), market)
+), market = market)
 
 end
-function cancelOrder(self::Mudrex, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+"""
+function cancelOrder(self::Mudrex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -872,11 +1023,23 @@ function cancelOrder(self::Mudrex, id, symbol=nothing, params=Dict())
         Symbol("order_id") => id
     );
     response = Base.fetch(self.privateDeleteFuturesOrdersOrderId(extend(request, params)));
-    data = self.safeDict(response, "data", response);
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = response);
+    return self.parseOrder(data, market = market)
 
 end
-function fetchOrder(self::Mudrex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+"""
+function fetchOrder(self::Mudrex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -888,11 +1051,24 @@ function fetchOrder(self::Mudrex, id, symbol=nothing, params=Dict())
         Symbol("order_id") => id
     );
     response = Base.fetch(self.privateGetFuturesOrdersOrderId(extend(request, params)));
-    data = self.safeDict(response, "data", response);
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = response);
+    return self.parseOrder(data, market = market)
 
 end
-function fetchOrdersByState(self::Mudrex, state, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches a list of orders filtered by their state
+
+# Arguments
+- `state`::string: the state of the orders to fetch
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+"""
+function fetchOrdersByState(self::Mudrex, state; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -916,25 +1092,76 @@ function fetchOrdersByState(self::Mudrex, state, symbol=nothing, since=nothing, 
     orders = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
-        push!(orders, self.parseOrder(get(rows, i + 1, nothing), market));
+        push!(orders, self.parseOrder(get(rows, i + 1, nothing), market = market));
         i += 1
     end
-    return self.filterBySymbolSinceLimit(orders, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(orders, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchOrders(self::Mudrex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByState("closed", symbol, since, limit, params))
+"""
+fetches information on multiple orders made by the user
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+"""
+function fetchOrders(self::Mudrex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByState("closed", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOpenOrders(self::Mudrex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByState("open", symbol, since, limit, params))
+"""
+fetch all unfilled currently open orders
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+"""
+function fetchOpenOrders(self::Mudrex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByState("open", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchClosedOrders(self::Mudrex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByState("closed", symbol, since, limit, params))
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+"""
+function fetchClosedOrders(self::Mudrex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByState("closed", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchPositions(self::Mudrex, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trade_currency`::string, optional: the settlement currency to query positions for
+
+# Returns
+- a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+"""
+function fetchPositions(self::Mudrex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -950,33 +1177,47 @@ function fetchPositions(self::Mudrex, symbols=nothing, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
         p = get(rows, i + 1, nothing);
         symRaw = safeString(p, "symbol");
-        m = self.safeMarket(symRaw);
-        pos = self.parsePosition(p, m);
+        m = self.safeMarket(marketId = symRaw);
+        pos = self.parsePosition(p, market = m);
         push!(outPos, pos);
         i += 1
     end
-    return self.filterByArrayPositions(outPos, "symbol", symbols, false)
+    return self.filterByArrayPositions(outPos, "symbol", values = symbols, indexed = false)
 
 end
-function fetchPositionsHistory(self::Mudrex, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches the history of closed positions
+see: https://docs.trade.mudrex.com/docs/get-position-history
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum number of position structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trade_currency`::string, optional: the settlement currency to filter positions by
+
+# Returns
+- a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+"""
+function fetchPositionsHistory(self::Mudrex; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetFuturesPositionsHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    positions = self.parsePositions(data, symbols);
-    return self.filterBySinceLimit(positions, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    positions = self.parsePositions(data, symbols = symbols);
+    return self.filterBySinceLimit(positions, since = since, limit = limit)
 
 end
-function parsePosition(self::Mudrex, position, market=nothing)
-    market = self.safeMarket(nothing, market);
+function parsePosition(self::Mudrex, position; market=nothing)
+    market = self.safeMarket(marketId = nothing, market = market);
     ms = safeString(position, "symbol");
-    symbol = self.safeSymbol(ms, market);
+    symbol = self.safeSymbol(ms, market = market);
     rawSide = safeStringUpper2(position, "order_type", "position_type");
     side = nothing;
     if functions.ccxtruthy(rawSide == "LONG")
@@ -1025,7 +1266,21 @@ function parsePosition(self::Mudrex, position, market=nothing)
 )
 
 end
-function closePosition(self::Mudrex, symbol, side=nothing, params=Dict())
+"""
+closes an open position for a market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `side`::string, optional: 'buy' or 'sell', not required by mudrex
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.position_id`::string, optional: the id of the position to close, resolved from the symbol if not provided
+- `params.amount`::float, optional: the amount to close for a partial close, closes the whole position if not provided
+
+# Returns
+- an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+"""
+function closePosition(self::Mudrex, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1033,7 +1288,7 @@ function closePosition(self::Mudrex, symbol, side=nothing, params=Dict())
     amount = safeValue(params, "amount");
     if functions.ccxtruthy(positionId == nothing)
         market = self.market(symbol);
-        positions = Base.fetch(self.fetchPositions([symbol], params));
+        positions = Base.fetch(self.fetchPositions(symbols = [symbol], params = params));
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
             p = get(positions, i + 1, nothing);
@@ -1071,13 +1326,26 @@ function closePosition(self::Mudrex, symbol, side=nothing, params=Dict())
     return response
 
 end
-function addMargin(self::Mudrex, symbol, amount, params=Dict())
+"""
+add margin to a position
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.position_id`::string, optional: the id of the position to add margin to, resolved from the symbol if not provided
+
+# Returns
+- a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+"""
+function addMargin(self::Mudrex, symbol, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     positionId = safeString(params, "position_id");
     if functions.ccxtruthy(positionId == nothing)
-        positions = Base.fetch(self.fetchPositions([symbol], params));
+        positions = Base.fetch(self.fetchPositions(symbols = [symbol], params = params));
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
             p = get(positions, i + 1, nothing);
@@ -1101,11 +1369,37 @@ function addMargin(self::Mudrex, symbol, amount, params=Dict())
     return response
 
 end
-function reduceMargin(self::Mudrex, symbol, amount, params=Dict())
-    return Base.fetch(self.addMargin(symbol, -amount, params))
+"""
+remove margin from a position
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+"""
+function reduceMargin(self::Mudrex, symbol, amount; params=Dict())
+    return Base.fetch(self.addMargin(symbol, -amount, params = params))
 
 end
-function fetchMyTrades(self::Mudrex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trade_currency`::string, optional: the settlement currency to filter trades by
+
+# Returns
+- a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+"""
+function fetchMyTrades(self::Mudrex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1120,12 +1414,12 @@ function fetchMyTrades(self::Mudrex, symbol=nothing, since=nothing, limit=nothin
     response = Base.fetch(self.privateGetFuturesFeeHistory(extend(request, params)));
     data = safeValue(response, "data", []);
     rows = toArray(data);
-    return self.parseTrades(rows, market, since, limit)
+    return self.parseTrades(rows, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Mudrex, trade, market=nothing)
+function parseTrade(self::Mudrex, trade; market=nothing)
     ms = safeString(trade, "symbol");
-    market = self.safeMarket(ms, market);
+    market = self.safeMarket(marketId = ms, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     ts = self.parse8601(safeString(trade, "created_at"));
     if functions.ccxtruthy(ts == nothing)
@@ -1167,10 +1461,24 @@ function parseTrade(self::Mudrex, trade, market=nothing)
     Symbol("amount") => self.safeNumber2(trade, "size", "quantity"),
     Symbol("cost") => self.safeNumber(trade, "transaction_amount"),
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function transfer(self::Mudrex, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'spot' or 'futures'
+- `toAccount`::string: 'spot' or 'futures'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+"""
+function transfer(self::Mudrex, code, amount, fromAccount, toAccount; params=Dict())
     mp = Dict{Symbol, Any}(
         Symbol("spot") => "SPOT",
         Symbol("SPOT") => "SPOT",
@@ -1200,7 +1508,7 @@ function transfer(self::Mudrex, code, amount, fromAccount, toAccount, params=Dic
     else
         response = Base.fetch(self.privatePostWalletFuturesTransfer(extend(body, params)));
     end
-    data = self.safeDict(response, "data", response);
+    data = self.safeDict(response, "data", defaultValue = response);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("id") => safeString(data, "id"),
@@ -1221,107 +1529,107 @@ Base.getproperty(self::Mudrex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function marketGetPriceKline(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "price/kline", "market", "GET", params, nothing, nothing, Dict())
+    return request(self, "price/kline"; api="market", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function marketGetPriceMarkKline(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "price/mark-kline", "market", "GET", params, nothing, nothing, Dict())
+    return request(self, "price/mark-kline"; api="market", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFutures(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFuturesAssetId(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/{asset_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/{asset_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWalletFunds(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "wallet/funds", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "wallet/funds"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFuturesFunds(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/funds", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/funds"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFuturesOrders(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFuturesOrdersHistory(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/orders/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/orders/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFuturesOrdersOrderId(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/orders/{order_id}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/orders/{order_id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFuturesPositions(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFuturesPositionsHistory(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/positions/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFuturesFeeHistory(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/fee/history", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/fee/history"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFuturesAssetIdLeverage(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/{asset_id}/leverage", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/{asset_id}/leverage"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFuturesPositionsPositionIdLiqPrice(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/liq-price", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/positions/{position_id}/liq-price"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWalletFuturesTransfer(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "wallet/futures/transfer", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "wallet/futures/transfer"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFuturesTransfersInr(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/transfers/inr", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/transfers/inr"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFuturesAssetIdOrder(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/{asset_id}/order", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/{asset_id}/order"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFuturesPositionsPositionIdClose(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/close", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/positions/{position_id}/close"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFuturesPositionsPositionIdClosePartial(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/close/partial", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/positions/{position_id}/close/partial"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFuturesPositionsPositionIdReverse(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/reverse", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/positions/{position_id}/reverse"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFuturesPositionsPositionIdAddMargin(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/add-margin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/positions/{position_id}/add-margin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFuturesPositionsPositionIdRiskorder(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/riskorder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/positions/{position_id}/riskorder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFuturesAssetIdLeverage(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/{asset_id}/leverage", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/{asset_id}/leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePatchFuturesOrdersOrderId(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/orders/{order_id}", "private", "PATCH", params, nothing, nothing, Dict())
+    return request(self, "futures/orders/{order_id}"; api="private", method="PATCH", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePatchFuturesPositionsPositionIdRiskorder(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/riskorder", "private", "PATCH", params, nothing, nothing, Dict())
+    return request(self, "futures/positions/{position_id}/riskorder"; api="private", method="PATCH", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteFuturesOrdersOrderId(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/orders/{order_id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "futures/orders/{order_id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Mudrex(; kwargs...)
@@ -1385,3 +1693,382 @@ function Mudrex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Mudrex_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.trade.mudrex.com/docs/historical-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.price`::string, optional: "mark" to fetch mark price candles
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Mudrex_fetchOHLCV
+
+function __ccxt_doc_Mudrex_fetchMarkOHLCV() end
+"""
+fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Mudrex_fetchMarkOHLCV
+
+function __ccxt_doc_Mudrex_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+"""
+__ccxt_doc_Mudrex_fetchTicker
+
+function __ccxt_doc_Mudrex_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+"""
+__ccxt_doc_Mudrex_fetchTickers
+
+function __ccxt_doc_Mudrex_fetchMarkets() end
+"""
+retrieves data on all markets for the exchange
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Mudrex_fetchMarkets
+
+function __ccxt_doc_Mudrex_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'swap' (default) or 'spot' - which wallet balance to fetch
+- `params.trade_currency`::string, optional: the settlement currency to query the balance for
+
+# Returns
+- a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+"""
+__ccxt_doc_Mudrex_fetchBalance
+
+function __ccxt_doc_Mudrex_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+"""
+__ccxt_doc_Mudrex_fetchLeverage
+
+function __ccxt_doc_Mudrex_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginType`::string, optional: 'ISOLATED' (default) or 'CROSSED'
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Mudrex_setLeverage
+
+function __ccxt_doc_Mudrex_createOrder() end
+"""
+create a trade order
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price to fulfill the order, in units of the quote currency (also required for market orders on this exchange)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::int, optional: leverage for the order, required if setLeverage() was not called beforehand
+- `params.reduceOnly`::bool, optional: true if the order is reduce only
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the trigger price of the take-profit order attached to this order
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the trigger price of the stop-loss order attached to this order
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.takeProfitPrice`::float, optional: the trigger price for a standalone take-profit order on an existing position (requires params.positionId)
+- `params.stopLossPrice`::float, optional: the trigger price for a standalone stop-loss order on an existing position (requires params.positionId)
+- `params.positionId`::string, optional: the id of the position the standalone stopLossPrice/takeProfitPrice order is attached to
+- `params.trade_currency`::string, optional: the settlement currency for the order
+
+# Returns
+- an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+"""
+__ccxt_doc_Mudrex_createOrder
+
+function __ccxt_doc_Mudrex_editOrder() end
+"""
+edit a trade order
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to edit an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float, optional: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+"""
+__ccxt_doc_Mudrex_editOrder
+
+function __ccxt_doc_Mudrex_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+"""
+__ccxt_doc_Mudrex_cancelOrder
+
+function __ccxt_doc_Mudrex_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string, optional: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+"""
+__ccxt_doc_Mudrex_fetchOrder
+
+function __ccxt_doc_Mudrex_fetchOrdersByState() end
+"""
+fetches a list of orders filtered by their state
+
+# Arguments
+- `state`::string: the state of the orders to fetch
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+"""
+__ccxt_doc_Mudrex_fetchOrdersByState
+
+function __ccxt_doc_Mudrex_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+"""
+__ccxt_doc_Mudrex_fetchOrders
+
+function __ccxt_doc_Mudrex_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+"""
+__ccxt_doc_Mudrex_fetchOpenOrders
+
+function __ccxt_doc_Mudrex_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+"""
+__ccxt_doc_Mudrex_fetchClosedOrders
+
+function __ccxt_doc_Mudrex_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trade_currency`::string, optional: the settlement currency to query positions for
+
+# Returns
+- a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+"""
+__ccxt_doc_Mudrex_fetchPositions
+
+function __ccxt_doc_Mudrex_fetchPositionsHistory() end
+"""
+fetches the history of closed positions
+see: https://docs.trade.mudrex.com/docs/get-position-history
+
+# Arguments
+- `symbols`::array, optional: a list of unified market symbols
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum number of position structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trade_currency`::string, optional: the settlement currency to filter positions by
+
+# Returns
+- a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+"""
+__ccxt_doc_Mudrex_fetchPositionsHistory
+
+function __ccxt_doc_Mudrex_closePosition() end
+"""
+closes an open position for a market
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `side`::string, optional: 'buy' or 'sell', not required by mudrex
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.position_id`::string, optional: the id of the position to close, resolved from the symbol if not provided
+- `params.amount`::float, optional: the amount to close for a partial close, closes the whole position if not provided
+
+# Returns
+- an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+"""
+__ccxt_doc_Mudrex_closePosition
+
+function __ccxt_doc_Mudrex_addMargin() end
+"""
+add margin to a position
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.position_id`::string, optional: the id of the position to add margin to, resolved from the symbol if not provided
+
+# Returns
+- a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+"""
+__ccxt_doc_Mudrex_addMargin
+
+function __ccxt_doc_Mudrex_reduceMargin() end
+"""
+remove margin from a position
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+"""
+__ccxt_doc_Mudrex_reduceMargin
+
+function __ccxt_doc_Mudrex_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trade_currency`::string, optional: the settlement currency to filter trades by
+
+# Returns
+- a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+"""
+__ccxt_doc_Mudrex_fetchMyTrades
+
+function __ccxt_doc_Mudrex_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.trade.mudrex.com/docs
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: 'spot' or 'futures'
+- `toAccount`::string: 'spot' or 'futures'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+"""
+__ccxt_doc_Mudrex_transfer

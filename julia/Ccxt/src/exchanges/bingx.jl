@@ -1433,22 +1433,42 @@ function describe(self::Bingx, )
 ))
 
 end
-function fetchTime(self::Bingx, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the bingx server
+see: https://bingx-api.github.io/docs/#/swapV2/base-info.html#Get%20Server%20Time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the bingx server
+"""
+function fetchTime(self::Bingx; params=Dict())
     response = Base.fetch(self.swapV2PublicGetServerTime(params));
     data = self.safeDict(response, "data");
     return safeInteger(data, "serverTime")
 
 end
-function fetchCurrencies(self::Bingx, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(false)))
+"""
+fetches all available currencies on an exchange
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bingx; params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(self.checkRequiredCredentials(error = false)))
             return Dict{Symbol, Any}()
     end
-    isSandbox = self.safeBool(self.options, "sandboxMode", false);
+    isSandbox = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     if functions.ccxtruthy(isSandbox)
             return Dict{Symbol, Any}()
     end
     response = Base.fetch(self.walletsV1PrivateGetCapitalConfigGetall(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseCurrencies(data)
 
 end
@@ -1462,7 +1482,7 @@ function parseCurrency(self::Bingx, rawCurrency)
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkList)))
         rawNetwork = get(networkList, j + 1, nothing);
         network = safeString(rawNetwork, "network");
-        networkCode = self.networkIdToCode(network, code);
+        networkCode = self.networkIdToCode(networkId = network, currencyCode = code);
         limits = Dict{Symbol, Any}(
             Symbol("withdraw") => Dict{Symbol, Any}(
                 Symbol("min") => self.safeNumber(rawNetwork, "withdrawMin"),
@@ -1473,7 +1493,7 @@ function parseCurrency(self::Bingx, rawCurrency)
                 Symbol("max") => nothing
             )
         );
-        precision = self.parseNumber(self.parsePrecision(safeString(rawNetwork, "withdrawPrecision")));
+        precision = self.parseNumber(self.parsePrecision(precision = safeString(rawNetwork, "withdrawPrecision")));
         if functions.ccxtruthy(networkCode != nothing)
             networks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("info") => rawNetwork,
@@ -1508,19 +1528,19 @@ end
 function fetchSpotMarkets(self::Bingx, params)
     response = Base.fetch(self.spotV1PublicGetCommonSymbols(params));
     data = self.safeDict(response, "data");
-    markets = self.safeList(data, "symbols", []);
+    markets = self.safeList(data, "symbols", defaultValue = []);
     return self.parseMarkets(markets)
 
 end
 function fetchSwapMarkets(self::Bingx, params)
     response = Base.fetch(self.swapV2PublicGetQuoteContracts(params));
-    markets = self.safeList(response, "data", []);
+    markets = self.safeList(response, "data", defaultValue = []);
     return self.parseMarkets(markets)
 
 end
 function fetchInverseSwapMarkets(self::Bingx, params)
     response = Base.fetch(self.cswapV1PublicGetMarketContracts(params));
-    markets = self.safeList(response, "data", []);
+    markets = self.safeList(response, "data", defaultValue = []);
     return self.parseMarkets(markets)
 
 end
@@ -1543,11 +1563,11 @@ function parseMarket(self::Bingx, market)
     settle = self.safeCurrencyCode(currency);
     pricePrecision = self.safeNumber(market, "tickSize");
     if functions.ccxtruthy(pricePrecision == nothing)
-        pricePrecision = self.parseNumber(self.parsePrecision(safeString(market, "pricePrecision")));
+        pricePrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "pricePrecision")));
     end
     quantityPrecision = self.safeNumber(market, "stepSize");
     if functions.ccxtruthy(quantityPrecision == nothing)
-        quantityPrecision = self.parseNumber(self.parsePrecision(safeString(market, "quantityPrecision")));
+        quantityPrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "quantityPrecision")));
     end
     type_var = functions.ccxtruthy((settle != nothing)) ? "swap" : "spot";
     spot = type_var == "spot";
@@ -1556,7 +1576,7 @@ function parseMarket(self::Bingx, market)
     if functions.ccxtruthy(settle != nothing)
         symbol += string(":", settle);
     end
-    fees = self.safeDict(self.fees, type_var, Dict{Symbol, Any}());
+    fees = self.safeDict(self.fees, type_var, defaultValue = Dict{Symbol, Any}());
     contractSize = functions.ccxtruthy((swap)) ? self.parseNumber("1") : nothing;
     isActive = false;
     if functions.ccxtruthy(@functions.ccxt_and((safeString(market, "apiStateOpen") == "true"), (safeString(market, "apiStateClose") == "true")))
@@ -1574,7 +1594,7 @@ function parseMarket(self::Bingx, market)
     if functions.ccxtruthy(timeOnline == 0)
         timeOnline = nothing;
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -1628,29 +1648,60 @@ function parseMarket(self::Bingx, market)
 ))
 
 end
-function fetchMarkets(self::Bingx, params=Dict())
+"""
+retrieves data on all markets for bingx
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Spot%20trading%20symbols
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/USDT-M%20Perp%20Futures%20symbols
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Contract%20Information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bingx; params=Dict())
     requests = [self.fetchSwapMarkets(params)];
-    isSandbox = self.safeBool(self.options, "sandboxMode", false);
+    isSandbox = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     if functions.ccxtruthy(!functions.ccxtruthy(isSandbox))
                 push!(requests, self.fetchInverseSwapMarkets(params));
                 push!(requests, self.fetchSpotMarkets(params));
     end
     promises = Base.fetch(asyncmap(Base.fetch, requests));
-    linearSwapMarkets = self.safeList(promises, 0, []);
-    inverseSwapMarkets = self.safeList(promises, 1, []);
-    spotMarkets = self.safeList(promises, 2, []);
+    linearSwapMarkets = self.safeList(promises, 0, defaultValue = []);
+    inverseSwapMarkets = self.safeList(promises, 1, defaultValue = []);
+    spotMarkets = self.safeList(promises, 2, defaultValue = []);
     swapMarkets = arrayConcat(linearSwapMarkets, inverseSwapMarkets);
     return arrayConcat(spotMarkets, swapMarkets)
 
 end
-function fetchOHLCV(self::Bingx, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Kline%2FCandlestick%20Data
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Kline%2FCandlestick%20Data
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20Kline%2FCandlestick%20Data
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20K-line%20Data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bingx, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = 1440))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1670,7 +1721,7 @@ function fetchOHLCV(self::Bingx, symbol, timeframe="1m", since=nothing, limit=no
     end
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         timeZone = nothing;
-        (timeZone, params) = self.handleOptionAndParams(params, "fetchOHLCV", "timeZone", 0);
+        (timeZone, params) = self.handleOptionAndParams(params, "fetchOHLCV", "timeZone", defaultValue = 0);
         if functions.ccxtruthy(timeZone != nothing)
             request[Symbol("timeZone")] = timeZone;
         end
@@ -1692,17 +1743,31 @@ function fetchOHLCV(self::Bingx, symbol, timeframe="1m", since=nothing, limit=no
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(ohlcvs)))
         ohlcvs = [ohlcvs];
     end
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Bingx, ohlcv, market=nothing)
+function parseOHLCV(self::Bingx, ohlcv; market=nothing)
     if functions.ccxtruthy(functions.ccxt_isArray(ohlcv))
             return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
     end
     return [safeInteger2(ohlcv, "time", "closeTime"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchTrades(self::Bingx, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Recent%20Trades%20List
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Recent%20Trades%20List
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bingx, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1714,17 +1779,17 @@ function fetchTrades(self::Bingx, symbol, since=nothing, limit=nothing, params=D
         request[Symbol("limit")] = min(limit, 100);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTrades", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTrades", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.spotV1PublicGetMarketTrades(extend(request, params)));
     else
         response = Base.fetch(self.swapV2PublicGetQuoteTrades(extend(request, params)));
     end
-    trades = self.safeList(response, "data", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Bingx, trade, market=nothing)
+function parseTrade(self::Bingx, trade; market=nothing)
     time = safeIntegerN(trade, ["time", "filledTm", "T", "tradeTime"]);
     datetimeId = safeString(trade, "filledTm");
     if functions.ccxtruthy(datetimeId != nothing)
@@ -1773,7 +1838,7 @@ function parseTrade(self::Bingx, trade, market=nothing)
     Symbol("info") => trade,
     Symbol("timestamp") => time,
     Symbol("datetime") => self.iso8601(time),
-    Symbol("symbol") => self.safeSymbol(marketId, market, "-"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = "-"),
     Symbol("order") => safeString2(trade, "orderId", "i"),
     Symbol("type") => safeStringLower(trade, "o"),
     Symbol("side") => self.parseOrderSide(side),
@@ -1785,10 +1850,24 @@ function parseTrade(self::Bingx, trade, market=nothing)
         Symbol("cost") => self.parseNumber(stringAbs(safeString2(trade, "commission", "n"))),
         Symbol("currency") => currencyCode
     )
-), market)
+), market = market)
 
 end
-function fetchOrderBook(self::Bingx, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Order%20Book
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Order%20Book
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%20Depth%20Data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bingx, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1800,7 +1879,7 @@ function fetchOrderBook(self::Bingx, symbol, limit=nothing, params=Dict())
         request[Symbol("limit")] = limit;
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrderBook", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOrderBook", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.spotV1PublicGetMarketDepth(extend(request, params)));
     else
@@ -1810,15 +1889,27 @@ function fetchOrderBook(self::Bingx, symbol, limit=nothing, params=Dict())
             response = Base.fetch(self.swapV2PublicGetQuoteDepth(extend(request, params)));
         end
     end
-    orderbook = self.safeDict(response, "data", Dict{Symbol, Any}());
+    orderbook = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     nonce = safeInteger(orderbook, "lastUpdateId");
     timestamp = safeInteger2(orderbook, "T", "ts");
-    result = self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", 0, 1);
+    result = self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = 0, amountKey = 1);
     result[Symbol("nonce")] = nonce;
     return result
 
 end
-function fetchFundingRate(self::Bingx, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Bingx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1832,32 +1923,45 @@ function fetchFundingRate(self::Bingx, symbol, params=Dict())
         response = Base.fetch(self.swapV2PublicGetQuotePremiumIndex(extend(request, params)));
     end
     data = self.safeDict(response, "data");
-    return self.parseFundingRate(data, market)
+    return self.parseFundingRate(data, market = market)
 
 end
-function fetchFundingRates(self::Bingx, symbols=nothing, params=Dict())
+"""
+fetch the current funding rate for multiple symbols
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse" (default is linear)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRates(self::Bingx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols, "swap", true, true, true);
-    firstMarket = self.getMarketFromSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols, type_var = "swap", allowEmpty = true, sameTypeOnly = true, sameSubTypeOnly = true);
+    firstMarket = self.getMarketFromSymbols(symbols = symbols);
     subType = "linear";
-    (subType, params) = self.handleSubTypeAndParams("fetchFundingRates", firstMarket, params, subType);
+    (subType, params) = self.handleSubTypeAndParams("fetchFundingRates", market = firstMarket, params = params, defaultValue = subType);
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.cswapV1PublicGetMarketPremiumIndex(params));
     else
         response = Base.fetch(self.swapV2PublicGetQuotePremiumIndex(params));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseFundingRates(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseFundingRates(data, symbols = symbols)
 
 end
-function parseFundingRate(self::Bingx, contract, market=nothing)
+function parseFundingRate(self::Bingx, contract; market=nothing)
     marketId = safeString(contract, "symbol");
     nextFundingTimestamp = safeInteger(contract, "nextFundingTime");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market, "-", "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = "-", marketType = "swap"),
     Symbol("markPrice") => self.safeNumber(contract, "markPrice"),
     Symbol("indexPrice") => self.safeNumber(contract, "indexPrice"),
     Symbol("interestRate") => nothing,
@@ -1877,7 +1981,22 @@ function parseFundingRate(self::Bingx, contract, market=nothing)
 )
 
 end
-function fetchFundingRateHistory(self::Bingx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Bingx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -1887,7 +2006,7 @@ function fetchFundingRateHistory(self::Bingx, symbol=nothing, since=nothing, lim
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1905,29 +2024,43 @@ function fetchFundingRateHistory(self::Bingx, symbol=nothing, since=nothing, lim
         request[Symbol("startTime")] = until;
     end
     response = Base.fetch(self.swapV2PublicGetQuoteFundingRate(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseFundingRateHistories(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseFundingRateHistories(data, market = market, since = since, limit = limit)
 
 end
-function parseFundingRateHistory(self::Bingx, contract, market=nothing)
+function parseFundingRateHistory(self::Bingx, contract; market=nothing)
     timestamp = safeInteger(contract, "fundingTime");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(safeString(contract, "symbol"), market, "-", "swap"),
+    Symbol("symbol") => self.safeSymbol(safeString(contract, "symbol"), market = market, delimiter = "-", marketType = "swap"),
     Symbol("fundingRate") => self.safeNumber(contract, "fundingRate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 )
 
 end
-function fetchFundingHistory(self::Bingx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding received
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding history for
+- `since`::int, optional: timestamp in ms of the earliest funding to fetch
+- `limit`::int, optional: the maximum amount of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding to fetch
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Bingx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingHistory", symbol, since, limit, "24h", params))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingHistory", symbol = symbol, since = since, limit = limit, timeframe = "24h", params = params))
     end
     request = Dict{Symbol, Any}(
         Symbol("incomeType") => "FUNDING_FEE"
@@ -1949,17 +2082,17 @@ function fetchFundingHistory(self::Bingx, symbol=nothing, since=nothing, limit=n
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.swapV2PrivateGetUserIncome(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseIncomes(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseIncomes(data, market = market, since = since, limit = limit)
 
 end
-function parseIncome(self::Bingx, income, market=nothing)
+function parseIncome(self::Bingx, income; market=nothing)
     marketId = safeString(income, "symbol");
     currencyId = safeString(income, "asset");
     timestamp = safeInteger(income, "time");
     return Dict{Symbol, Any}(
     Symbol("info") => income,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("code") => self.safeCurrencyCode(currencyId),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -1969,7 +2102,19 @@ function parseIncome(self::Bingx, income, market=nothing)
 )
 
 end
-function fetchOpenInterest(self::Bingx, symbol, params=Dict())
+"""
+retrieves the open interest of a trading pair
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Open%20Interest%20Statistics
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20Swap%20Open%20Positions
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Bingx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1984,18 +2129,18 @@ function fetchOpenInterest(self::Bingx, symbol, params=Dict())
     end
     result = Dict{Symbol, Any}();
     if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-        data = self.safeList(response, "data", []);
-        result = self.safeDict(data, 0, Dict{Symbol, Any}());
+        data = self.safeList(response, "data", defaultValue = []);
+        result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
     else
-        result = self.safeDict(response, "data", Dict{Symbol, Any}());
+        result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     end
-    return self.parseOpenInterest(result, market)
+    return self.parseOpenInterest(result, market = market)
 
 end
-function parseOpenInterest(self::Bingx, interest, market=nothing)
+function parseOpenInterest(self::Bingx, interest; market=nothing)
     timestamp = safeInteger2(interest, "time", "timestamp");
     id = safeString(interest, "symbol");
-    symbol = self.safeSymbol(id, market, "-", "swap");
+    symbol = self.safeSymbol(id, market = market, delimiter = "-", marketType = "swap");
     openInterest = self.safeNumber(interest, "openInterest");
     return self.safeOpenInterest(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -2006,10 +2151,23 @@ function parseOpenInterest(self::Bingx, interest, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bingx, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bingx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2028,29 +2186,42 @@ function fetchTicker(self::Bingx, symbol, params=Dict())
     end
     data = self.safeList(response, "data");
     if functions.ccxtruthy(data != nothing)
-        first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-            return self.parseTicker(first_var, market)
+        first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+            return self.parseTicker(first_var, market = market)
     end
-    dataDict = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTicker(dataDict, market)
+    dataDict = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(dataDict, market = market)
 
 end
-function fetchTickers(self::Bingx, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bingx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
-        symbols = self.marketSymbols(symbols);
+        symbols = self.marketSymbols(symbols = symbols);
         firstSymbol = safeString(symbols, 0);
         if functions.ccxtruthy(firstSymbol != nothing)
             market = self.market(firstSymbol);
         end
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchTickers", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchTickers", market = market, params = params);
     if functions.ccxtruthy(type_var == "spot")
         response = Base.fetch(self.spotV1PublicGetTicker24hr(params));
     else
@@ -2061,16 +2232,28 @@ function fetchTickers(self::Bingx, symbols=nothing, params=Dict())
         end
     end
     tickers = self.safeList(response, "data");
-    return self.parseTickers(tickers, symbols)
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function fetchMarkPrice(self::Bingx, symbol, params=Dict())
+"""
+fetches mark prices for the market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrice(self::Bingx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMarkPrice", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchMarkPrice", market = market, params = params, defaultValue = "linear");
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
@@ -2080,39 +2263,51 @@ function fetchMarkPrice(self::Bingx, symbol, params=Dict())
         response = Base.fetch(self.swapV2PublicGetQuotePremiumIndex(extend(request, params)));
     end
     if functions.ccxtruthy(functions.ccxt_isArray(get(response, Symbol("data"), nothing)))
-            return self.parseTicker(self.safeDict(get(response, Symbol("data"), nothing), 0, Dict{Symbol, Any}()), market)
+            return self.parseTicker(self.safeDict(get(response, Symbol("data"), nothing), 0, defaultValue = Dict{Symbol, Any}()), market = market)
     end
-    return self.parseTicker(get(response, Symbol("data"), nothing), market)
+    return self.parseTicker(get(response, Symbol("data"), nothing), market = market)
 
 end
-function fetchMarkPrices(self::Bingx, symbols=nothing, params=Dict())
+"""
+fetches mark prices for multiple markets
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrices(self::Bingx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
-        symbols = self.marketSymbols(symbols);
+        symbols = self.marketSymbols(symbols = symbols);
         firstSymbol = safeString(symbols, 0);
         if functions.ccxtruthy(firstSymbol != nothing)
             market = self.market(firstSymbol);
         end
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMarkPrices", market, params, "linear");
+    (subType, params) = self.handleSubTypeAndParams("fetchMarkPrices", market = market, params = params, defaultValue = "linear");
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.cswapV1PublicGetMarketPremiumIndex(params));
     else
         response = Base.fetch(self.swapV2PublicGetQuotePremiumIndex(params));
     end
     tickers = self.safeList(response, "data");
-    return self.parseTickers(tickers, symbols)
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
-function parseTicker(self::Bingx, ticker, market=nothing)
+function parseTicker(self::Bingx, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
     lastQty = safeString(ticker, "lastQty");
     type_var = functions.ccxtruthy((lastQty == nothing)) ? "spot" : "swap";
-    market = self.safeMarket(marketId, market, nothing, type_var);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = type_var);
     symbol = get(market, Symbol("symbol"), nothing);
     open = safeString(ticker, "openPrice");
     high = safeString(ticker, "highPrice");
@@ -2157,18 +2352,33 @@ function parseTicker(self::Bingx, ticker, market=nothing)
     Symbol("markPrice") => safeString(ticker, "markPrice"),
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchBalance(self::Bingx, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Account%20Endpoints/Query%20Assets
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20account%20data
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Account%20Assets
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Query%20Assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.standard`::bool, optional: whether to fetch standard contract balances
+- `params.type`::string, optional: the type of balance to fetch (spot, swap, method = funding) default is `spot`
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bingx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     standard = nothing;
-    (standard, params) = self.handleOptionAndParams(params, "fetchBalance", "standard", false);
+    (standard, params) = self.handleOptionAndParams(params, "fetchBalance", "standard", defaultValue = false);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchBalance", nothing, params);
-    (marketType, marketTypeQuery) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchBalance", market = nothing, params = params);
+    (marketType, marketTypeQuery) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     if functions.ccxtruthy(standard)
         response = Base.fetch(self.contractV1PrivateGetBalance(marketTypeQuery));
     elseif functions.ccxtruthy(@functions.ccxt_or((marketType == "funding"), (marketType == "fund")))
@@ -2195,8 +2405,8 @@ function parseBalance(self::Bingx, response)
     contractBalances = self.safeList(response, "data");
     firstContractBalances = self.safeDict(contractBalances, 0);
     isContract = firstContractBalances != nothing;
-    spotData = self.safeDict(response, "data", Dict{Symbol, Any}());
-    spotBalances = self.safeList2(spotData, "balances", "assets", []);
+    spotData = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    spotBalances = self.safeList2(spotData, "balances", "assets", defaultValue = []);
     if functions.ccxtruthy(isContract)
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(contractBalances)))
@@ -2234,7 +2444,21 @@ function parseBalance(self::Bingx, response)
     return self.safeBalance(result)
 
 end
-function fetchPositionHistory(self::Bingx, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Position%20History
+
+# Arguments
+- `symbol`::string: unified contract symbol
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum amount of records to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch positions for
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionHistory(self::Bingx, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2254,43 +2478,69 @@ function fetchPositionHistory(self::Bingx, symbol, since=nothing, limit=nothing,
     else
         throw(NotSupported(string(self.id, " fetchPositionHistory() is not supported for inverse swap positions")));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    records = self.safeList(data, "positionHistory", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    records = self.safeList(data, "positionHistory", defaultValue = []);
     positions = self.parsePositions(records);
-    return self.filterBySymbolSinceLimit(positions, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(positions, symbol = symbol, since = since, limit = limit)
 
 end
-function fetchPositions(self::Bingx, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data
+see: https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.standard`::bool, optional: whether to fetch standard contract positions
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Bingx; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     standard = nothing;
-    (standard, params) = self.handleOptionAndParams(params, "fetchPositions", "standard", false);
+    (standard, params) = self.handleOptionAndParams(params, "fetchPositions", "standard", defaultValue = false);
     if functions.ccxtruthy(standard)
         response = Base.fetch(self.contractV1PrivateGetAllPosition(params));
     else
         market = nothing;
         if functions.ccxtruthy(symbols != nothing)
-            symbols = self.marketSymbols(symbols);
+            symbols = self.marketSymbols(symbols = symbols);
             firstSymbol = safeString(symbols, 0);
             if functions.ccxtruthy(firstSymbol != nothing)
                 market = self.market(firstSymbol);
             end
         end
         subType = nothing;
-        (subType, params) = self.handleSubTypeAndParams("fetchPositions", market, params);
+        (subType, params) = self.handleSubTypeAndParams("fetchPositions", market = market, params = params);
         if functions.ccxtruthy(subType == "inverse")
             response = Base.fetch(self.cswapV1PrivateGetUserPositions(params));
         else
             response = Base.fetch(self.swapV2PrivateGetUserPositions(params));
         end
     end
-    positions = self.safeList(response, "data", []);
-    return self.parsePositions(positions, symbols)
+    positions = self.safeList(response, "data", defaultValue = []);
+    return self.parsePositions(positions, symbols = symbols)
 
 end
-function fetchPosition(self::Bingx, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Bingx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2306,12 +2556,12 @@ function fetchPosition(self::Bingx, symbol, params=Dict())
     else
         response = Base.fetch(self.swapV2PrivateGetUserPositions(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parsePosition(first_var, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parsePosition(first_var, market = market)
 
 end
-function parsePosition(self::Bingx, position, market=nothing)
+function parsePosition(self::Bingx, position; market=nothing)
     marketId = safeString(position, "symbol", "");
     marketId = replace(marketId, "/" => "-");
     isolated = self.safeBool(position, "isolated");
@@ -2323,7 +2573,7 @@ function parsePosition(self::Bingx, position, market=nothing)
     return self.safePosition(Dict{Symbol, Any}(
     Symbol("info") => position,
     Symbol("id") => safeString(position, "positionId"),
-    Symbol("symbol") => self.safeSymbol(marketId, market, "-", "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = "-", marketType = "swap"),
     Symbol("notional") => self.safeNumber(position, "positionValue"),
     Symbol("marginMode") => marginMode,
     Symbol("liquidationPrice") => nothing,
@@ -2352,22 +2602,56 @@ function parsePosition(self::Bingx, position, market=nothing)
 ))
 
 end
-function createMarketOrderWithCost(self::Bingx, symbol, side, cost, params=Dict())
+"""
+create a market order by providing the symbol, side and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketOrderWithCost(self::Bingx, symbol, side, cost; params=Dict())
     params[Symbol("quoteOrderQty")] = cost;
-    return Base.fetch(self.createOrder(symbol, "market", side, cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", side, cost, price = nothing, params = params))
 
 end
-function createMarketBuyOrderWithCost(self::Bingx, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Bingx, symbol, cost; params=Dict())
     params[Symbol("quoteOrderQty")] = cost;
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = params))
 
 end
-function createMarketSellOrderWithCost(self::Bingx, symbol, cost, params=Dict())
+"""
+create a market sell order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketSellOrderWithCost(self::Bingx, symbol, cost; params=Dict())
     params[Symbol("quoteOrderQty")] = cost;
-    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, price = nothing, params = params))
 
 end
-function createOrderRequest(self::Bingx, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Bingx, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -2377,7 +2661,7 @@ function createOrderRequest(self::Bingx, symbol, type_var, side, amount, price=n
     market = self.market(symbol);
     postOnly = nothing;
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("createOrder", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("createOrder", market = market, params = params);
     type_var = uppercase(type_var);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -2402,7 +2686,7 @@ function createOrderRequest(self::Bingx, symbol, type_var, side, amount, price=n
         request[Symbol(exchangeClientOrderId)] = clientOrderId;
     end
     timeInForce = safeStringUpper(params, "timeInForce");
-    (postOnly, params) = self.handlePostOnly(isMarketOrder, timeInForce == "PostOnly", params);
+    (postOnly, params) = self.handlePostOnly(isMarketOrder, timeInForce == "PostOnly", params = params);
     if functions.ccxtruthy(@functions.ccxt_or(postOnly, (timeInForce == "PostOnly")))
         request[Symbol("timeInForce")] = "PostOnly";
     elseif functions.ccxtruthy(timeInForce == "IOC")
@@ -2481,7 +2765,7 @@ function createOrderRequest(self::Bingx, symbol, type_var, side, amount, price=n
         if functions.ccxtruthy(@functions.ccxt_and((@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((type_var == "LIMIT"), (type_var == "TRIGGER_LIMIT")), (type_var == "STOP")), (type_var == "TAKE_PROFIT"))), !functions.ccxtruthy(isTrailing)))
             request[Symbol("price")] = self.parseToNumeric(self.priceToPrecision(symbol, price));
         end
-        reduceOnly = self.safeBool(params, "reduceOnly", false);
+        reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
         if functions.ccxtruthy(isTriggerOrder)
             request[Symbol("stopPrice")] = self.parseToNumeric(self.priceToPrecision(symbol, triggerPrice));
             if functions.ccxtruthy(@functions.ccxt_or(isMarketOrder, (type_var == "TRIGGER_MARKET")))
@@ -2556,7 +2840,7 @@ function createOrderRequest(self::Bingx, symbol, type_var, side, amount, price=n
             end
         end
         positionSide = nothing;
-        hedged = self.safeBool(params, "hedged", false);
+        hedged = self.safeBool(params, "hedged", defaultValue = false);
         if functions.ccxtruthy(hedged)
             params = omit(params, "reduceOnly");
             if functions.ccxtruthy(reduceOnly)
@@ -2568,7 +2852,7 @@ function createOrderRequest(self::Bingx, symbol, type_var, side, amount, price=n
             positionSide = "BOTH";
         end
         request[Symbol("positionSide")] = positionSide;
-        closePosition = self.safeBool(params, "closePosition", false);
+        closePosition = self.safeBool(params, "closePosition", defaultValue = false);
         if functions.ccxtruthy(!functions.ccxtruthy(closePosition))
             amountReq = amount;
             if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("inverse"), nothing)))
@@ -2581,14 +2865,50 @@ function createOrderRequest(self::Bingx, symbol, type_var, side, amount, price=n
     return extend(request, params)
 
 end
-function createOrder(self::Bingx, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20order
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20order
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20TWAP%20Order
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Trade%20order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+- `params.postOnly`::bool, optional: true to place a post only order
+- `params.timeInForce`::string, optional: spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+- `params.reduceOnly`::bool, optional: *swap only* true or false whether the order is reduce only
+- `params.triggerPrice`::float, optional: triggerPrice at which the attached take profit / stop loss order will be triggered
+- `params.stopLossPrice`::float, optional: stop loss trigger price
+- `params.takeProfitPrice`::float, optional: take profit trigger price
+- `params.cost`::float, optional: the quote quantity that can be used as an alternative for the amount
+- `params.trailingAmount`::float, optional: *swap only* the quote amount to trail away from the current market price
+- `params.trailingPercent`::float, optional: *swap only* the percent to trail away from the current market price
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.test`::bool, optional: *swap only* whether to use the test endpoint or not, default is false
+- `params.positionSide`::string, optional: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+- `params.hedged`::bool, optional: *swap only* whether the order is in hedged mode or one way mode
+- `params.closePosition`::bool, optional: *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bingx, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    test = self.safeBool(params, "test", false);
+    test = self.safeBool(params, "test", defaultValue = false);
     params = omit(params, "test");
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         if functions.ccxtruthy(test)
             response = Base.fetch(self.swapV2PrivatePostTradeOrderTest(request));
@@ -2610,13 +2930,13 @@ function createOrder(self::Bingx, symbol, type_var, side, amount, price=nothing,
         parsedResponse = self.parseJson(response);
         response = parsedResponse;
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     result = Dict{Symbol, Any}();
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             result = response;
         else
-            result = self.safeDict(data, "order", data);
+            result = self.safeDict(data, "order", defaultValue = data);
         end
     else
         result = data;
@@ -2630,10 +2950,23 @@ function createOrder(self::Bingx, symbol, type_var, side, amount, price=nothing,
     if functions.ccxtruthy(@functions.ccxt_and((takeProfit != nothing), (findfirst("{", takeProfit) !== nothing)))
         result[Symbol("takeProfit")] = self.parseJson(takeProfit);
     end
-    return self.parseOrder(result, market)
+    return self.parseOrder(result, market = market)
 
 end
-function createOrders(self::Bingx, orders, params=Dict())
+"""
+create a list of trade orders
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.sync`::bool, optional: *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Bingx, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2648,12 +2981,12 @@ function createOrders(self::Bingx, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = self.safeNumber(rawOrder, "amount");
         price = self.safeNumber(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, orderParams);
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
-    symbols = self.marketSymbols(marketIds, nothing, false, true, true);
+    symbols = self.marketSymbols(symbols = marketIds, type_var = nothing, allowEmpty = false, sameTypeOnly = true, sameSubTypeOnly = true);
     symbolsLength = length(symbols);
     market = self.market(get(symbols, 1, nothing));
     request = Dict{Symbol, Any}();
@@ -2664,7 +2997,7 @@ function createOrders(self::Bingx, orders, params=Dict())
         request[Symbol("batchOrders")] = json(ordersRequests);
         response = Base.fetch(self.swapV2PrivatePostTradeBatchOrders(request));
     else
-        sync = self.safeBool(params, "sync", false);
+        sync = self.safeBool(params, "sync", defaultValue = false);
         if functions.ccxtruthy(sync)
             request[Symbol("sync")] = true;
         end
@@ -2676,9 +3009,9 @@ function createOrders(self::Bingx, orders, params=Dict())
         parsedResponse = self.parseJson(response);
         response = parsedResponse;
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    result = self.safeList(data, "orders", []);
-    return self.parseOrders(result, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    result = self.safeList(data, "orders", defaultValue = []);
+    return self.parseOrders(result, market = market)
 
 end
 function parseOrderSide(self::Bingx, side)
@@ -2705,7 +3038,7 @@ function parseOrderType(self::Bingx, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function parseOrder(self::Bingx, order, market=nothing)
+function parseOrder(self::Bingx, order; market=nothing)
     info = order;
     newOrder = self.safeDict2(order, "newOrderResponse", "orderOpenResponse");
     if functions.ccxtruthy(newOrder != nothing)
@@ -2715,7 +3048,7 @@ function parseOrder(self::Bingx, order, market=nothing)
     marketType = functions.ccxtruthy((positionSide == nothing)) ? "spot" : "swap";
     marketId = safeString2(order, "symbol", "s");
     if functions.ccxtruthy(market == nothing)
-        market = self.safeMarket(marketId, nothing, nothing, marketType);
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = marketType);
     end
     side = safeStringLower2(order, "side", "S");
     timestamp = safeIntegerN(order, ["time", "transactTime", "E", "createdTime"]);
@@ -2773,7 +3106,7 @@ function parseOrder(self::Bingx, order, market=nothing)
     Symbol("info") => info,
     Symbol("id") => safeStringN(order, ["orderId", "i", "mainOrderId"]),
     Symbol("clientOrderId") => safeStringN(order, ["clientOrderID", "clientOrderId", "origClientOrderId", "c"]),
-    Symbol("symbol") => self.safeSymbol(marketId, market, "-", marketType),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = "-", marketType = marketType),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("lastTradeTimestamp") => lastTradeTimestamp,
@@ -2798,7 +3131,7 @@ function parseOrder(self::Bingx, order, market=nothing)
     ),
     Symbol("trades") => nothing,
     Symbol("reduceOnly") => self.safeBool2(order, "reduceOnly", "ro")
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Bingx, status)
@@ -2815,11 +3148,27 @@ function parseOrderStatus(self::Bingx, status)
     return safeString(statuses, status, status)
 
 end
-function cancelOrder(self::Bingx, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20Order
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20Order
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20TWAP%20Order
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20an%20Order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bingx, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    isTwapOrder = self.safeBool(params, "twap", false);
+    isTwapOrder = self.safeBool(params, "twap", defaultValue = false);
     params = omit(params, "twap");
     market = nothing;
     if functions.ccxtruthy(isTwapOrder)
@@ -2844,8 +3193,8 @@ function cancelOrder(self::Bingx, id, symbol=nothing, params=Dict())
         end
         type_var = nothing;
         subType = nothing;
-        (type_var, params) = self.handleMarketTypeAndParams("cancelOrder", market, params);
-        (subType, params) = self.handleSubTypeAndParams("cancelOrder", market, params);
+        (type_var, params) = self.handleMarketTypeAndParams("cancelOrder", market = market, params = params);
+        (subType, params) = self.handleSubTypeAndParams("cancelOrder", market = market, params = params);
         if functions.ccxtruthy(type_var == "spot")
             response = Base.fetch(self.spotV1PrivatePostTradeCancel(extend(request, params)));
         else
@@ -2856,12 +3205,27 @@ function cancelOrder(self::Bingx, id, symbol=nothing, params=Dict())
             end
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    order = self.safeDict(data, "order", data);
-    return self.parseOrder(order, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    order = self.safeDict(data, "order", defaultValue = data);
+    return self.parseOrder(order, market = market)
 
 end
-function cancelAllOrders(self::Bingx, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20all%20Open%20Orders%20on%20a%20Symbol
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20Open%20Orders
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20all%20orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' (default is 'spot' if symbol is not provided)
+- `params.subType`::string, optional: 'linear' or 'inverse' for swap markets (default is 'linear' if symbol is not provided)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bingx; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2873,8 +3237,8 @@ function cancelAllOrders(self::Bingx, symbol=nothing, params=Dict())
     end
     marketType = "spot";
     subType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market, params);
-    (subType, params) = self.handleSubTypeAndParams("cancelAllOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("cancelAllOrders", market = market, params = params);
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.spotV1PrivatePostTradeCancelOpenOrders(extend(request, params)));
     elseif functions.ccxtruthy(marketType == "swap")
@@ -2886,12 +3250,26 @@ function cancelAllOrders(self::Bingx, symbol=nothing, params=Dict())
     else
         throw(BadRequest(string(self.id, " cancelAllOrders is only supported for spot and swap markets.")));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList2(data, "success", "orders", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList2(data, "success", "orders", defaultValue = []);
     return self.parseOrders(orders)
 
 end
-function cancelOrders(self::Bingx, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20multiple%20orders
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Bingx, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -2929,12 +3307,25 @@ function cancelOrders(self::Bingx, ids, symbol=nothing, params=Dict())
         end
         response = Base.fetch(self.swapV2PrivateDeleteTradeBatchOrders(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    success = self.safeList2(data, "success", "orders", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    success = self.safeList2(data, "success", "orders", defaultValue = []);
     return self.parseOrders(success)
 
 end
-function cancelAllOrdersAfter(self::Bingx, timeout, params=Dict())
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20All%20After
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20After
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: spot or swap market
+
+# Returns
+- the api result
+"""
+function cancelAllOrdersAfter(self::Bingx, timeout; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2944,7 +3335,7 @@ function cancelAllOrdersAfter(self::Bingx, timeout, params=Dict())
         Symbol("timeOut") => functions.ccxtruthy((isActive)) ? (self.parseToInt(timeout / 1000)) : 0
     );
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("cancelAllOrdersAfter", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("cancelAllOrdersAfter", market = nothing, params = params);
     if functions.ccxtruthy(type_var == "spot")
         response = Base.fetch(self.spotV1PrivatePostTradeCancelAllAfter(extend(request, params)));
     elseif functions.ccxtruthy(type_var == "swap")
@@ -2955,11 +3346,27 @@ function cancelAllOrdersAfter(self::Bingx, timeout, params=Dict())
     return response
 
 end
-function fetchOrder(self::Bingx, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20details
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20details
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/TWAP%20Order%20Details
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.twap`::bool, optional: if fetching twap order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bingx, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    isTwapOrder = self.safeBool(params, "twap", false);
+    isTwapOrder = self.safeBool(params, "twap", defaultValue = false);
     params = omit(params, "twap");
     response = nothing;
     market = nothing;
@@ -2979,8 +3386,8 @@ function fetchOrder(self::Bingx, id, symbol=nothing, params=Dict())
         );
         type_var = nothing;
         subType = nothing;
-        (type_var, params) = self.handleMarketTypeAndParams("fetchOrder", market, params);
-        (subType, params) = self.handleSubTypeAndParams("fetchOrder", market, params);
+        (type_var, params) = self.handleMarketTypeAndParams("fetchOrder", market = market, params = params);
+        (subType, params) = self.handleSubTypeAndParams("fetchOrder", market = market, params = params);
         if functions.ccxtruthy(type_var == "spot")
             response = Base.fetch(self.spotV1PrivateGetTradeQuery(extend(request, params)));
         else
@@ -2991,12 +3398,28 @@ function fetchOrder(self::Bingx, id, symbol=nothing, params=Dict())
             end
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    order = self.safeDict(data, "order", data);
-    return self.parseOrder(order, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    order = self.safeDict(data, "order", defaultValue = data);
+    return self.parseOrder(order, market = market)
 
 end
-function fetchOrders(self::Bingx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.orderId`::int, optional: Only return subsequent orders, and return the latest order by default
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Bingx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3007,7 +3430,7 @@ function fetchOrders(self::Bingx, symbol=nothing, since=nothing, limit=nothing, 
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOrders", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOrders", market = market, params = params);
     if functions.ccxtruthy(type_var != "swap")
         throw(NotSupported(string(self.id, " fetchOrders() is only supported for swap markets")));
     end
@@ -3019,12 +3442,29 @@ function fetchOrders(self::Bingx, symbol=nothing, since=nothing, limit=nothing, 
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.swapV1PrivateGetTradeFullOrder(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "orders", []);
-    return self.parseOrders(orders, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "orders", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Bingx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Current%20Open%20Orders
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Current%20All%20Open%20Orders
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20all%20current%20pending%20orders
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Entrusted%20Order
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.twap`::bool, optional: if fetching twap open orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bingx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3036,12 +3476,12 @@ function fetchOpenOrders(self::Bingx, symbol=nothing, since=nothing, limit=nothi
     end
     type_var = nothing;
     subType = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchOpenOrders", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchOpenOrders", market = market, params = params);
     if functions.ccxtruthy(type_var == "spot")
         response = Base.fetch(self.spotV1PrivateGetTradeOpenOrders(extend(request, params)));
     else
-        isTwapOrder = self.safeBool(params, "twap", false);
+        isTwapOrder = self.safeBool(params, "twap", defaultValue = false);
         params = omit(params, "twap");
         if functions.ccxtruthy(isTwapOrder)
             response = Base.fetch(self.swapV1PrivateGetTwapOpenOrders(extend(request, params)));
@@ -3051,28 +3491,84 @@ function fetchOpenOrders(self::Bingx, symbol=nothing, since=nothing, limit=nothi
             response = Base.fetch(self.swapV2PrivateGetTradeOpenOrders(extend(request, params)));
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList2(data, "orders", "list", []);
-    return self.parseOrders(orders, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList2(data, "orders", "list", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Bingx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
+see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+
+# Arguments
+- `symbol`::string: unified market symbol of the closed orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of closed orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.standard`::bool, optional: whether to fetch standard contract orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Bingx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, params));
+    orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = params));
     return filterBy(orders, "status", "closed")
 
 end
-function fetchCanceledOrders(self::Bingx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
+see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+
+# Arguments
+- `symbol`::string: unified market symbol of the canceled orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of canceled orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.standard`::bool, optional: whether to fetch standard contract orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Bingx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, params));
+    orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = params));
     return filterBy(orders, "status", "canceled")
 
 end
-function fetchCanceledAndClosedOrders(self::Bingx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
+see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Historical%20Orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.standard`::bool, optional: whether to fetch standard contract orders
+- `params.twap`::bool, optional: if fetching twap orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Bingx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3085,9 +3581,9 @@ function fetchCanceledAndClosedOrders(self::Bingx, symbol=nothing, since=nothing
     type_var = nothing;
     subType = nothing;
     standard = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params);
-    (subType, params) = self.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, params);
-    (standard, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "standard", false);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market = market, params = params);
+    (subType, params) = self.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market = market, params = params);
+    (standard, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "standard", defaultValue = false);
     if functions.ccxtruthy(standard)
         response = Base.fetch(self.contractV1PrivateGetAllOrders(extend(request, params)));
     elseif functions.ccxtruthy(type_var == "spot")
@@ -3096,7 +3592,7 @@ function fetchCanceledAndClosedOrders(self::Bingx, symbol=nothing, since=nothing
         end
         response = Base.fetch(self.spotV1PrivateGetTradeHistoryOrders(extend(request, params)));
     else
-        isTwapOrder = self.safeBool(params, "twap", false);
+        isTwapOrder = self.safeBool(params, "twap", defaultValue = false);
         params = omit(params, "twap");
         if functions.ccxtruthy(isTwapOrder)
             request[Symbol("pageIndex")] = 1;
@@ -3112,19 +3608,33 @@ function fetchCanceledAndClosedOrders(self::Bingx, symbol=nothing, since=nothing
             response = Base.fetch(self.swapV2PrivateGetTradeAllOrders(extend(request, params)));
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList2(data, "orders", "list", []);
-    return self.parseOrders(orders, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList2(data, "orders", "list", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function transfer(self::Bingx, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20Transfer%20New
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from (spot, swap, futures, or funding)
+- `toAccount`::string: account to transfer to (spot, swap (linear or inverse), future, or funding)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Bingx, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("transfer", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("transfer", market = nothing, params = params);
     fromId = safeString(accountsByType, fromAccount, fromAccount);
     toId = safeString(accountsByType, toAccount, toAccount);
     if functions.ccxtruthy(fromId == "swap")
@@ -3161,7 +3671,23 @@ function transfer(self::Bingx, code, amount, fromAccount, toAccount, params=Dict
 )
 
 end
-function fetchTransfers(self::Bingx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20transfer%20records%20new
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve (default 10, max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fromAccount`::string: (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
+- `params.toAccount`::string: (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+- `params.paginate`::bool, optional: whether to paginate the results (default false)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Bingx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3170,7 +3696,7 @@ function fetchTransfers(self::Bingx, code=nothing, since=nothing, limit=nothing,
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     fromAccount = safeString(params, "fromAccount");
     toAccount = safeString(params, "toAccount");
     fromId = safeString(accountsByType, fromAccount, fromAccount);
@@ -3187,9 +3713,9 @@ function fetchTransfers(self::Bingx, code=nothing, since=nothing, limit=nothing,
     params = omit(params, ["fromAccount", "toAccount"]);
     maxLimit = 100;
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate", defaultValue = false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", nothing, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", symbol = nothing, since = since, limit = limit, params = params, maxEntriesPerRequest = maxLimit))
     end
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startTime")] = since;
@@ -3199,17 +3725,17 @@ function fetchTransfers(self::Bingx, code=nothing, since=nothing, limit=nothing,
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.apiV3PrivateGetAssetTransferRecord(extend(request, params)));
-    rows = self.safeList(response, "rows", []);
-    return self.parseTransfers(rows, currency, since, limit)
+    rows = self.safeList(response, "rows", defaultValue = []);
+    return self.parseTransfers(rows, currency = currency, since = since, limit = limit)
 
 end
-function parseTransfer(self::Bingx, transfer, currency=nothing)
+function parseTransfer(self::Bingx, transfer; currency=nothing)
     tranId = safeString(transfer, "transferId");
     timestamp = safeInteger(transfer, "timestamp");
     currencyId = safeString(transfer, "asset");
-    currencyCode = self.safeCurrencyCode(currencyId, currency);
+    currencyCode = self.safeCurrencyCode(currencyId, currency = currency);
     status = safeString(transfer, "status");
-    accountsById = self.safeDict(self.options, "accountsById", Dict{Symbol, Any}());
+    accountsById = self.safeDict(self.options, "accountsById", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(transfer, "fromAccount");
     toId = safeString(transfer, "toAccount");
     fromAccount = safeString(accountsById, fromId, fromId);
@@ -3234,7 +3760,18 @@ function parseTransferStatus(self::Bingx, status)
     return safeString(statuses, status, status)
 
 end
-function fetchDepositAddressesByNetwork(self::Bingx, code, params=Dict())
+"""
+fetch the deposit addresses for a currency associated with this account
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
+"""
+function fetchDepositAddressesByNetwork(self::Bingx, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3249,14 +3786,26 @@ function fetchDepositAddressesByNetwork(self::Bingx, code, params=Dict())
     );
     response = Base.fetch(self.walletsV1PrivateGetCapitalDepositAddress(extend(request, params)));
     data = self.safeList(self.safeDict(response, "data"), "data");
-    parsed = self.parseDepositAddresses(data, [get(currency, Symbol("code"), nothing)], false);
+    parsed = self.parseDepositAddresses(data, codes = [get(currency, Symbol("code"), nothing)], indexed = false);
     return indexBy(parsed, "network")
 
 end
-function fetchDepositAddress(self::Bingx, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bingx, code; params=Dict())
     network = safeString(params, "network");
     params = omit(params, ["network"]);
-    addressStructures = Base.fetch(self.fetchDepositAddressesByNetwork(code, params));
+    addressStructures = Base.fetch(self.fetchDepositAddressesByNetwork(code, params = params));
     if functions.ccxtruthy(network != nothing)
             return self.safeDict(addressStructures, network)
     else
@@ -3272,14 +3821,14 @@ function fetchDepositAddress(self::Bingx, code, params=Dict())
     end
 
 end
-function parseDepositAddress(self::Bingx, depositAddress, currency=nothing)
+function parseDepositAddress(self::Bingx, depositAddress; currency=nothing)
     tag = safeString(depositAddress, "tag");
     currencyId = safeString(depositAddress, "coin");
-    currency = self.safeCurrency(currencyId, currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     code = get(currency, Symbol("code"), nothing);
     address = safeString(depositAddress, "addressWithPrefix");
     networkId = safeString(depositAddress, "network");
-    networkCode = self.networkIdToCode(networkId, code);
+    networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
     if functions.ccxtruthy(address != nothing)
         isPrefixed = @functions.ccxt_or(startswith(address, "0x"), startswith(address, "0X"));
         evmNetworks = ["BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"];
@@ -3287,7 +3836,7 @@ function parseDepositAddress(self::Bingx, depositAddress, currency=nothing)
             address = string("0x", address);
         end
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
@@ -3297,7 +3846,20 @@ function parseDepositAddress(self::Bingx, depositAddress, currency=nothing)
 )
 
 end
-function fetchDeposits(self::Bingx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Deposit%20records
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bingx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3314,10 +3876,23 @@ function fetchDeposits(self::Bingx, code=nothing, since=nothing, limit=nothing, 
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.spotV3PrivateGetCapitalDepositHisrec(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Bingx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Withdraw%20records
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bingx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3334,10 +3909,10 @@ function fetchWithdrawals(self::Bingx, code=nothing, since=nothing, limit=nothin
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.spotV3PrivateGetCapitalWithdrawHistory(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Bingx, transaction, currency=nothing)
+function parseTransaction(self::Bingx, transaction; currency=nothing)
     data = safeValue(transaction, "data");
     dataId = functions.ccxtruthy((data == nothing)) ? nothing : safeString(data, "id");
     id = safeString(transaction, "id", dataId);
@@ -3351,7 +3926,7 @@ function parseTransaction(self::Bingx, transaction, currency=nothing)
     end
     network = safeString(transaction, "network");
     currencyId = safeString(transaction, "coin");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(@functions.ccxt_and((code != nothing), (network != nothing)), (code != network)), findfirst(network, code) !== nothing))
         if functions.ccxtruthy(network != nothing)
             code = replace(code, network => "");
@@ -3365,7 +3940,7 @@ function parseTransaction(self::Bingx, transaction, currency=nothing)
     Symbol("txid") => safeString(transaction, "txId"),
     Symbol("type") => type_var,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(network, code),
+    Symbol("network") => self.networkIdToCode(networkId = network, currencyCode = code),
     Symbol("amount") => self.safeNumber(transaction, "amount"),
     Symbol("status") => self.parseTransactionStatus(safeString(transaction, "status")),
     Symbol("timestamp") => timestamp,
@@ -3407,7 +3982,20 @@ function parseTransactionStatus(self::Bingx, status)
     return safeString(statuses, status, status)
 
 end
-function setMarginMode(self::Bingx, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Change%20Margin%20Type
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Set%20Margin%20Type
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Bingx, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -3430,7 +4018,7 @@ function setMarginMode(self::Bingx, marginMode, symbol=nothing, params=Dict())
         Symbol("marginType") => marginMode
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("setMarginMode", market, params);
+    (subType, params) = self.handleSubTypeAndParams("setMarginMode", market = market, params = params);
     if functions.ccxtruthy(subType == "inverse")
             return Base.fetch(self.cswapV1PrivatePostTradeMarginType(extend(request, params)))
     else
@@ -3438,21 +4026,33 @@ function setMarginMode(self::Bingx, marginMode, symbol=nothing, params=Dict())
     end
 
 end
-function addMargin(self::Bingx, symbol, amount, params=Dict())
+function addMargin(self::Bingx, symbol, amount; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => 1
     );
-    return Base.fetch(self.setMargin(symbol, amount, extend(request, params)))
+    return Base.fetch(self.setMargin(symbol, amount, params = extend(request, params)))
 
 end
-function reduceMargin(self::Bingx, symbol, amount, params=Dict())
+function reduceMargin(self::Bingx, symbol, amount; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => 2
     );
-    return Base.fetch(self.setMargin(symbol, amount, extend(request, params)))
+    return Base.fetch(self.setMargin(symbol, amount, params = extend(request, params)))
 
 end
-function setMargin(self::Bingx, symbol, amount, params=Dict())
+"""
+Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to set margin in
+- `amount`::float: the amount to set the margin to
+- `params`::object, optional: parameters specific to the exchange API endpoint
+
+# Returns
+- A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function setMargin(self::Bingx, symbol, amount; params=Dict())
     type_var = safeInteger(params, "type");
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")));
@@ -3470,10 +4070,10 @@ function setMargin(self::Bingx, symbol, amount, params=Dict())
         Symbol("type") => type_var
     );
     response = Base.fetch(self.swapV2PrivatePostTradePositionMargin(extend(request, params)));
-    return self.parseMarginModification(response, market)
+    return self.parseMarginModification(response, market = market)
 
 end
-function parseMarginModification(self::Bingx, data, market=nothing)
+function parseMarginModification(self::Bingx, data; market=nothing)
     type_var = safeString(data, "type");
     return Dict{Symbol, Any}(
     Symbol("info") => data,
@@ -3489,7 +4089,19 @@ function parseMarginModification(self::Bingx, data, market=nothing)
 )
 
 end
-function fetchLeverage(self::Bingx, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Leverage%20and%20Available%20Positions
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Bingx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3502,27 +4114,41 @@ function fetchLeverage(self::Bingx, symbol, params=Dict())
     else
         response = Base.fetch(self.swapV2PrivateGetTradeLeverage(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Bingx, leverage, market=nothing)
+function parseLeverage(self::Bingx, leverage; market=nothing)
     marketId = safeString(leverage, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("marginMode") => nothing,
     Symbol("longLeverage") => safeInteger(leverage, "longLeverage"),
     Symbol("shortLeverage") => safeInteger(leverage, "shortLeverage")
 )
 
 end
-function setLeverage(self::Bingx, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Leverage
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Modify%20Leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string, optional: hedged: ['long' or 'short']. one way: ['both']
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Bingx, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
     side = safeStringUpper(params, "side");
-    self.checkRequiredArgument("setLeverage", side, "side", ["LONG", "SHORT", "BOTH"]);
+    self.checkRequiredArgument("setLeverage", side, "side", options = ["LONG", "SHORT", "BOTH"]);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3539,7 +4165,25 @@ function setLeverage(self::Bingx, leverage, symbol=nothing, params=Dict())
     end
 
 end
-function fetchMyTrades(self::Bingx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20transaction%20details
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20historical%20transaction%20orders
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order%20Trade%20Detail
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is undefined
+- `params.trandingUnit`::string: COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
+- `params.orderId`::string: the order id required for inverse swap
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bingx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -3549,14 +4193,14 @@ function fetchMyTrades(self::Bingx, symbol=nothing, since=nothing, limit=nothing
     market = self.market(symbol);
     request = Dict{Symbol, Any}();
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMyTrades", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchMyTrades", market = market, params = params);
     if functions.ccxtruthy(subType == "inverse")
         orderId = safeString(params, "orderId");
         if functions.ccxtruthy(orderId == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires an orderId argument for inverse swap trades")));
         end
         response = Base.fetch(self.cswapV1PrivateGetTradeAllFillOrders(extend(request, params)));
-        fills = self.safeList(response, "data", []);
+        fills = self.safeList(response, "data", defaultValue = []);
     else
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         now = milliseconds();
@@ -3579,22 +4223,22 @@ function fetchMyTrades(self::Bingx, symbol=nothing, since=nothing, limit=nothing
                 request[Symbol("limit")] = limit;
             end
             response = Base.fetch(self.spotV1PrivateGetTradeMyTrades(extend(request, params)));
-            data = self.safeDict(response, "data", Dict{Symbol, Any}());
-            fills = self.safeList(data, "fills", []);
+            data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+            fills = self.safeList(data, "fills", defaultValue = []);
         else
             tradingUnit = safeStringUpper(params, "tradingUnit", "CONT");
             params = omit(params, "tradingUnit");
             request[Symbol("tradingUnit")] = tradingUnit;
             response = Base.fetch(self.swapV2PrivateGetTradeAllFillOrders(extend(request, params)));
-            data = self.safeDict(response, "data", Dict{Symbol, Any}());
-            fills = self.safeList(data, "fill_orders", []);
+            data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+            fills = self.safeList(data, "fill_orders", defaultValue = []);
         end
     end
-    return self.parseTrades(fills, market, since, limit, params)
+    return self.parseTrades(fills, market = market, since = since, limit = limit, params = params)
 
 end
-function parseDepositWithdrawFee(self::Bingx, fee, currency=nothing)
-    networks = self.safeDict(fee, "networks", Dict{Symbol, Any}());
+function parseDepositWithdrawFee(self::Bingx, fee; currency=nothing)
+    networks = self.safeDict(fee, "networks", defaultValue = Dict{Symbol, Any}());
     networkCodes = objectKeys(networks);
     networksLength = length(networkCodes);
     result = Dict{Symbol, Any}(
@@ -3635,11 +4279,22 @@ function parseDepositWithdrawFee(self::Bingx, fee, currency=nothing)
     return result
 
 end
-function fetchDepositWithdrawFees(self::Bingx, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Bingx; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    response = Base.fetch(self.fetchCurrencies(params));
+    response = Base.fetch(self.fetchCurrencies(params = params));
     depositWithdrawFees = Dict{Symbol, Any}();
     responseCodes = objectKeys(response);
     i = 0
@@ -3654,16 +4309,31 @@ function fetchDepositWithdrawFees(self::Bingx, codes=nothing, params=Dict())
     return depositWithdrawFees
 
 end
-function withdraw(self::Bingx, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string, optional:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.walletType`::int, optional: 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bingx, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     defaultWalletType = 15;
     walletType = nothing;
-    (walletType, params) = self.handleOptionAndParams2(params, "withdraw", "type", "walletType", defaultWalletType);
+    (walletType, params) = self.handleOptionAndParams2(params, "withdraw", "type", "walletType", defaultValue = defaultWalletType);
     walletTypes = Dict{Symbol, Any}(
         Symbol("funding") => 1,
         Symbol("fund") => 1,
@@ -3680,7 +4350,7 @@ function withdraw(self::Bingx, code, amount, address, tag=nothing, params=Dict()
     );
     network = safeStringUpper(params, "network");
     if functions.ccxtruthy(network != nothing)
-        request[Symbol("network")] = self.networkCodeToId(network, get(currency, Symbol("code"), nothing));
+        request[Symbol("network")] = self.networkCodeToId(network, currencyCode = get(currency, Symbol("code"), nothing));
     end
     if functions.ccxtruthy(tag != nothing)
         request[Symbol("addressTag")] = tag;
@@ -3719,7 +4389,22 @@ function parseParams(self::Bingx, params)
     return copied
 
 end
-function fetchMyLiquidations(self::Bingx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the users liquidated positions
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/User's%20Force%20Orders
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
+
+# Arguments
+- `symbol`::string, optional: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the bingx api endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchMyLiquidations(self::Bingx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3739,20 +4424,20 @@ function fetchMyLiquidations(self::Bingx, symbol=nothing, since=nothing, limit=n
         request[Symbol("limit")] = limit;
     end
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMyLiquidations", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchMyLiquidations", market = market, params = params);
     liquidations = nothing;
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.cswapV1PrivateGetTradeForceOrders(extend(request, params)));
-        liquidations = self.safeList(response, "data", []);
+        liquidations = self.safeList(response, "data", defaultValue = []);
     else
         response = Base.fetch(self.swapV2PrivateGetTradeForceOrders(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        liquidations = self.safeList(data, "orders", []);
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        liquidations = self.safeList(data, "orders", defaultValue = []);
     end
-    return self.parseLiquidations(liquidations, market, since, limit)
+    return self.parseLiquidations(liquidations, market = market, since = since, limit = limit)
 
 end
-function parseLiquidation(self::Bingx, liquidation, market=nothing)
+function parseLiquidation(self::Bingx, liquidation; market=nothing)
     marketId = safeString(liquidation, "symbol");
     timestamp = safeInteger(liquidation, "time");
     contractsString = safeString(liquidation, "executedQty");
@@ -3762,7 +4447,7 @@ function parseLiquidation(self::Bingx, liquidation, market=nothing)
     quoteValueString = stringMul(baseValueString, priceString);
     return self.safeLiquidation(Dict{Symbol, Any}(
     Symbol("info") => liquidation,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("contracts") => self.parseNumber(contractsString),
     Symbol("contractSize") => self.parseNumber(contractSizeString),
     Symbol("price") => self.parseNumber(priceString),
@@ -3773,7 +4458,22 @@ function parseLiquidation(self::Bingx, liquidation, market=nothing)
 ))
 
 end
-function closePosition(self::Bingx, symbol, side=nothing, params=Dict())
+"""
+closes open positions for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20position%20by%20position%20ID
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: not used by bingx
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::any, optional: the id of the position you would like to close
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function closePosition(self::Bingx, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3790,20 +4490,32 @@ function closePosition(self::Bingx, symbol, side=nothing, params=Dict())
             response = Base.fetch(self.swapV2PrivatePostTradeCloseAllPositions(extend(request, params)));
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function closeAllPositions(self::Bingx, params=Dict())
+"""
+closes open positions for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.recvWindow`::string, optional: request valid time window value
+
+# Returns
+- [a list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closeAllPositions(self::Bingx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     defaultRecvWindow = safeInteger(self.options, "recvWindow");
     recvWindow = safeInteger(params, "recvWindow", defaultRecvWindow);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("closeAllPositions", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("closeAllPositions", market = nothing, params = params);
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("closeAllPositions", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("closeAllPositions", market = nothing, params = params);
     if functions.ccxtruthy(marketType == "margin")
         throw(BadRequest(string(self.id, " closePositions () cannot be used for ", marketType, " markets")));
     end
@@ -3815,8 +4527,8 @@ function closeAllPositions(self::Bingx, params=Dict())
     else
         response = Base.fetch(self.swapV2PrivatePostTradeCloseAllPositions(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    success = self.safeList(data, "success", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    success = self.safeList(data, "success", defaultValue = []);
     positions = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(success)))
@@ -3829,9 +4541,20 @@ function closeAllPositions(self::Bingx, params=Dict())
     return positions
 
 end
-function fetchPositionMode(self::Bingx, symbol=nothing, params=Dict())
+"""
+fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+function fetchPositionMode(self::Bingx; symbol=nothing, params=Dict())
     response = Base.fetch(self.swapV1PrivateGetPositionSideDual(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     dualSidePosition = safeString(data, "dualSidePosition");
     return Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -3839,7 +4562,19 @@ function fetchPositionMode(self::Bingx, symbol=nothing, params=Dict())
 )
 
 end
-function setPositionMode(self::Bingx, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Bingx, hedged; symbol=nothing, params=Dict())
     dualSidePosition = nothing;
     if functions.ccxtruthy(hedged)
         dualSidePosition = "true";
@@ -3852,12 +4587,43 @@ function setPositionMode(self::Bingx, hedged, symbol=nothing, params=Dict())
     return Base.fetch(self.swapV1PrivatePostPositionSideDual(extend(request, params)))
 
 end
-function editOrder(self::Bingx, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+cancels an order and places a new order
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Order  // spot
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::string, optional: Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price EXCHANGE SPECIFIC PARAMETERS
+- `params.cancelClientOrderID`::string, optional: the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+- `params.cancelRestrictions`::string, optional: cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
+- `params.cancelReplaceMode`::string, optional: STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
+- `params.quoteOrderQty`::float, optional: order amount
+- `params.newClientOrderId`::string, optional: custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
+- `params.positionSide`::string, optional: *contract only* position direction, required for single position as BOTH, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
+- `params.reduceOnly`::string, optional: *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
+- `params.priceRate`::float, optional: *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
+- `params.workingType`::string, optional: *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Bingx, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     request[Symbol("cancelOrderId")] = id;
     request[Symbol("cancelReplaceMode")] = "STOP_ON_FAILURE";
     if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
@@ -3865,11 +4631,23 @@ function editOrder(self::Bingx, id, symbol, type_var, side, amount=nothing, pric
     else
         response = Base.fetch(self.spotV1PrivatePostTradeOrderCancelReplace(request));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function fetchMarginMode(self::Bingx, symbol, params=Dict())
+"""
+fetches the margin mode of the trading pair
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Margin%20Type
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Margin%20Type
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Bingx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3878,28 +4656,41 @@ function fetchMarginMode(self::Bingx, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("fetchMarginMode", market, params);
+    (subType, params) = self.handleSubTypeAndParams("fetchMarginMode", market = market, params = params);
     if functions.ccxtruthy(subType == "inverse")
         response = Base.fetch(self.cswapV1PrivateGetTradeMarginType(extend(request, params)));
     else
         response = Base.fetch(self.swapV2PrivateGetTradeMarginType(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginMode(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginMode(data, market = market)
 
 end
-function parseMarginMode(self::Bingx, marginMode, market=nothing)
+function parseMarginMode(self::Bingx, marginMode; market=nothing)
     marketId = safeString(marginMode, "symbol");
     marginType = safeStringLower(marginMode, "marginType");
     marginType = functions.ccxtruthy((marginType == "crossed")) ? "cross" : marginType;
     return Dict{Symbol, Any}(
     Symbol("info") => marginMode,
-    Symbol("symbol") => self.safeSymbol(marketId, market, "-", "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = "-", marketType = "swap"),
     Symbol("marginMode") => marginType
 )
 
 end
-function fetchTradingFee(self::Bingx, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Trading%20Commission%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20Trading%20Commission%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Trade%20Commission%20Rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Bingx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3911,21 +4702,21 @@ function fetchTradingFee(self::Bingx, symbol, params=Dict())
     commission = Dict{Symbol, Any}();
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         response = Base.fetch(self.spotV1PrivateGetUserCommissionRate(extend(request, params)));
-        commission = self.safeDict(response, "data", Dict{Symbol, Any}());
+        commission = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     else
         if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             response = Base.fetch(self.cswapV1PrivateGetUserCommissionRate(params));
-            commission = self.safeDict(response, "data", Dict{Symbol, Any}());
+            commission = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         else
             response = Base.fetch(self.swapV2PrivateGetUserCommissionRate(params));
-            data = self.safeDict(response, "data", Dict{Symbol, Any}());
-            commission = self.safeDict(data, "commission", Dict{Symbol, Any}());
+            data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+            commission = self.safeDict(data, "commission", defaultValue = Dict{Symbol, Any}());
         end
     end
-    return self.parseTradingFee(commission, market)
+    return self.parseTradingFee(commission, market = market)
 
 end
-function parseTradingFee(self::Bingx, fee, market=nothing)
+function parseTradingFee(self::Bingx, fee; market=nothing)
     symbol = functions.ccxtruthy((market != nothing)) ? get(market, Symbol("symbol"), nothing) : nothing;
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
@@ -3981,7 +4772,18 @@ function customEncode(self::Bingx, params)
     return result
 
 end
-function fetchMarketLeverageTiers(self::Bingx, symbol, params=Dict())
+"""
+retrieve information on the maximum leverage, for different trade sizes for a single market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+function fetchMarketLeverageTiers(self::Bingx, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3993,11 +4795,11 @@ function fetchMarketLeverageTiers(self::Bingx, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.swapV1PrivateGetMaintMarginRatio(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseMarketLeverageTiers(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseMarketLeverageTiers(data, market = market)
 
 end
-function parseMarketLeverageTiers(self::Bingx, info, market=nothing)
+function parseMarketLeverageTiers(self::Bingx, info; market=nothing)
     tiers = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(info)))
@@ -4005,10 +4807,10 @@ function parseMarketLeverageTiers(self::Bingx, info, market=nothing)
         tierString = safeString(tier, "tier");
         tierParts = split(tierString, " ");
         marketId = safeString(tier, "symbol");
-        market = self.safeMarket(marketId, market, nothing, "swap");
+        market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "swap");
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => self.safeNumber(tierParts, 1),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("currency") => safeString(market, "settle"),
     Symbol("minNotional") => self.safeNumber(tier, "minPositionVal"),
     Symbol("maxNotional") => self.safeNumber(tier, "maxPositionVal"),
@@ -4021,11 +4823,11 @@ function parseMarketLeverageTiers(self::Bingx, info, market=nothing)
     return tiers
 
 end
-function sign(self::Bingx, path, section="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bingx, path; section="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     type_var = get(section, 1, nothing);
     version = get(section, 2, nothing);
     access = get(section, 3, nothing);
-    isSandbox = self.safeBool(self.options, "sandboxMode", false);
+    isSandbox = self.safeBool(self.options, "sandboxMode", defaultValue = false);
     url = self.implodeHostname(get(get(self.urls, Symbol("api"), nothing), Symbol(type_var), nothing));
     if functions.ccxtruthy(@functions.ccxt_and(isSandbox, url == nothing))
         throw(NotSupported(string(self.id, " does not have a testnet/sandbox URL for ", type_var, " endpoints")));
@@ -4127,751 +4929,751 @@ Base.getproperty(self::Bingx, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function fundV1PrivateGetAccountBalance(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "account/balance", ["fund", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/balance"; api=["fund", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetServerTime(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "server/time", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "server/time"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetCommonSymbols(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "common/symbols", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "common/symbols"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetMarketTrades(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/trades", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/trades"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetMarketDepth(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/depth"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetMarketKline(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/kline", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/kline"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetTicker24hr(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/24hr"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetTickerPrice(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "ticker/price", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PublicGetTickerBookTicker(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "ticker/bookTicker", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/bookTicker"; api=["spot", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetTradeQuery(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/query", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/query"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetTradeOpenOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/openOrders", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/openOrders"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetTradeHistoryOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/historyOrders", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/historyOrders"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetTradeMyTrades(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/myTrades", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/myTrades"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetUserCommissionRate(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/commissionRate", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/commissionRate"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetAccountBalance(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "account/balance", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/balance"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetOcoOrderList(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "oco/orderList", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "oco/orderList"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetOcoOpenOrderList(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "oco/openOrderList", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "oco/openOrderList"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivateGetOcoHistoryOrderList(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "oco/historyOrderList", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "oco/historyOrderList"; api=["spot", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostTradeOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/order", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostTradeCancel(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/cancel", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostTradeBatchOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/batchOrders", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/batchOrders"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostTradeOrderCancelReplace(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/order/cancelReplace", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order/cancelReplace"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostTradeCancelOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/cancelOrders", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancelOrders"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostTradeCancelOpenOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/cancelOpenOrders", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancelOpenOrders"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostTradeCancelAllAfter(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/cancelAllAfter", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancelAllAfter"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostOcoOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "oco/order", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "oco/order"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV1PrivatePostOcoCancel(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "oco/cancel", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "oco/cancel"; api=["spot", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV2PublicGetMarketDepth(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["spot", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/depth"; api=["spot", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV2PublicGetMarketKline(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/kline", ["spot", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/kline"; api=["spot", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV2PublicGetTickerPrice(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "ticker/price", ["spot", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api=["spot", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV3PrivateGetGetAssetTransfer(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "get/asset/transfer", ["spot", "v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "get/asset/transfer"; api=["spot", "v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV3PrivateGetAssetTransfer(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "asset/transfer", ["spot", "v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/transfer"; api=["spot", "v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV3PrivateGetCapitalDepositHisrec(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/hisrec", ["spot", "v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/hisrec"; api=["spot", "v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV3PrivateGetCapitalWithdrawHistory(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/history", ["spot", "v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/withdraw/history"; api=["spot", "v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function spotV3PrivatePostPostAssetTransfer(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "post/asset/transfer", ["spot", "v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "post/asset/transfer"; api=["spot", "v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PublicGetTickerPrice(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "ticker/price", ["swap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/price"; api=["swap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PublicGetMarketHistoricalTrades(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/historicalTrades", ["swap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/historicalTrades"; api=["swap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PublicGetMarketMarkPriceKlines(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/markPriceKlines", ["swap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/markPriceKlines"; api=["swap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PublicGetTradeMultiAssetsRules(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/multiAssetsRules", ["swap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/multiAssetsRules"; api=["swap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PublicGetTradingRules(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "tradingRules", ["swap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "tradingRules"; api=["swap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetPositionSideDual(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "positionSide/dual", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "positionSide/dual"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetTradeBatchCancelReplace(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/batchCancelReplace", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/batchCancelReplace"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetTradeFullOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/fullOrder", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/fullOrder"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetMaintMarginRatio(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "maintMarginRatio", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "maintMarginRatio"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetTradePositionHistory(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/positionHistory", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/positionHistory"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetPositionMarginHistory(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "positionMargin/history", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "positionMargin/history"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetTwapOpenOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "twap/openOrders", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "twap/openOrders"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetTwapHistoryOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "twap/historyOrders", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "twap/historyOrders"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetTwapOrderDetail(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "twap/orderDetail", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "twap/orderDetail"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetTradeAssetMode(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/assetMode", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/assetMode"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivateGetUserMarginAssets(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/marginAssets", ["swap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/marginAssets"; api=["swap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostTradeAmend(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/amend", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/amend"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostTradeCancelReplace(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/cancelReplace", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancelReplace"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostPositionSideDual(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "positionSide/dual", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "positionSide/dual"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostTradeBatchCancelReplace(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/batchCancelReplace", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/batchCancelReplace"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostTradeClosePosition(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/closePosition", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/closePosition"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostTradeGetVst(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/getVst", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/getVst"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostTwapOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "twap/order", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "twap/order"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostTwapCancelOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "twap/cancelOrder", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "twap/cancelOrder"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostTradeAssetMode(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/assetMode", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/assetMode"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostTradeReverse(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/reverse", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/reverse"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV1PrivatePostTradeAutoAddMargin(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/autoAddMargin", ["swap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/autoAddMargin"; api=["swap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetServerTime(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "server/time", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "server/time"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetQuoteContracts(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/contracts", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/contracts"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetQuotePrice(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/price", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/price"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetQuoteDepth(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/depth", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/depth"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetQuoteTrades(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/trades", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/trades"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetQuotePremiumIndex(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/premiumIndex", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/premiumIndex"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetQuoteFundingRate(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/fundingRate", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/fundingRate"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetQuoteKlines(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/klines", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/klines"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetQuoteOpenInterest(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/openInterest", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/openInterest"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetQuoteTicker(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/ticker", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/ticker"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PublicGetQuoteBookTicker(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/bookTicker", ["swap", "v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/bookTicker"; api=["swap", "v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetUserBalance(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/balance", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/balance"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetUserPositions(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/positions", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/positions"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetUserIncome(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/income", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/income"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetTradeOpenOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/openOrders", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/openOrders"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetTradeOpenOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/openOrder", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/openOrder"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetTradeOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/order", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetTradeMarginType(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/marginType", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/marginType"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetTradeLeverage(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/leverage", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/leverage"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetTradeForceOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/forceOrders", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/forceOrders"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetTradeAllOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/allOrders", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/allOrders"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetTradeAllFillOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/allFillOrders", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/allFillOrders"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetTradeFillHistory(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/fillHistory", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/fillHistory"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetUserIncomeExport(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/income/export", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/income/export"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetUserCommissionRate(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/commissionRate", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/commissionRate"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateGetQuoteBookTicker(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/bookTicker", ["swap", "v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/bookTicker"; api=["swap", "v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivatePostTradeGetVst(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/getVst", ["swap", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/getVst"; api=["swap", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivatePostTradeOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/order", ["swap", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api=["swap", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivatePostTradeBatchOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/batchOrders", ["swap", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/batchOrders"; api=["swap", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivatePostTradeCloseAllPositions(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/closeAllPositions", ["swap", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/closeAllPositions"; api=["swap", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivatePostTradeCancelAllAfter(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/cancelAllAfter", ["swap", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancelAllAfter"; api=["swap", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivatePostTradeMarginType(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/marginType", ["swap", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/marginType"; api=["swap", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivatePostTradeLeverage(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/leverage", ["swap", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/leverage"; api=["swap", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivatePostTradePositionMargin(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/positionMargin", ["swap", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/positionMargin"; api=["swap", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivatePostTradeOrderTest(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/order/test", ["swap", "v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order/test"; api=["swap", "v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateDeleteTradeOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/order", ["swap", "v2", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api=["swap", "v2", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateDeleteTradeBatchOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/batchOrders", ["swap", "v2", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/batchOrders"; api=["swap", "v2", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV2PrivateDeleteTradeAllOpenOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/allOpenOrders", ["swap", "v2", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/allOpenOrders"; api=["swap", "v2", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV3PublicGetQuoteKlines(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "quote/klines", ["swap", "v3", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "quote/klines"; api=["swap", "v3", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function swapV3PrivateGetUserBalance(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/balance", ["swap", "v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/balance"; api=["swap", "v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PublicGetMarketContracts(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/contracts", ["cswap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/contracts"; api=["cswap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PublicGetMarketPremiumIndex(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/premiumIndex", ["cswap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/premiumIndex"; api=["cswap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PublicGetMarketOpenInterest(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/openInterest", ["cswap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/openInterest"; api=["cswap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PublicGetMarketKlines(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/klines", ["cswap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/klines"; api=["cswap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PublicGetMarketDepth(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["cswap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/depth"; api=["cswap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PublicGetMarketTicker(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "market/ticker", ["cswap", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/ticker"; api=["cswap", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateGetTradeLeverage(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/leverage", ["cswap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/leverage"; api=["cswap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateGetTradeForceOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/forceOrders", ["cswap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/forceOrders"; api=["cswap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateGetTradeAllFillOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/allFillOrders", ["cswap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/allFillOrders"; api=["cswap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateGetTradeOpenOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/openOrders", ["cswap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/openOrders"; api=["cswap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateGetTradeOrderDetail(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/orderDetail", ["cswap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orderDetail"; api=["cswap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateGetTradeOrderHistory(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/orderHistory", ["cswap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/orderHistory"; api=["cswap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateGetTradeMarginType(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/marginType", ["cswap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/marginType"; api=["cswap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateGetUserCommissionRate(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/commissionRate", ["cswap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/commissionRate"; api=["cswap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateGetUserPositions(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/positions", ["cswap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/positions"; api=["cswap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateGetUserBalance(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "user/balance", ["cswap", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/balance"; api=["cswap", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivatePostTradeOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/order", ["cswap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/order"; api=["cswap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivatePostTradeLeverage(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/leverage", ["cswap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/leverage"; api=["cswap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivatePostTradeAllOpenOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/allOpenOrders", ["cswap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/allOpenOrders"; api=["cswap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivatePostTradeCloseAllPositions(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/closeAllPositions", ["cswap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/closeAllPositions"; api=["cswap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivatePostTradeMarginType(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/marginType", ["cswap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/marginType"; api=["cswap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivatePostTradePositionMargin(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/positionMargin", ["cswap", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/positionMargin"; api=["cswap", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateDeleteTradeAllOpenOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/allOpenOrders", ["cswap", "v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/allOpenOrders"; api=["cswap", "v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function cswapV1PrivateDeleteTradeCancelOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "trade/cancelOrder", ["cswap", "v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "trade/cancelOrder"; api=["cswap", "v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractV1PrivateGetAllPosition(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "allPosition", ["contract", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "allPosition"; api=["contract", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractV1PrivateGetAllOrders(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "allOrders", ["contract", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "allOrders"; api=["contract", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function contractV1PrivateGetBalance(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "balance", ["contract", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "balance"; api=["contract", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivateGetCapitalConfigGetall(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/config/getall", ["wallets", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/config/getall"; api=["wallets", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivateGetCapitalDepositAddress(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/address", ["wallets", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/address"; api=["wallets", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivateGetCapitalInnerTransferRecords(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/innerTransfer/records", ["wallets", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/innerTransfer/records"; api=["wallets", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivateGetCapitalSubAccountDepositAddress(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/subAccount/deposit/address", ["wallets", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/subAccount/deposit/address"; api=["wallets", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivateGetCapitalDepositSubHisrec(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/subHisrec", ["wallets", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/subHisrec"; api=["wallets", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivateGetCapitalSubAccountInnerTransferRecords(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/subAccount/innerTransfer/records", ["wallets", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/subAccount/innerTransfer/records"; api=["wallets", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivateGetCapitalDepositRiskRecords(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/riskRecords", ["wallets", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/riskRecords"; api=["wallets", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivatePostCapitalWithdrawApply(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/apply", ["wallets", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "capital/withdraw/apply"; api=["wallets", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivatePostCapitalInnerTransferApply(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/innerTransfer/apply", ["wallets", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "capital/innerTransfer/apply"; api=["wallets", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivatePostCapitalSubAccountInnerTransferApply(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/subAccountInnerTransfer/apply", ["wallets", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "capital/subAccountInnerTransfer/apply"; api=["wallets", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function walletsV1PrivatePostCapitalDepositCreateSubAddress(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/createSubAddress", ["wallets", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/createSubAddress"; api=["wallets", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function subAccountV1PrivateGetList(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "list", ["subAccount", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "list"; api=["subAccount", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function subAccountV1PrivateGetAssets(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "assets", ["subAccount", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets"; api=["subAccount", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function subAccountV1PrivateGetAllAccountBalance(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "allAccountBalance", ["subAccount", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "allAccountBalance"; api=["subAccount", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function subAccountV1PrivatePostCreate(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "create", ["subAccount", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "create"; api=["subAccount", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function subAccountV1PrivatePostApiKeyCreate(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "apiKey/create", ["subAccount", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "apiKey/create"; api=["subAccount", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function subAccountV1PrivatePostApiKeyEdit(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "apiKey/edit", ["subAccount", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "apiKey/edit"; api=["subAccount", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function subAccountV1PrivatePostApiKeyDel(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "apiKey/del", ["subAccount", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "apiKey/del"; api=["subAccount", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function subAccountV1PrivatePostUpdateStatus(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "updateStatus", ["subAccount", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "updateStatus"; api=["subAccount", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function accountV1PrivateGetUid(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "uid", ["account", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "uid"; api=["account", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function accountV1PrivateGetApiKeyQuery(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "apiKey/query", ["account", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "apiKey/query"; api=["account", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function accountV1PrivateGetAccountApiPermissions(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "account/apiPermissions", ["account", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/apiPermissions"; api=["account", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function accountV1PrivateGetAllAccountBalance(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "allAccountBalance", ["account", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "allAccountBalance"; api=["account", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function accountV1PrivatePostInnerTransferAuthorizeSubAccount(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "innerTransfer/authorizeSubAccount", ["account", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "innerTransfer/authorizeSubAccount"; api=["account", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function accountTransferV1PrivateGetSubAccountAssetTransferHistory(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "subAccount/asset/transferHistory", ["account", "transfer", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "subAccount/asset/transferHistory"; api=["account", "transfer", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "subAccount/transferAsset/supportCoins", ["account", "transfer", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "subAccount/transferAsset/supportCoins"; api=["account", "transfer", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function accountTransferV1PrivatePostSubAccountTransferAsset(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "subAccount/transferAsset", ["account", "transfer", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "subAccount/transferAsset"; api=["account", "transfer", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function userAuthPrivatePostUserDataStream(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "userDataStream", ["user", "auth", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "userDataStream"; api=["user", "auth", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function userAuthPrivatePutUserDataStream(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "userDataStream", ["user", "auth", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "userDataStream"; api=["user", "auth", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function userAuthPrivateDeleteUserDataStream(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "userDataStream", ["user", "auth", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "userDataStream"; api=["user", "auth", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivateGetSwapTraceCurrentTrack(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "swap/trace/currentTrack", ["copyTrading", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "swap/trace/currentTrack"; api=["copyTrading", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivateGetPFuturesTraderDetail(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "PFutures/traderDetail", ["copyTrading", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "PFutures/traderDetail"; api=["copyTrading", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivateGetPFuturesProfitHistorySummarys(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "PFutures/profitHistorySummarys", ["copyTrading", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "PFutures/profitHistorySummarys"; api=["copyTrading", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivateGetPFuturesProfitDetail(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "PFutures/profitDetail", ["copyTrading", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "PFutures/profitDetail"; api=["copyTrading", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivateGetPFuturesTradingPairs(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "PFutures/tradingPairs", ["copyTrading", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "PFutures/tradingPairs"; api=["copyTrading", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivateGetSpotTraderDetail(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "spot/traderDetail", ["copyTrading", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/traderDetail"; api=["copyTrading", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivateGetSpotProfitHistorySummarys(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "spot/profitHistorySummarys", ["copyTrading", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/profitHistorySummarys"; api=["copyTrading", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivateGetSpotProfitDetail(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "spot/profitDetail", ["copyTrading", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/profitDetail"; api=["copyTrading", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivateGetSpotHistoryOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "spot/historyOrder", ["copyTrading", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/historyOrder"; api=["copyTrading", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivatePostSwapTraceCloseTrackOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "swap/trace/closeTrackOrder", ["copyTrading", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap/trace/closeTrackOrder"; api=["copyTrading", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivatePostSwapTraceSetTPSL(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "swap/trace/setTPSL", ["copyTrading", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "swap/trace/setTPSL"; api=["copyTrading", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivatePostPFuturesSetCommission(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "PFutures/setCommission", ["copyTrading", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "PFutures/setCommission"; api=["copyTrading", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function copyTradingV1PrivatePostSpotTraderSellOrder(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "spot/trader/sellOrder", ["copyTrading", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/trader/sellOrder"; api=["copyTrading", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function apiV3PrivateGetAssetTransfer(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "asset/transfer", ["api", "v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/transfer"; api=["api", "v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function apiV3PrivateGetAssetTransferRecord(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "asset/transferRecord", ["api", "v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/transferRecord"; api=["api", "v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function apiV3PrivateGetCapitalDepositHisrec(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/hisrec", ["api", "v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/deposit/hisrec"; api=["api", "v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function apiV3PrivateGetCapitalWithdrawHistory(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/history", ["api", "v3", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "capital/withdraw/history"; api=["api", "v3", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function apiV3PrivatePostPostAssetTransfer(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "post/asset/transfer", ["api", "v3", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "post/asset/transfer"; api=["api", "v3", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function apiAssetV1PrivatePostTransfer(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "transfer", ["api", "asset", "v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "transfer"; api=["api", "asset", "v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function apiAssetV1PublicGetTransferSupportCoins(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "transfer/supportCoins", ["api", "asset", "v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "transfer/supportCoins"; api=["api", "asset", "v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function agentV1PrivateGetAccountInviteAccountList(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "account/inviteAccountList", ["agent", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/inviteAccountList"; api=["agent", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function agentV1PrivateGetRewardCommissionDataList(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "reward/commissionDataList", ["agent", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "reward/commissionDataList"; api=["agent", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function agentV1PrivateGetAccountInviteRelationCheck(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "account/inviteRelationCheck", ["agent", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/inviteRelationCheck"; api=["agent", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function agentV1PrivateGetAssetDepositDetailList(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "asset/depositDetailList", ["agent", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/depositDetailList"; api=["agent", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function agentV1PrivateGetRewardThirdCommissionDataList(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "reward/third/commissionDataList", ["agent", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "reward/third/commissionDataList"; api=["agent", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function agentV1PrivateGetAssetPartnerData(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "asset/partnerData", ["agent", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/partnerData"; api=["agent", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function agentV1PrivateGetCommissionDataListReferralCode(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "commissionDataList/referralCode", ["agent", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "commissionDataList/referralCode"; api=["agent", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function agentV1PrivateGetAccountSuperiorCheck(self::Bingx, params=Dict(), context=Dict())
-    return request(self, "account/superiorCheck", ["agent", "v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/superiorCheck"; api=["agent", "v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bingx(; kwargs...)
@@ -4935,3 +5737,975 @@ function Bingx(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bingx_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the bingx server
+see: https://bingx-api.github.io/docs/#/swapV2/base-info.html#Get%20Server%20Time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the bingx server
+"""
+__ccxt_doc_Bingx_fetchTime
+
+function __ccxt_doc_Bingx_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bingx_fetchCurrencies
+
+function __ccxt_doc_Bingx_fetchMarkets() end
+"""
+retrieves data on all markets for bingx
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Spot%20trading%20symbols
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/USDT-M%20Perp%20Futures%20symbols
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Contract%20Information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bingx_fetchMarkets
+
+function __ccxt_doc_Bingx_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Kline%2FCandlestick%20Data
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Kline%2FCandlestick%20Data
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20Kline%2FCandlestick%20Data
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20K-line%20Data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bingx_fetchOHLCV
+
+function __ccxt_doc_Bingx_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Recent%20Trades%20List
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Recent%20Trades%20List
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bingx_fetchTrades
+
+function __ccxt_doc_Bingx_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Order%20Book
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Order%20Book
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%20Depth%20Data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bingx_fetchOrderBook
+
+function __ccxt_doc_Bingx_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Bingx_fetchFundingRate
+
+function __ccxt_doc_Bingx_fetchFundingRates() end
+"""
+fetch the current funding rate for multiple symbols
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: "linear" or "inverse" (default is linear)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Bingx_fetchFundingRates
+
+function __ccxt_doc_Bingx_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate to fetch
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Bingx_fetchFundingRateHistory
+
+function __ccxt_doc_Bingx_fetchFundingHistory() end
+"""
+fetches historical funding received
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding history for
+- `since`::int, optional: timestamp in ms of the earliest funding to fetch
+- `limit`::int, optional: the maximum amount of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding to fetch
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Bingx_fetchFundingHistory
+
+function __ccxt_doc_Bingx_fetchOpenInterest() end
+"""
+retrieves the open interest of a trading pair
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Open%20Interest%20Statistics
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20Swap%20Open%20Positions
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Bingx_fetchOpenInterest
+
+function __ccxt_doc_Bingx_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bingx_fetchTicker
+
+function __ccxt_doc_Bingx_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bingx_fetchTickers
+
+function __ccxt_doc_Bingx_fetchMarkPrice() end
+"""
+fetches mark prices for the market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bingx_fetchMarkPrice
+
+function __ccxt_doc_Bingx_fetchMarkPrices() end
+"""
+fetches mark prices for multiple markets
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bingx_fetchMarkPrices
+
+function __ccxt_doc_Bingx_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Account%20Endpoints/Query%20Assets
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20account%20data
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Account%20Assets
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Query%20Assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.standard`::bool, optional: whether to fetch standard contract balances
+- `params.type`::string, optional: the type of balance to fetch (spot, swap, funding) default is `spot`
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bingx_fetchBalance
+
+function __ccxt_doc_Bingx_fetchPositionHistory() end
+"""
+fetches historical positions
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Position%20History
+
+# Arguments
+- `symbol`::string: unified contract symbol
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum amount of records to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch positions for
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bingx_fetchPositionHistory
+
+function __ccxt_doc_Bingx_fetchPositions() end
+"""
+fetch all open positions
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data
+see: https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.standard`::bool, optional: whether to fetch standard contract positions
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bingx_fetchPositions
+
+function __ccxt_doc_Bingx_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bingx_fetchPosition
+
+function __ccxt_doc_Bingx_createMarketOrderWithCost() end
+"""
+create a market order by providing the symbol, side and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `side`::string: 'buy' or 'sell'
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_createMarketOrderWithCost
+
+function __ccxt_doc_Bingx_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Bingx_createMarketSellOrderWithCost() end
+"""
+create a market sell order by providing the symbol and cost
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_createMarketSellOrderWithCost
+
+function __ccxt_doc_Bingx_createOrder() end
+"""
+create a trade order
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20order
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20order
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20TWAP%20Order
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Trade%20order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+- `params.postOnly`::bool, optional: true to place a post only order
+- `params.timeInForce`::string, optional: spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+- `params.reduceOnly`::bool, optional: *swap only* true or false whether the order is reduce only
+- `params.triggerPrice`::float, optional: triggerPrice at which the attached take profit / stop loss order will be triggered
+- `params.stopLossPrice`::float, optional: stop loss trigger price
+- `params.takeProfitPrice`::float, optional: take profit trigger price
+- `params.cost`::float, optional: the quote quantity that can be used as an alternative for the amount
+- `params.trailingAmount`::float, optional: *swap only* the quote amount to trail away from the current market price
+- `params.trailingPercent`::float, optional: *swap only* the percent to trail away from the current market price
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.test`::bool, optional: *swap only* whether to use the test endpoint or not, default is false
+- `params.positionSide`::string, optional: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+- `params.hedged`::bool, optional: *swap only* whether the order is in hedged mode or one way mode
+- `params.closePosition`::bool, optional: *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_createOrder
+
+function __ccxt_doc_Bingx_createOrders() end
+"""
+create a list of trade orders
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.sync`::bool, optional: *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_createOrders
+
+function __ccxt_doc_Bingx_cancelOrder() end
+"""
+cancels an open order
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20Order
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20Order
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20TWAP%20Order
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20an%20Order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_cancelOrder
+
+function __ccxt_doc_Bingx_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20all%20Open%20Orders%20on%20a%20Symbol
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20Open%20Orders
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20all%20orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'spot' or 'swap' (default is 'spot' if symbol is not provided)
+- `params.subType`::string, optional: 'linear' or 'inverse' for swap markets (default is 'linear' if symbol is not provided)
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_cancelAllOrders
+
+function __ccxt_doc_Bingx_cancelOrders() end
+"""
+cancel multiple orders
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20multiple%20orders
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: client order ids
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_cancelOrders
+
+function __ccxt_doc_Bingx_cancelAllOrdersAfter() end
+"""
+dead man's switch, cancel all orders after the given timeout
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20All%20After
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20After
+
+# Arguments
+- `timeout`::float: time in milliseconds, 0 represents cancel the timer
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: spot or swap market
+
+# Returns
+- the api result
+"""
+__ccxt_doc_Bingx_cancelAllOrdersAfter
+
+function __ccxt_doc_Bingx_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20details
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20details
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/TWAP%20Order%20Details
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.twap`::bool, optional: if fetching twap order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_fetchOrder
+
+function __ccxt_doc_Bingx_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+- `params.orderId`::int, optional: Only return subsequent orders, and return the latest order by default
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_fetchOrders
+
+function __ccxt_doc_Bingx_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Current%20Open%20Orders
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Current%20All%20Open%20Orders
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20all%20current%20pending%20orders
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Entrusted%20Order
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.twap`::bool, optional: if fetching twap open orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_fetchOpenOrders
+
+function __ccxt_doc_Bingx_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
+see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+
+# Arguments
+- `symbol`::string: unified market symbol of the closed orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of closed orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.standard`::bool, optional: whether to fetch standard contract orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_fetchClosedOrders
+
+function __ccxt_doc_Bingx_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
+see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+
+# Arguments
+- `symbol`::string: unified market symbol of the canceled orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of canceled orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.standard`::bool, optional: whether to fetch standard contract orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_fetchCanceledOrders
+
+function __ccxt_doc_Bingx_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
+see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Historical%20Orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.standard`::bool, optional: whether to fetch standard contract orders
+- `params.twap`::bool, optional: if fetching twap orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Bingx_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20Transfer%20New
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from (spot, swap, futures, or funding)
+- `toAccount`::string: account to transfer to (spot, swap (linear or inverse), future, or funding)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bingx_transfer
+
+function __ccxt_doc_Bingx_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20transfer%20records%20new
+
+# Arguments
+- `code`::string, optional: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve (default 10, max 100)
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.fromAccount`::string: (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
+- `params.toAccount`::string: (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+- `params.paginate`::bool, optional: whether to paginate the results (default false)
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bingx_fetchTransfers
+
+function __ccxt_doc_Bingx_fetchDepositAddressesByNetwork() end
+"""
+fetch the deposit addresses for a currency associated with this account
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
+"""
+__ccxt_doc_Bingx_fetchDepositAddressesByNetwork
+
+function __ccxt_doc_Bingx_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bingx_fetchDepositAddress
+
+function __ccxt_doc_Bingx_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Deposit%20records
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bingx_fetchDeposits
+
+function __ccxt_doc_Bingx_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Withdraw%20records
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bingx_fetchWithdrawals
+
+function __ccxt_doc_Bingx_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Change%20Margin%20Type
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Set%20Margin%20Type
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bingx_setMarginMode
+
+function __ccxt_doc_Bingx_setMargin() end
+"""
+Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to set margin in
+- `amount`::float: the amount to set the margin to
+- `params`::object, optional: parameters specific to the exchange API endpoint
+
+# Returns
+- A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Bingx_setMargin
+
+function __ccxt_doc_Bingx_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Leverage%20and%20Available%20Positions
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Leverage
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Bingx_fetchLeverage
+
+function __ccxt_doc_Bingx_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Leverage
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Modify%20Leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.side`::string, optional: hedged: ['long' or 'short']. one way: ['both']
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bingx_setLeverage
+
+function __ccxt_doc_Bingx_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20transaction%20details
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20historical%20transaction%20orders
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order%20Trade%20Detail
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms for the ending date filter, default is undefined
+- `params.trandingUnit`::string: COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
+- `params.orderId`::string: the order id required for inverse swap
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bingx_fetchMyTrades
+
+function __ccxt_doc_Bingx_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bingx_fetchDepositWithdrawFees
+
+function __ccxt_doc_Bingx_withdraw() end
+"""
+make a withdrawal
+see: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string, optional:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.walletType`::int, optional: 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bingx_withdraw
+
+function __ccxt_doc_Bingx_fetchMyLiquidations() end
+"""
+retrieves the users liquidated positions
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/User's%20Force%20Orders
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
+
+# Arguments
+- `symbol`::string, optional: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the bingx api endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Bingx_fetchMyLiquidations
+
+function __ccxt_doc_Bingx_closePosition() end
+"""
+closes open positions for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20position%20by%20position%20ID
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
+
+# Arguments
+- `symbol`::string: Unified CCXT market symbol
+- `side`::string, optional: not used by bingx
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.positionId`::any, optional: the id of the position you would like to close
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_closePosition
+
+function __ccxt_doc_Bingx_closeAllPositions() end
+"""
+closes open positions for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.recvWindow`::string, optional: request valid time window value
+
+# Returns
+- [a list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bingx_closeAllPositions
+
+function __ccxt_doc_Bingx_fetchPositionMode() end
+"""
+fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an object detailing whether the market is in hedged or one-way mode
+"""
+__ccxt_doc_Bingx_fetchPositionMode
+
+function __ccxt_doc_Bingx_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bingx_setPositionMode
+
+function __ccxt_doc_Bingx_editOrder() end
+"""
+cancels an order and places a new order
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Order  // spot
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::string, optional: Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price EXCHANGE SPECIFIC PARAMETERS
+- `params.cancelClientOrderID`::string, optional: the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+- `params.cancelRestrictions`::string, optional: cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
+- `params.cancelReplaceMode`::string, optional: STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
+- `params.quoteOrderQty`::float, optional: order amount
+- `params.newClientOrderId`::string, optional: custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
+- `params.positionSide`::string, optional: *contract only* position direction, required for single position as BOTH, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
+- `params.reduceOnly`::string, optional: *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
+- `params.priceRate`::float, optional: *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
+- `params.workingType`::string, optional: *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bingx_editOrder
+
+function __ccxt_doc_Bingx_fetchMarginMode() end
+"""
+fetches the margin mode of the trading pair
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Margin%20Type
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Margin%20Type
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Bingx_fetchMarginMode
+
+function __ccxt_doc_Bingx_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Trading%20Commission%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20Trading%20Commission%20Rate
+see: https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Trade%20Commission%20Rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bingx_fetchTradingFee
+
+function __ccxt_doc_Bingx_fetchMarketLeverageTiers() end
+"""
+retrieve information on the maximum leverage, for different trade sizes for a single market
+see: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+__ccxt_doc_Bingx_fetchMarketLeverageTiers

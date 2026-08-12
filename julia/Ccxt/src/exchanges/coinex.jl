@@ -1504,23 +1504,33 @@ function describe(self::Coinex, )
 ))
 
 end
-function fetchCurrencies(self::Coinex, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Coinex; params=Dict())
     response = Base.fetch(self.v2PublicGetAssetsAllDepositWithdrawConfig(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     return self.parseCurrencies(data)
 
 end
 function parseCurrency(self::Coinex, coin)
-    asset = self.safeDict(coin, "asset", Dict{Symbol, Any}());
+    asset = self.safeDict(coin, "asset", defaultValue = Dict{Symbol, Any}());
     currencyId = safeString(asset, "ccy");
-    chains = self.safeList(coin, "chains", []);
+    chains = self.safeList(coin, "chains", defaultValue = []);
     code = self.safeCurrencyCode(currencyId);
     networks = Dict{Symbol, Any}();
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(chains)))
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "chain");
-        networkCode = self.networkIdToCode(networkId, code);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(networkId == nothing)
             j += 1; continue
         end
@@ -1532,7 +1542,7 @@ function parseCurrency(self::Coinex, coin)
             Symbol("deposit") => self.safeBool(chain, "deposit_enabled"),
             Symbol("withdraw") => self.safeBool(chain, "withdraw_enabled"),
             Symbol("fee") => self.safeNumber(chain, "withdrawal_fee"),
-            Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chain, "withdrawal_precision"))),
+            Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(chain, "withdrawal_precision"))),
             Symbol("limits") => Dict{Symbol, Any}(
                 Symbol("amount") => Dict{Symbol, Any}(
                     Symbol("min") => nothing,
@@ -1583,7 +1593,18 @@ function parseCurrency(self::Coinex, coin)
 ))
 
 end
-function fetchMarkets(self::Coinex, params=Dict())
+"""
+retrieves data on all markets for coinex
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Coinex; params=Dict())
     promisesUnresolved = [self.fetchSpotMarkets(params), self.fetchContractMarkets(params)];
     promises = Base.fetch(asyncmap(Base.fetch, promisesUnresolved));
     spotMarkets = get(promises, 1, nothing);
@@ -1593,7 +1614,7 @@ function fetchMarkets(self::Coinex, params=Dict())
 end
 function fetchSpotMarkets(self::Coinex, params)
     response = Base.fetch(self.v2PublicGetSpotMarket(params));
-    markets = self.safeList(response, "data", []);
+    markets = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
@@ -1631,8 +1652,8 @@ function fetchSpotMarkets(self::Coinex, params)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "base_ccy_precision"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "quote_ccy_precision")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "base_ccy_precision"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quote_ccy_precision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -1662,13 +1683,13 @@ function fetchSpotMarkets(self::Coinex, params)
 end
 function fetchContractMarkets(self::Coinex, params)
     response = Base.fetch(self.v2PublicGetFuturesMarket(params));
-    markets = self.safeList(response, "data", []);
+    markets = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
         entry = get(markets, i + 1, nothing);
         fees = self.fees;
-        leverages = self.safeList(entry, "leverage", []);
+        leverages = self.safeList(entry, "leverage", defaultValue = []);
         subType = safeString(entry, "contract_type");
         linear = (subType == "linear");
         inverse = (subType == "inverse");
@@ -1708,8 +1729,8 @@ function fetchContractMarkets(self::Coinex, params)
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(entry, "base_ccy_precision"))),
-        Symbol("price") => self.parseNumber(self.parsePrecision(safeString(entry, "quote_ccy_precision")))
+        Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(entry, "base_ccy_precision"))),
+        Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(entry, "quote_ccy_precision")))
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
@@ -1737,10 +1758,10 @@ function fetchContractMarkets(self::Coinex, params)
     return result
 
 end
-function parseTicker(self::Coinex, ticker, market=nothing)
+function parseTicker(self::Coinex, ticker; market=nothing)
     marketType = functions.ccxtruthy((ccxt_in("mark_price", ticker))) ? "swap" : "spot";
     marketId = safeString(ticker, "market");
-    market = self.safeMarket(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
     symbol = get(market, Symbol("symbol"), nothing);
     quoteVolume = functions.ccxtruthy(get(market, Symbol("inverse"), nothing)) ? nothing : safeString(ticker, "value");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -1766,10 +1787,22 @@ function parseTicker(self::Coinex, ticker, market=nothing)
     Symbol("markPrice") => safeString(ticker, "mark_price"),
     Symbol("indexPrice") => safeString(ticker, "index_price"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Coinex, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Coinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1782,39 +1815,74 @@ function fetchTicker(self::Coinex, symbol, params=Dict())
     else
         response = Base.fetch(self.v2PublicGetSpotTicker(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    result = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTicker(result, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(result, market = market)
 
 end
-function fetchTickers(self::Coinex, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Coinex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
         symbol = safeValue(symbols, 0);
         market = self.market(symbol);
     end
-    (marketType, query) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (marketType, query) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     response = nothing;
     if functions.ccxtruthy(marketType == "swap")
         response = Base.fetch(self.v2PublicGetFuturesTicker(query));
     else
         response = Base.fetch(self.v2PublicGetSpotTicker(query));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTickers(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(data, symbols = symbols)
 
 end
-function fetchTime(self::Coinex, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.coinex.com/api/v2/common/http/time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Coinex; params=Dict())
     response = Base.fetch(self.v2PublicGetTime(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return safeInteger(data, "timestamp")
 
 end
-function fetchOrderBook(self::Coinex, symbol, limit=20, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market-depth
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Coinex, symbol; limit=20, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1832,20 +1900,20 @@ function fetchOrderBook(self::Coinex, symbol, limit=20, params=Dict())
     else
         response = Base.fetch(self.v2PublicGetSpotDepth(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    depth = self.safeDict(data, "depth", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    depth = self.safeDict(data, "depth", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(depth, "updated_at");
-    return self.parseOrderBook(depth, symbol, timestamp)
+    return self.parseOrderBook(depth, symbol, timestamp = timestamp)
 
 end
-function parseTrade(self::Coinex, trade, market=nothing)
+function parseTrade(self::Coinex, trade; market=nothing)
     timestamp = safeInteger(trade, "created_at");
     defaultType = safeString(self.options, "defaultType");
     if functions.ccxtruthy(market != nothing)
         defaultType = get(market, Symbol("type"), nothing);
     end
     marketId = safeString(trade, "market");
-    market = self.safeMarket(marketId, market, nothing, defaultType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = defaultType);
     feeCostString = safeString(trade, "fee");
     fee = nothing;
     if functions.ccxtruthy(feeCostString != nothing)
@@ -1870,10 +1938,24 @@ function parseTrade(self::Coinex, trade, market=nothing)
     Symbol("amount") => safeString(trade, "amount"),
     Symbol("cost") => safeString(trade, "deal_money"),
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Coinex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of the most recent trades for a particular symbol
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market-deals
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-deals
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Coinex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1889,10 +1971,22 @@ function fetchTrades(self::Coinex, symbol, since=nothing, limit=nothing, params=
     else
         response = Base.fetch(self.v2PublicGetSpotDeals(extend(request, params)));
     end
-    return self.parseTrades(get(response, Symbol("data"), nothing), market, since, limit)
+    return self.parseTrades(get(response, Symbol("data"), nothing), market = market, since = since, limit = limit)
 
 end
-function fetchTradingFee(self::Coinex, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Coinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1905,39 +1999,50 @@ function fetchTradingFee(self::Coinex, symbol, params=Dict())
     else
         response = Base.fetch(self.v2PublicGetFuturesMarket(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    result = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseTradingFee(result, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    result = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseTradingFee(result, market = market)
 
 end
-function fetchTradingFees(self::Coinex, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Coinex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTradingFees", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTradingFees", market = nothing, params = params);
     if functions.ccxtruthy(type_var == "swap")
         response = Base.fetch(self.v2PublicGetFuturesMarket(params));
     else
         response = Base.fetch(self.v2PublicGetSpotMarket(params));
     end
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
         marketId = safeString(entry, "market");
-        market = self.safeMarket(marketId, nothing, nothing, type_var);
+        market = self.safeMarket(marketId = marketId, market = nothing, delimiter = nothing, marketType = type_var);
         symbol = get(market, Symbol("symbol"), nothing);
-        result[Symbol(symbol)] = self.parseTradingFee(entry, market);
+        result[Symbol(symbol)] = self.parseTradingFee(entry, market = market);
         i += 1
     end
     return result
 
 end
-function parseTradingFee(self::Coinex, fee, market=nothing)
+function parseTradingFee(self::Coinex, fee; market=nothing)
     marketId = safeValue(fee, "market");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     return Dict{Symbol, Any}(
     Symbol("info") => fee,
     Symbol("symbol") => symbol,
@@ -1948,11 +2053,26 @@ function parseTradingFee(self::Coinex, fee, market=nothing)
 )
 
 end
-function parseOHLCV(self::Coinex, ohlcv, market=nothing)
+function parseOHLCV(self::Coinex, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "created_at"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "value")]
 
 end
-function fetchOHLCV(self::Coinex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market-kline
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Coinex, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1969,11 +2089,11 @@ function fetchOHLCV(self::Coinex, symbol, timeframe="1m", since=nothing, limit=n
     else
         response = Base.fetch(self.v2PublicGetSpotKline(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchMarginBalance(self::Coinex, params=Dict())
+function fetchMarginBalance(self::Coinex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1981,14 +2101,14 @@ function fetchMarginBalance(self::Coinex, params=Dict())
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    balances = self.safeList(response, "data", []);
+    balances = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         entry = get(balances, i + 1, nothing);
-        free = self.safeDict(entry, "available", Dict{Symbol, Any}());
-        used = self.safeDict(entry, "frozen", Dict{Symbol, Any}());
-        loan = self.safeDict(entry, "repaid", Dict{Symbol, Any}());
-        interest = self.safeDict(entry, "interest", Dict{Symbol, Any}());
+        free = self.safeDict(entry, "available", defaultValue = Dict{Symbol, Any}());
+        used = self.safeDict(entry, "frozen", defaultValue = Dict{Symbol, Any}());
+        loan = self.safeDict(entry, "repaid", defaultValue = Dict{Symbol, Any}());
+        interest = self.safeDict(entry, "interest", defaultValue = Dict{Symbol, Any}());
         baseAccount = self.account();
         baseCurrencyId = safeString(entry, "base_ccy");
         baseCurrencyCode = self.safeCurrencyCode(baseCurrencyId);
@@ -2005,7 +2125,7 @@ function fetchMarginBalance(self::Coinex, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchSpotBalance(self::Coinex, params=Dict())
+function fetchSpotBalance(self::Coinex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2013,7 +2133,7 @@ function fetchSpotBalance(self::Coinex, params=Dict())
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    balances = self.safeList(response, "data", []);
+    balances = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         entry = get(balances, i + 1, nothing);
@@ -2030,7 +2150,7 @@ function fetchSpotBalance(self::Coinex, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchSwapBalance(self::Coinex, params=Dict())
+function fetchSwapBalance(self::Coinex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2038,7 +2158,7 @@ function fetchSwapBalance(self::Coinex, params=Dict())
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    balances = self.safeList(response, "data", []);
+    balances = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         entry = get(balances, i + 1, nothing);
@@ -2055,7 +2175,7 @@ function fetchSwapBalance(self::Coinex, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchFinancialBalance(self::Coinex, params=Dict())
+function fetchFinancialBalance(self::Coinex; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2063,7 +2183,7 @@ function fetchFinancialBalance(self::Coinex, params=Dict())
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    balances = self.safeList(response, "data", []);
+    balances = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         entry = get(balances, i + 1, nothing);
@@ -2080,21 +2200,35 @@ function fetchFinancialBalance(self::Coinex, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Coinex, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance         // spot
+see: https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance      // swap
+see: https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance      // margin
+see: https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance    // financial
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'margin', 'swap', 'financial', or 'spot'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Coinex; params=Dict())
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params = params);
     isMargin = @functions.ccxt_or((marginMode != nothing), (marketType == "margin"));
     if functions.ccxtruthy(marketType == "swap")
-            return Base.fetch(self.fetchSwapBalance(params))
+            return Base.fetch(self.fetchSwapBalance(params = params))
     elseif functions.ccxtruthy(marketType == "financial")
-        return Base.fetch(self.fetchFinancialBalance(params))
+        return Base.fetch(self.fetchFinancialBalance(params = params))
     else
         if functions.ccxtruthy(isMargin)
-                return Base.fetch(self.fetchMarginBalance(params))
+                return Base.fetch(self.fetchMarginBalance(params = params))
         else
-            return Base.fetch(self.fetchSpotBalance(params))
+            return Base.fetch(self.fetchSpotBalance(params = params))
         end
 
     end
@@ -2112,7 +2246,7 @@ function parseOrderStatus(self::Coinex, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Coinex, order, market=nothing)
+function parseOrder(self::Coinex, order; market=nothing)
     rawStatus = safeString(order, "status");
     timestamp = safeInteger(order, "created_at");
     updatedTimestamp = safeInteger(order, "updated_at");
@@ -2126,7 +2260,7 @@ function parseOrder(self::Coinex, order, market=nothing)
         orderType = "swap";
     end
     marketType = functions.ccxtruthy((orderType == "swap")) ? "swap" : "spot";
-    market = self.safeMarket(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
     feeCurrencyId = safeString(order, "fee_ccy");
     feeCurrency = self.safeCurrencyCode(feeCurrencyId);
     if functions.ccxtruthy(feeCurrency == nothing)
@@ -2170,10 +2304,23 @@ function parseOrder(self::Coinex, order, market=nothing)
         Symbol("cost") => safeString2(order, "quote_fee", "fee")
     ),
     Symbol("info") => order
-), market)
+), market = market)
 
 end
-function createMarketBuyOrderWithCost(self::Coinex, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
+see: https://docs.coinex.com/api/v2/spot/order/http/put-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Coinex, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2182,10 +2329,10 @@ function createMarketBuyOrderWithCost(self::Coinex, symbol, cost, params=Dict())
         throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
     end
     params[Symbol("createMarketBuyOrderRequiresPrice")] = false;
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = params))
 
 end
-function createOrderRequest(self::Coinex, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Coinex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -2200,7 +2347,7 @@ function createOrderRequest(self::Coinex, symbol, type_var, side, amount, price=
     takeProfitPrice = safeString(params, "takeProfitPrice");
     option = safeString(params, "option");
     isMarketOrder = type_var == "market";
-    postOnly = self.isPostOnly(isMarketOrder, option == "maker_only", params);
+    postOnly = self.isPostOnly(isMarketOrder, option == "maker_only", params = params);
     timeInForceRaw = safeStringUpper(params, "timeInForce");
     reduceOnly = self.safeBool(params, "reduceOnly");
     if functions.ccxtruthy(reduceOnly)
@@ -2256,7 +2403,7 @@ function createOrderRequest(self::Coinex, symbol, type_var, side, amount, price=
         end
     else
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
+        (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
         if functions.ccxtruthy(marginMode != nothing)
             request[Symbol("market_type")] = "MARGIN";
         else
@@ -2264,7 +2411,7 @@ function createOrderRequest(self::Coinex, symbol, type_var, side, amount, price=
         end
         if functions.ccxtruthy(@functions.ccxt_and((type_var == "market"), (side == "buy")))
             createMarketBuyOrderRequiresPrice = true;
-            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
             cost = self.safeNumber(params, "cost");
             params = omit(params, "cost");
             if functions.ccxtruthy(createMarketBuyOrderRequiresPrice)
@@ -2291,7 +2438,34 @@ function createOrderRequest(self::Coinex, symbol, type_var, side, amount, price=
     return extend(request, params)
 
 end
-function createOrder(self::Coinex, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.coinex.com/api/v2/spot/order/http/put-order
+see: https://docs.coinex.com/api/v2/spot/order/http/put-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/put-order
+see: https://docs.coinex.com/api/v2/futures/order/http/put-stop-order
+see: https://docs.coinex.com/api/v2/futures/position/http/close-position
+see: https://docs.coinex.com/api/v2/futures/position/http/set-position-stop-loss
+see: https://docs.coinex.com/api/v2/futures/position/http/set-position-take-profit
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: price to trigger stop orders
+- `params.stopLossPrice`::float, optional: price to trigger stop loss orders
+- `params.takeProfitPrice`::float, optional: price to trigger take profit orders
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK', 'PO'
+- `params.postOnly`::bool, optional: set to true if you wish to make a post only order
+- `params.reduceOnly`::bool, optional: *contract only* indicates if this order is to reduce the size of a position
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Coinex, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2304,7 +2478,7 @@ function createOrder(self::Coinex, symbol, type_var, side, amount, price=nothing
     isStopLossTriggerOrder = stopLossTriggerPrice != nothing;
     isTakeProfitTriggerOrder = takeProfitTriggerPrice != nothing;
     isStopLossOrTakeProfitTrigger = @functions.ccxt_or(isStopLossTriggerOrder, isTakeProfitTriggerOrder);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         if functions.ccxtruthy(isTriggerOrder)
@@ -2329,11 +2503,25 @@ function createOrder(self::Coinex, symbol, type_var, side, amount, price=nothing
             end
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function createOrders(self::Coinex, orders, params=Dict())
+"""
+create a list of trade orders (all orders should be of the same symbol)
+see: https://docs.coinex.com/api/v2/spot/order/http/put-multi-order
+see: https://docs.coinex.com/api/v2/spot/order/http/put-multi-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/put-multi-order
+see: https://docs.coinex.com/api/v2/futures/order/http/put-multi-stop-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the api endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Coinex, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2369,7 +2557,7 @@ function createOrders(self::Coinex, orders, params=Dict())
         isStopLossTriggerOrder = stopLossTriggerPrice != nothing;
         isTakeProfitTriggerOrder = takeProfitTriggerPrice != nothing;
         isStopLossOrTakeProfitTrigger = @functions.ccxt_or(isStopLossTriggerOrder, isTakeProfitTriggerOrder);
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, orderParams);
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
@@ -2398,7 +2586,7 @@ function createOrders(self::Coinex, orders, params=Dict())
             end
         end
     end
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     results = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -2412,13 +2600,13 @@ function createOrders(self::Coinex, orders, params=Dict())
                 status = "open";
             end
         end
-        innerData = self.safeDict(entry, "data", Dict{Symbol, Any}());
+        innerData = self.safeDict(entry, "data", defaultValue = Dict{Symbol, Any}());
         if functions.ccxtruthy(@functions.ccxt_and(get(market, Symbol("spot"), nothing), !functions.ccxtruthy(isTriggerOrder)))
             entry[Symbol("status")] = status;
-            order = self.parseOrder(entry, market);
+            order = self.parseOrder(entry, market = market);
         else
             innerData[Symbol("status")] = status;
-            order = self.parseOrder(innerData, market);
+            order = self.parseOrder(innerData, market = market);
         end
         push!(results, order);
         i += 1
@@ -2426,7 +2614,23 @@ function createOrders(self::Coinex, orders, params=Dict())
     return results
 
 end
-function cancelOrders(self::Coinex, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-order
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-order
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-stop-order
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for canceling stop orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Coinex, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -2465,20 +2669,40 @@ function cancelOrders(self::Coinex, ids, symbol=nothing, params=Dict())
             response = Base.fetch(self.v2PrivatePostFuturesCancelBatchOrder(extend(request, params)));
         end
     end
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     results = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
-        item = self.safeDict(entry, "data", Dict{Symbol, Any}());
-        order = self.parseOrder(item, market);
+        item = self.safeDict(entry, "data", defaultValue = Dict{Symbol, Any}());
+        order = self.parseOrder(item, market = market);
         push!(results, order);
         i += 1
     end
     return results
 
 end
-function editOrder(self::Coinex, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://docs.coinex.com/api/v2/spot/order/http/edit-order
+see: https://docs.coinex.com/api/v2/spot/order/http/edit-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/edit-order
+see: https://docs.coinex.com/api/v2/futures/order/http/edit-stop-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price to trigger stop orders
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Coinex, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " editOrder() requires a symbol argument")));
     end
@@ -2506,7 +2730,7 @@ function editOrder(self::Coinex, id, symbol, type_var, side, amount=nothing, pri
         request[Symbol("order_id")] = self.parseToNumeric(id);
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("editOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("editOrder", params = params);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         if functions.ccxtruthy(marginMode != nothing)
             request[Symbol("market_type")] = "MARGIN";
@@ -2526,11 +2750,23 @@ function editOrder(self::Coinex, id, symbol, type_var, side, amount=nothing, pri
             response = Base.fetch(self.v2PrivatePostFuturesModifyOrder(extend(request, params)));
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function editOrders(self::Coinex, orders, params=Dict())
+"""
+edit a list of trade orders
+see: https://docs.coinex.com/api/v2/spot/order/http/edit-multi-order
+see: https://docs.coinex.com/api/v2/futures/order/http/edit-multi-order
+
+# Arguments
+- `orders`::array: list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrders(self::Coinex, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2547,9 +2783,9 @@ function editOrders(self::Coinex, orders, params=Dict())
         id = safeString(rawOrder, "id");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         marginMode = nothing;
-        (marginMode, orderParams) = self.handleMarginModeAndParams("editOrders", orderParams);
+        (marginMode, orderParams) = self.handleMarginModeAndParams("editOrders", params = orderParams);
         market_type = "SPOT";
         if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
             market_type = "FUTURES";
@@ -2570,7 +2806,7 @@ function editOrders(self::Coinex, orders, params=Dict())
         push!(ordersRequests, extend(orderRequest, orderParams));
         i += 1
     end
-    orderSymbols = self.marketSymbols(orderSymbols, nothing, false, true, true);
+    orderSymbols = self.marketSymbols(symbols = orderSymbols, type_var = nothing, allowEmpty = false, sameTypeOnly = true, sameSubTypeOnly = true);
     firstSymbol = safeString(orderSymbols, 0);
     firstMarket = self.market(firstSymbol);
     request = Dict{Symbol, Any}(
@@ -2582,7 +2818,7 @@ function editOrders(self::Coinex, orders, params=Dict())
     else
         response = Base.fetch(self.v2PrivatePostFuturesBatchModifyOrder(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -2595,7 +2831,7 @@ function editOrders(self::Coinex, orders, params=Dict())
             self.throwExactlyMatchedException(get(self.exceptions, Symbol("exact"), nothing), code, feedback);
             throw(ExchangeError(feedback));
         end
-        item = self.safeDict(entry, "data", Dict{Symbol, Any}());
+        item = self.safeDict(entry, "data", defaultValue = Dict{Symbol, Any}());
         order = self.parseOrder(item);
         push!(result, order);
         i += 1
@@ -2603,7 +2839,28 @@ function editOrders(self::Coinex, orders, params=Dict())
     return result
 
 end
-function cancelOrder(self::Coinex, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-order
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-order-by-client-id
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order-by-client-id
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-order
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-order-by-client-id
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order-by-client-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, defaults to id if not passed
+- `params.trigger`::bool, optional: set to true for canceling a trigger order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Coinex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -2617,7 +2874,7 @@ function cancelOrder(self::Coinex, id, symbol=nothing, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params = params);
     if functions.ccxtruthy(swap)
         request[Symbol("market_type")] = "FUTURES";
     else
@@ -2664,15 +2921,28 @@ function cancelOrder(self::Coinex, id, symbol=nothing, params=Dict())
     end
     data = nothing;
     if functions.ccxtruthy(clientOrderId != nothing)
-        rows = self.safeList(response, "data", []);
-        data = self.safeDict(get(rows, 1, nothing), "data", Dict{Symbol, Any}());
+        rows = self.safeList(response, "data", defaultValue = []);
+        data = self.safeDict(get(rows, 1, nothing), "data", defaultValue = Dict{Symbol, Any}());
     else
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     end
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function cancelAllOrders(self::Coinex, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' for canceling spot margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Coinex; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -2689,7 +2959,7 @@ function cancelAllOrders(self::Coinex, symbol=nothing, params=Dict())
         response = Base.fetch(self.v2PrivatePostFuturesCancelAllOrder(extend(request, params)));
     else
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("cancelAllOrders", params);
+        (marginMode, params) = self.handleMarginModeAndParams("cancelAllOrders", params = params);
         if functions.ccxtruthy(marginMode != nothing)
             request[Symbol("market_type")] = "MARGIN";
         else
@@ -2702,7 +2972,20 @@ function cancelAllOrders(self::Coinex, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchOrder(self::Coinex, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.coinex.com/api/v2/spot/order/http/get-order-status
+see: https://docs.coinex.com/api/v2/futures/order/http/get-order-status
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Coinex, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -2720,11 +3003,30 @@ function fetchOrder(self::Coinex, id, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.v2PrivateGetSpotOrderStatus(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function fetchOrdersByStatus(self::Coinex, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a list of orders
+see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
+see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
+
+# Arguments
+- `status`::string: order status to fetch for
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.marginMode`::string, optional: 'cross' or 'isolated' for fetching spot margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrdersByStatus(self::Coinex, status; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2740,7 +3042,7 @@ function fetchOrdersByStatus(self::Coinex, status, symbol=nothing, since=nothing
     trigger = self.safeBool2(params, "stop", "trigger");
     params = omit(params, ["stop", "trigger"]);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrdersByStatus", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOrdersByStatus", market = market, params = params);
     response = nothing;
     isClosed = @functions.ccxt_or((status == "finished"), (status == "closed"));
     isOpen = @functions.ccxt_or((status == "pending"), (status == "open"));
@@ -2761,7 +3063,7 @@ function fetchOrdersByStatus(self::Coinex, status, symbol=nothing, since=nothing
         end
     else
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("fetchOrdersByStatus", params);
+        (marginMode, params) = self.handleMarginModeAndParams("fetchOrdersByStatus", params = params);
         if functions.ccxtruthy(marginMode != nothing)
             request[Symbol("market_type")] = "MARGIN";
         else
@@ -2781,12 +3083,30 @@ function fetchOrdersByStatus(self::Coinex, status, symbol=nothing, since=nothing
             end
         end
     end
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Coinex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    openOrders = Base.fetch(self.fetchOrdersByStatus("pending", symbol, since, limit, params));
+"""
+fetch all unfilled currently open orders
+see: https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
+see: https://docs.coinex.com/api/v2/spot/order/http/list-pending-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-pending-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-pending-stop-order
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.marginMode`::string, optional: 'cross' or 'isolated' for fetching spot margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Coinex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    openOrders = Base.fetch(self.fetchOrdersByStatus("pending", symbol = symbol, since = since, limit = limit, params = params));
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(openOrders)))
         openOrders[i + 1][Symbol("status")] = "open";
@@ -2795,11 +3115,41 @@ function fetchOpenOrders(self::Coinex, symbol=nothing, since=nothing, limit=noth
     return openOrders
 
 end
-function fetchClosedOrders(self::Coinex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchOrdersByStatus("finished", symbol, since, limit, params))
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
+see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.marginMode`::string, optional: 'cross' or 'isolated' for fetching spot margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Coinex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    return Base.fetch(self.fetchOrdersByStatus("finished", symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function createDepositAddress(self::Coinex, code, params=Dict())
+"""
+create a currency deposit address
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/update-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network to create a deposit address on
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Coinex, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2811,14 +3161,26 @@ function createDepositAddress(self::Coinex, code, params=Dict())
     params = omit(params, "network");
     request = Dict{Symbol, Any}(
         Symbol("ccy") => get(currency, Symbol("id"), nothing),
-        Symbol("chain") => self.networkCodeToId(network, get(currency, Symbol("code"), nothing))
+        Symbol("chain") => self.networkCodeToId(network, currencyCode = get(currency, Symbol("code"), nothing))
     );
     response = Base.fetch(self.v2PrivatePostAssetsRenewalDepositAddress(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseDepositAddress(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseDepositAddress(data, currency = currency)
 
 end
-function fetchDepositAddress(self::Coinex, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network to create a deposit address on
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Coinex, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2831,13 +3193,13 @@ function fetchDepositAddress(self::Coinex, code, params=Dict())
     if functions.ccxtruthy(networkCode == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchDepositAddress() requires a \"network\" parameter")));
     end
-    request[Symbol("chain")] = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+    request[Symbol("chain")] = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     response = Base.fetch(self.v2PrivateGetAssetsDepositAddress(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseDepositAddress(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseDepositAddress(data, currency = currency)
 
 end
-function parseDepositAddress(self::Coinex, depositAddress, currency=nothing)
+function parseDepositAddress(self::Coinex, depositAddress; currency=nothing)
     coinAddress = safeString(depositAddress, "address", "");
     parts = split(coinAddress, ":");
     address = nothing;
@@ -2851,14 +3213,30 @@ function parseDepositAddress(self::Coinex, depositAddress, currency=nothing)
     end
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
-    Symbol("currency") => self.safeCurrencyCode(nothing, currency),
+    Symbol("currency") => self.safeCurrencyCode(nothing, currency = currency),
     Symbol("network") => nothing,
     Symbol("address") => address,
     Symbol("tag") => safeString(depositAddress, "memo", tag)
 )
 
 end
-function fetchMyTrades(self::Coinex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://docs.coinex.com/api/v2/spot/deal/http/list-user-deals
+see: https://docs.coinex.com/api/v2/futures/deal/http/list-user-deals
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trades
+- `params.side`::string, optional: the side of the trades, either 'buy' or 'sell', required for swap
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Coinex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -2882,7 +3260,7 @@ function fetchMyTrades(self::Coinex, symbol=nothing, since=nothing, limit=nothin
         response = Base.fetch(self.v2PrivateGetFuturesUserDeals(extend(request, params)));
     else
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params);
+        (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params = params);
         if functions.ccxtruthy(marginMode != nothing)
             request[Symbol("market_type")] = "MARGIN";
         else
@@ -2890,17 +3268,30 @@ function fetchMyTrades(self::Coinex, symbol=nothing, since=nothing, limit=nothin
         end
         response = Base.fetch(self.v2PrivateGetSpotUserDeals(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchPositions(self::Coinex, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+see: https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Coinex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     defaultMethod = nothing;
-    (defaultMethod, params) = self.handleOptionAndParams(params, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
-    symbols = self.marketSymbols(symbols);
+    (defaultMethod, params) = self.handleOptionAndParams(params, "fetchPositions", "method", defaultValue = "v2PrivateGetFuturesPendingPosition");
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}(
         Symbol("market_type") => "FUTURES"
     );
@@ -2924,17 +3315,28 @@ function fetchPositions(self::Coinex, symbols=nothing, params=Dict())
     else
         response = Base.fetch(self.v2PrivateGetFuturesFinishedPosition(extend(request, params)));
     end
-    position = self.safeList(response, "data", []);
+    position = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(position)))
-        push!(result, self.parsePosition(get(position, i + 1, nothing), market));
+        push!(result, self.parsePosition(get(position, i + 1, nothing), market = market));
         i += 1
     end
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function fetchPosition(self::Coinex, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Coinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2944,13 +3346,13 @@ function fetchPosition(self::Coinex, symbol, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v2PrivateGetFuturesPendingPosition(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parsePosition(get(data, 1, nothing), market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parsePosition(get(data, 1, nothing), market = market)
 
 end
-function parsePosition(self::Coinex, position, market=nothing)
+function parsePosition(self::Coinex, position; market=nothing)
     marketId = safeString(position, "market");
-    market = self.safeMarket(marketId, market, nothing, "swap");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "swap");
     timestamp = safeInteger(position, "created_at");
     return self.safePosition(Dict{Symbol, Any}(
     Symbol("info") => position,
@@ -2984,7 +3386,20 @@ function parsePosition(self::Coinex, position, market=nothing)
 ))
 
 end
-function setMarginMode(self::Coinex, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::int: the rate of leverage
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Coinex, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -3016,7 +3431,20 @@ function setMarginMode(self::Coinex, marginMode, symbol=nothing, params=Dict())
     return Base.fetch(self.v2PrivatePostFuturesAdjustPositionLeverage(extend(request, params)))
 
 end
-function setLeverage(self::Coinex, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' (default is 'cross')
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Coinex, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -3028,7 +3456,7 @@ function setLeverage(self::Coinex, leverage, symbol=nothing, params=Dict())
         throw(BadSymbol(string(self.id, " setLeverage() supports swap contracts only")));
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params, "cross");
+    (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params, defaultValue = "cross");
     minLeverage = safeInteger(get(get(market, Symbol("limits"), nothing), Symbol("leverage"), nothing), "min", 1);
     maxLeverage = safeInteger(get(get(market, Symbol("limits"), nothing), Symbol("leverage"), nothing), "max", 100);
     if functions.ccxtruthy(@functions.ccxt_or((functions.ccxt_lt(leverage, minLeverage)), (functions.ccxt_gt(leverage, maxLeverage))))
@@ -3043,35 +3471,46 @@ function setLeverage(self::Coinex, leverage, symbol=nothing, params=Dict())
     return Base.fetch(self.v2PrivatePostFuturesAdjustPositionLeverage(extend(request, params)))
 
 end
-function fetchLeverageTiers(self::Coinex, symbols=nothing, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+function fetchLeverageTiers(self::Coinex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
-        marketIds = self.marketIds(symbols);
+        marketIds = self.marketIds(symbols = symbols);
         request[Symbol("market")] =         join(marketIds, ",");
     end
     response = Base.fetch(self.v2PublicGetFuturesPositionLevel(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseLeverageTiers(data, symbols, "market")
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLeverageTiers(data, symbols = symbols, marketIdKey = "market")
 
 end
-function parseMarketLeverageTiers(self::Coinex, info, market=nothing)
+function parseMarketLeverageTiers(self::Coinex, info; market=nothing)
     tiers = [];
-    brackets = self.safeList(info, "level", []);
+    brackets = self.safeList(info, "level", defaultValue = []);
     minNotional = 0;
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(brackets)))
         tier = get(brackets, i + 1, nothing);
         marketId = safeString(info, "market");
-        market = self.safeMarket(marketId, market, nothing, "swap");
+        market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "swap");
         maxNotional = self.safeNumber(tier, "amount");
         curr = functions.ccxtruthy(get(market, Symbol("linear"), nothing)) ? get(market, Symbol("base"), nothing) : get(market, Symbol("quote"), nothing);
         notional = minNotional;
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => self.sum(i, 1),
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("currency") => curr,
     Symbol("minNotional") => notional,
     Symbol("maxNotional") => maxNotional,
@@ -3085,7 +3524,7 @@ function parseMarketLeverageTiers(self::Coinex, info, market=nothing)
     return tiers
 
 end
-function modifyMarginHelper(self::Coinex, symbol, amount, addOrReduce, params=Dict())
+function modifyMarginHelper(self::Coinex, symbol, amount, addOrReduce; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3101,23 +3540,23 @@ function modifyMarginHelper(self::Coinex, symbol, amount, addOrReduce, params=Di
         Symbol("amount") => requestAmount
     );
     response = Base.fetch(self.v2PrivatePostFuturesAdjustPositionMargin(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     status = safeStringLower(response, "message");
     type_var = functions.ccxtruthy((addOrReduce == "reduce")) ? "reduce" : "add";
-    return extend(self.parseMarginModification(data, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(data, market = market), Dict{Symbol, Any}(
     Symbol("type") => type_var,
     Symbol("amount") => self.parseNumber(amount),
     Symbol("status") => status
 ))
 
 end
-function parseMarginModification(self::Coinex, data, market=nothing)
+function parseMarginModification(self::Coinex, data; market=nothing)
     marketId = safeString(data, "market");
     timestamp = safeInteger2(data, "updated_at", "created_at");
     change = safeString(data, "margin_change");
     return Dict{Symbol, Any}(
     Symbol("info") => data,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("type") => nothing,
     Symbol("marginMode") => "isolated",
     Symbol("amount") => self.parseNumber(stringAbs(change)),
@@ -3129,15 +3568,52 @@ function parseMarginModification(self::Coinex, data, market=nothing)
 )
 
 end
-function addMargin(self::Coinex, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params))
+"""
+add margin
+see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Coinex, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params = params))
 
 end
-function reduceMargin(self::Coinex, symbol, amount, params=Dict())
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params))
+"""
+remove margin from a position
+see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Coinex, symbol, amount; params=Dict())
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params = params))
 
 end
-function fetchFundingHistory(self::Coinex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding fee payments paid and received on this account
+see: https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Coinex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingHistory() requires a symbol argument")));
     end
@@ -3157,7 +3633,7 @@ function fetchFundingHistory(self::Coinex, symbol=nothing, since=nothing, limit=
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v2PrivateGetFuturesPositionFundingHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
@@ -3179,7 +3655,18 @@ function fetchFundingHistory(self::Coinex, symbol=nothing, since=nothing, limit=
     return result
 
 end
-function fetchFundingRate(self::Coinex, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Coinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3191,16 +3678,27 @@ function fetchFundingRate(self::Coinex, symbol, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v2PublicGetFuturesFundingRate(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseFundingRate(first_var, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(first_var, market = market)
 
 end
-function fetchFundingInterval(self::Coinex, symbol, params=Dict())
-    return Base.fetch(self.fetchFundingRate(symbol, params))
+"""
+fetch the current funding rate interval
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingInterval(self::Coinex, symbol; params=Dict())
+    return Base.fetch(self.fetchFundingRate(symbol, params = params))
 
 end
-function parseFundingRate(self::Coinex, contract, market=nothing)
+function parseFundingRate(self::Coinex, contract; market=nothing)
     currentFundingTimestamp = safeInteger(contract, "latest_funding_time");
     futureFundingTimestamp = safeInteger(contract, "next_funding_time");
     fundingTimeString = safeString(contract, "latest_funding_time");
@@ -3209,7 +3707,7 @@ function parseFundingRate(self::Coinex, contract, market=nothing)
     marketId = safeString(contract, "market");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("markPrice") => self.safeNumber(contract, "mark_price"),
     Symbol("indexPrice") => nothing,
     Symbol("interestRate") => nothing,
@@ -3240,11 +3738,22 @@ function parseFundingInterval(self::Coinex, interval)
     return safeString(intervals, interval, interval)
 
 end
-function fetchFundingRates(self::Coinex, symbols=nothing, params=Dict())
+"""
+fetch the current funding rates for multiple markets
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRates(self::Coinex; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     request = Dict{Symbol, Any}();
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
@@ -3253,17 +3762,32 @@ function fetchFundingRates(self::Coinex, symbols=nothing, params=Dict())
         if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
             throw(BadSymbol(string(self.id, " fetchFundingRates() supports swap contracts only")));
         end
-        marketIds = self.marketIds(symbols);
+        marketIds = self.marketIds(symbols = symbols);
         request[Symbol("market")] =         join(marketIds, ",");
     end
     response = Base.fetch(self.v2PublicGetFuturesFundingRate(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseFundingRates(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseFundingRates(data, symbols = symbols)
 
 end
-function withdraw(self::Coinex, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string, optional: memo
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: unified network code
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Coinex, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3279,11 +3803,11 @@ function withdraw(self::Coinex, code, amount, address, tag=nothing, params=Dict(
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("chain")] = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
+        request[Symbol("chain")] = self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing));
     end
     response = Base.fetch(self.v2PrivatePostAssetsWithdraw(extend(request, params)));
-    transaction = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransaction(transaction, currency)
+    transaction = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(transaction, currency = currency)
 
 end
 function parseTransactionStatus(self::Coinex, status)
@@ -3302,7 +3826,22 @@ function parseTransactionStatus(self::Coinex, status)
     return safeString(statuses, status, status)
 
 end
-function fetchFundingRateHistory(self::Coinex, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Coinex; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -3312,7 +3851,7 @@ function fetchFundingRateHistory(self::Coinex, symbol=nothing, since=nothing, li
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, timeframe = "8h", params = params, maxEntriesPerRequest = 1000))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -3326,13 +3865,13 @@ function fetchFundingRateHistory(self::Coinex, symbol=nothing, since=nothing, li
     end
     (request, params) = self.handleUntilOption("end_time", request, params);
     response = Base.fetch(self.v2PublicGetFuturesFundingRateHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     rates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
         marketId = safeString(entry, "market");
-        symbolInner = self.safeSymbol(marketId, market, nothing, "swap");
+        symbolInner = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap");
         timestamp = safeInteger(entry, "funding_time");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
@@ -3344,10 +3883,10 @@ function fetchFundingRateHistory(self::Coinex, symbol=nothing, since=nothing, li
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function parseTransaction(self::Coinex, transaction, currency=nothing)
+function parseTransaction(self::Coinex, transaction; currency=nothing)
     address = safeString(transaction, "to_address");
     tag = safeString(transaction, "memo");
     if functions.ccxtruthy(tag != nothing)
@@ -3368,7 +3907,7 @@ function parseTransaction(self::Coinex, transaction, currency=nothing)
         end
     end
     currencyId = safeString(transaction, "ccy");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeInteger(transaction, "created_at");
     type_var = functions.ccxtruthy((ccxt_in("withdraw_id", transaction))) ? "withdrawal" : "deposit";
     networkId = safeString(transaction, "chain");
@@ -3393,7 +3932,7 @@ function parseTransaction(self::Coinex, transaction, currency=nothing)
     Symbol("txid") => txid,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("address") => address,
     Symbol("addressTo") => address,
     Symbol("addressFrom") => nothing,
@@ -3411,13 +3950,28 @@ function parseTransaction(self::Coinex, transaction, currency=nothing)
 )
 
 end
-function transfer(self::Coinex, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.coinex.com/api/v2/assets/transfer/http/transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: unified ccxt symbol, required when either the fromAccount or toAccount is margin
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Coinex, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     amountToPrecision = self.currencyToPrecision(code, amount);
-    accountsByType = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
+    accountsByType = self.safeDict(self.options, "accountsByType", defaultValue = Dict{Symbol, Any}());
     fromId = safeString(accountsByType, fromAccount, fromAccount);
     toId = safeString(accountsByType, toAccount, toAccount);
     request = Dict{Symbol, Any}(
@@ -3438,7 +3992,7 @@ function transfer(self::Coinex, code, amount, fromAccount, toAccount, params=Dic
         throw(BadRequest(string(self.id, " transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot")));
     end
     response = Base.fetch(self.v2PrivatePostAssetsTransfer(extend(request, params)));
-    return extend(self.parseTransfer(response, currency), Dict{Symbol, Any}(
+    return extend(self.parseTransfer(response, currency = currency), Dict{Symbol, Any}(
     Symbol("amount") => self.parseNumber(amountToPrecision),
     Symbol("fromAccount") => fromAccount,
     Symbol("toAccount") => toAccount
@@ -3456,7 +4010,7 @@ function parseTransferStatus(self::Coinex, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransfer(self::Coinex, transfer, currency=nothing)
+function parseTransfer(self::Coinex, transfer; currency=nothing)
     timestamp = safeInteger(transfer, "created_at");
     currencyId = safeString(transfer, "ccy");
     fromId = safeString(transfer, "from_account_type");
@@ -3466,7 +4020,7 @@ function parseTransfer(self::Coinex, transfer, currency=nothing)
     Symbol("id") => nothing,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(transfer, "amount"),
     Symbol("fromAccount") => safeString(accountsById, fromId, fromId),
     Symbol("toAccount") => safeString(accountsById, toId, toId),
@@ -3474,7 +4028,21 @@ function parseTransfer(self::Coinex, transfer, currency=nothing)
 )
 
 end
-function fetchTransfers(self::Coinex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' for fetching transfers to and from your margin account
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Coinex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3486,7 +4054,7 @@ function fetchTransfers(self::Coinex, code=nothing, since=nothing, limit=nothing
         Symbol("ccy") => get(currency, Symbol("id"), nothing)
     );
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchTransfers", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchTransfers", params = params);
     if functions.ccxtruthy(marginMode != nothing)
         request[Symbol("transfer_type")] = "MARGIN";
     else
@@ -3500,11 +4068,24 @@ function fetchTransfers(self::Coinex, code=nothing, since=nothing, limit=nothing
     end
     (request, params) = self.handleUntilOption("end_time", request, params);
     response = Base.fetch(self.v2PrivateGetAssetsTransferHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransfers(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransfers(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Coinex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-withdrawal-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Coinex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3518,11 +4099,24 @@ function fetchWithdrawals(self::Coinex, code=nothing, since=nothing, limit=nothi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v2PrivateGetAssetsWithdraw(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function fetchDeposits(self::Coinex, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-deposit-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposit structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Coinex; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3536,13 +4130,13 @@ function fetchDeposits(self::Coinex, code=nothing, since=nothing, limit=nothing,
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v2PrivateGetAssetsDepositHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransactions(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit)
 
 end
-function parseIsolatedBorrowRate(self::Coinex, info, market=nothing)
+function parseIsolatedBorrowRate(self::Coinex, info; market=nothing)
     marketId = safeString(info, "market");
-    market = self.safeMarket(marketId, market, nothing, "spot");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "spot");
     currency = safeString(info, "ccy");
     rate = self.safeNumber(info, "daily_interest_rate");
     baseRate = nothing;
@@ -3565,7 +4159,19 @@ function parseIsolatedBorrowRate(self::Coinex, info, market=nothing)
 )
 
 end
-function fetchIsolatedBorrowRate(self::Coinex, symbol, params=Dict())
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the borrow rate for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string: unified currency code
+
+# Returns
+- an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
+"""
+function fetchIsolatedBorrowRate(self::Coinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3581,11 +4187,25 @@ function fetchIsolatedBorrowRate(self::Coinex, symbol, params=Dict())
         Symbol("ccy") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v2PrivateGetAssetsMarginInterestLimit(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseIsolatedBorrowRate(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseIsolatedBorrowRate(data, market = market)
 
 end
-function fetchBorrowInterest(self::Coinex, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-borrow-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `symbol`::string, optional: unified market symbol when fetch interest in isolated markets
+- `since`::int, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+function fetchBorrowInterest(self::Coinex; code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3600,13 +4220,13 @@ function fetchBorrowInterest(self::Coinex, code=nothing, symbol=nothing, since=n
     end
     response = Base.fetch(self.v2PrivateGetAssetsMarginBorrowHistory(extend(request, params)));
     rows = safeValue(response, "data", []);
-    interest = self.parseBorrowInterests(rows, market);
-    return self.filterByCurrencySinceLimit(interest, code, since, limit)
+    interest = self.parseBorrowInterests(rows, market = market);
+    return self.filterByCurrencySinceLimit(interest, code = code, since = since, limit = limit)
 
 end
-function parseBorrowInterest(self::Coinex, info, market=nothing)
+function parseBorrowInterest(self::Coinex, info; market=nothing)
     marketId = safeString(info, "market");
-    market = self.safeMarket(marketId, market, nothing, "spot");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "spot");
     timestamp = safeInteger(info, "expired_at");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
@@ -3621,13 +4241,27 @@ function parseBorrowInterest(self::Coinex, info, market=nothing)
 )
 
 end
-function borrowIsolatedMargin(self::Coinex, symbol, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-borrow
+
+# Arguments
+- `symbol`::string: unified market symbol, required for coinex
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.isAutoRenew`::bool, optional: whether to renew the margin loan automatically or not, default is false
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowIsolatedMargin(self::Coinex, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     currency = self.currency(code);
-    isAutoRenew = self.safeBool2(params, "isAutoRenew", "is_auto_renew", false);
+    isAutoRenew = self.safeBool2(params, "isAutoRenew", "is_auto_renew", defaultValue = false);
     params = omit(params, "isAutoRenew");
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing),
@@ -3636,15 +4270,29 @@ function borrowIsolatedMargin(self::Coinex, symbol, code, amount, params=Dict())
         Symbol("is_auto_renew") => isAutoRenew
     );
     response = Base.fetch(self.v2PrivatePostAssetsMarginBorrow(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    transaction = self.parseMarginLoan(data, currency);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    transaction = self.parseMarginLoan(data, currency = currency);
     return extend(transaction, Dict{Symbol, Any}(
     Symbol("amount") => amount,
     Symbol("symbol") => symbol
 ))
 
 end
-function repayIsolatedMargin(self::Coinex, symbol, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-repay
+
+# Arguments
+- `symbol`::string: unified market symbol, required for coinex
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.borrow_id`::string, optional: extra parameter that is not required
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayIsolatedMargin(self::Coinex, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3656,30 +4304,41 @@ function repayIsolatedMargin(self::Coinex, symbol, code, amount, params=Dict())
         Symbol("amount") => self.currencyToPrecision(code, amount)
     );
     response = Base.fetch(self.v2PrivatePostAssetsMarginRepay(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    transaction = self.parseMarginLoan(data, currency);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    transaction = self.parseMarginLoan(data, currency = currency);
     return extend(transaction, Dict{Symbol, Any}(
     Symbol("amount") => amount,
     Symbol("symbol") => symbol
 ))
 
 end
-function parseMarginLoan(self::Coinex, info, currency=nothing)
+function parseMarginLoan(self::Coinex, info; currency=nothing)
     currencyId = safeString(info, "ccy");
     marketId = safeString(info, "market");
     timestamp = safeInteger(info, "expired_at");
     return Dict{Symbol, Any}(
     Symbol("id") => safeString(info, "borrow_id"),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(info, "borrow_amount"),
-    Symbol("symbol") => self.safeSymbol(marketId, nothing, nothing, "spot"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = nothing, delimiter = nothing, marketType = "spot"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => info
 )
 
 end
-function fetchDepositWithdrawFee(self::Coinex, code, params=Dict())
+"""
+fetch the fee for deposits and withdrawals
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFee(self::Coinex, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3688,21 +4347,32 @@ function fetchDepositWithdrawFee(self::Coinex, code, params=Dict())
         Symbol("ccy") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v2PublicGetAssetsDepositWithdrawConfig(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseDepositWithdrawFee(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseDepositWithdrawFee(data, currency = currency)
 
 end
-function fetchDepositWithdrawFees(self::Coinex, codes=nothing, params=Dict())
+"""
+fetch the fees for deposits and withdrawals
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+
+# Arguments
+- `codes`::array, optional: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Coinex; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v2PublicGetAssetsAllDepositWithdrawConfig(params));
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         item = get(data, i + 1, nothing);
-        asset = self.safeDict(item, "asset", Dict{Symbol, Any}());
+        asset = self.safeDict(item, "asset", defaultValue = Dict{Symbol, Any}());
         currencyId = safeString(asset, "ccy");
         if functions.ccxtruthy(currencyId == nothing)
             i += 1; continue
@@ -3718,7 +4388,7 @@ function fetchDepositWithdrawFees(self::Coinex, codes=nothing, params=Dict())
     return result
 
 end
-function parseDepositWithdrawFee(self::Coinex, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Coinex, fee; currency=nothing)
     result = Dict{Symbol, Any}(
         Symbol("info") => fee,
         Symbol("withdraw") => Dict{Symbol, Any}(
@@ -3731,8 +4401,8 @@ function parseDepositWithdrawFee(self::Coinex, fee, currency=nothing)
         ),
         Symbol("networks") => Dict{Symbol, Any}()
     );
-    chains = self.safeList(fee, "chains", []);
-    asset = self.safeDict(fee, "asset", Dict{Symbol, Any}());
+    chains = self.safeList(fee, "chains", defaultValue = []);
+    asset = self.safeDict(fee, "asset", defaultValue = Dict{Symbol, Any}());
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(chains)))
         entry = get(chains, i + 1, nothing);
@@ -3743,8 +4413,8 @@ function parseDepositWithdrawFee(self::Coinex, fee, currency=nothing)
             networkId = safeString(entry, "chain");
             if functions.ccxtruthy(networkId)
                 currencyId = safeString(asset, "ccy");
-                feeCode = self.safeCurrencyCode(currencyId, currency);
-                networkCode = self.networkIdToCode(networkId, feeCode);
+                feeCode = self.safeCurrencyCode(currencyId, currency = currency);
+                networkCode = self.networkIdToCode(networkId = networkId, currencyCode = feeCode);
                 if functions.ccxtruthy(networkCode != nothing)
                     result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                         Symbol("withdraw") => Dict{Symbol, Any}(
@@ -3764,7 +4434,19 @@ function parseDepositWithdrawFee(self::Coinex, fee, currency=nothing)
     return result
 
 end
-function fetchLeverage(self::Coinex, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string: unified currency code
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Coinex, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3780,23 +4462,37 @@ function fetchLeverage(self::Coinex, symbol, params=Dict())
         Symbol("ccy") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v2PrivateGetAssetsMarginInterestLimit(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Coinex, leverage, market=nothing)
+function parseLeverage(self::Coinex, leverage; market=nothing)
     marketId = safeString(leverage, "market");
     leverageValue = safeInteger(leverage, "leverage");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "spot"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "spot"),
     Symbol("marginMode") => "isolated",
     Symbol("longLeverage") => leverageValue,
     Symbol("shortLeverage") => leverageValue
 )
 
 end
-function fetchPositionHistory(self::Coinex, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
+
+# Arguments
+- `symbol`::string: unified contract symbol
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum amount of records to fetch, default is 10
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch positions for
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionHistory(self::Coinex, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3813,12 +4509,28 @@ function fetchPositionHistory(self::Coinex, symbol, since=nothing, limit=nothing
     end
     (request, params) = self.handleUntilOption("end_time", request, params);
     response = Base.fetch(self.v2PrivateGetFuturesFinishedPosition(extend(request, params)));
-    records = self.safeList(response, "data", []);
+    records = self.safeList(response, "data", defaultValue = []);
     positions = self.parsePositions(records);
-    return self.filterBySymbolSinceLimit(positions, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(positions, symbol = symbol, since = since, limit = limit)
 
 end
-function closePosition(self::Coinex, symbol, side=nothing, params=Dict())
+"""
+closes an open position for a market
+see: https://docs.coinex.com/api/v2/futures/position/http/close-position
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `side`::string, optional: buy or sell, not used by coinex
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string: required by coinex, one of: limit, market, maker_only, ioc or fok, default is *market*
+- `params.price`::string, optional: the price to fulfill the order, ignored in market orders
+- `params.amount`::string, optional: the amount to trade in units of the base currency
+- `params.clientOrderId`::string, optional: the client id of the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function closePosition(self::Coinex, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3835,15 +4547,15 @@ function closePosition(self::Coinex, symbol, side=nothing, params=Dict())
     end
     params = omit(params, "clientOrderId");
     response = Base.fetch(self.v2PrivatePostFuturesClosePosition(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function handleMarginModeAndParams(self::Coinex, methodName, params=Dict(), defaultValue=nothing)
+function handleMarginModeAndParams(self::Coinex, methodName; params=Dict(), defaultValue=nothing)
     defaultType = safeString(self.options, "defaultType");
-    isMargin = self.safeBool(params, "margin", false);
+    isMargin = self.safeBool(params, "margin", defaultValue = false);
     marginMode = nothing;
-    (marginMode, params) = handleMarginModeAndParams(self.parent, methodName, params, defaultValue);
+    (marginMode, params) = handleMarginModeAndParams(self.parent, methodName, params = params, defaultValue = defaultValue);
     if functions.ccxtruthy(marginMode == nothing)
         if functions.ccxtruthy(@functions.ccxt_or((defaultType == "margin"), (isMargin)))
             marginMode = "isolated";
@@ -3856,7 +4568,7 @@ function nonce(self::Coinex, )
     return milliseconds()
 
 end
-function sign(self::Coinex, path, api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Coinex, path; api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
     path = self.implodeParams(path, params);
     version = get(api, 1, nothing);
     requestUrl = get(api, 2, nothing);
@@ -3973,7 +4685,23 @@ function handleErrors(self::Coinex, httpCode, reason, url, method, headers, body
     return nothing
 
 end
-function fetchMarginAdjustmentHistory(self::Coinex, symbol=nothing, type_var=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches the history of margin added or reduced from contract isolated positions
+see: https://docs.coinex.com/api/v2/futures/position/http/list-position-margin-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `type`::string, optional: not used by coinex fetchMarginAdjustmentHistory
+- `since`::int, optional: timestamp in ms of the earliest change to fetch
+- `limit`::int, optional: the maximum amount of changes to fetch, default is 10
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest change to fetch
+- `params.positionId`::int, optional: the id of the position that you want to retrieve margin adjustment history for
+
+# Returns
+- a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function fetchMarginAdjustmentHistory(self::Coinex; symbol=nothing, type_var=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3999,9 +4727,9 @@ function fetchMarginAdjustmentHistory(self::Coinex, symbol=nothing, type_var=not
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v2PrivateGetFuturesPositionMarginHistory(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    modifications = self.parseMarginModifications(data, nothing, "market", "swap");
-    return self.filterBySymbolSinceLimit(modifications, symbol, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    modifications = self.parseMarginModifications(data, symbols = nothing, symbolKey = "market", marketType = "swap");
+    return self.filterBySymbolSinceLimit(modifications, symbol = symbol, since = since, limit = limit)
 
 end
 
@@ -4011,1007 +4739,1007 @@ Base.getproperty(self::Coinex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v1PublicGetAmmMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "amm/market", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "amm/market"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetCommonCurrencyRate(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "common/currency/rate", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "common/currency/rate"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetCommonAssetConfig(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "common/asset/config", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "common/asset/config"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetCommonMaintainInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "common/maintain/info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "common/maintain/info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetCommonTempMaintainInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "common/temp-maintain/info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "common/temp-maintain/info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetMarginMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/market", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/market"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetMarketInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetMarketList(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/list", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/list"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetMarketTicker(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/ticker", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/ticker"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetMarketTickerAll(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/ticker/all", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/ticker/all"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetMarketDepth(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/depth"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetMarketDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/deals", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/deals"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetMarketKline(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/kline", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/kline"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetMarketDetail(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/detail", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/detail"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAccountAmmBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/amm/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/amm/balance"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAccountInvestmentBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/investment/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/investment/balance"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAccountBalanceHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/balance/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/balance/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAccountMarketFee(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/market/fee", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/market/fee"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetBalanceCoinDeposit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/coin/deposit", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "balance/coin/deposit"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetBalanceCoinWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/coin/withdraw", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "balance/coin/withdraw"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetBalanceInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "balance/info"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetBalanceDepositAddressCoinType(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/deposit/address/{coin_type}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "balance/deposit/address/{coin_type}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetContractTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "contract/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "contract/transfer/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetCreditInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "credit/info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "credit/info"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetCreditBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "credit/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "credit/balance"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetInvestmentTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "investment/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "investment/transfer/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetMarginAccount(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/account", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/account"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetMarginConfig(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/config", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/config"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetMarginLoanHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/loan/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/loan/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetMarginTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/transfer/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/deals", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/deals"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderFinished(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/finished", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/finished"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/pending", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/pending"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/status", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/status"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderStatusBatch(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/status/batch", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/status/batch"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderUserDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/user/deals", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/user/deals"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderStopFinished(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/finished", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/stop/finished"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderStopPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/pending", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/stop/pending"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderUserTradeFee(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/user/trade/fee", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/user/trade/fee"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderMarketTradeInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/market/trade/info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/market/trade/info"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetSubAccountBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "sub_account/balance"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetSubAccountTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "sub_account/transfer/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetSubAccountAuthApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/auth/api", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "sub_account/auth/api"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetSubAccountAuthApiUserAuthId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/auth/api/{user_auth_id}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "sub_account/auth/api/{user_auth_id}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostBalanceCoinWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/coin/withdraw", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "balance/coin/withdraw"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostContractBalanceTransfer(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "contract/balance/transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "contract/balance/transfer"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostMarginFlat(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/flat", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/flat"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostMarginLoan(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/loan", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/loan"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostMarginTransfer(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/transfer"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrderLimitBatch(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/limit/batch", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/limit/batch"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrderIoc(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/ioc", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/ioc"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrderLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/limit", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/limit"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrderMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/market", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/market"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrderModify(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/modify", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/modify"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrderStopLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/limit", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/stop/limit"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrderStopMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/market", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/stop/market"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrderStopModify(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/modify", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/stop/modify"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostSubAccountTransfer(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "sub_account/transfer"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostSubAccountRegister(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/register", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "sub_account/register"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostSubAccountUnfrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/unfrozen", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "sub_account/unfrozen"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostSubAccountFrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/frozen", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "sub_account/frozen"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostSubAccountAuthApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/auth/api", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "sub_account/auth/api"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePutBalanceDepositAddressCoinType(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/deposit/address/{coin_type}", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "balance/deposit/address/{coin_type}"; api=["v1", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePutSubAccountUnfrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/unfrozen", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "sub_account/unfrozen"; api=["v1", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePutSubAccountFrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/frozen", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "sub_account/frozen"; api=["v1", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePutSubAccountAuthApiUserAuthId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/auth/api/{user_auth_id}", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "sub_account/auth/api/{user_auth_id}"; api=["v1", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePutV1AccountSettings(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "v1/account/settings", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "v1/account/settings"; api=["v1", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteBalanceCoinWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/coin/withdraw", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "balance/coin/withdraw"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteOrderPendingBatch(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/pending/batch", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order/pending/batch"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteOrderPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/pending", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order/pending"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteOrderStopPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/pending", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order/stop/pending"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteOrderStopPendingId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/pending/{id}", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order/stop/pending/{id}"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteOrderPendingByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/pending/by_client_id", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order/pending/by_client_id"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteOrderStopPendingByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/pending/by_client_id", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order/stop/pending/by_client_id"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteSubAccountAuthApiUserAuthId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/auth/api/{user_auth_id}", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "sub_account/auth/api/{user_auth_id}"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteSubAccountAuthorizeId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/authorize/{id}", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "sub_account/authorize/{id}"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPublicGetPing(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "ping", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api=["v1", "perpetualPublic"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPublicGetTime(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "time", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api=["v1", "perpetualPublic"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPublicGetMarketList(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/list", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/list"; api=["v1", "perpetualPublic"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPublicGetMarketLimitConfig(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/limit_config", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/limit_config"; api=["v1", "perpetualPublic"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPublicGetMarketTicker(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/ticker", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/ticker"; api=["v1", "perpetualPublic"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPublicGetMarketTickerAll(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/ticker/all", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/ticker/all"; api=["v1", "perpetualPublic"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPublicGetMarketDepth(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/depth"; api=["v1", "perpetualPublic"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPublicGetMarketDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/deals", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/deals"; api=["v1", "perpetualPublic"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPublicGetMarketFundingHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/funding_history", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/funding_history"; api=["v1", "perpetualPublic"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPublicGetMarketKline(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/kline", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/kline"; api=["v1", "perpetualPublic"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetMarketUserDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/user_deals", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/user_deals"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetAssetQuery(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "asset/query", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/query"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetOrderPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/pending", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/pending"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetOrderFinished(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/finished", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/finished"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetOrderStopFinished(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop_finished", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/stop_finished"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetOrderStopPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop_pending", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/stop_pending"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/status", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/status"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetOrderStopStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop_status", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/stop_status"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetPositionFinished(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/finished", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "position/finished"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetPositionPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/pending", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "position/pending"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetPositionFunding(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/funding", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "position/funding"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetPositionAdlHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/adl_history", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "position/adl_history"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetMarketPreference(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/preference", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "market/preference"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetPositionMarginHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/margin_history", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "position/margin_history"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivateGetPositionSettleHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/settle_history", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
+    return request(self, "position/settle_history"; api=["v1", "perpetualPrivate"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostMarketAdjustLeverage(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/adjust_leverage", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "market/adjust_leverage"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostMarketPositionExpect(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/position_expect", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "market/position_expect"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderPutLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/put_limit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/put_limit"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderPutMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/put_market", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/put_market"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderPutStopLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/put_stop_limit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/put_stop_limit"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderPutStopMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/put_stop_market", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/put_stop_market"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderModify(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/modify", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/modify"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderModifyStop(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/modify_stop", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/modify_stop"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancel(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancel"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelAll(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel_all", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancel_all"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelBatch(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel_batch", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancel_batch"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelStop(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel_stop", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancel_stop"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelStopAll(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel_stop_all", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancel_stop_all"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderCloseLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/close_limit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/close_limit"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderCloseMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/close_market", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/close_market"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostPositionAdjustMargin(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/adjust_margin", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "position/adjust_margin"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostPositionStopLoss(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/stop_loss", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "position/stop_loss"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostPositionTakeProfit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/take_profit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "position/take_profit"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostPositionMarketClose(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/market_close", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "position/market_close"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel/by_client_id", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancel/by_client_id"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelStopByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel_stop/by_client_id", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order/cancel_stop/by_client_id"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PerpetualPrivatePostMarketPreference(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/preference", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
+    return request(self, "market/preference"; api=["v1", "perpetualPrivate"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetMaintainInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "maintain/info", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "maintain/info"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetPing(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "ping", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "ping"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetTime(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "time", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetSpotMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/market", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/market"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetSpotTicker(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/ticker", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/ticker"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetSpotDepth(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/depth", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/depth"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetSpotDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/deals", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/deals"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetSpotKline(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/kline", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/kline"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetSpotIndex(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/index", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/index"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/market", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/market"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesTicker(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/ticker", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/ticker"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesDepth(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/depth", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/depth"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/deals", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/deals"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesKline(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/kline", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/kline"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesIndex(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/index", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/index"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesFundingRate(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/funding-rate", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/funding-rate"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesFundingRateHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/funding-rate-history", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/funding-rate-history"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesPremiumIndexHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/premium-index-history", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/premium-index-history"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesPositionLevel(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/position-level", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/position-level"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesLiquidationHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/liquidation-history", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/liquidation-history"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetFuturesBasisHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/basis-history", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/basis-history"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetAssetsDepositWithdrawConfig(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/deposit-withdraw-config", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/deposit-withdraw-config"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetAssetsAllDepositWithdrawConfig(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/all-deposit-withdraw-config", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/all-deposit-withdraw-config"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountSubs(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subs"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountSubsApiDetail(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/api-detail", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subs/api-detail"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountSubsInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/info", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subs/info"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountSubsApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/api", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subs/api"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountSubsTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/transfer-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subs/transfer-history"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountSubsBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subs/balance"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountSubsSpotBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/spot-balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/subs/spot-balance"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountTradeFeeRate(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/trade-fee-rate", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/trade-fee-rate"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountFuturesMarketSettings(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/futures-market-settings", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/futures-market-settings"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAccountInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/info", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "account/info"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsSpotBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/spot/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/spot/balance"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsFuturesBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/futures/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/futures/balance"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsMarginBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/margin/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/margin/balance"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsFinancialBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/financial/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/financial/balance"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsAmmLiquidity(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/amm/liquidity", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/amm/liquidity"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsCreditInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/credit/info", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/credit/info"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsSpotTranscationHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/spot/transcation-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/spot/transcation-history"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsMarginBorrowHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/margin/borrow-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/margin/borrow-history"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsMarginInterestLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/margin/interest-limit", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/margin/interest-limit"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsDepositAddress(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/deposit-address", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/deposit-address"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsDepositHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/deposit-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/deposit-history"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/withdraw", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/withdraw"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/transfer-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/transfer-history"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsAmmLiquidityPool(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/amm/liquidity-pool", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/amm/liquidity-pool"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetAssetsAmmIncomeHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/amm/income-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "assets/amm/income-history"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSpotOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/order-status"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSpotBatchOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/batch-order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/batch-order-status"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSpotPendingOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/pending-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/pending-order"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSpotFinishedOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/finished-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/finished-order"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSpotPendingStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/pending-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/pending-stop-order"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSpotFinishedStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/finished-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/finished-stop-order"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSpotUserDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/user-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/user-deals"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetSpotOrderDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/order-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/order-deals"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/order-status"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesBatchOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/batch-order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/batch-order-status"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesPendingOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/pending-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/pending-order"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesFinishedOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/finished-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/finished-order"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesPendingStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/pending-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/pending-stop-order"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesFinishedStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/finished-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/finished-stop-order"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesUserDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/user-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/user-deals"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesOrderDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/order-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/order-deals"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesPendingPosition(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/pending-position", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/pending-position"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesFinishedPosition(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/finished-position", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/finished-position"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesPositionMarginHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/position-margin-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/position-margin-history"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesPositionFundingHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/position-funding-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/position-funding-history"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesPositionAdlHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/position-adl-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/position-adl-history"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetFuturesPositionSettleHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/position-settle-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "futures/position-settle-history"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetReferReferee(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/referee", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "refer/referee"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetReferRefereeRebateRecord(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/referee-rebate/record", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "refer/referee-rebate/record"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetReferRefereeRebateDetail(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/referee-rebate/detail", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "refer/referee-rebate/detail"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetReferAgentReferee(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/agent-referee", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "refer/agent-referee"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetReferAgentRebateRecord(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/agent-rebate/record", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "refer/agent-rebate/record"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivateGetReferAgentRebateDetail(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/agent-rebate/detail", ["v2", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "refer/agent-rebate/detail"; api=["v2", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountSubs(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subs"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountSubsFrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/frozen", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subs/frozen"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountSubsUnfrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/unfrozen", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subs/unfrozen"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountSubsApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/api", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subs/api"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountSubsEditApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/edit-api", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subs/edit-api"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountSubsDeleteApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/delete-api", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subs/delete-api"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountSubsTransfer(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/transfer", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/subs/transfer"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountSettings(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/settings", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/settings"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAccountFuturesMarketSettings(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/futures-market-settings", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "account/futures-market-settings"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAssetsMarginBorrow(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/margin/borrow", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/margin/borrow"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAssetsMarginRepay(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/margin/repay", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/margin/repay"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAssetsRenewalDepositAddress(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/renewal-deposit-address", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/renewal-deposit-address"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAssetsWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/withdraw", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/withdraw"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAssetsCancelWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/cancel-withdraw", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/cancel-withdraw"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAssetsTransfer(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/transfer", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/transfer"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAssetsAmmAddLiquidity(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/amm/add-liquidity", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/amm/add-liquidity"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostAssetsAmmRemoveLiquidity(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/amm/remove-liquidity", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "assets/amm/remove-liquidity"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/stop-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotBatchOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/batch-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotBatchStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/batch-stop-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotModifyOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/modify-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotModifyStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/modify-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/modify-stop-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotBatchModifyOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/batch-modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/batch-modify-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotCancelAllOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-all-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/cancel-all-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotCancelOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/cancel-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotCancelStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/cancel-stop-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotCancelBatchOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/cancel-batch-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotCancelBatchStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/cancel-batch-stop-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotCancelOrderByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/cancel-order-by-client-id"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostSpotCancelStopOrderByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-stop-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/cancel-stop-order-by-client-id"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/stop-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesBatchOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/batch-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesBatchStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/batch-stop-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesCancelPositionStopLoss(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-position-stop-loss", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/cancel-position-stop-loss"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesCancelPositionTakeProfit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-position-take-profit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/cancel-position-take-profit"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesModifyOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/modify-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesModifyStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/modify-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/modify-stop-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesBatchModifyOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/batch-modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/batch-modify-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesCancelAllOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-all-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/cancel-all-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesCancelOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/cancel-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesCancelStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/cancel-stop-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesCancelBatchOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/cancel-batch-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesCancelBatchStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/cancel-batch-stop-order"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesCancelOrderByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/cancel-order-by-client-id"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesCancelStopOrderByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-stop-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/cancel-stop-order-by-client-id"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesClosePosition(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/close-position", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/close-position"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesAdjustPositionMargin(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/adjust-position-margin", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/adjust-position-margin"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesAdjustPositionLeverage(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/adjust-position-leverage", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/adjust-position-leverage"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesSetPositionStopLoss(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/set-position-stop-loss", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/set-position-stop-loss"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostFuturesSetPositionTakeProfit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/set-position-take-profit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "futures/set-position-take-profit"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Coinex(; kwargs...)
@@ -5075,3 +5803,892 @@ function Coinex(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Coinex_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Coinex_fetchCurrencies
+
+function __ccxt_doc_Coinex_fetchMarkets() end
+"""
+retrieves data on all markets for coinex
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Coinex_fetchMarkets
+
+function __ccxt_doc_Coinex_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coinex_fetchTicker
+
+function __ccxt_doc_Coinex_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coinex_fetchTickers
+
+function __ccxt_doc_Coinex_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.coinex.com/api/v2/common/http/time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Coinex_fetchTime
+
+function __ccxt_doc_Coinex_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market-depth
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Coinex_fetchOrderBook
+
+function __ccxt_doc_Coinex_fetchTrades() end
+"""
+get the list of the most recent trades for a particular symbol
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market-deals
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-deals
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Coinex_fetchTrades
+
+function __ccxt_doc_Coinex_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Coinex_fetchTradingFee
+
+function __ccxt_doc_Coinex_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Coinex_fetchTradingFees
+
+function __ccxt_doc_Coinex_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.coinex.com/api/v2/spot/market/http/list-market-kline
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Coinex_fetchOHLCV
+
+function __ccxt_doc_Coinex_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance         // spot
+see: https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance      // swap
+see: https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance      // margin
+see: https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance    // financial
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'margin', 'swap', 'financial', or 'spot'
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Coinex_fetchBalance
+
+function __ccxt_doc_Coinex_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
+see: https://docs.coinex.com/api/v2/spot/order/http/put-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Coinex_createOrder() end
+"""
+create a trade order
+see: https://docs.coinex.com/api/v2/spot/order/http/put-order
+see: https://docs.coinex.com/api/v2/spot/order/http/put-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/put-order
+see: https://docs.coinex.com/api/v2/futures/order/http/put-stop-order
+see: https://docs.coinex.com/api/v2/futures/position/http/close-position
+see: https://docs.coinex.com/api/v2/futures/position/http/set-position-stop-loss
+see: https://docs.coinex.com/api/v2/futures/position/http/set-position-take-profit
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: price to trigger stop orders
+- `params.stopLossPrice`::float, optional: price to trigger stop loss orders
+- `params.takeProfitPrice`::float, optional: price to trigger take profit orders
+- `params.timeInForce`::string, optional: 'GTC', 'IOC', 'FOK', 'PO'
+- `params.postOnly`::bool, optional: set to true if you wish to make a post only order
+- `params.reduceOnly`::bool, optional: *contract only* indicates if this order is to reduce the size of a position
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_createOrder
+
+function __ccxt_doc_Coinex_createOrders() end
+"""
+create a list of trade orders (all orders should be of the same symbol)
+see: https://docs.coinex.com/api/v2/spot/order/http/put-multi-order
+see: https://docs.coinex.com/api/v2/spot/order/http/put-multi-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/put-multi-order
+see: https://docs.coinex.com/api/v2/futures/order/http/put-multi-stop-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the api endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_createOrders
+
+function __ccxt_doc_Coinex_cancelOrders() end
+"""
+cancel multiple orders
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-order
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-order
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-stop-order
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for canceling stop orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_cancelOrders
+
+function __ccxt_doc_Coinex_editOrder() end
+"""
+edit a trade order
+see: https://docs.coinex.com/api/v2/spot/order/http/edit-order
+see: https://docs.coinex.com/api/v2/spot/order/http/edit-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/edit-order
+see: https://docs.coinex.com/api/v2/futures/order/http/edit-stop-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of the currency you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price to trigger stop orders
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_editOrder
+
+function __ccxt_doc_Coinex_editOrders() end
+"""
+edit a list of trade orders
+see: https://docs.coinex.com/api/v2/spot/order/http/edit-multi-order
+see: https://docs.coinex.com/api/v2/futures/order/http/edit-multi-order
+
+# Arguments
+- `orders`::array: list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_editOrders
+
+function __ccxt_doc_Coinex_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-order
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-order-by-client-id
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order-by-client-id
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-order
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-order-by-client-id
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order-by-client-id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id, defaults to id if not passed
+- `params.trigger`::bool, optional: set to true for canceling a trigger order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_cancelOrder
+
+function __ccxt_doc_Coinex_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
+see: https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order
+
+# Arguments
+- `symbol`::string: unified market symbol of the market to cancel orders in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' for canceling spot margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_cancelAllOrders
+
+function __ccxt_doc_Coinex_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.coinex.com/api/v2/spot/order/http/get-order-status
+see: https://docs.coinex.com/api/v2/futures/order/http/get-order-status
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_fetchOrder
+
+function __ccxt_doc_Coinex_fetchOrdersByStatus() end
+"""
+fetch a list of orders
+see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
+see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
+
+# Arguments
+- `status`::string: order status to fetch for
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.marginMode`::string, optional: 'cross' or 'isolated' for fetching spot margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_fetchOrdersByStatus
+
+function __ccxt_doc_Coinex_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
+see: https://docs.coinex.com/api/v2/spot/order/http/list-pending-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-pending-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-pending-stop-order
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.marginMode`::string, optional: 'cross' or 'isolated' for fetching spot margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_fetchOpenOrders
+
+function __ccxt_doc_Coinex_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
+see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
+see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.marginMode`::string, optional: 'cross' or 'isolated' for fetching spot margin orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_fetchClosedOrders
+
+function __ccxt_doc_Coinex_createDepositAddress() end
+"""
+create a currency deposit address
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/update-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network to create a deposit address on
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Coinex_createDepositAddress
+
+function __ccxt_doc_Coinex_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: the blockchain network to create a deposit address on
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Coinex_fetchDepositAddress
+
+function __ccxt_doc_Coinex_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://docs.coinex.com/api/v2/spot/deal/http/list-user-deals
+see: https://docs.coinex.com/api/v2/futures/deal/http/list-user-deals
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trade structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest trades
+- `params.side`::string, optional: the side of the trades, either 'buy' or 'sell', required for swap
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Coinex_fetchMyTrades
+
+function __ccxt_doc_Coinex_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+see: https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.method`::string, optional: the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Coinex_fetchPositions
+
+function __ccxt_doc_Coinex_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Coinex_fetchPosition
+
+function __ccxt_doc_Coinex_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.leverage`::int: the rate of leverage
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Coinex_setMarginMode
+
+function __ccxt_doc_Coinex_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
+
+# Arguments
+- `leverage`::float: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' (default is 'cross')
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Coinex_setLeverage
+
+function __ccxt_doc_Coinex_fetchLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
+
+# Arguments
+- `symbols`::any: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+"""
+__ccxt_doc_Coinex_fetchLeverageTiers
+
+function __ccxt_doc_Coinex_addMargin() end
+"""
+add margin
+see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Coinex_addMargin
+
+function __ccxt_doc_Coinex_reduceMargin() end
+"""
+remove margin from a position
+see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Coinex_reduceMargin
+
+function __ccxt_doc_Coinex_fetchFundingHistory() end
+"""
+fetch the history of funding fee payments paid and received on this account
+see: https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Coinex_fetchFundingHistory
+
+function __ccxt_doc_Coinex_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Coinex_fetchFundingRate
+
+function __ccxt_doc_Coinex_fetchFundingInterval() end
+"""
+fetch the current funding rate interval
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Coinex_fetchFundingInterval
+
+function __ccxt_doc_Coinex_fetchFundingRates() end
+"""
+fetch the current funding rates for multiple markets
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Coinex_fetchFundingRates
+
+function __ccxt_doc_Coinex_withdraw() end
+"""
+make a withdrawal
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string, optional: memo
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string, optional: unified network code
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinex_withdraw
+
+function __ccxt_doc_Coinex_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Coinex_fetchFundingRateHistory
+
+function __ccxt_doc_Coinex_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://docs.coinex.com/api/v2/assets/transfer/http/transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.symbol`::string, optional: unified ccxt symbol, required when either the fromAccount or toAccount is margin
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Coinex_transfer
+
+function __ccxt_doc_Coinex_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfer structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'cross' or 'isolated' for fetching transfers to and from your margin account
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Coinex_fetchTransfers
+
+function __ccxt_doc_Coinex_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-withdrawal-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawal structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinex_fetchWithdrawals
+
+function __ccxt_doc_Coinex_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-deposit-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposit structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coinex_fetchDeposits
+
+function __ccxt_doc_Coinex_fetchIsolatedBorrowRate() end
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the borrow rate for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string: unified currency code
+
+# Returns
+- an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
+"""
+__ccxt_doc_Coinex_fetchIsolatedBorrowRate
+
+function __ccxt_doc_Coinex_fetchBorrowInterest() end
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-borrow-history
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `symbol`::string, optional: unified market symbol when fetch interest in isolated markets
+- `since`::int, optional: the earliest time in ms to fetch borrrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+__ccxt_doc_Coinex_fetchBorrowInterest
+
+function __ccxt_doc_Coinex_borrowIsolatedMargin() end
+"""
+create a loan to borrow margin
+see: https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-borrow
+
+# Arguments
+- `symbol`::string: unified market symbol, required for coinex
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::float: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.isAutoRenew`::bool, optional: whether to renew the margin loan automatically or not, default is false
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Coinex_borrowIsolatedMargin
+
+function __ccxt_doc_Coinex_repayIsolatedMargin() end
+"""
+repay borrowed margin and interest
+see: https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-repay
+
+# Arguments
+- `symbol`::string: unified market symbol, required for coinex
+- `code`::string: unified currency code of the currency to repay
+- `amount`::float: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.borrow_id`::string, optional: extra parameter that is not required
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Coinex_repayIsolatedMargin
+
+function __ccxt_doc_Coinex_fetchDepositWithdrawFee() end
+"""
+fetch the fee for deposits and withdrawals
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Coinex_fetchDepositWithdrawFee
+
+function __ccxt_doc_Coinex_fetchDepositWithdrawFees() end
+"""
+fetch the fees for deposits and withdrawals
+see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+
+# Arguments
+- `codes`::array, optional: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Coinex_fetchDepositWithdrawFees
+
+function __ccxt_doc_Coinex_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.code`::string: unified currency code
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Coinex_fetchLeverage
+
+function __ccxt_doc_Coinex_fetchPositionHistory() end
+"""
+fetches historical positions
+see: https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
+
+# Arguments
+- `symbol`::string: unified contract symbol
+- `since`::int, optional: the earliest time in ms to fetch positions for
+- `limit`::int, optional: the maximum amount of records to fetch, default is 10
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch positions for
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Coinex_fetchPositionHistory
+
+function __ccxt_doc_Coinex_closePosition() end
+"""
+closes an open position for a market
+see: https://docs.coinex.com/api/v2/futures/position/http/close-position
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `side`::string, optional: buy or sell, not used by coinex
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string: required by coinex, one of: limit, market, maker_only, ioc or fok, default is *market*
+- `params.price`::string, optional: the price to fulfill the order, ignored in market orders
+- `params.amount`::string, optional: the amount to trade in units of the base currency
+- `params.clientOrderId`::string, optional: the client id of the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinex_closePosition
+
+function __ccxt_doc_Coinex_fetchMarginAdjustmentHistory() end
+"""
+fetches the history of margin added or reduced from contract isolated positions
+see: https://docs.coinex.com/api/v2/futures/position/http/list-position-margin-history
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `type`::string, optional: not used by coinex fetchMarginAdjustmentHistory
+- `since`::int, optional: timestamp in ms of the earliest change to fetch
+- `limit`::int, optional: the maximum amount of changes to fetch, default is 10
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest change to fetch
+- `params.positionId`::int, optional: the id of the position that you want to retrieve margin adjustment history for
+
+# Returns
+- a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Coinex_fetchMarginAdjustmentHistory

@@ -654,7 +654,17 @@ function describe(self::Dydx, )
 ))
 
 end
-function fetchTime(self::Dydx, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.dydx.xyz/indexer-client/http#get-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Dydx; params=Dict())
     response = Base.fetch(self.indexerGetTime(params));
     return safeInteger(response, "epoch")
 
@@ -682,7 +692,7 @@ function parseMarket(self::Dydx, market)
     if functions.ccxtruthy(status != "ACTIVE")
         active = false;
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => safeString(market, "ticker"),
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -736,15 +746,25 @@ function parseMarket(self::Dydx, market)
 ))
 
 end
-function fetchMarkets(self::Dydx, params=Dict())
+"""
+retrieves data on all markets for dydx
+see: https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Dydx; params=Dict())
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.indexerGetPerpetualMarkets(extend(request, params)));
-    data = self.safeDict(response, "markets", Dict{Symbol, Any}());
+    data = self.safeDict(response, "markets", defaultValue = Dict{Symbol, Any}());
     markets = objectValues(data);
     return self.parseMarkets(markets)
 
 end
-function parseTrade(self::Dydx, trade, market=nothing)
+function parseTrade(self::Dydx, trade; market=nothing)
     timestamp = self.parse8601(safeString(trade, "createdAt"));
     symbol = safeString(market, "symbol");
     price = safeString(trade, "price");
@@ -765,10 +785,23 @@ function parseTrade(self::Dydx, trade, market=nothing)
     Symbol("type") => nothing,
     Symbol("fee") => nothing,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Dydx, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.dydx.xyz/indexer-client/http#get-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Dydx, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -780,15 +813,30 @@ function fetchTrades(self::Dydx, symbol, since=nothing, limit=nothing, params=Di
         request[Symbol("limit")] = min(limit, 1000);
     end
     response = Base.fetch(self.indexerGetTradesPerpetualMarketMarket(extend(request, params)));
-    rows = self.safeList(response, "trades", []);
-    return self.parseTrades(rows, market, since, limit)
+    rows = self.safeList(response, "trades", defaultValue = []);
+    return self.parseTrades(rows, market = market, since = since, limit = limit)
 
 end
-function parseOHLCV(self::Dydx, ohlcv, market=nothing)
+function parseOHLCV(self::Dydx, ohlcv; market=nothing)
     return [self.parse8601(safeString(ohlcv, "startedAt")), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "baseTokenVolume")]
 
 end
-function fetchOHLCV(self::Dydx, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.dydx.xyz/indexer-client/http#get-candles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Dydx, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -809,11 +857,25 @@ function fetchOHLCV(self::Dydx, symbol, timeframe="1m", since=nothing, limit=not
         request[Symbol("toIso")] = self.iso8601(until);
     end
     response = Base.fetch(self.indexerGetCandlesPerpetualMarketsMarket(extend(request, params)));
-    rows = self.safeList(response, "candles", []);
-    return self.parseOHLCVs(rows, market, timeframe, since, limit)
+    rows = self.safeList(response, "candles", defaultValue = []);
+    return self.parseOHLCVs(rows, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchFundingRateHistory(self::Dydx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://docs.dydx.xyz/indexer-client/http#get-historical-funding
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Dydx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -833,7 +895,7 @@ function fetchFundingRateHistory(self::Dydx, symbol=nothing, since=nothing, limi
     end
     response = Base.fetch(self.indexerGetHistoricalFundingMarket(extend(request, params)));
     rates = [];
-    rows = self.safeList(response, "historicalFunding", []);
+    rows = self.safeList(response, "historicalFunding", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
         entry = get(rows, i + 1, nothing);
@@ -841,7 +903,7 @@ function fetchFundingRateHistory(self::Dydx, symbol=nothing, since=nothing, limi
         marketId = safeString(entry, "ticker");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("fundingRate") => self.safeNumber(entry, "rate"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
@@ -849,14 +911,14 @@ function fetchFundingRateHistory(self::Dydx, symbol=nothing, since=nothing, limi
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
 function handlePublicAddress(self::Dydx, methodName, params)
     userAux = nothing;
     (userAux, params) = self.handleOptionAndParams(params, methodName, "user");
     user = userAux;
-    (user, params) = self.handleOptionAndParams(params, methodName, "address", userAux);
+    (user, params) = self.handleOptionAndParams(params, methodName, "address", defaultValue = userAux);
     if functions.ccxtruthy(@functions.ccxt_and((user != nothing), (user != "")))
             return [user, params]
     end
@@ -866,10 +928,10 @@ function handlePublicAddress(self::Dydx, methodName, params)
     throw(ArgumentsRequired(string(self.id, " ", methodName, "() requires a user parameter inside \'params\' or the walletAddress set")));
 
 end
-function parseOrder(self::Dydx, order, market=nothing)
+function parseOrder(self::Dydx, order; market=nothing)
     status = self.parseOrderStatus(safeStringUpper(order, "status"));
     marketId = safeString(order, "ticker");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     filled = safeString(order, "totalFilled");
     timestamp = self.parse8601(safeString(order, "updatedAt"));
     price = safeString(order, "price");
@@ -901,7 +963,7 @@ function parseOrder(self::Dydx, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => nothing,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Dydx, status)
@@ -928,7 +990,19 @@ function parseOrderType(self::Dydx, type_var)
     return safeStringUpper(types, type_var, type_var)
 
 end
-function fetchOrder(self::Dydx, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.dydx.xyz/indexer-client/http#get-order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Dydx, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -939,11 +1013,26 @@ function fetchOrder(self::Dydx, id, symbol=nothing, params=Dict())
     return self.parseOrder(order)
 
 end
-function fetchOrders(self::Dydx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://docs.dydx.xyz/indexer-client/http#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Dydx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     userAddress = nothing;
     subAccountNumber = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchOrders", params);
-    (subAccountNumber, params) = self.handleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0");
+    (subAccountNumber, params) = self.handleOptionAndParams(params, "fetchOrders", "subAccountNumber", defaultValue = "0");
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -960,26 +1049,56 @@ function fetchOrders(self::Dydx, symbol=nothing, since=nothing, limit=nothing, p
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.indexerGetOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Dydx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.dydx.xyz/indexer-client/http#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Dydx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "OPEN"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchClosedOrders(self::Dydx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.dydx.xyz/indexer-client/http#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Dydx; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("status") => "FILLED"
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function parsePosition(self::Dydx, position, market=nothing)
+function parsePosition(self::Dydx, position; market=nothing)
     marketId = safeString(position, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     side = safeStringLower(position, "side");
     quantity = safeString(position, "size");
@@ -1014,16 +1133,42 @@ function parsePosition(self::Dydx, position, market=nothing)
 ))
 
 end
-function fetchPosition(self::Dydx, symbol, params=Dict())
-    positions = Base.fetch(self.fetchPositions([symbol], params));
-    return self.safeDict(positions, 0, Dict{Symbol, Any}())
+"""
+fetch data on an open position
+see: https://docs.dydx.xyz/indexer-client/http#list-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Dydx, symbol; params=Dict())
+    positions = Base.fetch(self.fetchPositions(symbols = [symbol], params = params));
+    return self.safeDict(positions, 0, defaultValue = Dict{Symbol, Any}())
 
 end
-function fetchPositions(self::Dydx, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://docs.dydx.xyz/indexer-client/http#list-positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Dydx; symbols=nothing, params=Dict())
     userAddress = nothing;
     subAccountNumber = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchPositions", params);
-    (subAccountNumber, params) = self.handleOptionAndParams(params, "fetchPositions", "subAccountNumber", "0");
+    (subAccountNumber, params) = self.handleOptionAndParams(params, "fetchPositions", "subAccountNumber", defaultValue = "0");
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1033,8 +1178,8 @@ function fetchPositions(self::Dydx, symbols=nothing, params=Dict())
         Symbol("status") => "OPEN"
     );
     response = Base.fetch(self.indexerGetPerpetualPositions(extend(request, params)));
-    rows = self.safeList(response, "positions", []);
-    return self.parsePositions(rows, symbols)
+    rows = self.safeList(response, "positions", defaultValue = []);
+    return self.parsePositions(rows, symbols = symbols)
 
 end
 function hashMessage(self::Dydx, message)
@@ -1079,8 +1224,8 @@ function signOnboardingAction(self::Dydx, )
     return signature
 
 end
-function signDydxTx(self::Dydx, privateKey, message, memo, chainId, account, authenticators, fee=nothing)
-    (encodedTx, signDoc) = self.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
+function signDydxTx(self::Dydx, privateKey, message, memo, chainId, account, authenticators; fee=nothing)
+    (encodedTx, signDoc) = self.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee = fee);
     signature = self.signHash(encodedTx, privateKey);
     return self.encodeDydxTxRaw(signDoc, string(get(signature, Symbol("r"), nothing), get(signature, Symbol("s"), nothing)))
 
@@ -1118,7 +1263,7 @@ function fetchDydxAccount(self::Dydx, )
         Symbol("dydxAddress") => self.walletAddress
     );
     response = Base.fetch(self.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request));
-    account = self.safeDict(response, "info", Dict{Symbol, Any}());
+    account = self.safeDict(response, "info", defaultValue = Dict{Symbol, Any}());
     account[Symbol("pub_key")] = Dict{Symbol, Any}(
         Symbol("key") => get(get(account, Symbol("pub_key"), nothing), Symbol("key"), nothing)
     );
@@ -1137,14 +1282,14 @@ function pow(self::Dydx, n, m)
     return r
 
 end
-function createOrderRequest(self::Dydx, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Dydx, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
     if functions.ccxtruthy(side == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a side argument")));
     end
-    reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", false);
+    reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", defaultValue = false);
     orderType = uppercase(type_var);
     market = self.market(symbol);
     if functions.ccxtruthy(side == nothing)
@@ -1152,17 +1297,17 @@ function createOrderRequest(self::Dydx, symbol, type_var, side, amount, price=no
     end
     orderSide = uppercase(side);
     subaccountId = 0;
-    (subaccountId, params) = self.handleOptionAndParams(params, "createOrder", "subAccountId", subaccountId);
+    (subaccountId, params) = self.handleOptionAndParams(params, "createOrder", "subAccountId", defaultValue = subaccountId);
     triggerPrice = safeString2(params, "triggerPrice", "stopPrice");
     stopLossPrice = safeValue(params, "stopLossPrice", triggerPrice);
     takeProfitPrice = safeValue(params, "takeProfitPrice");
     isConditional = @functions.ccxt_or(@functions.ccxt_or(triggerPrice != nothing, stopLossPrice != nothing), takeProfitPrice != nothing);
     isMarket = orderType == "MARKET";
     timeInForce = safeStringUpper(params, "timeInForce", "GTT");
-    postOnly = self.isPostOnly(isMarket, nothing, params);
+    postOnly = self.isPostOnly(isMarket, nothing, params = params);
     amountStr = self.amountToPrecision(symbol, amount);
     priceStr = self.priceToPrecision(symbol, price);
-    marketInfo = self.safeDict(market, "info", Dict{Symbol, Any}());
+    marketInfo = self.safeDict(market, "info", defaultValue = Dict{Symbol, Any}());
     atomicResolution = get(marketInfo, Symbol("atomicResolution"), nothing);
     quantumScale = self.pow("10", stringNeg(atomicResolution));
     quantums = stringMul(amountStr, quantumScale);
@@ -1215,7 +1360,7 @@ function createOrderRequest(self::Dydx, symbol, type_var, side, amount, price=no
     goodTillBlock = safeInteger(params, "goodTillBlock");
     goodTillBlockTime = nothing;
     goodTillBlockTimeInSeconds = 2592000;
-    (goodTillBlockTimeInSeconds, params) = self.handleOptionAndParams(params, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+    (goodTillBlockTimeInSeconds, params) = self.handleOptionAndParams(params, "createOrder", "goodTillBlockTimeInSeconds", defaultValue = goodTillBlockTimeInSeconds);
     if functions.ccxtruthy(orderFlag == 0)
         if functions.ccxtruthy(goodTillBlock == nothing)
             if functions.ccxtruthy(latestBlockHeight == nothing)
@@ -1279,7 +1424,7 @@ function createOrderIdFromParts(self::Dydx, address, subAccountNumber, clientOrd
     return self.uuid5(nameSp, orderInfo)
 
 end
-function fetchLatestBlockHeight(self::Dydx, params=Dict())
+function fetchLatestBlockHeight(self::Dydx; params=Dict())
     response = Base.fetch(self.nodeRpcGetAbciInfo(params));
     result = self.safeDict(response, "result");
     info = self.safeDict(result, "response");
@@ -1290,7 +1435,31 @@ function fetchLatestBlockHeight(self::Dydx, params=Dict())
     return height
 
 end
-function createOrder(self::Dydx, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.dydx.xyz/interaction/trading#place-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: "GTT", "IOC", or "PO"
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: price for a stoploss order
+- `params.takeProfitPrice`::float, optional: price for a takeprofit order
+- `params.clientOrderId`::string, optional: a unique id for the order
+- `params.postOnly`::bool, optional: true or false whether the order is post-only
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.goodTillBlock`::float, optional: expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
+- `params.goodTillBlockTimeInSeconds`::float, optional: expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Dydx, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1300,7 +1469,7 @@ function createOrder(self::Dydx, symbol, type_var, side, amount, price=nothing, 
     newParams = extend(params, Dict{Symbol, Any}(
         Symbol("latestBlockHeight") => lastBlockHeight
     ));
-    orderRequestRes = self.createOrderRequest(symbol, type_var, side, amount, price, newParams);
+    orderRequestRes = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = newParams);
     orderId = get(orderRequestRes, 1, nothing);
     orderRequest = get(orderRequestRes, 2, nothing);
     chainName = get(self.options, Symbol("chainName"), nothing);
@@ -1317,8 +1486,26 @@ function createOrder(self::Dydx, symbol, type_var, side, amount, price=nothing, 
 ))
 
 end
-function cancelOrder(self::Dydx, id, symbol=nothing, params=Dict())
-    isTrigger = self.safeBool2(params, "trigger", "stop", false);
+"""
+cancels an open order
+see: https://docs.dydx.xyz/interaction/trading/#cancel-an-order
+
+# Arguments
+- `id`::string: it should be the clientOrderId in this case
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id used when creating the order
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.orderFlags`::float, optional: default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
+- `params.goodTillBlock`::float, optional: expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
+- `params.goodTillBlockTimeInSeconds`::float, optional: expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+- `params.subAccountId`::int, optional: sub account id, default is 0
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Dydx, id; symbol=nothing, params=Dict())
+    isTrigger = self.safeBool2(params, "trigger", "stop", defaultValue = false);
     params = omit(params, ["trigger", "stop"]);
     if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(isTrigger), (symbol == nothing)))
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
@@ -1337,12 +1524,12 @@ function cancelOrder(self::Dydx, id, symbol=nothing, params=Dict())
     end
     goodTillBlock = safeInteger(params, "goodTillBlock");
     goodTillBlockTimeInSeconds = 2592000;
-    (goodTillBlockTimeInSeconds, params) = self.handleOptionAndParams(params, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+    (goodTillBlockTimeInSeconds, params) = self.handleOptionAndParams(params, "cancelOrder", "goodTillBlockTimeInSeconds", defaultValue = goodTillBlockTimeInSeconds);
     goodTillBlockTime = nothing;
     defaultOrderFlags = functions.ccxtruthy((isTrigger)) ? 32 : 64;
     orderFlags = safeInteger(params, "orderFlags", defaultOrderFlags);
     subAccountId = 0;
-    (subAccountId, params) = self.handleOptionAndParams(params, "cancelOrder", "subAccountId", subAccountId);
+    (subAccountId, params) = self.handleOptionAndParams(params, "cancelOrder", "subAccountId", defaultValue = subAccountId);
     params = omit(params, ["clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId"]);
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(orderFlags != 0, orderFlags != 64), orderFlags != 32))
         throw(InvalidOrder(string(self.id, " invalid orderFlags, allowed values are (0, 64, 32).")));
@@ -1392,7 +1579,20 @@ function cancelOrder(self::Dydx, id, symbol=nothing, params=Dict())
 ))
 
 end
-function cancelOrders(self::Dydx, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+- `params.subAccountId`::int, optional: sub account id, default is 0
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Dydx, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1402,7 +1602,7 @@ function cancelOrders(self::Dydx, ids, symbol=nothing, params=Dict())
         throw(NotSupported(string(self.id, " cancelOrders only support clientOrderIds.")));
     end
     subAccountId = 0;
-    (subAccountId, params) = self.handleOptionAndParams(params, "cancelOrders", "subAccountId", subAccountId);
+    (subAccountId, params) = self.handleOptionAndParams(params, "cancelOrders", "subAccountId", defaultValue = subAccountId);
     goodTillBlock = safeInteger(params, "goodTillBlock");
     if functions.ccxtruthy(goodTillBlock == nothing)
         latestBlockHeight = Base.fetch(self.fetchLatestBlockHeight());
@@ -1439,7 +1639,19 @@ function cancelOrders(self::Dydx, ids, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchOrderBook(self::Dydx, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.dydx.xyz/indexer-client/http#get-perpetual-market-orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Dydx, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1448,13 +1660,13 @@ function fetchOrderBook(self::Dydx, symbol, limit=nothing, params=Dict())
         Symbol("market") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.indexerGetOrderbooksPerpetualMarketMarket(extend(request, params)));
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), nothing, "bids", "asks", "price", "size")
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "size")
 
 end
-function parseLedgerEntry(self::Dydx, item, currency=nothing)
+function parseLedgerEntry(self::Dydx, item; currency=nothing)
     currencyId = safeString(item, "symbol");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     type_var = safeStringUpper(item, "type");
     direction = nothing;
     if functions.ccxtruthy(type_var != nothing)
@@ -1484,7 +1696,7 @@ function parseLedgerEntry(self::Dydx, item, currency=nothing)
     Symbol("after") => nothing,
     Symbol("status") => nothing,
     Symbol("fee") => nothing
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Dydx, type_var)
@@ -1497,7 +1709,22 @@ function parseLedgerEntryType(self::Dydx, type_var)
     return safeString(ledgerType, type_var, type_var)
 
 end
-function fetchLedger(self::Dydx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered balance of the user
+see: https://docs.dydx.xyz/indexer-client/http#get-transfers
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Dydx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1505,10 +1732,10 @@ function fetchLedger(self::Dydx, code=nothing, since=nothing, limit=nothing, par
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    response = Base.fetch(self.fetchTransactionsHelper(code, since, limit, extend(params, Dict{Symbol, Any}(
+    response = Base.fetch(self.fetchTransactionsHelper(code = code, since = since, limit = limit, params = extend(params, Dict{Symbol, Any}(
         Symbol("methodName") => "fetchLedger"
     ))));
-    return self.parseLedger(response, currency, since, limit)
+    return self.parseLedger(response, currency = currency, since = since, limit = limit)
 
 end
 function estimateTxFee(self::Dydx, message, memo, account)
@@ -1527,7 +1754,7 @@ function estimateTxFee(self::Dydx, message, memo, account)
     end
     defaultFeeDenom = safeString(self.options, "defaultFeeDenom");
     defaultFeeMultiplier = safeString(self.options, "defaultFeeMultiplier");
-    feeDenom = self.safeDict(self.options, "feeDenom", Dict{Symbol, Any}());
+    feeDenom = self.safeDict(self.options, "feeDenom", defaultValue = Dict{Symbol, Any}());
     gasPrice = nothing;
     denom = nothing;
     if functions.ccxtruthy(defaultFeeDenom == "uusdc")
@@ -1555,7 +1782,21 @@ function estimateTxFee(self::Dydx, message, memo, account)
 )
 
 end
-function transfer(self::Dydx, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from *main, subaccount*
+- `toAccount`::string: account to transfer to *subaccount, address*
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address for order
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Dydx, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(code != "USDC")
         throw(NotSupported(string(self.id, " transfer() only support USDC")));
     end
@@ -1617,7 +1858,7 @@ function transfer(self::Dydx, code, amount, fromAccount, toAccount, params=Dict(
     end
     txFee = Base.fetch(self.estimateTxFee(signingPayload, "", account));
     chainName = get(self.options, Symbol("chainName"), nothing);
-    signedTx = self.signDydxTx(get(credentials, Symbol("privateKey"), nothing), signingPayload, "", chainName, account, nothing, txFee);
+    signedTx = self.signDydxTx(get(credentials, Symbol("privateKey"), nothing), signingPayload, "", chainName, account, nothing, fee = txFee);
     request = Dict{Symbol, Any}(
         Symbol("tx") => signedTx
     );
@@ -1625,10 +1866,10 @@ function transfer(self::Dydx, code, amount, fromAccount, toAccount, params=Dict(
     return self.parseTransfer(response)
 
 end
-function parseTransfer(self::Dydx, transfer, currency=nothing)
+function parseTransfer(self::Dydx, transfer; currency=nothing)
     id = safeString(transfer, "id");
     currencyId = safeString(transfer, "symbol");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     amount = self.safeNumber(transfer, "size");
     sender = self.safeDict(transfer, "sender");
     recipient = self.safeDict(transfer, "recipient");
@@ -1648,7 +1889,22 @@ function parseTransfer(self::Dydx, transfer, currency=nothing)
 )
 
 end
-function fetchTransfers(self::Dydx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://docs.dydx.xyz/indexer-client/http#get-transfers
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Dydx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1656,16 +1912,16 @@ function fetchTransfers(self::Dydx, code=nothing, since=nothing, limit=nothing, 
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    response = Base.fetch(self.fetchTransactionsHelper(code, since, limit, extend(params, Dict{Symbol, Any}(
+    response = Base.fetch(self.fetchTransactionsHelper(code = code, since = since, limit = limit, params = extend(params, Dict{Symbol, Any}(
         Symbol("methodName") => "fetchTransfers"
     ))));
     transferIn = filterBy(response, "type", "TRANSFER_IN");
     transferOut = filterBy(response, "type", "TRANSFER_OUT");
     rows = arrayConcat(transferIn, transferOut);
-    return self.parseTransfers(rows, currency, since, limit)
+    return self.parseTransfers(rows, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Dydx, transaction, currency=nothing)
+function parseTransaction(self::Dydx, transaction; currency=nothing)
     id = safeString(transaction, "id");
     sender = self.safeDict(transaction, "sender");
     recipient = self.safeDict(transaction, "recipient");
@@ -1673,7 +1929,7 @@ function parseTransaction(self::Dydx, transaction, currency=nothing)
     addressFrom = safeString(sender, "address");
     txid = safeString(transaction, "transactionHash");
     currencyId = safeString(transaction, "symbol");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = self.parse8601(safeString(transaction, "createdAt"));
     amount = self.safeNumber(transaction, "size");
     return Dict{Symbol, Any}(
@@ -1700,14 +1956,27 @@ function parseTransaction(self::Dydx, transaction, currency=nothing)
 )
 
 end
-function withdraw(self::Dydx, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Dydx, code, amount, address; tag=nothing, params=Dict())
     if functions.ccxtruthy(code != "USDC")
         throw(NotSupported(string(self.id, " withdraw() only support USDC")));
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     subaccountId = safeInteger(params, "subaccountId");
     if functions.ccxtruthy(subaccountId == nothing)
         throw(ArgumentsRequired(string(self.id, " withdraw requires subaccountId.")));
@@ -1732,16 +2001,31 @@ function withdraw(self::Dydx, code, amount, address, tag=nothing, params=Dict())
     );
     txFee = Base.fetch(self.estimateTxFee(signingPayload, tag, account));
     chainName = get(self.options, Symbol("chainName"), nothing);
-    signedTx = self.signDydxTx(get(credentials, Symbol("privateKey"), nothing), signingPayload, tag, chainName, account, nothing, txFee);
+    signedTx = self.signDydxTx(get(credentials, Symbol("privateKey"), nothing), signingPayload, tag, chainName, account, nothing, fee = txFee);
     request = Dict{Symbol, Any}(
         Symbol("tx") => signedTx
     );
     response = Base.fetch(self.nodeRpcGetBroadcastTxSync(request));
-    data = self.safeDict(response, "result", Dict{Symbol, Any}());
-    return self.parseTransaction(data, currency)
+    data = self.safeDict(response, "result", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(data, currency = currency)
 
 end
-function fetchWithdrawals(self::Dydx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.dydx.xyz/indexer-client/http#get-transfers
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Dydx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1749,14 +2033,29 @@ function fetchWithdrawals(self::Dydx, code=nothing, since=nothing, limit=nothing
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    response = Base.fetch(self.fetchTransactionsHelper(code, since, limit, extend(params, Dict{Symbol, Any}(
+    response = Base.fetch(self.fetchTransactionsHelper(code = code, since = since, limit = limit, params = extend(params, Dict{Symbol, Any}(
         Symbol("methodName") => "fetchWithdrawals"
     ))));
     rows = filterBy(response, "type", "WITHDRAWAL");
-    return self.parseTransactions(rows, currency, since, limit)
+    return self.parseTransactions(rows, currency = currency, since = since, limit = limit)
 
 end
-function fetchDeposits(self::Dydx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.dydx.xyz/indexer-client/http#get-transfers
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Dydx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1764,14 +2063,29 @@ function fetchDeposits(self::Dydx, code=nothing, since=nothing, limit=nothing, p
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    response = Base.fetch(self.fetchTransactionsHelper(code, since, limit, extend(params, Dict{Symbol, Any}(
+    response = Base.fetch(self.fetchTransactionsHelper(code = code, since = since, limit = limit, params = extend(params, Dict{Symbol, Any}(
         Symbol("methodName") => "fetchDeposits"
     ))));
     rows = filterBy(response, "type", "DEPOSIT");
-    return self.parseTransactions(rows, currency, since, limit)
+    return self.parseTransactions(rows, currency = currency, since = since, limit = limit)
 
 end
-function fetchDepositsWithdrawals(self::Dydx, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://docs.dydx.xyz/indexer-client/http#get-transfers
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Dydx; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1779,38 +2093,49 @@ function fetchDepositsWithdrawals(self::Dydx, code=nothing, since=nothing, limit
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    response = Base.fetch(self.fetchTransactionsHelper(code, since, limit, extend(params, Dict{Symbol, Any}(
+    response = Base.fetch(self.fetchTransactionsHelper(code = code, since = since, limit = limit, params = extend(params, Dict{Symbol, Any}(
         Symbol("methodName") => "fetchDepositsWithdrawals"
     ))));
     withdrawals = filterBy(response, "type", "WITHDRAWAL");
     deposits = filterBy(response, "type", "DEPOSIT");
     rows = arrayConcat(withdrawals, deposits);
-    return self.parseTransactions(rows, currency, since, limit)
+    return self.parseTransactions(rows, currency = currency, since = since, limit = limit)
 
 end
-function fetchTransactionsHelper(self::Dydx, code=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchTransactionsHelper(self::Dydx; code=nothing, since=nothing, limit=nothing, params=Dict())
     methodName = safeString(params, "methodName");
     params = omit(params, "methodName");
     userAddress = nothing;
     subAccountNumber = nothing;
     (userAddress, params) = self.handlePublicAddress(methodName, params);
-    (subAccountNumber, params) = self.handleOptionAndParams(params, methodName, "subAccountNumber", "0");
+    (subAccountNumber, params) = self.handleOptionAndParams(params, methodName, "subAccountNumber", defaultValue = "0");
     request = Dict{Symbol, Any}(
         Symbol("address") => userAddress,
         Symbol("subaccountNumber") => subAccountNumber
     );
     response = Base.fetch(self.indexerGetTransfers(extend(request, params)));
-    return self.safeList(response, "transfers", [])
+    return self.safeList(response, "transfers", defaultValue = [])
 
 end
-function fetchAccounts(self::Dydx, params=Dict())
+"""
+fetch all the accounts associated with a profile
+see: https://docs.dydx.xyz/indexer-client/http#get-subaccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+function fetchAccounts(self::Dydx; params=Dict())
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchAccounts", params);
     request = Dict{Symbol, Any}(
         Symbol("address") => userAddress
     );
     response = Base.fetch(self.indexerGetAddressesAddress(extend(request, params)));
-    rows = self.safeList(response, "subaccounts", []);
+    rows = self.safeList(response, "subaccounts", defaultValue = []);
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
@@ -1828,14 +2153,24 @@ function fetchAccounts(self::Dydx, params=Dict())
     return result
 
 end
-function fetchBalance(self::Dydx, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.dydx.xyz/indexer-client/http#get-subaccount
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Dydx; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     userAddress = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchBalance", params);
     subaccountNumber = nothing;
-    (subaccountNumber, params) = self.handleOptionAndParams(params, "fetchBalance", "subaccountNumber", 0);
+    (subaccountNumber, params) = self.handleOptionAndParams(params, "fetchBalance", "subaccountNumber", defaultValue = 0);
     request = Dict{Symbol, Any}(
         Symbol("address") => userAddress,
         Symbol("subaccountNumber") => subaccountNumber
@@ -1873,7 +2208,7 @@ function getWalletAddress(self::Dydx, )
     throw(ArgumentsRequired(string(self.id, " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.")));
 
 end
-function sign(self::Dydx, path, section="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Dydx, path; section="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     pathWithParams = self.implodeParams(path, params);
     url = get(get(self.urls, Symbol("api"), nothing), Symbol(section), nothing);
     params = omit(params, self.extractParams(path));
@@ -1932,219 +2267,219 @@ Base.getproperty(self::Dydx, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function indexerGetAddressesAddress(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "addresses/{address}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetAddressesAddressParentSubaccountNumberNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/parentSubaccountNumber/{number}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "addresses/{address}/parentSubaccountNumber/{number}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetAddressesAddressSubaccountNumberSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetAssetPositions(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "assetPositions", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "assetPositions"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetAssetPositionsParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "assetPositions/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "assetPositions/parentSubaccountNumber"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetCandlesPerpetualMarketsMarket(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "candles/perpetualMarkets/{market}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/perpetualMarkets/{market}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetComplianceScreenAddress(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "compliance/screen/{address}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "compliance/screen/{address}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetFills(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "fills", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetFillsParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "fills/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills/parentSubaccountNumber"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetFundingPayments(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "fundingPayments", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "fundingPayments"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetFundingPaymentsParentSubaccount(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "fundingPayments/parentSubaccount", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "fundingPayments/parentSubaccount"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetHeight(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "height", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "height"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetHistoricalPnl(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historical-pnl", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "historical-pnl"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetHistoricalPnlParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historical-pnl/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "historical-pnl/parentSubaccountNumber"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetHistoricalBlockTradingRewardsAddress(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historicalBlockTradingRewards/{address}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalBlockTradingRewards/{address}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetHistoricalFundingMarket(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historicalFunding/{market}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalFunding/{market}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetHistoricalTradingRewardAggregationsAddress(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historicalTradingRewardAggregations/{address}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalTradingRewardAggregations/{address}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetOrderbooksPerpetualMarketMarket(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "orderbooks/perpetualMarket/{market}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbooks/perpetualMarket/{market}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetOrders(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "orders", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetOrdersParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "orders/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/parentSubaccountNumber"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetOrdersOrderId(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "orders/{orderId}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{orderId}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetPerpetualMarkets(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualMarkets", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "perpetualMarkets"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetPerpetualPositions(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualPositions", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "perpetualPositions"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetPerpetualPositionsParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualPositions/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "perpetualPositions/parentSubaccountNumber"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetScreen(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "screen", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "screen"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetSparklines(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "sparklines", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "sparklines"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetTime(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "time", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "time"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetTradesPerpetualMarketMarket(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "trades/perpetualMarket/{market}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades/perpetualMarket/{market}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetTransfers(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "transfers", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetTransfersBetween(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "transfers/between", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers/between"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetTransfersParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "transfers/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "transfers/parentSubaccountNumber"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetVaultV1MegavaultHistoricalPnl(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "vault/v1/megavault/historicalPnl", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "vault/v1/megavault/historicalPnl"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetVaultV1MegavaultPositions(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "vault/v1/megavault/positions", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "vault/v1/megavault/positions"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetVaultV1VaultsHistoricalPnl(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "vault/v1/vaults/historicalPnl", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "vault/v1/vaults/historicalPnl"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetPerpetualMarketSparklines(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualMarketSparklines", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "perpetualMarketSparklines"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetPerpetualMarketsTicker(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualMarkets/{ticker}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "perpetualMarkets/{ticker}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetPerpetualMarketsTickerOrderbook(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualMarkets/{ticker}/orderbook", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "perpetualMarkets/{ticker}/orderbook"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetTradesPerpetualMarketTicker(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "trades/perpetualMarket/{ticker}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades/perpetualMarket/{ticker}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetHistoricalFundingTicker(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historicalFunding/{ticker}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "historicalFunding/{ticker}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetCandlesTickerResolution(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "candles/{ticker}/{resolution}", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/{ticker}/{resolution}"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetAddressesAddressSubaccounts(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/subaccounts", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "addresses/{address}/subaccounts"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/orders", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/orders"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetFillsParentSubaccount(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "fills/parentSubaccount", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills/parentSubaccount"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function indexerGetHistoricalPnlParentSubaccount(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historical-pnl/parentSubaccount", "indexer", "GET", params, nothing, nothing, Dict())
+    return request(self, "historical-pnl/parentSubaccount"; api="indexer", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function nodeRpcGetAbciInfo(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "abci_info", "nodeRpc", "GET", params, nothing, nothing, Dict())
+    return request(self, "abci_info"; api="nodeRpc", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function nodeRpcGetBlock(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "block", "nodeRpc", "GET", params, nothing, nothing, Dict())
+    return request(self, "block"; api="nodeRpc", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function nodeRpcGetBroadcastTxAsync(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "broadcast_tx_async", "nodeRpc", "GET", params, nothing, nothing, Dict())
+    return request(self, "broadcast_tx_async"; api="nodeRpc", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function nodeRpcGetBroadcastTxSync(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "broadcast_tx_sync", "nodeRpc", "GET", params, nothing, nothing, Dict())
+    return request(self, "broadcast_tx_sync"; api="nodeRpc", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function nodeRpcGetTx(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "tx", "nodeRpc", "GET", params, nothing, nothing, Dict())
+    return request(self, "tx"; api="nodeRpc", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "cosmos/auth/v1beta1/account_info/{dydxAddress}", "nodeRest", "GET", params, nothing, nothing, Dict())
+    return request(self, "cosmos/auth/v1beta1/account_info/{dydxAddress}"; api="nodeRest", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function nodeRestPostCosmosTxV1beta1Encode(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "cosmos/tx/v1beta1/encode", "nodeRest", "POST", params, nothing, nothing, Dict())
+    return request(self, "cosmos/tx/v1beta1/encode"; api="nodeRest", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function nodeRestPostCosmosTxV1beta1Simulate(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "cosmos/tx/v1beta1/simulate", "nodeRest", "POST", params, nothing, nothing, Dict())
+    return request(self, "cosmos/tx/v1beta1/simulate"; api="nodeRest", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Dydx(; kwargs...)
@@ -2208,3 +2543,412 @@ function Dydx(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Dydx_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://docs.dydx.xyz/indexer-client/http#get-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Dydx_fetchTime
+
+function __ccxt_doc_Dydx_fetchMarkets() end
+"""
+retrieves data on all markets for dydx
+see: https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Dydx_fetchMarkets
+
+function __ccxt_doc_Dydx_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.dydx.xyz/indexer-client/http#get-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Dydx_fetchTrades
+
+function __ccxt_doc_Dydx_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.dydx.xyz/indexer-client/http#get-candles
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Dydx_fetchOHLCV
+
+function __ccxt_doc_Dydx_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://docs.dydx.xyz/indexer-client/http#get-historical-funding
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Dydx_fetchFundingRateHistory
+
+function __ccxt_doc_Dydx_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.dydx.xyz/indexer-client/http#get-order
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Dydx_fetchOrder
+
+function __ccxt_doc_Dydx_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://docs.dydx.xyz/indexer-client/http#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Dydx_fetchOrders
+
+function __ccxt_doc_Dydx_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.dydx.xyz/indexer-client/http#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Dydx_fetchOpenOrders
+
+function __ccxt_doc_Dydx_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.dydx.xyz/indexer-client/http#list-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Dydx_fetchClosedOrders
+
+function __ccxt_doc_Dydx_fetchPosition() end
+"""
+fetch data on an open position
+see: https://docs.dydx.xyz/indexer-client/http#list-positions
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Dydx_fetchPosition
+
+function __ccxt_doc_Dydx_fetchPositions() end
+"""
+fetch all open positions
+see: https://docs.dydx.xyz/indexer-client/http#list-positions
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Dydx_fetchPositions
+
+function __ccxt_doc_Dydx_createOrder() end
+"""
+create a trade order
+see: https://docs.dydx.xyz/interaction/trading#place-an-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.timeInForce`::string, optional: "GTT", "IOC", or "PO"
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: price for a stoploss order
+- `params.takeProfitPrice`::float, optional: price for a takeprofit order
+- `params.clientOrderId`::string, optional: a unique id for the order
+- `params.postOnly`::bool, optional: true or false whether the order is post-only
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.goodTillBlock`::float, optional: expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
+- `params.goodTillBlockTimeInSeconds`::float, optional: expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Dydx_createOrder
+
+function __ccxt_doc_Dydx_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.dydx.xyz/interaction/trading/#cancel-an-order
+
+# Arguments
+- `id`::string: it should be the clientOrderId in this case
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderId`::string, optional: client order id used when creating the order
+- `params.trigger`::bool, optional: whether the order is a trigger/algo order
+- `params.orderFlags`::float, optional: default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
+- `params.goodTillBlock`::float, optional: expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
+- `params.goodTillBlockTimeInSeconds`::float, optional: expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+- `params.subAccountId`::int, optional: sub account id, default is 0
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Dydx_cancelOrder
+
+function __ccxt_doc_Dydx_cancelOrders() end
+"""
+cancel multiple orders
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.clientOrderIds`::array, optional: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+- `params.subAccountId`::int, optional: sub account id, default is 0
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Dydx_cancelOrders
+
+function __ccxt_doc_Dydx_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.dydx.xyz/indexer-client/http#get-perpetual-market-orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Dydx_fetchOrderBook
+
+function __ccxt_doc_Dydx_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered balance of the user
+see: https://docs.dydx.xyz/indexer-client/http#get-transfers
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Dydx_fetchLedger
+
+function __ccxt_doc_Dydx_transfer() end
+"""
+transfer currency internally between wallets on the same account
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from *main, subaccount*
+- `toAccount`::string: account to transfer to *subaccount, address*
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.vaultAddress`::string, optional: the vault address for order
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Dydx_transfer
+
+function __ccxt_doc_Dydx_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://docs.dydx.xyz/indexer-client/http#get-transfers
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Dydx_fetchTransfers
+
+function __ccxt_doc_Dydx_withdraw() end
+"""
+make a withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Dydx_withdraw
+
+function __ccxt_doc_Dydx_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.dydx.xyz/indexer-client/http#get-transfers
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Dydx_fetchWithdrawals
+
+function __ccxt_doc_Dydx_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.dydx.xyz/indexer-client/http#get-transfers
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Dydx_fetchDeposits
+
+function __ccxt_doc_Dydx_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://docs.dydx.xyz/indexer-client/http#get-transfers
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+- `params.subAccountNumber`::string, optional: sub account number
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Dydx_fetchDepositsWithdrawals
+
+function __ccxt_doc_Dydx_fetchAccounts() end
+"""
+fetch all the accounts associated with a profile
+see: https://docs.dydx.xyz/indexer-client/http#get-subaccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.address`::string, optional: wallet address that made trades
+
+# Returns
+- a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+"""
+__ccxt_doc_Dydx_fetchAccounts
+
+function __ccxt_doc_Dydx_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.dydx.xyz/indexer-client/http#get-subaccount
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Dydx_fetchBalance

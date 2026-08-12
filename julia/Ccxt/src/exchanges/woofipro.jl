@@ -845,9 +845,19 @@ function setSandboxMode(self::Woofipro, enable)
     self.options[Symbol("sandboxMode")] = enable;
 
 end
-function fetchStatus(self::Woofipro, params=Dict())
+"""
+the latest known information on the availability of the exchange API
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Woofipro; params=Dict())
     response = Base.fetch(self.v1PublicGetPublicSystemInfo(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     status = safeString(data, "status");
     if functions.ccxtruthy(status == nothing)
         status = "error";
@@ -865,7 +875,17 @@ function fetchStatus(self::Woofipro, params=Dict())
 )
 
 end
-function fetchTime(self::Woofipro, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Woofipro; params=Dict())
     response = Base.fetch(self.v1PublicGetPublicSystemInfo(params));
     return safeInteger(response, "timestamp")
 
@@ -884,7 +904,7 @@ function parseMarket(self::Woofipro, market)
     settleId = safeString(parts, 2);
     settle = self.safeCurrencyCode(settleId);
     symbol = string(base, "/", quote_var, ":", settle);
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -935,22 +955,43 @@ function parseMarket(self::Woofipro, market)
 ))
 
 end
-function fetchMarkets(self::Woofipro, params=Dict())
+"""
+retrieves data on all markets for woofipro
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Woofipro; params=Dict())
     response = Base.fetch(self.v1PublicGetPublicInfo(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
     return self.parseMarkets(rows)
 
 end
-function fetchCurrencies(self::Woofipro, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Woofipro; params=Dict())
     result = Dict{Symbol, Any}();
     tokenPromise = self.v1PublicGetPublicToken(params);
     chainPromise = self.v1PublicGetPublicChainInfo(params);
     (tokenResponse, chainResponse) = (Base.fetch(asyncmap(Base.fetch, [tokenPromise, chainPromise])));
-    tokenData = self.safeDict(tokenResponse, "data", Dict{Symbol, Any}());
-    tokenRows = self.safeList(tokenData, "rows", []);
-    chainData = self.safeDict(chainResponse, "data", Dict{Symbol, Any}());
-    chainRows = self.safeList(chainData, "rows", []);
+    tokenData = self.safeDict(tokenResponse, "data", defaultValue = Dict{Symbol, Any}());
+    tokenRows = self.safeList(tokenData, "rows", defaultValue = []);
+    chainData = self.safeDict(chainResponse, "data", defaultValue = Dict{Symbol, Any}());
+    chainRows = self.safeList(chainData, "rows", defaultValue = []);
     indexedChains = indexBy(chainRows, "chain_id");
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tokenRows)))
@@ -969,11 +1010,11 @@ function fetchCurrencies(self::Woofipro, params=Dict())
 
 end
 function parseCurrency(self::Woofipro, rawCurrency)
-    token = self.safeDict(rawCurrency, "_token", Dict{Symbol, Any}());
+    token = self.safeDict(rawCurrency, "_token", defaultValue = Dict{Symbol, Any}());
     currencyId = safeString(token, "token");
-    networks = self.safeList(token, "chain_details", []);
+    networks = self.safeList(token, "chain_details", defaultValue = []);
     code = self.safeCurrencyCode(currencyId);
-    indexedChains = self.safeDict(rawCurrency, "_indexedChains", Dict{Symbol, Any}());
+    indexedChains = self.safeDict(rawCurrency, "_indexedChains", defaultValue = Dict{Symbol, Any}());
     resultingNetworks = Dict{Symbol, Any}();
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networks)))
@@ -981,7 +1022,7 @@ function parseCurrency(self::Woofipro, rawCurrency)
         networkId = safeString(networkEntry, "chain_id");
         networkRow = self.safeDict(indexedChains, networkId);
         networkName = safeString(networkRow, "name", networkId);
-        networkCode = self.networkIdToCode(networkName, code);
+        networkCode = self.networkIdToCode(networkId = networkName, currencyCode = code);
         if functions.ccxtruthy(networkCode != nothing)
             resultingNetworks[Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("id") => networkId,
@@ -1000,7 +1041,7 @@ function parseCurrency(self::Woofipro, rawCurrency)
                 Symbol("deposit") => nothing,
                 Symbol("withdraw") => nothing,
                 Symbol("fee") => self.safeNumber(networkEntry, "withdrawal_fee"),
-                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(networkEntry, "decimals"))),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(networkEntry, "decimals"))),
                 Symbol("info") => Dict{Symbol, Any}(
                     Symbol("network") => networkEntry,
                     Symbol("networkRow") => networkRow
@@ -1047,11 +1088,11 @@ function parseTokenAndFeeTemp(self::Woofipro, item, feeTokenKey, feeAmountKey)
     return fee
 
 end
-function parseTrade(self::Woofipro, trade, market=nothing)
+function parseTrade(self::Woofipro, trade; market=nothing)
     isFromFetchOrder = (ccxt_in("id", trade));
     timestamp = safeInteger(trade, "executed_timestamp");
     marketId = safeString(trade, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     price = safeString(trade, "executed_price");
     amount = safeString(trade, "executed_quantity");
@@ -1083,10 +1124,23 @@ function parseTrade(self::Woofipro, trade, market=nothing)
     Symbol("type") => nothing,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Woofipro, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Woofipro, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1098,12 +1152,12 @@ function fetchTrades(self::Woofipro, symbol, since=nothing, limit=nothing, param
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v1PublicGetPublicMarketTrades(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseTrades(rows, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseTrades(rows, market = market, since = since, limit = limit)
 
 end
-function parseFundingRate(self::Woofipro, fundingRate, market=nothing)
+function parseFundingRate(self::Woofipro, fundingRate; market=nothing)
     symbol = safeString(fundingRate, "symbol");
     market = self.market(symbol);
     nextFundingTimestamp = safeInteger(fundingRate, "next_funding_time");
@@ -1145,11 +1199,33 @@ function parseFundingInterval(self::Woofipro, interval)
     return safeString(intervals, interval, interval)
 
 end
-function fetchFundingInterval(self::Woofipro, symbol, params=Dict())
-    return Base.fetch(self.fetchFundingRate(symbol, params))
+"""
+fetch the current funding rate interval
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingInterval(self::Woofipro, symbol; params=Dict())
+    return Base.fetch(self.fetchFundingRate(symbol, params = params))
 
 end
-function fetchFundingRate(self::Woofipro, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Woofipro, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1158,24 +1234,35 @@ function fetchFundingRate(self::Woofipro, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PublicGetPublicFundingRateSymbol(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseFundingRate(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(data, market = market)
 
 end
-function fetchFundingRates(self::Woofipro, symbols=nothing, params=Dict())
+"""
+fetch the current funding rate for multiple markets
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRates(self::Woofipro; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.v1PublicGetPublicFundingRates(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseFundingRates(rows, symbols)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseFundingRates(rows, symbols = symbols)
 
 end
-function parseTicker(self::Woofipro, ticker, market=nothing)
+function parseTicker(self::Woofipro, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     timestamp = safeInteger(ticker, "timestamp");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -1200,10 +1287,21 @@ function parseTicker(self::Woofipro, ticker, market=nothing)
     Symbol("indexPrice") => safeString(ticker, "index_price"),
     Symbol("markPrice") => safeString(ticker, "mark_price"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Woofipro, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Woofipro, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1212,19 +1310,30 @@ function fetchTicker(self::Woofipro, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PublicGetPublicFuturesSymbol(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     data[Symbol("timestamp")] = safeInteger(response, "timestamp");
-    return self.parseTicker(data, market)
+    return self.parseTicker(data, market = market)
 
 end
-function fetchTickers(self::Woofipro, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Woofipro; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
+    symbols = self.marketSymbols(symbols = symbols);
     response = Base.fetch(self.v1PublicGetPublicFutures(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
     timestamp = safeInteger(response, "timestamp");
     result = [];
     i = 0
@@ -1240,17 +1349,32 @@ function fetchTickers(self::Woofipro, symbols=nothing, params=Dict())
         push!(result, self.parseTicker(ticker));
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchFundingRateHistory(self::Woofipro, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Woofipro; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = 25))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbol != nothing)
@@ -1261,10 +1385,10 @@ function fetchFundingRateHistory(self::Woofipro, symbol=nothing, since=nothing, 
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_t")] = since;
     end
-    (request, params) = self.handleUntilOption("end_t", request, params, 0.001);
+    (request, params) = self.handleUntilOption("end_t", request, params, multiplier = 0.001);
     response = Base.fetch(self.v1PublicGetPublicFundingRateHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    result = self.safeList(data, "rows", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    result = self.safeList(data, "rows", defaultValue = []);
     rates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
@@ -1281,12 +1405,12 @@ function fetchFundingRateHistory(self::Woofipro, symbol=nothing, since=nothing, 
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function parseIncome(self::Woofipro, income, market=nothing)
+function parseIncome(self::Woofipro, income; market=nothing)
     marketId = safeString(income, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     amount = safeString(income, "funding_fee");
     code = self.safeCurrencyCode("USDC");
     timestamp = safeInteger(income, "updated_time");
@@ -1305,14 +1429,28 @@ function parseIncome(self::Woofipro, income, market=nothing)
 )
 
 end
-function fetchFundingHistory(self::Woofipro, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of funding payments paid and received on this account
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Woofipro; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingHistory", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = 500))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1332,17 +1470,27 @@ function fetchFundingHistory(self::Woofipro, symbol=nothing, since=nothing, limi
         request[Symbol("size")] = min(limit, 500);
     end
     response = Base.fetch(self.v1PrivateGetFundingFeeHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseIncomes(rows, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseIncomes(rows, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFees(self::Woofipro, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Woofipro; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v1PrivateGetClientInfo(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     maker = safeString(data, "futures_maker_fee_rate");
     taker = safeString(data, "futures_taker_fee_rate");
     result = Dict{Symbol, Any}();
@@ -1363,7 +1511,19 @@ function fetchTradingFees(self::Woofipro, params=Dict())
     return result
 
 end
-function fetchOrderBook(self::Woofipro, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Woofipro, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1376,16 +1536,30 @@ function fetchOrderBook(self::Woofipro, symbol, limit=nothing, params=Dict())
         request[Symbol("max_level")] = limit;
     end
     response = Base.fetch(self.v1PrivateGetOrderbookSymbol(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(data, "timestamp");
-    return self.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
+    return self.parseOrderBook(data, symbol, timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "quantity")
 
 end
-function parseOHLCV(self::Woofipro, ohlcv, market=nothing)
+function parseOHLCV(self::Woofipro, ohlcv; market=nothing)
     return [safeInteger(ohlcv, "start_timestamp"), self.safeNumber(ohlcv, "open"), self.safeNumber(ohlcv, "high"), self.safeNumber(ohlcv, "low"), self.safeNumber(ohlcv, "close"), self.safeNumber(ohlcv, "volume")]
 
 end
-function fetchOHLCV(self::Woofipro, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Woofipro, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1398,17 +1572,17 @@ function fetchOHLCV(self::Woofipro, symbol, timeframe="1m", since=nothing, limit
         request[Symbol("limit")] = min(limit, 1000);
     end
     response = Base.fetch(self.v1PrivateGetKline(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
-    return self.parseOHLCVs(rows, market, timeframe, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
+    return self.parseOHLCVs(rows, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseOrder(self::Woofipro, order, market=nothing)
+function parseOrder(self::Woofipro, order; market=nothing)
     timestamp = safeIntegerN(order, ["timestamp", "created_time", "createdTime"]);
     orderId = safeStringN(order, ["order_id", "orderId", "algoOrderId"]);
     clientOrderId = omitZero(safeString2(order, "client_order_id", "clientOrderId"));
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     symbol = get(market, Symbol("symbol"), nothing);
     price = safeString2(order, "order_price", "price");
     amount = safeString2(order, "order_quantity", "quantity");
@@ -1471,7 +1645,7 @@ function parseOrder(self::Woofipro, order, market=nothing)
         Symbol("currency") => feeCurrency
     ),
     Symbol("info") => order
-), market)
+), market = market)
 
 end
 function parseTimeInForce(self::Woofipro, timeInForce)
@@ -1510,7 +1684,7 @@ function parseOrderType(self::Woofipro, type_var)
     return safeStringLower(types, type_var, type_var)
 
 end
-function createOrderRequest(self::Woofipro, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Woofipro, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -1537,7 +1711,7 @@ function createOrderRequest(self::Woofipro, symbol, type_var, side, amount, pric
     isConditional = @functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(triggerPrice != nothing, hasStopLoss), hasTakeProfit), (safeValue(params, "childOrders") != nothing));
     isMarket = orderType == "MARKET";
     timeInForce = safeStringLower(params, "timeInForce");
-    postOnly = self.isPostOnly(isMarket, nothing, params);
+    postOnly = self.isPostOnly(isMarket, nothing, params = params);
     orderQtyKey = functions.ccxtruthy(isConditional) ? "quantity" : "order_quantity";
     priceKey = functions.ccxtruthy(isConditional) ? "price" : "order_price";
     typeKey = functions.ccxtruthy(isConditional) ? "type" : "order_type";
@@ -1610,12 +1784,36 @@ function createOrderRequest(self::Woofipro, symbol, type_var, side, amount, pric
     return extend(request, params)
 
 end
-function createOrder(self::Woofipro, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.algoType`::float, optional: 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Woofipro, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+    request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
     triggerPrice = safeString2(params, "triggerPrice", "stopPrice");
     stopLoss = safeValue(params, "stopLoss");
     takeProfit = safeValue(params, "takeProfit");
@@ -1626,14 +1824,25 @@ function createOrder(self::Woofipro, symbol, type_var, side, amount, price=nothi
     else
         response = Base.fetch(self.v1PrivatePostOrder(request));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     data[Symbol("timestamp")] = safeInteger(response, "timestamp");
-    order = self.parseOrder(data, market);
+    order = self.parseOrder(data, market = market);
     order[Symbol("type")] = type_var;
     return order
 
 end
-function createOrders(self::Woofipro, orders, params=Dict())
+"""
+*contract only* create a list of trade orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Woofipro, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1646,7 +1855,7 @@ function createOrders(self::Woofipro, orders, params=Dict())
         side = safeString(rawOrder, "side");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
-        orderParams = self.safeDict(rawOrder, "params", Dict{Symbol, Any}());
+        orderParams = self.safeDict(rawOrder, "params", defaultValue = Dict{Symbol, Any}());
         triggerPrice = safeString2(orderParams, "triggerPrice", "stopPrice");
         stopLoss = safeValue(orderParams, "stopLoss");
         takeProfit = safeValue(orderParams, "takeProfit");
@@ -1654,7 +1863,7 @@ function createOrders(self::Woofipro, orders, params=Dict())
         if functions.ccxtruthy(isConditional)
             throw(NotSupported(string(self.id, " createOrders() only support non-stop order")));
         end
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, orderParams);
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
@@ -1662,12 +1871,32 @@ function createOrders(self::Woofipro, orders, params=Dict())
         Symbol("orders") => ordersRequests
     );
     response = Base.fetch(self.v1PrivatePostBatchOrder(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    rows = self.safeList(data, "rows", []);
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    rows = self.safeList(data, "rows", defaultValue = []);
     return self.parseOrders(rows)
 
 end
-function editOrder(self::Woofipro, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: price to trigger stop-loss orders
+- `params.takeProfitPrice`::float, optional: price to trigger take-profit orders
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Woofipro, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1701,7 +1930,7 @@ function editOrder(self::Woofipro, id, symbol, type_var, side, amount=nothing, p
         orderType = uppercase(type_var);
         timeInForce = safeStringLower(params, "timeInForce");
         isMarket = orderType == "MARKET";
-        postOnly = self.isPostOnly(isMarket, nothing, params);
+        postOnly = self.isPostOnly(isMarket, nothing, params = params);
         if functions.ccxtruthy(postOnly)
             request[Symbol("order_type")] = "POST_ONLY";
         elseif functions.ccxtruthy(timeInForce == "fok")
@@ -1721,13 +1950,30 @@ function editOrder(self::Woofipro, id, symbol, type_var, side, amount=nothing, p
         end
         response = Base.fetch(self.v1PrivatePutOrder(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     data[Symbol("timestamp")] = safeInteger(response, "timestamp");
-    return self.parseOrder(data, market)
+    return self.parseOrder(data, market = market)
 
 end
-function cancelOrder(self::Woofipro, id, symbol=nothing, params=Dict())
-    trigger = self.safeBool2(params, "stop", "trigger", false);
+"""
+cancels an open order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Woofipro, id; symbol=nothing, params=Dict())
+    trigger = self.safeBool2(params, "stop", "trigger", defaultValue = false);
     params = omit(params, ["stop", "trigger"]);
     if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(trigger), (symbol == nothing)))
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
@@ -1777,11 +2023,25 @@ function cancelOrder(self::Woofipro, id, symbol=nothing, params=Dict())
         parsedResponse = functions.ccxtruthy((response == nothing)) ? Dict{Symbol, Any}() : response;
             return extend(self.parseOrder(parsedResponse), extendParams)
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return extend(self.parseOrder(data), extendParams)
 
 end
-function cancelOrders(self::Woofipro, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.client_order_ids`::array, optional: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Woofipro, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1801,7 +2061,20 @@ function cancelOrders(self::Woofipro, ids, symbol=nothing, params=Dict())
 ))]
 
 end
-function cancelAllOrders(self::Woofipro, symbol=nothing, params=Dict())
+"""
+cancel all open orders in a market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Woofipro; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1823,7 +2096,24 @@ function cancelAllOrders(self::Woofipro, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchOrder(self::Woofipro, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Woofipro, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1831,7 +2121,7 @@ function fetchOrder(self::Woofipro, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    trigger = self.safeBool2(params, "stop", "trigger", false);
+    trigger = self.safeBool2(params, "stop", "trigger", defaultValue = false);
     request = Dict{Symbol, Any}();
     clientOrderId = safeStringN(params, ["clOrdID", "clientOrderId", "client_order_id"]);
     params = omit(params, ["stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"]);
@@ -1853,21 +2143,40 @@ function fetchOrder(self::Woofipro, id, symbol=nothing, params=Dict())
             response = Base.fetch(self.v1PrivateGetOrderOid(extend(request, params)));
         end
     end
-    orders = self.safeDict(response, "data", response);
+    orders = self.safeDict(response, "data", defaultValue = response);
     parsedOrders = functions.ccxtruthy((orders == nothing)) ? Dict{Symbol, Any}() : orders;
-    return self.parseOrder(parsedOrders, market)
+    return self.parseOrder(parsedOrders, market = market)
 
 end
-function fetchOrders(self::Woofipro, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+- `params.is_triggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+- `params.until`::int: timestamp in ms of the latest order to fetch
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Woofipro; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    isTrigger = self.safeBool2(params, "stop", "trigger", false);
+    isTrigger = self.safeBool2(params, "stop", "trigger", defaultValue = false);
     maxLimit = functions.ccxtruthy((isTrigger)) ? 100 : 500;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchOrders", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = maxLimit))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1896,30 +2205,82 @@ function fetchOrders(self::Woofipro, symbol=nothing, since=nothing, limit=nothin
     end
     data = safeValue(response, "data", response);
     orders = self.safeList(data, "rows");
-    return self.parseOrders(orders, market, since, limit)
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Woofipro, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+- `params.is_triggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.until`::int: timestamp in ms of the latest order to fetch
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Woofipro; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     extendedParams = extend(params, Dict{Symbol, Any}(
         Symbol("status") => "INCOMPLETE"
     ));
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extendedParams))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extendedParams))
 
 end
-function fetchClosedOrders(self::Woofipro, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+- `params.is_triggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.until`::int: timestamp in ms of the latest order to fetch
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Woofipro; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     extendedParams = extend(params, Dict{Symbol, Any}(
         Symbol("status") => "COMPLETED"
     ));
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extendedParams))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extendedParams))
 
 end
-function fetchOrderTrades(self::Woofipro, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all the trades made from a single order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchOrderTrades(self::Woofipro, id; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1931,19 +2292,34 @@ function fetchOrderTrades(self::Woofipro, id, symbol=nothing, since=nothing, lim
         Symbol("oid") => id
     );
     response = Base.fetch(self.v1PrivateGetOrderOidTrades(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    trades = self.safeList(data, "rows", []);
-    return self.parseTrades(trades, market, since, limit, params)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    trades = self.safeList(data, "rows", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit, params = params)
 
 end
-function fetchMyTrades(self::Woofipro, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch trades with pagination
+- `params.until`::int: timestamp in ms of the latest trade to fetch
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Woofipro; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, pageKey = "page", maxEntriesPerRequest = 500))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -1961,16 +2337,16 @@ function fetchMyTrades(self::Woofipro, symbol=nothing, since=nothing, limit=noth
     end
     (request, params) = self.handleUntilOption("end_t", request, params);
     response = Base.fetch(self.v1PrivateGetTrades(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    trades = self.safeList(data, "rows", []);
-    return self.parseTrades(trades, market, since, limit, params)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    trades = self.safeList(data, "rows", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit, params = params)
 
 end
 function parseBalance(self::Woofipro, response)
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
-    balances = self.safeList(response, "holding", []);
+    balances = self.safeList(response, "holding", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         balance = get(balances, i + 1, nothing);
@@ -1986,7 +2362,17 @@ function parseBalance(self::Woofipro, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Woofipro, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Woofipro; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1995,7 +2381,7 @@ function fetchBalance(self::Woofipro, params=Dict())
     return self.parseBalance(data)
 
 end
-function getAssetHistoryRows(self::Woofipro, code=nothing, since=nothing, limit=nothing, params=Dict())
+function getAssetHistoryRows(self::Woofipro; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2017,14 +2403,14 @@ function getAssetHistoryRows(self::Woofipro, code=nothing, since=nothing, limit=
         request[Symbol("type")] = transactionType;
     end
     response = Base.fetch(self.v1PrivateGetAssetHistory(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return [currency, self.safeList(data, "rows", [])]
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return [currency, self.safeList(data, "rows", defaultValue = [])]
 
 end
-function parseLedgerEntry(self::Woofipro, item, currency=nothing)
+function parseLedgerEntry(self::Woofipro, item; currency=nothing)
     currencyId = safeString(item, "token");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     amount = self.safeNumber(item, "amount");
     side = safeString(item, "token_side");
     direction = functions.ccxtruthy((side == "DEPOSIT")) ? "in" : "out";
@@ -2046,7 +2432,7 @@ function parseLedgerEntry(self::Woofipro, item, currency=nothing)
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("type") => self.parseLedgerEntryType(safeString(item, "type")),
     Symbol("info") => item
-), currency)
+), currency = currency)
 
 end
 function parseLedgerEntryType(self::Woofipro, type_var)
@@ -2057,14 +2443,27 @@ function parseLedgerEntryType(self::Woofipro, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function fetchLedger(self::Woofipro, code=nothing, since=nothing, limit=nothing, params=Dict())
-    currencyRows = Base.fetch(self.getAssetHistoryRows(code, since, limit, params));
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Woofipro; code=nothing, since=nothing, limit=nothing, params=Dict())
+    currencyRows = Base.fetch(self.getAssetHistoryRows(code = code, since = since, limit = limit, params = params));
     currency = safeValue(currencyRows, 0);
     rows = self.safeList(currencyRows, 1);
-    return self.parseLedger(rows, currency, since, limit, params)
+    return self.parseLedger(rows, currency = currency, since = since, limit = limit, params = params)
 
 end
-function parseTransaction(self::Woofipro, transaction, currency=nothing)
+function parseTransaction(self::Woofipro, transaction; currency=nothing)
     code = safeString(transaction, "token");
     movementDirection = safeStringLower(transaction, "token_side");
     if functions.ccxtruthy(movementDirection == "withdraw")
@@ -2109,35 +2508,74 @@ function parseTransactionStatus(self::Woofipro, status)
     return safeString(statuses, status, status)
 
 end
-function fetchDeposits(self::Woofipro, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Woofipro; code=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("side") => "DEPOSIT"
     );
-    return Base.fetch(self.fetchDepositsWithdrawals(code, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchDepositsWithdrawals(code = code, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchWithdrawals(self::Woofipro, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Woofipro; code=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("side") => "WITHDRAW"
     );
-    return Base.fetch(self.fetchDepositsWithdrawals(code, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchDepositsWithdrawals(code = code, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchDepositsWithdrawals(self::Woofipro, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch history of deposits and withdrawals
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDepositsWithdrawals(self::Woofipro; code=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}();
-    currencyRows = Base.fetch(self.getAssetHistoryRows(code, since, limit, extend(request, params)));
+    currencyRows = Base.fetch(self.getAssetHistoryRows(code = code, since = since, limit = limit, params = extend(request, params)));
     currency = safeValue(currencyRows, 0);
     rows = self.safeList(currencyRows, 1);
     rowsList = [];
     if functions.ccxtruthy(rows != nothing)
         rowsList = rows;
     end
-    return self.parseTransactions(rowsList, currency, since, limit, params)
+    return self.parseTransactions(rowsList, currency = currency, since = since, limit = limit, params = params)
 
 end
-function getWithdrawNonce(self::Woofipro, params=Dict())
+function getWithdrawNonce(self::Woofipro; params=Dict())
     response = Base.fetch(self.v1PrivateGetWithdrawNonce(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.safeNumber(data, "withdraw_nonce")
 
 end
@@ -2157,11 +2595,25 @@ function signMessage(self::Woofipro, message, privateKey)
     return self.signHash(self.hashMessage(message), functions.ccxt_slice(privateKey, -64))
 
 end
-function withdraw(self::Woofipro, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Woofipro, code, amount, address; tag=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(code != nothing)
         code = uppercase(code);
         if functions.ccxtruthy(code != "USDC")
@@ -2171,13 +2623,13 @@ function withdraw(self::Woofipro, code, amount, address, tag=nothing, params=Dic
     currency = self.currency(code);
     verifyingContractAddress = safeString(self.options, "verifyingContractAddress");
     chainId = safeString(params, "chainId");
-    currencyNetworks = self.safeDict(currency, "networks", Dict{Symbol, Any}());
-    coinNetwork = self.safeDict(currencyNetworks, chainId, Dict{Symbol, Any}());
+    currencyNetworks = self.safeDict(currency, "networks", defaultValue = Dict{Symbol, Any}());
+    coinNetwork = self.safeDict(currencyNetworks, chainId, defaultValue = Dict{Symbol, Any}());
     coinNetworkId = self.safeNumber(coinNetwork, "id");
     if functions.ccxtruthy(coinNetworkId == nothing)
         throw(BadRequest(string(self.id, " withdraw() require chainId parameter")));
     end
-    withdrawNonce = Base.fetch(self.getWithdrawNonce(params));
+    withdrawNonce = Base.fetch(self.getWithdrawNonce(params = params));
     nonce = self.nonce();
     domain = Dict{Symbol, Any}(
         Symbol("chainId") => chainId,
@@ -2228,11 +2680,11 @@ function withdraw(self::Woofipro, code, amount, address, tag=nothing, params=Dic
     );
     params = omit(params, "chainId");
     response = Base.fetch(self.v1PrivatePostWithdrawRequest(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTransaction(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTransaction(data, currency = currency)
 
 end
-function parseLeverage(self::Woofipro, leverage, market=nothing)
+function parseLeverage(self::Woofipro, leverage; market=nothing)
     leverageValue = safeInteger(leverage, "max_leverage");
     return Dict{Symbol, Any}(
     Symbol("info") => leverage,
@@ -2243,17 +2695,40 @@ function parseLeverage(self::Woofipro, leverage, market=nothing)
 )
 
 end
-function fetchLeverage(self::Woofipro, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Woofipro, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     response = Base.fetch(self.v1PrivateGetClientInfo(params));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function setLeverage(self::Woofipro, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
+
+# Arguments
+- `leverage`::int, optional: the rate of leverage
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Woofipro, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2266,9 +2741,9 @@ function setLeverage(self::Woofipro, leverage, symbol=nothing, params=Dict())
     return Base.fetch(self.v1PrivatePostClientLeverage(extend(request, params)))
 
 end
-function parsePosition(self::Woofipro, position, market=nothing)
+function parsePosition(self::Woofipro, position; market=nothing)
     contract = safeString(position, "symbol");
-    market = self.safeMarket(contract, market);
+    market = self.safeMarket(marketId = contract, market = market);
     size_var = safeString(position, "position_qty");
     side = nothing;
     if functions.ccxtruthy(stringGt(size_var, "0"))
@@ -2315,7 +2790,18 @@ function parsePosition(self::Woofipro, position, market=nothing)
 ))
 
 end
-function fetchPosition(self::Woofipro, symbol, params=Dict())
+"""
+fetch data on an open position
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Woofipro, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2324,25 +2810,36 @@ function fetchPosition(self::Woofipro, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.v1PrivateGetPositionSymbol(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parsePosition(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parsePosition(data, market = market)
 
 end
-function fetchPositions(self::Woofipro, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Woofipro; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.v1PrivateGetPositions(params));
-    result = self.safeDict(response, "data", Dict{Symbol, Any}());
-    positions = self.safeList(result, "rows", []);
-    return self.parsePositions(positions, symbols)
+    result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    positions = self.safeList(result, "rows", defaultValue = []);
+    return self.parsePositions(positions, symbols = symbols)
 
 end
 function nonce(self::Woofipro, )
     return milliseconds()
 
 end
-function sign(self::Woofipro, path, section="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Woofipro, path; section="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     version = get(section, 1, nothing);
     access = get(section, 2, nothing);
     pathWithParams = self.implodeParams(path, params);
@@ -2357,11 +2854,11 @@ function sign(self::Woofipro, path, section="public", method="GET", params=Dict(
     else
         self.checkRequiredCredentials();
         if functions.ccxtruthy(@functions.ccxt_and((@functions.ccxt_or(method == "POST", method == "PUT")), (@functions.ccxt_or(@functions.ccxt_or(path == "algo/order", path == "order"), path == "batch-order"))))
-            isSandboxMode = self.safeBool(self.options, "sandboxMode", false);
+            isSandboxMode = self.safeBool(self.options, "sandboxMode", defaultValue = false);
             if functions.ccxtruthy(!functions.ccxtruthy(isSandboxMode))
                 brokerId = safeString(self.options, "brokerId", "CCXT");
                 if functions.ccxtruthy(path == "batch-order")
-                    ordersList = self.safeList(params, "orders", []);
+                    ordersList = self.safeList(params, "orders", defaultValue = []);
                     i = 0
                     while functions.ccxtruthy(functions.ccxt_lt(i, length(ordersList)))
                         params[Symbol("orders")][i + 1][Symbol("order_tag")] = brokerId;
@@ -2439,463 +2936,463 @@ Base.getproperty(self::Woofipro, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v1PublicGetPublicVolumeStats(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/volume/stats", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/volume/stats"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicBrokerName(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/broker/name", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/broker/name"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicChainInfoBrokerId(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/chain_info/{broker_id}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/chain_info/{broker_id}"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicSystemInfo(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/system_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/system_info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicVaultBalance(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/vault_balance", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/vault_balance"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicInsurancefund(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/insurancefund", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/insurancefund"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicChainInfo(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/chain_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/chain_info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetFaucetUsdc(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "faucet/usdc", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "faucet/usdc"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicAccount(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/account", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/account"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetGetAccount(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "get_account", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "get_account"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetRegistrationNonce(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "registration_nonce", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "registration_nonce"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetGetOrderlyKey(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "get_orderly_key", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "get_orderly_key"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicLiquidation(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/liquidation", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/liquidation"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicLiquidatedPositions(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/liquidated_positions", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/liquidated_positions"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicConfig(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/config", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/config"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicCampaignRanking(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/campaign/ranking", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/campaign/ranking"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicCampaignStats(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/campaign/stats", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/campaign/stats"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicCampaignUser(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/campaign/user", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/campaign/user"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicCampaignStatsDetails(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/campaign/stats/details", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/campaign/stats/details"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicCampaigns(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/campaigns", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/campaigns"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicPointsLeaderboard(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/points/leaderboard", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/points/leaderboard"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetClientPoints(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/points", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/points"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicPointsEpoch(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/points/epoch", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/points/epoch"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicPointsEpochDates(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/points/epoch_dates", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/points/epoch_dates"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicReferralCheckRefCode(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/referral/check_ref_code", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/referral/check_ref_code"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicReferralVerifyRefCode(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/referral/verify_ref_code", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/referral/verify_ref_code"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetReferralAdminInfo(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/admin_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "referral/admin_info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetReferralInfo(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "referral/info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetReferralRefereeInfo(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/referee_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "referral/referee_info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetReferralRefereeRebateSummary(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/referee_rebate_summary", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "referral/referee_rebate_summary"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetReferralRefereeHistory(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/referee_history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "referral/referee_history"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetReferralReferralHistory(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/referral_history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "referral/referral_history"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetReferralRebateSummary(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/rebate_summary", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "referral/rebate_summary"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetClientDistributionHistory(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/distribution_history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/distribution_history"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetTvConfig(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "tv/config", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "tv/config"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetTvHistory(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "tv/history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "tv/history"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetTvSymbolInfo(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "tv/symbol_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "tv/symbol_info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicFundingRateHistory(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/funding_rate_history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/funding_rate_history"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicFundingRateSymbol(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/funding_rate/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/funding_rate/{symbol}"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicFundingRates(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/funding_rates", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/funding_rates"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicInfo(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/info"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicInfoSymbol(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/info/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/info/{symbol}"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicMarketTrades(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/market_trades", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/market_trades"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicToken(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/token", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/token"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicFutures(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/futures", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/futures"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicGetPublicFuturesSymbol(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "public/futures/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "public/futures/{symbol}"; api=["v1", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PublicPostRegisterAccount(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "register_account", ["v1", "public"], "POST", params, nothing, nothing, Dict())
+    return request(self, "register_account"; api=["v1", "public"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientKeyInfo(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/key_info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/key_info"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientOrderlyKeyIpRestriction(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/orderly_key_ip_restriction", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/orderly_key_ip_restriction"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderOid(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "order/{oid}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/{oid}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientOrderClientOrderId(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/order/{client_order_id}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/order/{client_order_id}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAlgoOrderOid(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "algo/order/{oid}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/order/{oid}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAlgoClientOrderClientOrderId(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "algo/client/order/{client_order_id}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/client/order/{client_order_id}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrders(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "orders", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAlgoOrders(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "algo/orders", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "algo/orders"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetTradeTid(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "trade/{tid}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trade/{tid}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetTrades(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "trades", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderOidTrades(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "order/{oid}/trades", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "order/{oid}/trades"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientLiquidatorLiquidations(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/liquidator_liquidations", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/liquidator_liquidations"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetLiquidations(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "liquidations", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "liquidations"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetAssetHistory(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "asset/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "asset/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientHolding(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/holding", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/holding"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetWithdrawNonce(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "withdraw_nonce", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraw_nonce"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetSettleNonce(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "settle_nonce", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "settle_nonce"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetPnlSettlementHistory(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "pnl_settlement/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "pnl_settlement/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetVolumeUserDaily(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "volume/user/daily", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "volume/user/daily"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetVolumeUserStats(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "volume/user/stats", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "volume/user/stats"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientStatistics(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/statistics", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/statistics"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientInfo(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/info"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetClientStatisticsDaily(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/statistics/daily", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "client/statistics/daily"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetPositions(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "positions", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "positions"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetPositionSymbol(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "position/{symbol}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "position/{symbol}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetFundingFeeHistory(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "funding_fee/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "funding_fee/history"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetNotificationInboxNotifications(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "notification/inbox/notifications", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "notification/inbox/notifications"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetNotificationInboxUnread(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "notification/inbox/unread", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "notification/inbox/unread"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetVolumeBrokerDaily(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "volume/broker/daily", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "volume/broker/daily"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetBrokerFeeRateDefault(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "broker/fee_rate/default", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/fee_rate/default"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetBrokerUserInfo(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "broker/user_info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/user_info"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetOrderbookSymbol(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "orderbook/{symbol}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook/{symbol}"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateGetKline(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "kline", ["v1", "private"], "GET", params, nothing, nothing, Dict())
+    return request(self, "kline"; api=["v1", "private"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrderlyKey(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "orderly_key", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "orderly_key"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostClientSetOrderlyKeyIpRestriction(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/set_orderly_key_ip_restriction", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "client/set_orderly_key_ip_restriction"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostClientResetOrderlyKeyIpRestriction(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/reset_orderly_key_ip_restriction", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "client/reset_orderly_key_ip_restriction"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostBatchOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "batch-order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "batch-order"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostAlgoOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "algo/order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "algo/order"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostLiquidation(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "liquidation", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "liquidation"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostClaimInsuranceFund(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "claim_insurance_fund", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "claim_insurance_fund"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostWithdrawRequest(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "withdraw_request", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraw_request"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostSettlePnl(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "settle_pnl", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "settle_pnl"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostNotificationInboxMarkRead(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "notification/inbox/mark_read", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "notification/inbox/mark_read"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostNotificationInboxMarkReadAll(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "notification/inbox/mark_read_all", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "notification/inbox/mark_read_all"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostClientLeverage(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/leverage", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "client/leverage"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostClientMaintenanceConfig(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/maintenance_config", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "client/maintenance_config"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostDelegateSigner(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "delegate_signer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "delegate_signer"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostDelegateOrderlyKey(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "delegate_orderly_key", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "delegate_orderly_key"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostDelegateSettlePnl(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "delegate_settle_pnl", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "delegate_settle_pnl"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostDelegateWithdrawRequest(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "delegate_withdraw_request", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "delegate_withdraw_request"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostBrokerFeeRateSet(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "broker/fee_rate/set", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/fee_rate/set"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostBrokerFeeRateSetDefault(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "broker/fee_rate/set_default", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/fee_rate/set_default"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostBrokerFeeRateDefault(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "broker/fee_rate/default", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/fee_rate/default"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostReferralCreate(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/create", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "referral/create"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostReferralUpdate(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/update", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "referral/update"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostReferralBind(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/bind", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "referral/bind"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePostReferralEditSplit(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "referral/edit_split", ["v1", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "referral/edit_split"; api=["v1", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePutOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "order", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["v1", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivatePutAlgoOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "algo/order", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
+    return request(self, "algo/order"; api=["v1", "private"], method="PUT", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteAlgoOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "algo/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algo/order"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteClientOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "client/order"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteAlgoClientOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "algo/client/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algo/client/order"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteAlgoOrders(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "algo/orders", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "algo/orders"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteOrders(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "orders", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteBatchOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "batch-order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "batch-order"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v1PrivateDeleteClientBatchOrder(self::Woofipro, params=Dict(), context=Dict())
-    return request(self, "client/batch-order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
+    return request(self, "client/batch-order"; api=["v1", "private"], method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Woofipro(; kwargs...)
@@ -2959,3 +3456,613 @@ function Woofipro(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Woofipro_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Woofipro_fetchStatus
+
+function __ccxt_doc_Woofipro_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Woofipro_fetchTime
+
+function __ccxt_doc_Woofipro_fetchMarkets() end
+"""
+retrieves data on all markets for woofipro
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Woofipro_fetchMarkets
+
+function __ccxt_doc_Woofipro_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Woofipro_fetchCurrencies
+
+function __ccxt_doc_Woofipro_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Woofipro_fetchTrades
+
+function __ccxt_doc_Woofipro_fetchFundingInterval() end
+"""
+fetch the current funding rate interval
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Woofipro_fetchFundingInterval
+
+function __ccxt_doc_Woofipro_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Woofipro_fetchFundingRate
+
+function __ccxt_doc_Woofipro_fetchFundingRates() end
+"""
+fetch the current funding rate for multiple markets
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
+
+# Arguments
+- `symbols`::array: unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Woofipro_fetchFundingRates
+
+function __ccxt_doc_Woofipro_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Woofipro_fetchTicker
+
+function __ccxt_doc_Woofipro_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+# Arguments
+- `symbols`::array, optional: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Woofipro_fetchTickers
+
+function __ccxt_doc_Woofipro_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest funding rate
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Woofipro_fetchFundingRateHistory
+
+function __ccxt_doc_Woofipro_fetchFundingHistory() end
+"""
+fetch the history of funding payments paid and received on this account
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch funding history for
+- `limit`::int, optional: the maximum number of funding history structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Woofipro_fetchFundingHistory
+
+function __ccxt_doc_Woofipro_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Woofipro_fetchTradingFees
+
+function __ccxt_doc_Woofipro_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Woofipro_fetchOrderBook
+
+function __ccxt_doc_Woofipro_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Woofipro_fetchOHLCV
+
+function __ccxt_doc_Woofipro_createOrder() end
+"""
+create a trade order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: stop loss trigger price
+- `params.algoType`::float, optional: 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
+- `params.cost`::float, optional: *spot market buy only* the quote quantity that can be used as an alternative for the amount
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woofipro_createOrder
+
+function __ccxt_doc_Woofipro_createOrders() end
+"""
+*contract only* create a list of trade orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woofipro_createOrders
+
+function __ccxt_doc_Woofipro_editOrder() end
+"""
+edit a trade order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: The price a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: price to trigger stop-loss orders
+- `params.takeProfitPrice`::float, optional: price to trigger take-profit orders
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woofipro_editOrder
+
+function __ccxt_doc_Woofipro_cancelOrder() end
+"""
+cancels an open order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woofipro_cancelOrder
+
+function __ccxt_doc_Woofipro_cancelOrders() end
+"""
+cancel multiple orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.client_order_ids`::array, optional: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woofipro_cancelOrders
+
+function __ccxt_doc_Woofipro_cancelAllOrders() end
+"""
+cancel all open orders in a market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woofipro_cancelAllOrders
+
+function __ccxt_doc_Woofipro_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+- `params.clientOrderId`::string, optional: a unique id for the order
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woofipro_fetchOrder
+
+function __ccxt_doc_Woofipro_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+- `params.is_triggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+- `params.until`::int: timestamp in ms of the latest order to fetch
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woofipro_fetchOrders
+
+function __ccxt_doc_Woofipro_fetchOpenOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+- `params.is_triggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.until`::int: timestamp in ms of the latest order to fetch
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woofipro_fetchOpenOrders
+
+function __ccxt_doc_Woofipro_fetchClosedOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.trigger`::bool, optional: whether the order is a stop/algo order
+- `params.is_triggered`::bool, optional: whether the order has been triggered (false by default)
+- `params.side`::string, optional: 'buy' or 'sell'
+- `params.until`::int: timestamp in ms of the latest order to fetch
+- `params.paginate`::bool, optional: set to true if you want to fetch orders with pagination
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Woofipro_fetchClosedOrders
+
+function __ccxt_doc_Woofipro_fetchOrderTrades() end
+"""
+fetch all the trades made from a single order
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Woofipro_fetchOrderTrades
+
+function __ccxt_doc_Woofipro_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: set to true if you want to fetch trades with pagination
+- `params.until`::int: timestamp in ms of the latest trade to fetch
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Woofipro_fetchMyTrades
+
+function __ccxt_doc_Woofipro_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Woofipro_fetchBalance
+
+function __ccxt_doc_Woofipro_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Woofipro_fetchLedger
+
+function __ccxt_doc_Woofipro_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Woofipro_fetchDeposits
+
+function __ccxt_doc_Woofipro_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Woofipro_fetchWithdrawals
+
+function __ccxt_doc_Woofipro_fetchDepositsWithdrawals() end
+"""
+fetch history of deposits and withdrawals
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
+
+# Arguments
+- `code`::string, optional: unified currency code for the currency of the deposit/withdrawals, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest deposit/withdrawal, default is undefined
+- `limit`::int, optional: max number of deposit/withdrawals to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Woofipro_fetchDepositsWithdrawals
+
+function __ccxt_doc_Woofipro_withdraw() end
+"""
+make a withdrawal
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Woofipro_withdraw
+
+function __ccxt_doc_Woofipro_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Woofipro_fetchLeverage
+
+function __ccxt_doc_Woofipro_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
+
+# Arguments
+- `leverage`::int, optional: the rate of leverage
+- `symbol`::string, optional: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Woofipro_setLeverage
+
+function __ccxt_doc_Woofipro_fetchPosition() end
+"""
+fetch data on an open position
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Woofipro_fetchPosition
+
+function __ccxt_doc_Woofipro_fetchPositions() end
+"""
+fetch all open positions
+see: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Woofipro_fetchPositions

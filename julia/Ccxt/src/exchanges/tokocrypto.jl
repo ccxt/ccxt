@@ -793,12 +793,32 @@ function nonce(self::Tokocrypto, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function fetchTime(self::Tokocrypto, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.tokocrypto.com/apidocs/#check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Tokocrypto; params=Dict())
     response = Base.fetch(self.publicGetOpenV1CommonTime(params));
     return safeInteger(response, "timestamp")
 
 end
-function fetchMarkets(self::Tokocrypto, params=Dict())
+"""
+retrieves data on all markets for tokocrypto
+see: https://www.tokocrypto.com/apidocs/#get-all-supported-trading-symbol
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Tokocrypto; params=Dict())
     response = Base.fetch(self.publicGetOpenV1CommonSymbols(params));
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
@@ -831,7 +851,7 @@ function fetchMarkets(self::Tokocrypto, params=Dict())
             end
             j += 1
         end
-        isMarginTradingAllowed = self.safeBool(market, "isMarginTradingAllowed", false);
+        isMarginTradingAllowed = self.safeBool(market, "isMarginTradingAllowed", defaultValue = false);
         entry = Dict{Symbol, Any}(
             Symbol("id") => id,
             Symbol("lowercaseId") => lowercaseId,
@@ -859,10 +879,10 @@ function fetchMarkets(self::Tokocrypto, params=Dict())
             Symbol("strike") => nothing,
             Symbol("optionType") => nothing,
             Symbol("precision") => Dict{Symbol, Any}(
-                Symbol("amount") => self.parseNumber(self.parsePrecision(safeString(market, "quantityPrecision"))),
-                Symbol("price") => self.parseNumber(self.parsePrecision(safeString(market, "pricePrecision"))),
-                Symbol("base") => self.parseNumber(self.parsePrecision(safeString(market, "baseAssetPrecision"))),
-                Symbol("quote") => self.parseNumber(self.parsePrecision(safeString(market, "quotePrecision")))
+                Symbol("amount") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quantityPrecision"))),
+                Symbol("price") => self.parseNumber(self.parsePrecision(precision = safeString(market, "pricePrecision"))),
+                Symbol("base") => self.parseNumber(self.parsePrecision(precision = safeString(market, "baseAssetPrecision"))),
+                Symbol("quote") => self.parseNumber(self.parsePrecision(precision = safeString(market, "quotePrecision")))
             ),
             Symbol("limits") => Dict{Symbol, Any}(
                 Symbol("leverage") => Dict{Symbol, Any}(
@@ -919,7 +939,19 @@ function fetchMarkets(self::Tokocrypto, params=Dict())
     return result
 
 end
-function fetchOrderBook(self::Tokocrypto, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.tokocrypto.com/apidocs/#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Tokocrypto, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -937,18 +969,18 @@ function fetchOrderBook(self::Tokocrypto, symbol, limit=nothing, params=Dict())
     end
     data = safeValue(response, "data", response);
     timestamp = safeInteger2(response, "T", "timestamp");
-    orderbook = self.parseOrderBook(data, symbol, timestamp);
+    orderbook = self.parseOrderBook(data, symbol, timestamp = timestamp);
     orderbook[Symbol("nonce")] = safeInteger(data, "lastUpdateId");
     return orderbook
 
 end
-function parseTrade(self::Tokocrypto, trade, market=nothing)
+function parseTrade(self::Tokocrypto, trade; market=nothing)
     timestamp = safeInteger2(trade, "T", "time");
     price = safeString2(trade, "p", "price");
     amount = safeString2(trade, "q", "qty");
     cost = safeString2(trade, "quoteQty", "baseQty");
     marketId = safeString(trade, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     id = safeString2(trade, "t", "a");
     id = safeString2(trade, "id", "tradeId", id);
     side = nothing;
@@ -992,10 +1024,24 @@ function parseTrade(self::Tokocrypto, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => cost,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Tokocrypto, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.tokocrypto.com/apidocs/#recent-trades-list
+see: https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Tokocrypto, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1008,9 +1054,9 @@ function fetchTrades(self::Tokocrypto, symbol, since=nothing, limit=nothing, par
             request[Symbol("limit")] = limit;
         end
         responseInner = self.publicGetOpenV1MarketTrades(extend(request, params));
-        data = self.safeDict(responseInner, "data", Dict{Symbol, Any}());
-        list = self.safeList(data, "list", []);
-            return self.parseTrades(list, market, since, limit)
+        data = self.safeDict(responseInner, "data", defaultValue = Dict{Symbol, Any}());
+        list = self.safeList(data, "list", defaultValue = []);
+            return self.parseTrades(list, market = market, since = since, limit = limit)
     end
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
@@ -1026,13 +1072,13 @@ function fetchTrades(self::Tokocrypto, symbol, since=nothing, limit=nothing, par
         response = Base.fetch(self.binanceGetTrades(extend(request, params)));
     end
     responseList = toArray(response);
-    return self.parseTrades(responseList, market, since, limit)
+    return self.parseTrades(responseList, market = market, since = since, limit = limit)
 
 end
-function parseTicker(self::Tokocrypto, ticker, market=nothing)
+function parseTicker(self::Tokocrypto, ticker; market=nothing)
     timestamp = safeInteger(ticker, "closeTime");
     marketId = safeString(ticker, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     last_var = safeString(ticker, "lastPrice");
     isCoinm = (ccxt_in("baseVolume", ticker));
     baseVolume = nothing;
@@ -1065,15 +1111,26 @@ function parseTicker(self::Tokocrypto, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Tokocrypto, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Tokocrypto; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.binanceGetTicker24hr(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
 function getMarketIdByType(self::Tokocrypto, market)
@@ -1083,7 +1140,18 @@ function getMarketIdByType(self::Tokocrypto, market)
     return get(market, Symbol("id"), nothing)
 
 end
-function fetchTicker(self::Tokocrypto, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Tokocrypto, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1093,25 +1161,52 @@ function fetchTicker(self::Tokocrypto, symbol, params=Dict())
     );
     response = Base.fetch(self.binanceGetTicker24hr(extend(request, params)));
     if functions.ccxtruthy(functions.ccxt_isArray(response))
-        firstTicker = self.safeDict(response, 0, Dict{Symbol, Any}());
-            return self.parseTicker(firstTicker, market)
+        firstTicker = self.safeDict(response, 0, defaultValue = Dict{Symbol, Any}());
+            return self.parseTicker(firstTicker, market = market)
     end
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchBidsAsks(self::Tokocrypto, symbols=nothing, params=Dict())
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchBidsAsks(self::Tokocrypto; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.binanceGetTickerBookTicker(params));
-    return self.parseTickers(response, symbols)
+    return self.parseTickers(response, symbols = symbols)
 
 end
-function parseOHLCV(self::Tokocrypto, ohlcv, market=nothing)
+function parseOHLCV(self::Tokocrypto, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCV(self::Tokocrypto, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Tokocrypto, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1147,12 +1242,25 @@ function fetchOHLCV(self::Tokocrypto, symbol, timeframe="1m", since=nothing, lim
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         data = response;
     else
-        data = self.safeList(response, "data", []);
+        data = self.safeList(response, "data", defaultValue = []);
     end
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchBalance(self::Tokocrypto, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.tokocrypto.com/apidocs/#account-information-signed
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'future', 'delivery', 'savings', 'funding', or 'spot'
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+- `params.symbols`::any, optional: unified market symbols, only used in isolated margin mode
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Tokocrypto; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1162,10 +1270,10 @@ function fetchBalance(self::Tokocrypto, params=Dict())
     marginMode = safeStringLower(params, "marginMode", defaultMarginMode);
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.privateGetOpenV1AccountSpot(extend(request, params)));
-    return self.parseBalanceCustom(response, type_var, marginMode)
+    return self.parseBalanceCustom(response, type_var = type_var, marginMode = marginMode)
 
 end
-function parseBalanceCustom(self::Tokocrypto, response, type_var=nothing, marginMode=nothing)
+function parseBalanceCustom(self::Tokocrypto, response; type_var=nothing, marginMode=nothing)
     timestamp = safeInteger(response, "updateTime");
     result = Dict{Symbol, Any}(
         Symbol("info") => response,
@@ -1211,10 +1319,10 @@ function parseOrderStatus(self::Tokocrypto, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Tokocrypto, order, market=nothing)
+function parseOrder(self::Tokocrypto, order; market=nothing)
     status = self.parseOrderStatus(safeString(order, "status"));
     marketId = safeString(order, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     filled = safeString(order, "executedQty", "0");
     timestamp = safeInteger(order, "createTime");
     average = safeString(order, "avgPrice");
@@ -1259,7 +1367,7 @@ function parseOrder(self::Tokocrypto, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => nothing,
     Symbol("trades") => fills
-), market)
+), market = market)
 
 end
 function parseOrderType(self::Tokocrypto, status)
@@ -1272,13 +1380,30 @@ function parseOrderType(self::Tokocrypto, status)
     return safeString(statuses, status, status)
 
 end
-function createOrder(self::Tokocrypto, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.tokocrypto.com/apidocs/#new-order--signed
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order would be triggered
+- `params.cost`::float, optional: for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Tokocrypto, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     clientOrderId = safeString2(params, "clientOrderId", "clientId");
-    postOnly = self.safeBool(params, "postOnly", false);
+    postOnly = self.safeBool(params, "postOnly", defaultValue = false);
     if functions.ccxtruthy(postOnly)
         type_var = "LIMIT_MAKER";
     end
@@ -1339,7 +1464,7 @@ function createOrder(self::Tokocrypto, symbol, type_var, side, amount, price=not
             precision = get(get(market, Symbol("precision"), nothing), Symbol("price"), nothing);
             quoteAmount = nothing;
             createMarketBuyOrderRequiresPrice = true;
-            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
             cost = self.safeNumber2(params, "cost", "quoteOrderQty");
             params = omit(params, ["cost", "quoteOrderQty"]);
             if functions.ccxtruthy(cost != nothing)
@@ -1399,22 +1524,47 @@ function createOrder(self::Tokocrypto, symbol, type_var, side, amount, price=not
         end
     end
     response = Base.fetch(self.privatePostOpenV1Orders(extend(request, params)));
-    rawOrder = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(rawOrder, market)
+    rawOrder = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(rawOrder, market = market)
 
 end
-function fetchOrder(self::Tokocrypto, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://www.tokocrypto.com/apidocs/#query-order-signed
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Tokocrypto, id; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
     response = Base.fetch(self.privateGetOpenV1Orders(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
     list = safeValue(data, "list", []);
-    rawOrder = self.safeDict(list, 0, Dict{Symbol, Any}());
+    rawOrder = self.safeDict(list, 0, defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(rawOrder)
 
 end
-function fetchOrders(self::Tokocrypto, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple orders made by the user
+see: https://www.tokocrypto.com/apidocs/#all-orders-signed
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrders(self::Tokocrypto; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
@@ -1433,34 +1583,85 @@ function fetchOrders(self::Tokocrypto, symbol=nothing, since=nothing, limit=noth
     end
     response = Base.fetch(self.privateGetOpenV1Orders(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "list", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(data, "list", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchOpenOrders(self::Tokocrypto, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.tokocrypto.com/apidocs/#all-orders-signed
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Tokocrypto; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => 1
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function fetchClosedOrders(self::Tokocrypto, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.tokocrypto.com/apidocs/#all-orders-signed
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Tokocrypto; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("type") => 2
     );
-    return Base.fetch(self.fetchOrders(symbol, since, limit, extend(request, params)))
+    return Base.fetch(self.fetchOrders(symbol = symbol, since = since, limit = limit, params = extend(request, params)))
 
 end
-function cancelOrder(self::Tokocrypto, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.tokocrypto.com/apidocs/#cancel-order-signed
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Tokocrypto, id; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
     response = Base.fetch(self.privatePostOpenV1OrdersCancel(extend(request, params)));
-    rawOrder = self.safeDict(response, "data", Dict{Symbol, Any}());
+    rawOrder = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     return self.parseOrder(rawOrder)
 
 end
-function fetchMyTrades(self::Tokocrypto, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.tokocrypto.com/apidocs/#account-trade-list-signed
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Tokocrypto; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -1484,11 +1685,22 @@ function fetchMyTrades(self::Tokocrypto, symbol=nothing, since=nothing, limit=no
     end
     response = Base.fetch(self.privateGetOpenV1OrdersTrades(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    trades = self.safeList(data, "list", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(data, "list", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchDepositAddress(self::Tokocrypto, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.tokocrypto.com/apidocs/#deposit-address-signed
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Tokocrypto, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1510,7 +1722,7 @@ function fetchDepositAddress(self::Tokocrypto, code, params=Dict())
     if functions.ccxtruthy(length(tag) == 0)
         tag = nothing;
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("currency") => code,
@@ -1520,7 +1732,21 @@ function fetchDepositAddress(self::Tokocrypto, code, params=Dict())
 )
 
 end
-function fetchDeposits(self::Tokocrypto, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://www.tokocrypto.com/apidocs/#deposit-history-signed
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch deposits for
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Tokocrypto; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1544,11 +1770,24 @@ function fetchDeposits(self::Tokocrypto, code=nothing, since=nothing, limit=noth
     end
     response = Base.fetch(self.privateGetOpenV1Deposits(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    deposits = self.safeList(data, "list", []);
-    return self.parseTransactions(deposits, currency, since, limit)
+    deposits = self.safeList(data, "list", defaultValue = []);
+    return self.parseTransactions(deposits, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawals(self::Tokocrypto, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://www.tokocrypto.com/apidocs/#withdraw-signed
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Tokocrypto; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1567,11 +1806,11 @@ function fetchWithdrawals(self::Tokocrypto, code=nothing, since=nothing, limit=n
     end
     response = Base.fetch(self.privateGetOpenV1Withdraws(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    withdrawals = self.safeList(data, "list", []);
-    return self.parseTransactions(withdrawals, currency, since, limit)
+    withdrawals = self.safeList(data, "list", defaultValue = []);
+    return self.parseTransactions(withdrawals, currency = currency, since = since, limit = limit)
 
 end
-function parseTransactionStatusByType(self::Tokocrypto, status, type_var=nothing)
+function parseTransactionStatusByType(self::Tokocrypto, status; type_var=nothing)
     statusesByType = Dict{Symbol, Any}(
         Symbol("deposit") => Dict{Symbol, Any}(
             Symbol("0") => "pending",
@@ -1591,7 +1830,7 @@ function parseTransactionStatusByType(self::Tokocrypto, status, type_var=nothing
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Tokocrypto, transaction, currency=nothing)
+function parseTransaction(self::Tokocrypto, transaction; currency=nothing)
     address = safeString(transaction, "address");
     tag = safeString(transaction, "addressTag");
     if functions.ccxtruthy(tag != nothing)
@@ -1604,7 +1843,7 @@ function parseTransaction(self::Tokocrypto, transaction, currency=nothing)
         txid = functions.ccxt_slice(txid, 18);
     end
     currencyId = safeString2(transaction, "coin", "fiatCurrency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = nothing;
     insertTime = safeInteger(transaction, "insertTime");
     createTime = safeInteger2(transaction, "createTime", "timestamp");
@@ -1647,7 +1886,7 @@ function parseTransaction(self::Tokocrypto, transaction, currency=nothing)
     Symbol("currency") => code,
     Symbol("network") => safeString(transaction, "network"),
     Symbol("amount") => self.safeNumber(transaction, "amount"),
-    Symbol("status") => self.parseTransactionStatusByType(safeString(transaction, "status"), type_var),
+    Symbol("status") => self.parseTransactionStatusByType(safeString(transaction, "status"), type_var = type_var),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("address") => address,
@@ -1663,12 +1902,26 @@ function parseTransaction(self::Tokocrypto, transaction, currency=nothing)
 )
 
 end
-function withdraw(self::Tokocrypto, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://www.tokocrypto.com/apidocs/#withdraw-signed
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Tokocrypto, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("asset") => get(currency, Symbol("id"), nothing),
@@ -1679,15 +1932,15 @@ function withdraw(self::Tokocrypto, code, amount, address, tag=nothing, params=D
         request[Symbol("addressTag")] = tag;
     end
     (networkCode, query) = self.handleNetworkCodeAndParams(params);
-    networkId = self.networkCodeToId(networkCode, code);
+    networkId = self.networkCodeToId(networkCode, currencyCode = code);
     if functions.ccxtruthy(networkId != nothing)
         request[Symbol("network")] =         uppercase(networkId);
     end
     response = Base.fetch(self.privatePostOpenV1Withdraws(extend(request, query)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function sign(self::Tokocrypto, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Tokocrypto, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(api, get(get(self.urls, Symbol("api"), nothing), Symbol("rest"), nothing)))))
         throw(NotSupported(string(self.id, " does not have a testnet/sandbox URL for ", api, " endpoints")));
     end
@@ -1772,7 +2025,7 @@ function handleErrors(self::Tokocrypto, code, reason, url, method, headers, body
     if functions.ccxtruthy(response == nothing)
             return nothing
     end
-    success = self.safeBool(response, "success", true);
+    success = self.safeBool(response, "success", defaultValue = true);
     if functions.ccxtruthy(!functions.ccxtruthy(success))
         messageInner = safeString(response, "msg");
         parsedMessage = nothing;
@@ -1814,7 +2067,7 @@ function handleErrors(self::Tokocrypto, code, reason, url, method, headers, body
     return nothing
 
 end
-function calculateRateLimiterCost(self::Tokocrypto, api, method, path, params, config=Dict())
+function calculateRateLimiterCost(self::Tokocrypto, api, method, path, params; config=Dict())
     if functions.ccxtruthy(@functions.ccxt_and((ccxt_in("noCoin", config)), !functions.ccxtruthy((ccxt_in("coin", params)))))
             return get(config, Symbol("noCoin"), nothing)
     elseif functions.ccxtruthy(@functions.ccxt_and((ccxt_in("noSymbol", config)), !functions.ccxtruthy((ccxt_in("symbol", params)))))
@@ -1824,7 +2077,7 @@ function calculateRateLimiterCost(self::Tokocrypto, api, method, path, params, c
                 return get(config, Symbol("noPoolId"), nothing)
         elseif functions.ccxtruthy(@functions.ccxt_and((ccxt_in("byLimit", config)), (ccxt_in("limit", params))))
             limit = get(params, Symbol("limit"), nothing);
-            byLimit = self.safeList(config, "byLimit", []);
+            byLimit = self.safeList(config, "byLimit", defaultValue = []);
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(byLimit)))
                 entry = get(byLimit, i + 1, nothing);
@@ -1905,3 +2158,318 @@ function Tokocrypto(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Tokocrypto_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.tokocrypto.com/apidocs/#check-server-time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Tokocrypto_fetchTime
+
+function __ccxt_doc_Tokocrypto_fetchMarkets() end
+"""
+retrieves data on all markets for tokocrypto
+see: https://www.tokocrypto.com/apidocs/#get-all-supported-trading-symbol
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Tokocrypto_fetchMarkets
+
+function __ccxt_doc_Tokocrypto_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.tokocrypto.com/apidocs/#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchOrderBook
+
+function __ccxt_doc_Tokocrypto_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.tokocrypto.com/apidocs/#recent-trades-list
+see: https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Tokocrypto_fetchTrades
+
+function __ccxt_doc_Tokocrypto_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchTickers
+
+function __ccxt_doc_Tokocrypto_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchTicker
+
+function __ccxt_doc_Tokocrypto_fetchBidsAsks() end
+"""
+fetches the bid and ask price and volume for multiple markets
+see: https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchBidsAsks
+
+function __ccxt_doc_Tokocrypto_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string, optional: "mark" or "index" for mark price and index price candles
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Tokocrypto_fetchOHLCV
+
+function __ccxt_doc_Tokocrypto_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.tokocrypto.com/apidocs/#account-information-signed
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.type`::string, optional: 'future', 'delivery', 'savings', 'funding', or 'spot'
+- `params.marginMode`::string, optional: 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+- `params.symbols`::any, optional: unified market symbols, only used in isolated margin mode
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchBalance
+
+function __ccxt_doc_Tokocrypto_createOrder() end
+"""
+create a trade order
+see: https://www.tokocrypto.com/apidocs/#new-order--signed
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price at which a trigger order would be triggered
+- `params.cost`::float, optional: for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Tokocrypto_createOrder
+
+function __ccxt_doc_Tokocrypto_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://www.tokocrypto.com/apidocs/#query-order-signed
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchOrder
+
+function __ccxt_doc_Tokocrypto_fetchOrders() end
+"""
+fetches information on multiple orders made by the user
+see: https://www.tokocrypto.com/apidocs/#all-orders-signed
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchOrders
+
+function __ccxt_doc_Tokocrypto_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.tokocrypto.com/apidocs/#all-orders-signed
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchOpenOrders
+
+function __ccxt_doc_Tokocrypto_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.tokocrypto.com/apidocs/#all-orders-signed
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchClosedOrders
+
+function __ccxt_doc_Tokocrypto_cancelOrder() end
+"""
+cancels an open order
+see: https://www.tokocrypto.com/apidocs/#cancel-order-signed
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Tokocrypto_cancelOrder
+
+function __ccxt_doc_Tokocrypto_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.tokocrypto.com/apidocs/#account-trade-list-signed
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchMyTrades
+
+function __ccxt_doc_Tokocrypto_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.tokocrypto.com/apidocs/#deposit-address-signed
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchDepositAddress
+
+function __ccxt_doc_Tokocrypto_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://www.tokocrypto.com/apidocs/#deposit-history-signed
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch deposits for
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchDeposits
+
+function __ccxt_doc_Tokocrypto_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://www.tokocrypto.com/apidocs/#withdraw-signed
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Tokocrypto_fetchWithdrawals
+
+function __ccxt_doc_Tokocrypto_withdraw() end
+"""
+make a withdrawal
+see: https://www.tokocrypto.com/apidocs/#withdraw-signed
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Tokocrypto_withdraw

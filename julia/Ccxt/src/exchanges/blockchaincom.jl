@@ -355,7 +355,17 @@ function describe(self::Blockchaincom, )
 ))
 
 end
-function fetchMarkets(self::Blockchaincom, params=Dict())
+"""
+retrieves data on all markets for blockchaincom
+see: https://api.blockchain.com/v3/#getsymbols
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Blockchaincom; params=Dict())
     markets = Base.fetch(self.publicGetSymbols(params));
     marketIds = objectKeys(markets);
     result = [];
@@ -377,22 +387,22 @@ function fetchMarkets(self::Blockchaincom, params=Dict())
         end
         minPriceIncrementString = safeString(market, "min_price_increment");
         minPriceIncrementScaleString = safeString(market, "min_price_increment_scale");
-        minPriceScalePrecisionString = self.parsePrecision(minPriceIncrementScaleString);
+        minPriceScalePrecisionString = self.parsePrecision(precision = minPriceIncrementScaleString);
         pricePrecisionString = stringMul(minPriceIncrementString, minPriceScalePrecisionString);
         lotSizeString = safeString(market, "lot_size");
         lotSizeScaleString = safeString(market, "lot_size_scale");
-        lotSizeScalePrecisionString = self.parsePrecision(lotSizeScaleString);
+        lotSizeScalePrecisionString = self.parsePrecision(precision = lotSizeScaleString);
         amountPrecisionString = stringMul(lotSizeString, lotSizeScalePrecisionString);
         minOrderSizeString = safeString(market, "min_order_size");
         minOrderSizeScaleString = safeString(market, "min_order_size_scale");
-        minOrderSizeScalePrecisionString = self.parsePrecision(minOrderSizeScaleString);
+        minOrderSizeScalePrecisionString = self.parsePrecision(precision = minOrderSizeScaleString);
         minOrderSizePreciseString = stringMul(minOrderSizeString, minOrderSizeScalePrecisionString);
         minOrderSize = self.parseNumber(minOrderSizePreciseString);
         maxOrderSize = nothing;
         maxOrderSizeRaw = safeString(market, "max_order_size");
         if functions.ccxtruthy(maxOrderSizeRaw != "0")
             maxOrderSizeScaleString = safeString(market, "max_order_size_scale");
-            maxOrderSizeScalePrecisionString = self.parsePrecision(maxOrderSizeScaleString);
+            maxOrderSizeScalePrecisionString = self.parsePrecision(precision = maxOrderSizeScaleString);
             maxOrderSizeValueString = stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
             maxOrderSize = self.parseNumber(maxOrderSizeValueString);
         end
@@ -451,11 +461,35 @@ function fetchMarkets(self::Blockchaincom, params=Dict())
     return result
 
 end
-function fetchOrderBook(self::Blockchaincom, symbol, limit=nothing, params=Dict())
-    return Base.fetch(self.fetchL3OrderBook(symbol, limit, params))
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api.blockchain.com/v3/#getl3orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Blockchaincom, symbol; limit=nothing, params=Dict())
+    return Base.fetch(self.fetchL3OrderBook(symbol, limit = limit, params = params))
 
 end
-function fetchL3OrderBook(self::Blockchaincom, symbol, limit=nothing, params=Dict())
+"""
+fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api.blockchain.com/v3/#getl3orderbook
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchL3OrderBook(self::Blockchaincom, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -467,10 +501,10 @@ function fetchL3OrderBook(self::Blockchaincom, symbol, limit=nothing, params=Dic
         request[Symbol("depth")] = limit;
     end
     response = Base.fetch(self.publicGetL3Symbol(extend(request, params)));
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), nothing, "bids", "asks", "px", "qty")
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "bids", asksKey = "asks", priceKey = "px", amountKey = "qty")
 
 end
-function fetchL2OrderBook(self::Blockchaincom, symbol, limit=nothing, params=Dict())
+function fetchL2OrderBook(self::Blockchaincom, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -482,12 +516,12 @@ function fetchL2OrderBook(self::Blockchaincom, symbol, limit=nothing, params=Dic
         request[Symbol("depth")] = limit;
     end
     response = Base.fetch(self.publicGetL2Symbol(extend(request, params)));
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), nothing, "bids", "asks", "px", "qty")
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "bids", asksKey = "asks", priceKey = "px", amountKey = "qty")
 
 end
-function parseTicker(self::Blockchaincom, ticker, market=nothing)
+function parseTicker(self::Blockchaincom, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
-    symbol = self.safeSymbol(marketId, market, "-");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "-");
     last_var = safeString(ticker, "last_trade_price");
     baseVolume = safeString(ticker, "volume_24h");
     open = safeString(ticker, "price_24h");
@@ -512,10 +546,21 @@ function parseTicker(self::Blockchaincom, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Blockchaincom, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api.blockchain.com/v3/#gettickerbysymbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Blockchaincom, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -524,15 +569,26 @@ function fetchTicker(self::Blockchaincom, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTickersSymbol(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchTickers(self::Blockchaincom, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://api.blockchain.com/v3/#gettickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Blockchaincom; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     tickers = Base.fetch(self.publicGetTickers(params));
-    return self.parseTickers(tickers, symbols)
+    return self.parseTickers(tickers, symbols = symbols)
 
 end
 function parseOrderState(self::Blockchaincom, state)
@@ -547,14 +603,14 @@ function parseOrderState(self::Blockchaincom, state)
     return safeString(states, state, state)
 
 end
-function parseOrder(self::Blockchaincom, order, market=nothing)
+function parseOrder(self::Blockchaincom, order; market=nothing)
     clientOrderId = safeString(order, "clOrdId");
     type_var = safeStringLower(order, "ordType");
     statusId = safeString(order, "ordStatus");
     state = self.parseOrderState(statusId);
     side = safeStringLower(order, "side");
     marketId = safeString(order, "symbol");
-    symbol = self.safeSymbol(marketId, market, "-");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "-");
     exchangeOrderId = safeString(order, "exOrdId");
     price = functions.ccxtruthy((type_var != "market")) ? safeString(order, "price") : nothing;
     average = self.safeNumber(order, "avgPx");
@@ -586,7 +642,22 @@ function parseOrder(self::Blockchaincom, order, market=nothing)
     return result
 
 end
-function createOrder(self::Blockchaincom, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://api.blockchain.com/v3/#createorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Blockchaincom, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -634,10 +705,22 @@ function createOrder(self::Blockchaincom, symbol, type_var, side, amount, price=
         request[Symbol("stopPx")] = self.priceToPrecision(symbol, triggerPrice);
     end
     response = Base.fetch(self.privatePostOrders(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Blockchaincom, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://api.blockchain.com/v3/#deleteorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Blockchaincom, id; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
@@ -648,7 +731,18 @@ function cancelOrder(self::Blockchaincom, id, symbol=nothing, params=Dict())
 ))
 
 end
-function cancelAllOrders(self::Blockchaincom, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://api.blockchain.com/v3/#deleteallorders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Blockchaincom; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -663,7 +757,17 @@ function cancelAllOrders(self::Blockchaincom, symbol=nothing, params=Dict())
 ))]
 
 end
-function fetchTradingFees(self::Blockchaincom, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://api.blockchain.com/v3/#getfees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Blockchaincom; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -686,22 +790,61 @@ function fetchTradingFees(self::Blockchaincom, params=Dict())
     return result
 
 end
-function fetchCanceledOrders(self::Blockchaincom, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://api.blockchain.com/v3/#getorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Blockchaincom; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     state = "CANCELED";
-    return Base.fetch(self.fetchOrdersByState(state, symbol, since, limit, params))
+    return Base.fetch(self.fetchOrdersByState(state, symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchClosedOrders(self::Blockchaincom, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://api.blockchain.com/v3/#getorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Blockchaincom; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     state = "FILLED";
-    return Base.fetch(self.fetchOrdersByState(state, symbol, since, limit, params))
+    return Base.fetch(self.fetchOrdersByState(state, symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOpenOrders(self::Blockchaincom, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://api.blockchain.com/v3/#getorders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Blockchaincom; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     state = "OPEN";
-    return Base.fetch(self.fetchOrdersByState(state, symbol, since, limit, params))
+    return Base.fetch(self.fetchOrdersByState(state, symbol = symbol, since = since, limit = limit, params = params))
 
 end
-function fetchOrdersByState(self::Blockchaincom, state, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchOrdersByState(self::Blockchaincom, state; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -715,10 +858,10 @@ function fetchOrdersByState(self::Blockchaincom, state, symbol=nothing, since=no
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetOrders(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Blockchaincom, trade, market=nothing)
+function parseTrade(self::Blockchaincom, trade; market=nothing)
     orderId = safeString(trade, "exOrdId");
     tradeId = safeString(trade, "tradeId");
     side = safeStringLower(trade, "side");
@@ -727,7 +870,7 @@ function parseTrade(self::Blockchaincom, trade, market=nothing)
     amountString = safeString(trade, "qty");
     timestamp = safeInteger(trade, "timestamp");
     datetime = self.iso8601(timestamp);
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     symbol = get(market, Symbol("symbol"), nothing);
     fee = nothing;
     feeCostString = safeString(trade, "fee");
@@ -752,10 +895,23 @@ function parseTrade(self::Blockchaincom, trade, market=nothing)
     Symbol("cost") => nothing,
     Symbol("fee") => fee,
     Symbol("info") => trade
-), market)
+), market = market)
 
 end
-function fetchMyTrades(self::Blockchaincom, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://api.blockchain.com/v3/#getfills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Blockchaincom; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -769,10 +925,21 @@ function fetchMyTrades(self::Blockchaincom, symbol=nothing, since=nothing, limit
         market = self.market(symbol);
     end
     trades = Base.fetch(self.privateGetFills(extend(request, params)));
-    return self.parseTrades(trades, market, since, limit, params)
+    return self.parseTrades(trades, market = market, since = since, limit = limit, params = params)
 
 end
-function fetchDepositAddress(self::Blockchaincom, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://api.blockchain.com/v3/#getdepositaddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Blockchaincom, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -809,13 +976,13 @@ function parseTransactionState(self::Blockchaincom, state)
     return safeString(states, state, state)
 
 end
-function parseTransaction(self::Blockchaincom, transaction, currency=nothing)
+function parseTransaction(self::Blockchaincom, transaction; currency=nothing)
     type_var = nothing;
     id = nothing;
     amount = self.safeNumber(transaction, "amount");
     timestamp = safeInteger(transaction, "timestamp");
     currencyId = safeString(transaction, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     state = safeString(transaction, "state");
     if functions.ccxtruthy(ccxt_in("depositId", transaction))
         type_var = "deposit";
@@ -858,7 +1025,21 @@ function parseTransaction(self::Blockchaincom, transaction, currency=nothing)
 )
 
 end
-function withdraw(self::Blockchaincom, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://api.blockchain.com/v3/#createwithdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Blockchaincom, code, amount, address; tag=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -870,10 +1051,23 @@ function withdraw(self::Blockchaincom, code, amount, address, tag=nothing, param
         Symbol("sendMax") => false
     );
     response = Base.fetch(self.privatePostWithdrawals(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function fetchWithdrawals(self::Blockchaincom, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://api.blockchain.com/v3/#getwithdrawals
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Blockchaincom; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -886,10 +1080,22 @@ function fetchWithdrawals(self::Blockchaincom, code=nothing, since=nothing, limi
         currency = self.currency(code);
     end
     response = Base.fetch(self.privateGetWithdrawals(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawal(self::Blockchaincom, id, code=nothing, params=Dict())
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://api.blockchain.com/v3/#getwithdrawalbyid
+
+# Arguments
+- `id`::string: withdrawal id
+- `code`::string: not used by blockchaincom.fetchWithdrawal
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawal(self::Blockchaincom, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -900,7 +1106,20 @@ function fetchWithdrawal(self::Blockchaincom, id, code=nothing, params=Dict())
     return self.parseTransaction(response)
 
 end
-function fetchDeposits(self::Blockchaincom, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://api.blockchain.com/v3/#getdeposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Blockchaincom; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -913,10 +1132,22 @@ function fetchDeposits(self::Blockchaincom, code=nothing, since=nothing, limit=n
         currency = self.currency(code);
     end
     response = Base.fetch(self.privateGetDeposits(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchDeposit(self::Blockchaincom, id, code=nothing, params=Dict())
+"""
+fetch information on a deposit
+see: https://api.blockchain.com/v3/#getdepositbyid
+
+# Arguments
+- `id`::string: deposit id
+- `code`::string: not used by fetchDeposit ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposit(self::Blockchaincom, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -928,7 +1159,17 @@ function fetchDeposit(self::Blockchaincom, id, code=nothing, params=Dict())
     return self.parseTransaction(deposit)
 
 end
-function fetchBalance(self::Blockchaincom, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api.blockchain.com/v3/#getaccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Blockchaincom; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -959,7 +1200,19 @@ function fetchBalance(self::Blockchaincom, params=Dict())
     return self.safeBalance(result)
 
 end
-function fetchOrder(self::Blockchaincom, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://api.blockchain.com/v3/#getorderbyid
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by blockchaincom fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Blockchaincom, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -970,7 +1223,7 @@ function fetchOrder(self::Blockchaincom, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function sign(self::Blockchaincom, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Blockchaincom, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     requestPath = string("/", self.implodeParams(path, params));
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), requestPath);
     query = omit(params, self.extractParams(path));
@@ -1027,99 +1280,99 @@ Base.getproperty(self::Blockchaincom, name::Symbol) = ccxt_getproperty(self, nam
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetTickers(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickersSymbol(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "tickers/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "tickers/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSymbols(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "symbols", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "symbols"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetSymbolsSymbol(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "symbols/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "symbols/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetL2Symbol(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "l2/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "l2/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetL3Symbol(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "l3/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "l3/{symbol}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFees(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "fees", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fees"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrders(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersOrderId(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "orders/{orderId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/{orderId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTrades(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetFills(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "fills", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "fills"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeposits(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "deposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDepositsDepositId(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "deposits/{depositId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits/{depositId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccounts(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountsAccountCurrency(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "accounts/{account}/{currency}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts/{account}/{currency}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWhitelist(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "whitelist", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "whitelist"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWhitelistCurrency(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "whitelist/{currency}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "whitelist/{currency}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawals(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawalsWithdrawalId(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "withdrawals/{withdrawalId}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdrawals/{withdrawalId}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDepositsCurrency(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "deposits/{currency}", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deposits/{currency}"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawals(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdrawals"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrders(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersOrderId(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "orders/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/{orderId}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Blockchaincom(; kwargs...)
@@ -1183,3 +1436,321 @@ function Blockchaincom(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Blockchaincom_fetchMarkets() end
+"""
+retrieves data on all markets for blockchaincom
+see: https://api.blockchain.com/v3/#getsymbols
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Blockchaincom_fetchMarkets
+
+function __ccxt_doc_Blockchaincom_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api.blockchain.com/v3/#getl3orderbook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchOrderBook
+
+function __ccxt_doc_Blockchaincom_fetchL3OrderBook() end
+"""
+fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://api.blockchain.com/v3/#getl3orderbook
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchL3OrderBook
+
+function __ccxt_doc_Blockchaincom_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://api.blockchain.com/v3/#gettickerbysymbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchTicker
+
+function __ccxt_doc_Blockchaincom_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://api.blockchain.com/v3/#gettickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchTickers
+
+function __ccxt_doc_Blockchaincom_createOrder() end
+"""
+create a trade order
+see: https://api.blockchain.com/v3/#createorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blockchaincom_createOrder
+
+function __ccxt_doc_Blockchaincom_cancelOrder() end
+"""
+cancels an open order
+see: https://api.blockchain.com/v3/#deleteorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blockchaincom_cancelOrder
+
+function __ccxt_doc_Blockchaincom_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://api.blockchain.com/v3/#deleteallorders
+
+# Arguments
+- `symbol`::string, optional: unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blockchaincom_cancelAllOrders
+
+function __ccxt_doc_Blockchaincom_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://api.blockchain.com/v3/#getfees
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Blockchaincom_fetchTradingFees
+
+function __ccxt_doc_Blockchaincom_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://api.blockchain.com/v3/#getorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchCanceledOrders
+
+function __ccxt_doc_Blockchaincom_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://api.blockchain.com/v3/#getorders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchClosedOrders
+
+function __ccxt_doc_Blockchaincom_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://api.blockchain.com/v3/#getorders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchOpenOrders
+
+function __ccxt_doc_Blockchaincom_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://api.blockchain.com/v3/#getfills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchMyTrades
+
+function __ccxt_doc_Blockchaincom_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://api.blockchain.com/v3/#getdepositaddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchDepositAddress
+
+function __ccxt_doc_Blockchaincom_withdraw() end
+"""
+make a withdrawal
+see: https://api.blockchain.com/v3/#createwithdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Blockchaincom_withdraw
+
+function __ccxt_doc_Blockchaincom_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://api.blockchain.com/v3/#getwithdrawals
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchWithdrawals
+
+function __ccxt_doc_Blockchaincom_fetchWithdrawal() end
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://api.blockchain.com/v3/#getwithdrawalbyid
+
+# Arguments
+- `id`::string: withdrawal id
+- `code`::string: not used by blockchaincom.fetchWithdrawal
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchWithdrawal
+
+function __ccxt_doc_Blockchaincom_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://api.blockchain.com/v3/#getdeposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchDeposits
+
+function __ccxt_doc_Blockchaincom_fetchDeposit() end
+"""
+fetch information on a deposit
+see: https://api.blockchain.com/v3/#getdepositbyid
+
+# Arguments
+- `id`::string: deposit id
+- `code`::string: not used by fetchDeposit ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchDeposit
+
+function __ccxt_doc_Blockchaincom_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://api.blockchain.com/v3/#getaccounts
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchBalance
+
+function __ccxt_doc_Blockchaincom_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://api.blockchain.com/v3/#getorderbyid
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: not used by blockchaincom fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Blockchaincom_fetchOrder

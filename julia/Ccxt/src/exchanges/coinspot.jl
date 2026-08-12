@@ -421,7 +421,7 @@ function describe(self::Coinspot, )
         )
     ),
     Symbol("markets") => Dict{Symbol, Any}(
-        Symbol("BTC/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("BTC/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "btc",
     Symbol("symbol") => "BTC/AUD",
     Symbol("base") => "BTC",
@@ -431,7 +431,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("BTC/USDT") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("BTC/USDT") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "btc",
     Symbol("symbol") => "BTC/USDT",
     Symbol("base") => "BTC",
@@ -441,7 +441,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("USDT/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("USDT/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "usdt",
     Symbol("symbol") => "USDT/AUD",
     Symbol("base") => "USDT",
@@ -451,7 +451,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("ETH/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("ETH/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "eth",
     Symbol("symbol") => "ETH/AUD",
     Symbol("base") => "ETH",
@@ -461,7 +461,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("ADA/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("ADA/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "ada",
     Symbol("symbol") => "ADA/AUD",
     Symbol("base") => "ADA",
@@ -471,7 +471,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("SOL/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("SOL/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "sol",
     Symbol("symbol") => "SOL/AUD",
     Symbol("base") => "SOL",
@@ -481,7 +481,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("XRP/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("XRP/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "xrp",
     Symbol("symbol") => "XRP/AUD",
     Symbol("base") => "XRP",
@@ -491,7 +491,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("DOGE/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("DOGE/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "doge",
     Symbol("symbol") => "DOGE/AUD",
     Symbol("base") => "DOGE",
@@ -501,7 +501,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("LTC/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("LTC/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "ltc",
     Symbol("symbol") => "LTC/AUD",
     Symbol("base") => "LTC",
@@ -511,7 +511,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("XLM/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("XLM/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "xlm",
     Symbol("symbol") => "XLM/AUD",
     Symbol("base") => "XLM",
@@ -521,7 +521,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("TRX/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("TRX/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "trx",
     Symbol("symbol") => "TRX/AUD",
     Symbol("base") => "TRX",
@@ -531,7 +531,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("EOS/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("EOS/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "eos",
     Symbol("symbol") => "EOS/AUD",
     Symbol("base") => "EOS",
@@ -541,7 +541,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("A/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("A/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "eos",
     Symbol("symbol") => "A/AUD",
     Symbol("base") => "A",
@@ -551,7 +551,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("NEO/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("NEO/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "neo",
     Symbol("symbol") => "NEO/AUD",
     Symbol("base") => "NEO",
@@ -561,7 +561,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("POWR/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("POWR/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "powr",
     Symbol("symbol") => "POWR/AUD",
     Symbol("base") => "POWR",
@@ -571,7 +571,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("GAS/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("GAS/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "gas",
     Symbol("symbol") => "GAS/AUD",
     Symbol("base") => "GAS",
@@ -581,7 +581,7 @@ function describe(self::Coinspot, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("RHOC/AUD") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("RHOC/AUD") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "rhoc",
     Symbol("symbol") => "RHOC/AUD",
     Symbol("base") => "RHOC",
@@ -692,7 +692,17 @@ function parseBalance(self::Coinspot, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Coinspot, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.coinspot.com.au/api#listmybalance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Coinspot; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -701,7 +711,19 @@ function fetchBalance(self::Coinspot, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Coinspot, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.coinspot.com.au/api#listopenorders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Coinspot, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -710,11 +732,11 @@ function fetchOrderBook(self::Coinspot, symbol, limit=nothing, params=Dict())
         Symbol("cointype") => get(market, Symbol("id"), nothing)
     );
     orderbook = Base.fetch(self.privatePostOrders(extend(request, params)));
-    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), nothing, "buyorders", "sellorders", "rate", "amount")
+    return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "buyorders", asksKey = "sellorders", priceKey = "rate", amountKey = "amount")
 
 end
-function parseTicker(self::Coinspot, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Coinspot, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     last_var = safeString(ticker, "last");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -737,10 +759,21 @@ function parseTicker(self::Coinspot, ticker, market=nothing)
     Symbol("baseVolume") => nothing,
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Coinspot, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.coinspot.com.au/api#latestprices
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Coinspot, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -748,34 +781,58 @@ function fetchTicker(self::Coinspot, symbol, params=Dict())
     response = Base.fetch(self.publicGetLatest(params));
     id = safeString(market, "id", "");
     id = lowercase(id);
-    prices = self.safeDict(response, "prices", Dict{Symbol, Any}());
-    ticker = self.safeDict(prices, id, Dict{Symbol, Any}());
-    return self.parseTicker(ticker, market)
+    prices = self.safeDict(response, "prices", defaultValue = Dict{Symbol, Any}());
+    ticker = self.safeDict(prices, id, defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(ticker, market = market)
 
 end
-function fetchTickers(self::Coinspot, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.coinspot.com.au/api#latestprices
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Coinspot; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicGetLatest(params));
     result = Dict{Symbol, Any}();
-    prices = self.safeDict(response, "prices", Dict{Symbol, Any}());
+    prices = self.safeDict(response, "prices", defaultValue = Dict{Symbol, Any}());
     ids = objectKeys(prices);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(ids)))
         id = get(ids, i + 1, nothing);
-        market = self.safeMarket(id);
+        market = self.safeMarket(marketId = id);
         if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
             symbol = get(market, Symbol("symbol"), nothing);
             ticker = get(prices, Symbol(id), nothing);
-            result[Symbol(symbol)] = self.parseTicker(ticker, market);
+            result[Symbol(symbol)] = self.parseTicker(ticker, market = market);
         end
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchTrades(self::Coinspot, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.coinspot.com.au/api#orderhistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Coinspot, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -784,11 +841,24 @@ function fetchTrades(self::Coinspot, symbol, since=nothing, limit=nothing, param
         Symbol("cointype") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privatePostOrdersHistory(extend(request, params)));
-    trades = self.safeList(response, "orders", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "orders", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Coinspot, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.coinspot.com.au/api#rotransaction
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Coinspot; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -801,23 +871,23 @@ function fetchMyTrades(self::Coinspot, symbol=nothing, since=nothing, limit=noth
         request[Symbol("startdate")] = self.yyyymmdd(since);
     end
     response = Base.fetch(self.privatePostRoMyTransactions(extend(request, params)));
-    buyTrades = self.safeList(response, "buyorders", []);
+    buyTrades = self.safeList(response, "buyorders", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(buyTrades)))
         buyTrades[i + 1][Symbol("side")] = "buy";
         i += 1
     end
-    sellTrades = self.safeList(response, "sellorders", []);
+    sellTrades = self.safeList(response, "sellorders", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(sellTrades)))
         sellTrades[i + 1][Symbol("side")] = "sell";
         i += 1
     end
     trades = arrayConcat(buyTrades, sellTrades);
-    return self.parseTrades(trades, market, since, limit)
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Coinspot, trade, market=nothing)
+function parseTrade(self::Coinspot, trade; market=nothing)
     timestamp = nothing;
     priceString = nothing;
     fee = nothing;
@@ -826,7 +896,7 @@ function parseTrade(self::Coinspot, trade, market=nothing)
     side = safeString(trade, "side");
     amountString = safeString(trade, "amount");
     marketId = safeString(trade, "market");
-    symbol = self.safeSymbol(marketId, market, "/");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "/");
     solddate = safeInteger(trade, "solddate");
     if functions.ccxtruthy(solddate != nothing)
         priceString = safeString(trade, "rate");
@@ -858,10 +928,25 @@ function parseTrade(self::Coinspot, trade, market=nothing)
     Symbol("amount") => self.parseNumber(amountString),
     Symbol("cost") => self.parseNumber(costString),
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function createOrder(self::Coinspot, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.coinspot.com.au/api#placebuyorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Coinspot, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -890,7 +975,20 @@ function createOrder(self::Coinspot, symbol, type_var, side, amount, price=nothi
 ))
 
 end
-function cancelOrder(self::Coinspot, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.coinspot.com.au/api#cancelbuyorder
+see: https://www.coinspot.com.au/api#cancelsellorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Coinspot, id; symbol=nothing, params=Dict())
     side = safeString(params, "side");
     if functions.ccxtruthy(@functions.ccxt_and(side != "buy", side != "sell"))
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")));
@@ -921,7 +1019,7 @@ function handleErrors(self::Coinspot, httpCode, reason, url, method, headers, bo
     return nothing
 
 end
-function sign(self::Coinspot, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Coinspot, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     isVersionedApi = functions.ccxt_isArray(api);
     version = functions.ccxtruthy(isVersionedApi) ? get(api, 1, nothing) : nothing;
     accessType = functions.ccxtruthy(isVersionedApi) ? get(api, 2, nothing) : api;
@@ -955,279 +1053,279 @@ Base.getproperty(self::Coinspot, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetLatest(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "latest", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "latest"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersHistory(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "orders/history", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/history"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMyCoinDeposit(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/coin/deposit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "my/coin/deposit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMyCoinSend(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/coin/send", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "my/coin/send"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostQuoteBuy(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "quote/buy", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "quote/buy"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostQuoteSell(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "quote/sell", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "quote/sell"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMyBalances(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/balances", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "my/balances"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMyOrders(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "my/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMyBuy(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/buy", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "my/buy"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMySell(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/sell", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "my/sell"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMyBuyCancel(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/buy/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "my/buy/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMySellCancel(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/sell/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "my/sell/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMyBalances(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/balances", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/balances"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMyBalancesCointype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/balances/{cointype}", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/balances/{cointype}"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMyDeposits(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/deposits", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/deposits"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMyWithdrawals(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/withdrawals", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/withdrawals"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMyTransactions(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/transactions", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/transactions"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMyTransactionsCointype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/transactions/{cointype}", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/transactions/{cointype}"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMyTransactionsOpen(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/transactions/open", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/transactions/open"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMyTransactionsCointypeOpen(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/transactions/{cointype}/open", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/transactions/{cointype}/open"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMySendreceive(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/sendreceive", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/sendreceive"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMyAffiliatepayments(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/affiliatepayments", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/affiliatepayments"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRoMyReferralpayments(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/referralpayments", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/referralpayments"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetLatest(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "latest", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "latest"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetLatestCointype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "latest/{cointype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "latest/{cointype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetLatestCointypeMarkettype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "latest/{cointype}/{markettype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "latest/{cointype}/{markettype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetBuypriceCointype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "buyprice/{cointype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "buyprice/{cointype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetBuypriceCointypeMarkettype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "buyprice/{cointype}/{markettype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "buyprice/{cointype}/{markettype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetSellpriceCointype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "sellprice/{cointype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "sellprice/{cointype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetSellpriceCointypeMarkettype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "sellprice/{cointype}/{markettype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "sellprice/{cointype}/{markettype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetOrdersOpenCointype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "orders/open/{cointype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/open/{cointype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetOrdersOpenCointypeMarkettype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "orders/open/{cointype}/{markettype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/open/{cointype}/{markettype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetOrdersCompletedCointype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "orders/completed/{cointype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/completed/{cointype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetOrdersCompletedCointypeMarkettype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "orders/completed/{cointype}/{markettype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/completed/{cointype}/{markettype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetOrdersSummaryCompletedCointype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "orders/summary/completed/{cointype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/summary/completed/{cointype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PublicGetOrdersSummaryCompletedCointypeMarkettype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "orders/summary/completed/{cointype}/{markettype}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/summary/completed/{cointype}/{markettype}"; api=["v2", "public"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostStatus(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "status", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "status"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMyCoinDeposit(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/coin/deposit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/coin/deposit"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostQuoteBuyNow(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "quote/buy/now", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "quote/buy/now"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostQuoteSellNow(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "quote/sell/now", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "quote/sell/now"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostQuoteSwapNow(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "quote/swap/now", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "quote/swap/now"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMyBuy(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/buy", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/buy"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMyBuyEdit(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/buy/edit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/buy/edit"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMySell(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/sell", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/sell"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMySellEdit(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/sell/edit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/sell/edit"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMyBuyNow(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/buy/now", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/buy/now"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMySellNow(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/sell/now", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/sell/now"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMySwapNow(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/swap/now", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/swap/now"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMyBuyCancel(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/buy/cancel", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/buy/cancel"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMyBuyCancelAll(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/buy/cancel/all", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/buy/cancel/all"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMySellCancel(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/sell/cancel", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/sell/cancel"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMySellCancelAll(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/sell/cancel/all", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/sell/cancel/all"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMyCoinWithdrawSenddetails(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/coin/withdraw/senddetails", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/coin/withdraw/senddetails"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostMyCoinWithdrawSend(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "my/coin/withdraw/send", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "my/coin/withdraw/send"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoStatus(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/status", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/status"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoOrdersMarketOpen(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/orders/market/open", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/orders/market/open"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoOrdersMarketCompleted(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/orders/market/completed", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/orders/market/completed"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMyBalances(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/balances", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/balances"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMyBalanceCointype(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/balance/{cointype}", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/balance/{cointype}"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMyOrdersMarketOpen(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/orders/market/open", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/orders/market/open"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMyOrdersLimitOpen(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/orders/limit/open", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/orders/limit/open"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMyOrdersCompleted(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/orders/completed", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/orders/completed"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMyOrdersMarketCompleted(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/orders/market/completed", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/orders/market/completed"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMySendreceive(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/sendreceive", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/sendreceive"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMyDeposits(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/deposits", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/deposits"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMyWithdrawals(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/withdrawals", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/withdrawals"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMyAffiliatepayments(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/affiliatepayments", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/affiliatepayments"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function v2PrivatePostRoMyReferralpayments(self::Coinspot, params=Dict(), context=Dict())
-    return request(self, "ro/my/referralpayments", ["v2", "private"], "POST", params, nothing, nothing, Dict())
+    return request(self, "ro/my/referralpayments"; api=["v2", "private"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Coinspot(; kwargs...)
@@ -1291,3 +1389,127 @@ function Coinspot(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Coinspot_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.coinspot.com.au/api#listmybalance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Coinspot_fetchBalance
+
+function __ccxt_doc_Coinspot_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.coinspot.com.au/api#listopenorders
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Coinspot_fetchOrderBook
+
+function __ccxt_doc_Coinspot_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.coinspot.com.au/api#latestprices
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coinspot_fetchTicker
+
+function __ccxt_doc_Coinspot_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.coinspot.com.au/api#latestprices
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coinspot_fetchTickers
+
+function __ccxt_doc_Coinspot_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.coinspot.com.au/api#orderhistory
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Coinspot_fetchTrades
+
+function __ccxt_doc_Coinspot_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.coinspot.com.au/api#rotransaction
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Coinspot_fetchMyTrades
+
+function __ccxt_doc_Coinspot_createOrder() end
+"""
+create a trade order
+see: https://www.coinspot.com.au/api#placebuyorder
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: must be 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinspot_createOrder
+
+function __ccxt_doc_Coinspot_cancelOrder() end
+"""
+cancels an open order
+see: https://www.coinspot.com.au/api#cancelbuyorder
+see: https://www.coinspot.com.au/api#cancelsellorder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coinspot_cancelOrder

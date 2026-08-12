@@ -376,8 +376,8 @@ function describe(self::Bithumb, )
 ))
 
 end
-function safeMarket(self::Bithumb, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
-    return safeMarket(self.parent, marketId, market, delimiter, "spot")
+function safeMarket(self::Bithumb; marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
+    return safeMarket(self.parent, marketId = marketId, market = market, delimiter = delimiter, marketType = "spot")
 
 end
 function amountToPrecision(self::Bithumb, symbol, amount)
@@ -385,9 +385,19 @@ function amountToPrecision(self::Bithumb, symbol, amount)
     return decimalToPrecision(amount, TRUNCATE, get(get(market, Symbol("precision"), nothing), Symbol("amount"), nothing), DECIMAL_PLACES)
 
 end
-function fetchMarkets(self::Bithumb, params=Dict())
+"""
+retrieves data on all markets for bithumb
+see: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bithumb; params=Dict())
     result = [];
-    quoteCurrencies = self.safeDict(self.options, "quoteCurrencies", Dict{Symbol, Any}());
+    quoteCurrencies = self.safeDict(self.options, "quoteCurrencies", defaultValue = Dict{Symbol, Any}());
     quotes = objectKeys(quoteCurrencies);
     promises = [];
     i = 0
@@ -404,8 +414,8 @@ function fetchMarkets(self::Bithumb, params=Dict())
         quote_var = get(quotes, i + 1, nothing);
         quoteId = quote_var;
         response = get(results, i + 1, nothing);
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        extension = self.safeDict(quoteCurrencies, quote_var, Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        extension = self.safeDict(quoteCurrencies, quote_var, defaultValue = Dict{Symbol, Any}());
         currencyIds = objectKeys(data);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(currencyIds)))
@@ -497,7 +507,17 @@ function parseBalance(self::Bithumb, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bithumb, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bithumb; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -508,7 +528,19 @@ function fetchBalance(self::Bithumb, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Bithumb, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bithumb, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -521,14 +553,14 @@ function fetchOrderBook(self::Bithumb, symbol, limit=nothing, params=Dict())
         request[Symbol("count")] = limit;
     end
     response = Base.fetch(self.publicGetOrderbookBaseIdQuoteId(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     timestamp = safeInteger(data, "timestamp");
-    return self.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
+    return self.parseOrderBook(data, symbol, timestamp = timestamp, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "quantity")
 
 end
-function parseTicker(self::Bithumb, ticker, market=nothing)
+function parseTicker(self::Bithumb, ticker; market=nothing)
     timestamp = safeInteger(ticker, "date");
-    symbol = self.safeSymbol(nothing, market);
+    symbol = self.safeSymbol(nothing, market = market);
     open = safeString(ticker, "opening_price");
     close = safeString(ticker, "closing_price");
     baseVolume = safeString(ticker, "units_traded_24H");
@@ -554,15 +586,26 @@ function parseTicker(self::Bithumb, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Bithumb, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bithumb; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     result = Dict{Symbol, Any}();
-    quoteCurrencies = self.safeDict(self.options, "quoteCurrencies", Dict{Symbol, Any}());
+    quoteCurrencies = self.safeDict(self.options, "quoteCurrencies", defaultValue = Dict{Symbol, Any}());
     quotes = objectKeys(quoteCurrencies);
     promises = [];
     i = 0
@@ -578,7 +621,7 @@ function fetchTickers(self::Bithumb, symbols=nothing, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(quotes)))
         quote_var = get(quotes, i + 1, nothing);
         response = get(responses, i + 1, nothing);
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
         timestamp = safeInteger(data, "date");
         tickers = omit(data, "date");
         currencyIds = objectKeys(tickers);
@@ -588,17 +631,28 @@ function fetchTickers(self::Bithumb, symbols=nothing, params=Dict())
             ticker = get(data, Symbol(currencyId), nothing);
             base = self.safeCurrencyCode(currencyId);
             symbol = string(base, "/", quote_var);
-            market = self.safeMarket(symbol);
+            market = self.safeMarket(marketId = symbol);
             ticker[Symbol("date")] = timestamp;
-            result[Symbol(symbol)] = self.parseTicker(ticker, market);
+            result[Symbol(symbol)] = self.parseTicker(ticker, market = market);
             j += 1
         end
         i += 1
     end
-    return self.filterByArrayTickers(result, "symbol", symbols)
+    return self.filterByArrayTickers(result, "symbol", values = symbols)
 
 end
-function fetchTicker(self::Bithumb, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bithumb, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -608,15 +662,29 @@ function fetchTicker(self::Bithumb, symbol, params=Dict())
         Symbol("quoteId") => get(market, Symbol("quoteId"), nothing)
     );
     response = Base.fetch(self.publicGetTickerBaseIdQuoteId(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseTicker(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseTicker(data, market = market)
 
 end
-function parseOHLCV(self::Bithumb, ohlcv, market=nothing)
+function parseOHLCV(self::Bithumb, ohlcv; market=nothing)
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 5)]
 
 end
-function fetchOHLCV(self::Bithumb, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bithumb, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -627,11 +695,11 @@ function fetchOHLCV(self::Bithumb, symbol, timeframe="1m", since=nothing, limit=
         Symbol("interval") => safeString(self.timeframes, timeframe, timeframe)
     );
     response = Base.fetch(self.publicGetCandlestickBaseIdQuoteIdInterval(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOHLCVs(data, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function parseTrade(self::Bithumb, trade, market=nothing)
+function parseTrade(self::Bithumb, trade; market=nothing)
     timestamp = nothing;
     transactionDatetime = safeString(trade, "transaction_date");
     if functions.ccxtruthy(transactionDatetime != nothing)
@@ -655,7 +723,7 @@ function parseTrade(self::Bithumb, trade, market=nothing)
     side = safeString(trade, "type");
     side = functions.ccxtruthy((side == "ask")) ? "sell" : "buy";
     id = safeString(trade, "cont_no");
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     priceString = safeString(trade, "price");
     amountString = self.fixCommaNumber(safeString2(trade, "units_traded", "units"));
     costString = safeString(trade, "total");
@@ -683,10 +751,23 @@ function parseTrade(self::Bithumb, trade, market=nothing)
     Symbol("amount") => amountString,
     Symbol("cost") => costString,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bithumb, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bithumb, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -699,11 +780,28 @@ function fetchTrades(self::Bithumb, symbol, since=nothing, limit=nothing, params
         request[Symbol("count")] = limit;
     end
     response = Base.fetch(self.publicGetTransactionHistoryBaseIdQuoteId(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function createOrder(self::Bithumb, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bithumb, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -731,10 +829,22 @@ function createOrder(self::Bithumb, symbol, type_var, side, amount, price=nothin
     Symbol("type") => type_var,
     Symbol("side") => side,
     Symbol("id") => id
-), market)
+), market = market)
 
 end
-function fetchOrder(self::Bithumb, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bithumb, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -752,7 +862,7 @@ function fetchOrder(self::Bithumb, id, symbol=nothing, params=Dict())
     data = self.safeDict(response, "data");
     return self.parseOrder(extend(data, Dict{Symbol, Any}(
     Symbol("order_id") => id
-)), market)
+)), market = market)
 
 end
 function parseOrderStatus(self::Bithumb, status)
@@ -764,7 +874,7 @@ function parseOrderStatus(self::Bithumb, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Bithumb, order, market=nothing)
+function parseOrder(self::Bithumb, order; market=nothing)
     timestamp = safeIntegerProduct(order, "order_date", 0.001);
     sideProperty = safeString2(order, "type", "side");
     side = functions.ccxtruthy((sideProperty == "bid")) ? "buy" : "sell";
@@ -792,11 +902,11 @@ function parseOrder(self::Bithumb, order, market=nothing)
         symbol = string(base, "/", quote_var);
     end
     if functions.ccxtruthy(symbol == nothing)
-        market = self.safeMarket(nothing, market);
+        market = self.safeMarket(marketId = nothing, market = market);
         symbol = get(market, Symbol("symbol"), nothing);
     end
     id = safeString(order, "order_id");
-    rawTrades = self.safeList(order, "contract", []);
+    rawTrades = self.safeList(order, "contract", defaultValue = []);
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => order,
     Symbol("id") => id,
@@ -819,10 +929,23 @@ function parseOrder(self::Bithumb, order, market=nothing)
     Symbol("status") => status,
     Symbol("fee") => nothing,
     Symbol("trades") => rawTrades
-), market)
+), market = market)
 
 end
-function fetchOpenOrders(self::Bithumb, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bithumb; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument")));
     end
@@ -842,11 +965,23 @@ function fetchOpenOrders(self::Bithumb, symbol=nothing, since=nothing, limit=not
         request[Symbol("after")] = since;
     end
     response = Base.fetch(self.privatePostInfoOrders(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function cancelOrder(self::Bithumb, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bithumb, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -869,16 +1004,30 @@ function cancelOrder(self::Bithumb, id, symbol=nothing, params=Dict())
 ))
 
 end
-function cancelUnifiedOrder(self::Bithumb, order, params=Dict())
+function cancelUnifiedOrder(self::Bithumb, order; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("side") => get(order, Symbol("side"), nothing)
     );
-    return Base.fetch(self.cancelOrder(get(order, Symbol("id"), nothing), get(order, Symbol("symbol"), nothing), extend(request, params)))
+    return Base.fetch(self.cancelOrder(get(order, Symbol("id"), nothing), symbol = get(order, Symbol("symbol"), nothing), params = extend(request, params)))
 
 end
-function withdraw(self::Bithumb, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bithumb, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -897,11 +1046,11 @@ function withdraw(self::Bithumb, code, amount, address, tag=nothing, params=Dict
         end
     end
     response = Base.fetch(self.privatePostTradeBtcWithdrawal(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseTransaction(self::Bithumb, transaction, currency=nothing)
-    currency = self.safeCurrency(nothing, currency);
+function parseTransaction(self::Bithumb, transaction; currency=nothing)
+    currency = self.safeCurrency(nothing, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("id") => nothing,
     Symbol("txid") => nothing,
@@ -941,7 +1090,7 @@ function nonce(self::Bithumb, )
     return milliseconds()
 
 end
-function sign(self::Bithumb, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bithumb, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     endpoint = string("/", self.implodeParams(path, params));
     url = string(self.implodeHostname(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing)), endpoint);
     query = omit(params, self.extractParams(path));
@@ -1005,115 +1154,115 @@ Base.getproperty(self::Bithumb, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetTickerALLQuoteId(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "ticker/ALL_{quoteId}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/ALL_{quoteId}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerBaseIdQuoteId(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "ticker/{baseId}_{quoteId}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/{baseId}_{quoteId}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbookALLQuoteId(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "orderbook/ALL_{quoteId}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook/ALL_{quoteId}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbookBaseIdQuoteId(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "orderbook/{baseId}_{quoteId}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook/{baseId}_{quoteId}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTransactionHistoryBaseIdQuoteId(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "transaction_history/{baseId}_{quoteId}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "transaction_history/{baseId}_{quoteId}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetNetworkInfo(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "network-info", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "network-info"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetsstatusMultichainALL(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "assetsstatus/multichain/ALL", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "assetsstatus/multichain/ALL"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetsstatusMultichainCurrency(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "assetsstatus/multichain/{currency}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "assetsstatus/multichain/{currency}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetWithdrawMinimumALL(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "withdraw/minimum/ALL", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraw/minimum/ALL"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetWithdrawMinimumCurrency(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "withdraw/minimum/{currency}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraw/minimum/{currency}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetsstatusALL(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "assetsstatus/ALL", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "assetsstatus/ALL"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetAssetsstatusBaseId(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "assetsstatus/{baseId}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "assetsstatus/{baseId}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlestickBaseIdQuoteIdInterval(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "candlestick/{baseId}_{quoteId}/{interval}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candlestick/{baseId}_{quoteId}/{interval}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostInfoAccount(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "info/account", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "info/account"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostInfoBalance(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "info/balance", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "info/balance"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostInfoWalletAddress(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "info/wallet_address", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "info/wallet_address"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostInfoTicker(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "info/ticker", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "info/ticker"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostInfoOrders(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "info/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "info/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostInfoUserTransactions(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "info/user_transactions", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "info/user_transactions"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostInfoOrderDetail(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "info/order_detail", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "info/order_detail"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradePlace(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "trade/place", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/place"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeCancel(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "trade/cancel", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/cancel"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeBtcWithdrawal(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "trade/btc_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/btc_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeKrwDeposit(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "trade/krw_deposit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/krw_deposit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeKrwWithdrawal(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "trade/krw_withdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/krw_withdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeMarketBuy(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "trade/market_buy", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/market_buy"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeMarketSell(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "trade/market_sell", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/market_sell"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTradeStopLimit(self::Bithumb, params=Dict(), context=Dict())
-    return request(self, "trade/stop_limit", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "trade/stop_limit"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bithumb(; kwargs...)
@@ -1177,3 +1326,190 @@ function Bithumb(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bithumb_fetchMarkets() end
+"""
+retrieves data on all markets for bithumb
+see: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bithumb_fetchMarkets
+
+function __ccxt_doc_Bithumb_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bithumb_fetchBalance
+
+function __ccxt_doc_Bithumb_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bithumb_fetchOrderBook
+
+function __ccxt_doc_Bithumb_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bithumb_fetchTickers
+
+function __ccxt_doc_Bithumb_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bithumb_fetchTicker
+
+function __ccxt_doc_Bithumb_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bithumb_fetchOHLCV
+
+function __ccxt_doc_Bithumb_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bithumb_fetchTrades
+
+function __ccxt_doc_Bithumb_createOrder() end
+"""
+create a trade order
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bithumb_createOrder
+
+function __ccxt_doc_Bithumb_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bithumb_fetchOrder
+
+function __ccxt_doc_Bithumb_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bithumb_fetchOpenOrders
+
+function __ccxt_doc_Bithumb_cancelOrder() end
+"""
+cancels an open order
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bithumb_cancelOrder
+
+function __ccxt_doc_Bithumb_withdraw() end
+"""
+make a withdrawal
+see: https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bithumb_withdraw

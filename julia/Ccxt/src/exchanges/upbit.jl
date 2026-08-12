@@ -472,15 +472,15 @@ function describe(self::Upbit, )
 ))
 
 end
-function fetchCurrency(self::Upbit, code, params=Dict())
+function fetchCurrency(self::Upbit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    return Base.fetch(self.fetchCurrencyById(get(currency, Symbol("id"), nothing), params))
+    return Base.fetch(self.fetchCurrencyById(get(currency, Symbol("id"), nothing), params = params))
 
 end
-function fetchCurrencyById(self::Upbit, id, params=Dict())
+function fetchCurrencyById(self::Upbit, id; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("currency") => id
     );
@@ -533,15 +533,15 @@ function fetchCurrencyById(self::Upbit, id, params=Dict())
 )
 
 end
-function fetchMarket(self::Upbit, symbol, params=Dict())
+function fetchMarket(self::Upbit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    return Base.fetch(self.fetchMarketById(get(market, Symbol("id"), nothing), params))
+    return Base.fetch(self.fetchMarketById(get(market, Symbol("id"), nothing), params = params))
 
 end
-function fetchMarketById(self::Upbit, id, params=Dict())
+function fetchMarketById(self::Upbit, id; params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("market") => id
     );
@@ -558,7 +558,7 @@ function fetchMarketById(self::Upbit, id, params=Dict())
     bidFee = safeString(response, "bid_fee");
     askFee = safeString(response, "ask_fee");
     fee = self.parseNumber(stringMax(bidFee, askFee));
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -610,7 +610,18 @@ function fetchMarketById(self::Upbit, id, params=Dict())
 ))
 
 end
-function fetchMarkets(self::Upbit, params=Dict())
+"""
+retrieves data on all markets for upbit
+see: https://docs.upbit.com/kr/reference/list-trading-pairs
+see: https://global-docs.upbit.com/reference/list-trading-pairs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Upbit; params=Dict())
     response = Base.fetch(self.publicGetMarketAll(params));
     return self.parseMarkets(response)
 
@@ -623,7 +634,7 @@ function parseMarket(self::Upbit, market)
     (quoteId, baseId) = split(id, "-");
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
-    return self.safeMarketStructure(Dict{Symbol, Any}(
+    return self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -642,8 +653,8 @@ function parseMarket(self::Upbit, market)
     Symbol("contract") => false,
     Symbol("linear") => nothing,
     Symbol("inverse") => nothing,
-    Symbol("taker") => self.safeNumber(get(self.options, Symbol("tradingFeesByQuoteCurrency"), nothing), quote_var, get(get(self.fees, Symbol("trading"), nothing), Symbol("taker"), nothing)),
-    Symbol("maker") => self.safeNumber(get(self.options, Symbol("tradingFeesByQuoteCurrency"), nothing), quote_var, get(get(self.fees, Symbol("trading"), nothing), Symbol("maker"), nothing)),
+    Symbol("taker") => self.safeNumber(get(self.options, Symbol("tradingFeesByQuoteCurrency"), nothing), quote_var, defaultNumber = get(get(self.fees, Symbol("trading"), nothing), Symbol("taker"), nothing)),
+    Symbol("maker") => self.safeNumber(get(self.options, Symbol("tradingFeesByQuoteCurrency"), nothing), quote_var, defaultNumber = get(get(self.fees, Symbol("trading"), nothing), Symbol("maker"), nothing)),
     Symbol("contractSize") => nothing,
     Symbol("expiry") => nothing,
     Symbol("expiryDatetime") => nothing,
@@ -698,7 +709,18 @@ function parseBalance(self::Upbit, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Upbit, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.upbit.com/kr/reference/get-balance
+see: https://global-docs.upbit.com/reference/get-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Upbit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -706,7 +728,20 @@ function fetchBalance(self::Upbit, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBooks(self::Upbit, symbols=nothing, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+see: https://docs.upbit.com/kr/reference/list-orderbooks
+see: https://global-docs.upbit.com/reference/list-orderbooks
+
+# Arguments
+- `symbols`::any: list of unified market symbols, all symbols fetched if undefined, default is undefined
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
+"""
+function fetchOrderBooks(self::Upbit; symbols=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -717,7 +752,7 @@ function fetchOrderBooks(self::Upbit, symbols=nothing, limit=nothing, params=Dic
             ids = join(allIds, ",");
         end
     else
-        marketIds = self.marketIds(symbols);
+        marketIds = self.marketIds(symbols = symbols);
         ids = join(marketIds, ",");
     end
     request = Dict{Symbol, Any}(
@@ -733,12 +768,12 @@ function fetchOrderBooks(self::Upbit, symbols=nothing, limit=nothing, params=Dic
     while functions.ccxtruthy(functions.ccxt_lt(i, length(orderbooks)))
         orderbook = get(orderbooks, i + 1, nothing);
         marketId = safeString(orderbook, "market");
-        symbol = self.safeSymbol(marketId, nothing, "-");
+        symbol = self.safeSymbol(marketId, market = nothing, delimiter = "-");
         timestamp = safeInteger(orderbook, "timestamp");
         result[Symbol(symbol)] = Dict{Symbol, Any}(
             Symbol("symbol") => symbol,
-            Symbol("bids") => sortBy(self.parseOrderBookBidsAsks(get(orderbook, Symbol("orderbook_units"), nothing), "bid_price", "bid_size"), 0, true),
-            Symbol("asks") => sortBy(self.parseOrderBookBidsAsks(get(orderbook, Symbol("orderbook_units"), nothing), "ask_price", "ask_size"), 0),
+            Symbol("bids") => sortBy(self.parseOrderBookBidsAsks(get(orderbook, Symbol("orderbook_units"), nothing), priceKey = "bid_price", amountKey = "bid_size"), 0, true),
+            Symbol("asks") => sortBy(self.parseOrderBookBidsAsks(get(orderbook, Symbol("orderbook_units"), nothing), priceKey = "ask_price", amountKey = "ask_size"), 0),
             Symbol("timestamp") => timestamp,
             Symbol("datetime") => self.iso8601(timestamp),
             Symbol("nonce") => nothing
@@ -748,15 +783,28 @@ function fetchOrderBooks(self::Upbit, symbols=nothing, limit=nothing, params=Dic
     return result
 
 end
-function fetchOrderBook(self::Upbit, symbol, limit=nothing, params=Dict())
-    orderbooks = Base.fetch(self.fetchOrderBooks([symbol], limit, params));
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.upbit.com/kr/reference/list-orderbooks
+see: https://global-docs.upbit.com/reference/list-orderbooks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Upbit, symbol; limit=nothing, params=Dict())
+    orderbooks = Base.fetch(self.fetchOrderBooks(symbols = [symbol], limit = limit, params = params));
     return safeValue(orderbooks, symbol)
 
 end
-function parseTicker(self::Upbit, ticker, market=nothing)
+function parseTicker(self::Upbit, ticker; market=nothing)
     timestamp = safeInteger(ticker, "trade_timestamp");
     marketId = safeString2(ticker, "market", "code");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     last_var = safeString(ticker, "trade_price");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -779,15 +827,27 @@ function parseTicker(self::Upbit, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "acc_trade_volume_24h"),
     Symbol("quoteVolume") => safeString(ticker, "acc_trade_price_24h"),
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTickers(self::Upbit, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.upbit.com/kr/reference/list-tickers
+see: https://global-docs.upbit.com/reference/list-tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Upbit; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    symbols = self.marketSymbols(symbols);
-    ids = functions.ccxtruthy((symbols != nothing)) ? self.marketIds(symbols) : self.ids;
+    symbols = self.marketSymbols(symbols = symbols);
+    ids = functions.ccxtruthy((symbols != nothing)) ? self.marketIds(symbols = symbols) : self.ids;
     promises = [];
     queries = self.idsQueryStrings(ids, 6400);
     i = 0
@@ -800,7 +860,7 @@ function fetchTickers(self::Upbit, symbols=nothing, params=Dict())
     end
     responses = Base.fetch(asyncmap(Base.fetch, promises));
     concated = self.arraysConcat(responses);
-    return self.parseTickers(concated, symbols)
+    return self.parseTickers(concated, symbols = symbols)
 
 end
 function idsQueryStrings(self::Upbit, ids, maxQueryLength)
@@ -828,12 +888,24 @@ function idsQueryStrings(self::Upbit, ids, maxQueryLength)
     return queries
 
 end
-function fetchTicker(self::Upbit, symbol, params=Dict())
-    tickers = Base.fetch(self.fetchTickers([symbol], params));
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.upbit.com/kr/reference/list-tickers
+see: https://global-docs.upbit.com/reference/list-tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Upbit, symbol; params=Dict())
+    tickers = Base.fetch(self.fetchTickers(symbols = [symbol], params = params));
     return safeValue(tickers, symbol)
 
 end
-function parseTrade(self::Upbit, trade, market=nothing)
+function parseTrade(self::Upbit, trade; market=nothing)
     id = safeString2(trade, "sequential_id", "uuid");
     orderId = nothing;
     timestamp = safeInteger(trade, "timestamp");
@@ -851,7 +923,7 @@ function parseTrade(self::Upbit, trade, market=nothing)
     price = safeString2(trade, "trade_price", "price");
     amount = safeString2(trade, "trade_volume", "volume");
     marketId = safeString2(trade, "market", "code");
-    market = self.safeMarket(marketId, market, "-");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "-");
     fee = nothing;
     feeCost = safeString(trade, string(askOrBid, "_fee"));
     if functions.ccxtruthy(feeCost != nothing)
@@ -874,10 +946,24 @@ function parseTrade(self::Upbit, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => cost,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Upbit, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.upbit.com/kr/reference/list-pair-trades
+see: https://global-docs.upbit.com/reference/list-pair-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Upbit, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -890,10 +976,22 @@ function fetchTrades(self::Upbit, symbol, since=nothing, limit=nothing, params=D
         Symbol("count") => limit
     );
     response = Base.fetch(self.publicGetTradesTicks(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFee(self::Upbit, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://docs.upbit.com/kr/reference/available-order-information
+see: https://global-docs.upbit.com/reference/available-order-information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Upbit, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -918,11 +1016,20 @@ function fetchTradingFee(self::Upbit, symbol, params=Dict())
 )
 
 end
-function fetchTradingFees(self::Upbit, params=Dict())
+"""
+fetch the trading fees for markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [trading fee structure]{@link https://docs.ccxt.com/?id=trading-fee-structure}
+"""
+function fetchTradingFees(self::Upbit; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    fetchMarketResponse = Base.fetch(self.fetchMarkets(params));
+    fetchMarketResponse = Base.fetch(self.fetchMarkets(params = params));
     response = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fetchMarketResponse)))
@@ -942,11 +1049,26 @@ function fetchTradingFees(self::Upbit, params=Dict())
     return response
 
 end
-function parseOHLCV(self::Upbit, ohlcv, market=nothing)
+function parseOHLCV(self::Upbit, ohlcv; market=nothing)
     return [self.parse8601(safeString(ohlcv, "candle_date_time_utc")), self.safeNumber(ohlcv, "opening_price"), self.safeNumber(ohlcv, "high_price"), self.safeNumber(ohlcv, "low_price"), self.safeNumber(ohlcv, "trade_price"), self.safeNumber(ohlcv, "candle_acc_trade_volume")]
 
 end
-function fetchOHLCV(self::Upbit, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.upbit.com/kr/reference/list-candles-minutes
+see: https://global-docs.upbit.com/reference/list-candles-minutes
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Upbit, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -972,10 +1094,10 @@ function fetchOHLCV(self::Upbit, symbol, timeframe="1m", since=nothing, limit=no
         response = Base.fetch(self.publicGetCandlesTimeframe(extend(request, params)));
     end
     ohlcvs = toArray(response);
-    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
+    return self.parseOHLCVs(ohlcvs, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function calcOrderPrice(self::Upbit, symbol, amount, price=nothing, params=Dict())
+function calcOrderPrice(self::Upbit, symbol, amount; price=nothing, params=Dict())
     quoteAmount = nothing;
     createMarketBuyOrderRequiresPrice = safeValue(self.options, "createMarketBuyOrderRequiresPrice");
     cost = safeString(params, "cost");
@@ -1001,17 +1123,40 @@ function calcOrderPrice(self::Upbit, symbol, amount, price=nothing, params=Dict(
     return quoteAmount
 
 end
-function createOrder(self::Upbit, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://docs.upbit.com/kr/reference/new-order
+see: https://global-docs.upbit.com/reference/new-order
+see: https://docs.upbit.com/kr/reference/order-test
+see: https://global-docs.upbit.com/reference/order-test
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
+- `params.ordType`::string, optional: this field can be used to place a ‘best’ type order
+- `params.timeInForce`::string, optional: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+- `params.selfTradePrevention`::string, optional: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+- `params.test`::bool, optional: If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Upbit, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     clientOrderId = safeString(params, "clientOrderId");
     customType = safeString2(params, "ordType", "ord_type");
-    postOnly = self.isPostOnly(type_var == "market", false, params);
+    postOnly = self.isPostOnly(type_var == "market", false, params = params);
     timeInForce = safeStringLower2(params, "timeInForce", "time_in_force");
     selfTradePrevention = safeString2(params, "selfTradePrevention", "smp_type");
-    test = self.safeBool(params, "test", false);
+    test = self.safeBool(params, "test", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_and(postOnly, (selfTradePrevention != nothing)))
         throw(ExchangeError(string(self.id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")));
     end
@@ -1037,7 +1182,7 @@ function createOrder(self::Upbit, symbol, type_var, side, amount, price=nothing,
     elseif functions.ccxtruthy(type_var == "market")
         if functions.ccxtruthy(side == "buy")
             request[Symbol("ord_type")] = "price";
-            orderPrice = self.calcOrderPrice(symbol, amount, price, params);
+            orderPrice = self.calcOrderPrice(symbol, amount, price = price, params = params);
             request[Symbol("price")] = orderPrice;
         else
             if functions.ccxtruthy(amount == nothing)
@@ -1053,7 +1198,7 @@ function createOrder(self::Upbit, symbol, type_var, side, amount, price=nothing,
         params = omit(params, ["ordType", "ord_type"]);
         request[Symbol("ord_type")] = "best";
         if functions.ccxtruthy(side == "buy")
-            orderPrice = self.calcOrderPrice(symbol, amount, price, params);
+            orderPrice = self.calcOrderPrice(symbol, amount, price = price, params = params);
             request[Symbol("price")] = orderPrice;
         else
             if functions.ccxtruthy(amount == nothing)
@@ -1088,7 +1233,20 @@ function createOrder(self::Upbit, symbol, type_var, side, amount, price=nothing,
     return self.parseOrder(response)
 
 end
-function cancelOrder(self::Upbit, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://docs.upbit.com/kr/reference/cancel-order
+see: https://global-docs.upbit.com/reference/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Upbit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1099,7 +1257,30 @@ function cancelOrder(self::Upbit, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function editOrder(self::Upbit, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+see: https://docs.upbit.com/kr/reference/cancel-and-new-order
+see: https://global-docs.upbit.com/reference/cancel-and-new-order
+
+# Arguments
+- `id`::string: the uuid of the previous order you want to edit.
+- `symbol`::string: the symbol of the new order. it must be the same as the symbol of the previous order.
+- `type`::string: the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
+- `side`::string: the side of the new order. it must be the same as the side of the previous order.
+- `amount`::float: the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
+- `price`::float: the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
+- `params`::object, optional: extra parameters specific to the exchange API endpoint.
+- `params.clientOrderId`::string, optional: to identify the previous order, either the id or this field is required in this method.
+- `params.cost`::float, optional: for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
+- `params.newTimeInForce`::string, optional: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+- `params.newClientOrderId`::string, optional: the order ID that the user can define.
+- `params.newOrdType`::string, optional: this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+- `params.selfTradePrevention`::string, optional: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Upbit, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1107,7 +1288,7 @@ function editOrder(self::Upbit, id, symbol, type_var, side, amount=nothing, pric
     prevClientOrderId = safeString(params, "clientOrderId");
     customType = safeString2(params, "newOrdType", "new_ord_type");
     clientOrderId = safeString(params, "newClientOrderId");
-    postOnly = self.isPostOnly(type_var == "market", false, params);
+    postOnly = self.isPostOnly(type_var == "market", false, params = params);
     timeInForce = safeStringLower2(params, "newTimeInForce", "new_time_in_force");
     selfTradePrevention = safeString2(params, "selfTradePrevention", "new_smp_type");
     if functions.ccxtruthy(@functions.ccxt_and(postOnly, (selfTradePrevention != nothing)))
@@ -1131,7 +1312,7 @@ function editOrder(self::Upbit, id, symbol, type_var, side, amount=nothing, pric
     elseif functions.ccxtruthy(type_var == "market")
         if functions.ccxtruthy(side == "buy")
             request[Symbol("new_ord_type")] = "price";
-            orderPrice = self.calcOrderPrice(symbol, amount, price, params);
+            orderPrice = self.calcOrderPrice(symbol, amount, price = price, params = params);
             request[Symbol("new_price")] = orderPrice;
         else
             if functions.ccxtruthy(amount == nothing)
@@ -1147,7 +1328,7 @@ function editOrder(self::Upbit, id, symbol, type_var, side, amount=nothing, pric
         params = omit(params, ["newOrdType", "new_ord_type"]);
         request[Symbol("new_ord_type")] = "best";
         if functions.ccxtruthy(side == "buy")
-            orderPrice = self.calcOrderPrice(symbol, amount, price, params);
+            orderPrice = self.calcOrderPrice(symbol, amount, price = price, params = params);
             request[Symbol("new_price")] = orderPrice;
         else
             if functions.ccxtruthy(amount == nothing)
@@ -1186,7 +1367,21 @@ function editOrder(self::Upbit, id, symbol, type_var, side, amount=nothing, pric
     return self.parseOrder(result)
 
 end
-function fetchDeposits(self::Upbit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://docs.upbit.com/kr/reference/list-deposits
+see: https://global-docs.upbit.com/reference/list-deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Upbit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1200,10 +1395,24 @@ function fetchDeposits(self::Upbit, code=nothing, since=nothing, limit=nothing, 
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetDeposits(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchDeposit(self::Upbit, id, code=nothing, params=Dict())
+"""
+fetch information on a deposit
+see: https://docs.upbit.com/kr/reference/get-deposit
+see: https://global-docs.upbit.com/reference/get-deposit
+
+# Arguments
+- `id`::string: the unique id for the deposit
+- `code`::string, optional: unified currency code of the currency deposited
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.txid`::string, optional: withdrawal transaction id, the id argument is reserved for uuid
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposit(self::Upbit, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1216,10 +1425,24 @@ function fetchDeposit(self::Upbit, id, code=nothing, params=Dict())
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetDeposit(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function fetchWithdrawals(self::Upbit, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://docs.upbit.com/kr/reference/list-withdrawals
+see: https://global-docs.upbit.com/reference/list-withdrawals
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Upbit; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1233,10 +1456,24 @@ function fetchWithdrawals(self::Upbit, code=nothing, since=nothing, limit=nothin
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetWithdraws(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(response, currency = currency, since = since, limit = limit)
 
 end
-function fetchWithdrawal(self::Upbit, id, code=nothing, params=Dict())
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://docs.upbit.com/kr/reference/get-withdrawal
+see: https://global-docs.upbit.com/reference/get-withdrawal
+
+# Arguments
+- `id`::string: the unique id for the withdrawal
+- `code`::string, optional: unified currency code of the currency withdrawn
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.txid`::string, optional: withdrawal transaction id, the id argument is reserved for uuid
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawal(self::Upbit, id; code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1249,7 +1486,7 @@ function fetchWithdrawal(self::Upbit, id, code=nothing, params=Dict())
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetWithdraw(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
 function parseTransactionStatus(self::Upbit, status)
@@ -1266,7 +1503,7 @@ function parseTransactionStatus(self::Upbit, status)
     return safeString(statuses, status, status)
 
 end
-function parseTransaction(self::Upbit, transaction, currency=nothing)
+function parseTransaction(self::Upbit, transaction; currency=nothing)
     address = nothing;
     tag = nothing;
     updatedRaw = safeString(transaction, "done_at");
@@ -1276,7 +1513,7 @@ function parseTransaction(self::Upbit, transaction, currency=nothing)
         type_var = "withdrawal";
     end
     currencyId = safeString(transaction, "currency");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("info") => transaction,
     Symbol("id") => safeString(transaction, "uuid"),
@@ -1313,7 +1550,7 @@ function parseOrderStatus(self::Upbit, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Upbit, order, market=nothing)
+function parseOrder(self::Upbit, order; market=nothing)
     id = safeString(order, "uuid");
     side = safeString(order, "side");
     if functions.ccxtruthy(side == "bid")
@@ -1340,9 +1577,9 @@ function parseOrder(self::Upbit, order, market=nothing)
     fee = nothing;
     feeCost = safeString(order, "paid_fee");
     marketId = safeString(order, "market");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     trades = safeValue(order, "trades", []);
-    trades = self.parseTrades(trades, market, nothing, nothing, Dict{Symbol, Any}(
+    trades = self.parseTrades(trades, market = market, since = nothing, limit = nothing, params = Dict{Symbol, Any}(
     Symbol("order") => id,
     Symbol("type") => type_var
 ));
@@ -1402,7 +1639,22 @@ function parseOrder(self::Upbit, order, market=nothing)
 ))
 
 end
-function fetchOpenOrders(self::Upbit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://docs.upbit.com/kr/reference/list-open-orders
+see: https://global-docs.upbit.com/reference/list-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.state`::string, optional: default is 'wait', set to 'watch' for stop limit orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Upbit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1416,10 +1668,25 @@ function fetchOpenOrders(self::Upbit, symbol=nothing, since=nothing, limit=nothi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateGetOrdersOpen(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Upbit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.upbit.com/kr/reference/list-closed-orders
+see: https://global-docs.upbit.com/reference/list-closed-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Upbit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1439,10 +1706,25 @@ function fetchClosedOrders(self::Upbit, symbol=nothing, since=nothing, limit=not
     end
     (request, params) = self.handleUntilOption("end_time", request, params);
     response = Base.fetch(self.privateGetOrdersClosed(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchCanceledOrders(self::Upbit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://docs.upbit.com/kr/reference/list-closed-orders
+see: https://global-docs.upbit.com/reference/list-closed-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Upbit; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1462,10 +1744,23 @@ function fetchCanceledOrders(self::Upbit, symbol=nothing, since=nothing, limit=n
     end
     (request, params) = self.handleUntilOption("end_time", request, params);
     response = Base.fetch(self.privateGetOrdersClosed(extend(request, params)));
-    return self.parseOrders(response, market, since, limit)
+    return self.parseOrders(response, market = market, since = since, limit = limit)
 
 end
-function fetchOrder(self::Upbit, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://docs.upbit.com/kr/reference/get-order
+see: https://global-docs.upbit.com/reference/get-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by upbit fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Upbit, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1476,31 +1771,56 @@ function fetchOrder(self::Upbit, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchDepositAddresses(self::Upbit, codes=nothing, params=Dict())
+"""
+fetch deposit addresses for multiple currencies and chain types
+see: https://docs.upbit.com/kr/reference/list-deposit-addresses
+see: https://global-docs.upbit.com/reference/list-deposit-addresses
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddresses(self::Upbit; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetDepositsCoinAddresses(params));
-    return self.parseDepositAddresses(response, codes)
+    return self.parseDepositAddresses(response, codes = codes)
 
 end
-function parseDepositAddress(self::Upbit, depositAddress, currency=nothing)
+function parseDepositAddress(self::Upbit, depositAddress; currency=nothing)
     address = safeString(depositAddress, "deposit_address");
     tag = safeString(depositAddress, "secondary_address");
     currencyId = safeString(depositAddress, "currency");
     code = self.safeCurrencyCode(currencyId);
     networkId = safeString(depositAddress, "net_type");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("address") => address,
     Symbol("tag") => tag
 )
 
 end
-function fetchDepositAddress(self::Upbit, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.upbit.com/kr/reference/get-deposit-address
+see: https://global-docs.upbit.com/reference/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string: deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Upbit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1512,12 +1832,24 @@ function fetchDepositAddress(self::Upbit, code, params=Dict())
     end
     response = Base.fetch(self.privateGetDepositsCoinAddress(extend(Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("id"), nothing),
-        Symbol("net_type") => self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing))
+        Symbol("net_type") => self.networkCodeToId(networkCode, currencyCode = get(currency, Symbol("code"), nothing))
     ), params)));
     return self.parseDepositAddress(response)
 
 end
-function createDepositAddress(self::Upbit, code, params=Dict())
+"""
+create a currency deposit address
+see: https://docs.upbit.com/kr/reference/create-deposit-address
+see: https://global-docs.upbit.com/reference/create-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Upbit, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -1533,7 +1865,22 @@ function createDepositAddress(self::Upbit, code, params=Dict())
     return self.parseDepositAddress(response)
 
 end
-function withdraw(self::Upbit, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://docs.upbit.com/kr/reference/withdraw
+see: https://global-docs.upbit.com/reference/withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Upbit, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1543,7 +1890,7 @@ function withdraw(self::Upbit, code, amount, address, tag=nothing, params=Dict()
         Symbol("amount") => amount
     );
     if functions.ccxtruthy(code != "KRW")
-        self.checkAddress(address);
+        self.checkAddress(address = address);
         network = safeStringUpper2(params, "network", "net_type");
         if functions.ccxtruthy(network == nothing)
             throw(ArgumentsRequired(string(self.id, " withdraw() requires a network argument")));
@@ -1567,7 +1914,7 @@ function nonce(self::Upbit, )
     return milliseconds()
 
 end
-function sign(self::Upbit, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Upbit, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = self.implodeParams(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), Dict{Symbol, Any}(
         Symbol("hostname") => self.hostname
     ));
@@ -1636,215 +1983,215 @@ Base.getproperty(self::Upbit, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarketAll(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "market/all", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "market/all"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesTimeframe(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/{timeframe}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/{timeframe}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesTimeframeUnit(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/{timeframe}/{unit}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/{timeframe}/{unit}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesSeconds(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/seconds", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/seconds"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesMinutesUnit(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/{unit}", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/minutes/{unit}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesMinutes1(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/1", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/minutes/1"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesMinutes3(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/3", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/minutes/3"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesMinutes5(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/5", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/minutes/5"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesMinutes10(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/10", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/minutes/10"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesMinutes15(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/15", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/minutes/15"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesMinutes30(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/30", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/minutes/30"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesMinutes60(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/60", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/minutes/60"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesMinutes240(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/240", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/minutes/240"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesDays(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/days", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/days"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesWeeks(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/weeks", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/weeks"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesMonths(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/months", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/months"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCandlesYears(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/years", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "candles/years"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTradesTicks(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "trades/ticks", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "trades/ticks"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTicker(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetTickerAll(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "ticker/all", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "ticker/all"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbook(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetOrderbookInstruments(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orderbook/instruments", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "orderbook/instruments"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccounts(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersChance(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/chance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/chance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrder(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersClosed(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/closed", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/closed"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersOpen(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/open", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/open"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrdersUuids(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/uuids", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "orders/uuids"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdraws(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraws"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdraw(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraw", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraw"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawsChance(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws/chance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraws/chance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetWithdrawsCoinAddresses(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws/coin_addresses", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "withdraws/coin_addresses"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeposits(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDepositsChanceCoin(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits/chance/coin", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits/chance/coin"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDeposit(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposit", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposit"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDepositsCoinAddresses(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits/coin_addresses", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits/coin_addresses"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetDepositsCoinAddress(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits/coin_address", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "deposits/coin_address"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetTravelRuleVasps(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "travel_rule/vasps", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "travel_rule/vasps"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetStatusWallet(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "status/wallet", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "status/wallet"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetApiKeys(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "api_keys", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "api_keys"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrders(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersTest(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/test", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/test"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrdersCancelAndNew(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/cancel_and_new", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "orders/cancel_and_new"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawsCoin(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws/coin", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraws/coin"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawsKrw(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws/krw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "withdraws/krw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDepositsKrw(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits/krw", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deposits/krw"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostDepositsGenerateCoinAddress(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits/generate_coin_address", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "deposits/generate_coin_address"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTravelRuleDepositUuid(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "travel_rule/deposit/uuid", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "travel_rule/deposit/uuid"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostTravelRuleDepositTxid(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "travel_rule/deposit/txid", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "travel_rule/deposit/txid"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrder(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "order"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersOpen(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/open", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/open"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteOrdersUuids(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/uuids", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "orders/uuids"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteWithdrawsCoin(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws/coin", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "withdraws/coin"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Upbit(; kwargs...)
@@ -1908,3 +2255,427 @@ function Upbit(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Upbit_fetchMarkets() end
+"""
+retrieves data on all markets for upbit
+see: https://docs.upbit.com/kr/reference/list-trading-pairs
+see: https://global-docs.upbit.com/reference/list-trading-pairs
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Upbit_fetchMarkets
+
+function __ccxt_doc_Upbit_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://docs.upbit.com/kr/reference/get-balance
+see: https://global-docs.upbit.com/reference/get-balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Upbit_fetchBalance
+
+function __ccxt_doc_Upbit_fetchOrderBooks() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+see: https://docs.upbit.com/kr/reference/list-orderbooks
+see: https://global-docs.upbit.com/reference/list-orderbooks
+
+# Arguments
+- `symbols`::any: list of unified market symbols, all symbols fetched if undefined, default is undefined
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
+"""
+__ccxt_doc_Upbit_fetchOrderBooks
+
+function __ccxt_doc_Upbit_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://docs.upbit.com/kr/reference/list-orderbooks
+see: https://global-docs.upbit.com/reference/list-orderbooks
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Upbit_fetchOrderBook
+
+function __ccxt_doc_Upbit_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://docs.upbit.com/kr/reference/list-tickers
+see: https://global-docs.upbit.com/reference/list-tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Upbit_fetchTickers
+
+function __ccxt_doc_Upbit_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://docs.upbit.com/kr/reference/list-tickers
+see: https://global-docs.upbit.com/reference/list-tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Upbit_fetchTicker
+
+function __ccxt_doc_Upbit_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://docs.upbit.com/kr/reference/list-pair-trades
+see: https://global-docs.upbit.com/reference/list-pair-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Upbit_fetchTrades
+
+function __ccxt_doc_Upbit_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://docs.upbit.com/kr/reference/available-order-information
+see: https://global-docs.upbit.com/reference/available-order-information
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Upbit_fetchTradingFee
+
+function __ccxt_doc_Upbit_fetchTradingFees() end
+"""
+fetch the trading fees for markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [trading fee structure]{@link https://docs.ccxt.com/?id=trading-fee-structure}
+"""
+__ccxt_doc_Upbit_fetchTradingFees
+
+function __ccxt_doc_Upbit_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://docs.upbit.com/kr/reference/list-candles-minutes
+see: https://global-docs.upbit.com/reference/list-candles-minutes
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Upbit_fetchOHLCV
+
+function __ccxt_doc_Upbit_createOrder() end
+"""
+create a trade order
+see: https://docs.upbit.com/kr/reference/new-order
+see: https://global-docs.upbit.com/reference/new-order
+see: https://docs.upbit.com/kr/reference/order-test
+see: https://global-docs.upbit.com/reference/order-test
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
+- `params.ordType`::string, optional: this field can be used to place a ‘best’ type order
+- `params.timeInForce`::string, optional: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+- `params.selfTradePrevention`::string, optional: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+- `params.test`::bool, optional: If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Upbit_createOrder
+
+function __ccxt_doc_Upbit_cancelOrder() end
+"""
+cancels an open order
+see: https://docs.upbit.com/kr/reference/cancel-order
+see: https://global-docs.upbit.com/reference/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Upbit_cancelOrder
+
+function __ccxt_doc_Upbit_editOrder() end
+"""
+canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+see: https://docs.upbit.com/kr/reference/cancel-and-new-order
+see: https://global-docs.upbit.com/reference/cancel-and-new-order
+
+# Arguments
+- `id`::string: the uuid of the previous order you want to edit.
+- `symbol`::string: the symbol of the new order. it must be the same as the symbol of the previous order.
+- `type`::string: the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
+- `side`::string: the side of the new order. it must be the same as the side of the previous order.
+- `amount`::float: the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
+- `price`::float: the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
+- `params`::object, optional: extra parameters specific to the exchange API endpoint.
+- `params.clientOrderId`::string, optional: to identify the previous order, either the id or this field is required in this method.
+- `params.cost`::float, optional: for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
+- `params.newTimeInForce`::string, optional: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+- `params.newClientOrderId`::string, optional: the order ID that the user can define.
+- `params.newOrdType`::string, optional: this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+- `params.selfTradePrevention`::string, optional: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Upbit_editOrder
+
+function __ccxt_doc_Upbit_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://docs.upbit.com/kr/reference/list-deposits
+see: https://global-docs.upbit.com/reference/list-deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Upbit_fetchDeposits
+
+function __ccxt_doc_Upbit_fetchDeposit() end
+"""
+fetch information on a deposit
+see: https://docs.upbit.com/kr/reference/get-deposit
+see: https://global-docs.upbit.com/reference/get-deposit
+
+# Arguments
+- `id`::string: the unique id for the deposit
+- `code`::string, optional: unified currency code of the currency deposited
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.txid`::string, optional: withdrawal transaction id, the id argument is reserved for uuid
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Upbit_fetchDeposit
+
+function __ccxt_doc_Upbit_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://docs.upbit.com/kr/reference/list-withdrawals
+see: https://global-docs.upbit.com/reference/list-withdrawals
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Upbit_fetchWithdrawals
+
+function __ccxt_doc_Upbit_fetchWithdrawal() end
+"""
+fetch data on a currency withdrawal via the withdrawal id
+see: https://docs.upbit.com/kr/reference/get-withdrawal
+see: https://global-docs.upbit.com/reference/get-withdrawal
+
+# Arguments
+- `id`::string: the unique id for the withdrawal
+- `code`::string, optional: unified currency code of the currency withdrawn
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.txid`::string, optional: withdrawal transaction id, the id argument is reserved for uuid
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Upbit_fetchWithdrawal
+
+function __ccxt_doc_Upbit_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://docs.upbit.com/kr/reference/list-open-orders
+see: https://global-docs.upbit.com/reference/list-open-orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.state`::string, optional: default is 'wait', set to 'watch' for stop limit orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Upbit_fetchOpenOrders
+
+function __ccxt_doc_Upbit_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://docs.upbit.com/kr/reference/list-closed-orders
+see: https://global-docs.upbit.com/reference/list-closed-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Upbit_fetchClosedOrders
+
+function __ccxt_doc_Upbit_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://docs.upbit.com/kr/reference/list-closed-orders
+see: https://global-docs.upbit.com/reference/list-closed-orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: timestamp in ms of the earliest order, default is undefined
+- `limit`::int, optional: max number of orders to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest order
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Upbit_fetchCanceledOrders
+
+function __ccxt_doc_Upbit_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://docs.upbit.com/kr/reference/get-order
+see: https://global-docs.upbit.com/reference/get-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by upbit fetchOrder
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Upbit_fetchOrder
+
+function __ccxt_doc_Upbit_fetchDepositAddresses() end
+"""
+fetch deposit addresses for multiple currencies and chain types
+see: https://docs.upbit.com/kr/reference/list-deposit-addresses
+see: https://global-docs.upbit.com/reference/list-deposit-addresses
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Upbit_fetchDepositAddresses
+
+function __ccxt_doc_Upbit_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://docs.upbit.com/kr/reference/get-deposit-address
+see: https://global-docs.upbit.com/reference/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.network`::string: deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Upbit_fetchDepositAddress
+
+function __ccxt_doc_Upbit_createDepositAddress() end
+"""
+create a currency deposit address
+see: https://docs.upbit.com/kr/reference/create-deposit-address
+see: https://global-docs.upbit.com/reference/create-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Upbit_createDepositAddress
+
+function __ccxt_doc_Upbit_withdraw() end
+"""
+make a withdrawal
+see: https://docs.upbit.com/kr/reference/withdraw
+see: https://global-docs.upbit.com/reference/withdraw
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Upbit_withdraw

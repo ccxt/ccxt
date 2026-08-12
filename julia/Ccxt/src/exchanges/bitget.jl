@@ -3819,17 +3819,23 @@ function describe(self::Bitget, )
 ))
 
 end
+"""
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+"""
 function setSandboxMode(self::Bitget, enabled)
     self.options[Symbol("sandboxMode")] = enabled;
 
 end
+"""
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+"""
 function enableDemoTrading(self::Bitget, enabled)
     self.setSandboxMode(enabled);
 
 end
-function handleProductTypeAndParams(self::Bitget, market=nothing, params=Dict())
+function handleProductTypeAndParams(self::Bitget; market=nothing, params=Dict())
     subType = nothing;
-    (subType, params) = self.handleSubTypeAndParams("handleProductTypeAndParams", nothing, params);
+    (subType, params) = self.handleSubTypeAndParams("handleProductTypeAndParams", market = nothing, params = params);
     defaultProductType = nothing;
     if functions.ccxtruthy(@functions.ccxt_and((subType != nothing), (market == nothing)))
         defaultProductType = functions.ccxtruthy((subType == "linear")) ? "USDT-FUTURES" : "COIN-FUTURES";
@@ -3839,7 +3845,7 @@ function handleProductTypeAndParams(self::Bitget, market=nothing, params=Dict())
         settle = get(market, Symbol("settle"), nothing);
         if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
             marginMode = nothing;
-            (marginMode, params) = self.handleMarginModeAndParams("handleProductTypeAndParams", params);
+            (marginMode, params) = self.handleMarginModeAndParams("handleProductTypeAndParams", params = params);
             if functions.ccxtruthy(marginMode != nothing)
                 productType = "MARGIN";
             else
@@ -3872,13 +3878,13 @@ function handleProductTypeAndParams(self::Bitget, market=nothing, params=Dict())
     return [productType, params]
 
 end
-function handleUTAAndParams(self::Bitget, params, methodName, defaultValue=false)
+function handleUTAAndParams(self::Bitget, params, methodName; defaultValue=false)
     uta = nothing;
     (uta, params) = self.handleOptionAndParams(params, methodName, "uta");
     if functions.ccxtruthy(uta != nothing)
             return [uta, params]
     end
-    if functions.ccxtruthy(self.checkRequiredCredentials(false))
+    if functions.ccxtruthy(self.checkRequiredCredentials(error = false))
         accountIsUTa = false;
         try
             Base.fetch(self.privateUtaGetV3AccountSettings(params));
@@ -3893,18 +3899,42 @@ function handleUTAAndParams(self::Bitget, params, methodName, defaultValue=false
     return [defaultValue, params]
 
 end
-function fetchTime(self::Bitget, params=Dict())
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.bitget.com/api-doc/common/public/Get-Server-Time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+function fetchTime(self::Bitget; params=Dict())
     response = Base.fetch(self.publicCommonGetV2PublicTime(params));
     data = safeValue(response, "data", Dict{Symbol, Any}());
     return safeInteger(data, "serverTime")
 
 end
-function fetchMarkets(self::Bitget, params=Dict())
+"""
+retrieves data on all markets for bitget
+see: https://www.bitget.com/api-doc/spot/market/Get-Symbols
+see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+see: https://www.bitget.com/api-doc/margin/common/support-currencies
+see: https://www.bitget.com/api-doc/uta/public/Instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Bitget; params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
         Base.fetch(self.loadTimeDifference());
     end
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchMarkets", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchMarkets", defaultValue = false));
     if functions.ccxtruthy(uta)
             return Base.fetch(self.fetchUtaMarkets(params))
     end
@@ -3916,9 +3946,9 @@ function fetchDefaultMarkets(self::Bitget, params)
     fetchMarketsOptions = self.safeDict(self.options, "fetchMarkets");
     defaultMarkets = ["spot", "swap"];
     if functions.ccxtruthy(fetchMarketsOptions != nothing)
-        types = self.safeList(fetchMarketsOptions, "types", defaultMarkets);
+        types = self.safeList(fetchMarketsOptions, "types", defaultValue = defaultMarkets);
     else
-        types = self.safeList(self.options, "fetchMarkets", defaultMarkets);
+        types = self.safeList(self.options, "fetchMarkets", defaultValue = defaultMarkets);
     end
     promises = [];
     fetchMargins = false;
@@ -3951,22 +3981,22 @@ function fetchDefaultMarkets(self::Bitget, params)
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(results)))
         res = self.safeDict(results, i);
-        data = self.safeList(res, "data", []);
-        firstData = self.safeDict(data, 0, Dict{Symbol, Any}());
+        data = self.safeList(res, "data", defaultValue = []);
+        firstData = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
         isBorrowable = self.safeBool(firstData, "isBorrowable");
         if functions.ccxtruthy(@functions.ccxt_and(fetchMargins, isBorrowable != nothing))
             crossKeys = [];
             isolatedKeys = [];
             j = 0
             while functions.ccxtruthy(functions.ccxt_lt(j, length(data)))
-                entry = self.safeDict(data, j, Dict{Symbol, Any}());
+                entry = self.safeDict(data, j, defaultValue = Dict{Symbol, Any}());
                 entrySymbol = safeString(entry, "symbol");
-                entryBorrowable = self.safeBool(entry, "isBorrowable", true);
-                if functions.ccxtruthy(@functions.ccxt_and(entryBorrowable, self.safeBool(entry, "isCrossBorrowable", true)))
+                entryBorrowable = self.safeBool(entry, "isBorrowable", defaultValue = true);
+                if functions.ccxtruthy(@functions.ccxt_and(entryBorrowable, self.safeBool(entry, "isCrossBorrowable", defaultValue = true)))
                                         push!(crossKeys, entrySymbol);
                 end
-                isolatedBase = self.safeBool(entry, "isIsolatedBaseBorrowable", true);
-                isolatedQuote = self.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
+                isolatedBase = self.safeBool(entry, "isIsolatedBaseBorrowable", defaultValue = true);
+                isolatedQuote = self.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", defaultValue = true);
                 if functions.ccxtruthy(@functions.ccxt_and(entryBorrowable, (@functions.ccxt_or(isolatedBase, isolatedQuote))))
                                         push!(isolatedKeys, entrySymbol);
                 end
@@ -4017,8 +4047,8 @@ function fetchDefaultMarkets(self::Bitget, params)
         if functions.ccxtruthy(symbolType == nothing)
             type_var = "spot";
             spot = true;
-            pricePrecision = self.parseNumber(self.parsePrecision(safeString(market, "pricePrecision")));
-            amountPrecision = self.parseNumber(self.parsePrecision(safeString(market, "quantityPrecision")));
+            pricePrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "pricePrecision")));
+            amountPrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "quantityPrecision")));
             hasCrossMargin = inArray(marketId, get(self.options, Symbol("crossMarginPairsData"), nothing));
             hasIsolatedMargin = inArray(marketId, get(self.options, Symbol("isolatedMarginPairsData"), nothing));
             marginModes = Dict{Symbol, Any}(
@@ -4077,7 +4107,7 @@ function fetchDefaultMarkets(self::Bitget, params)
             minCost = self.safeNumber(market, "minTradeUSDT");
         end
         contractSize = functions.ccxtruthy(contract) ? 1 : nothing;
-        push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -4150,7 +4180,7 @@ function fetchUtaMarkets(self::Bitget, params)
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(results)))
         res = self.safeDict(results, i);
-        data = self.safeList(res, "data", []);
+        data = self.safeList(res, "data", defaultValue = []);
         markets = arrayConcat(markets, data);
         i += 1
     end
@@ -4237,15 +4267,15 @@ function fetchUtaMarkets(self::Bitget, params)
                 Symbol("isolated") => true
             );
         end
-        pricePrecision = self.parseNumber(self.parsePrecision(safeString(market, "pricePrecision")));
-        amountPrecision = self.parseNumber(self.parsePrecision(safeString(market, "quantityPrecision")));
+        pricePrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "pricePrecision")));
+        amountPrecision = self.parseNumber(self.parsePrecision(precision = safeString(market, "quantityPrecision")));
         status = safeString(market, "status");
         active = nothing;
         if functions.ccxtruthy(status != nothing)
             active = (@functions.ccxt_or((status == "online"), (status == "normal")));
         end
         contractSize = functions.ccxtruthy(contract) ? 1 : nothing;
-        push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -4302,18 +4332,28 @@ function fetchUtaMarkets(self::Bitget, params)
     return result
 
 end
-function fetchCurrencies(self::Bitget, params=Dict())
+"""
+fetches all available currencies on an exchange
+see: https://www.bitget.com/api-doc/spot/market/Get-Coin-List
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchCurrencies(self::Bitget; params=Dict())
     response = Base.fetch(self.publicSpotGetV2SpotPublicCoins(params));
     data = safeValue(response, "data", []);
     return self.parseCurrencies(data)
 
 end
 function parseCurrency(self::Bitget, rawCurrency)
-    fiatCurrencies = self.handleOption("fetchCurrencies", "fiatCurrencies", []);
+    fiatCurrencies = self.handleOption("fetchCurrencies", "fiatCurrencies", defaultValue = []);
     entry = rawCurrency;
     id = safeString(entry, "coin");
     code = self.safeCurrencyCode(id);
-    chains = self.safeList(entry, "chains", []);
+    chains = self.safeList(entry, "chains", defaultValue = []);
     networks = Dict{Symbol, Any}();
     withdraw = nothing;
     deposit = nothing;
@@ -4326,7 +4366,7 @@ function parseCurrency(self::Bitget, rawCurrency)
     while functions.ccxtruthy(functions.ccxt_lt(j, chainsLength))
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "chain");
-        network = self.networkIdToCode(networkId, code);
+        network = self.networkIdToCode(networkId = networkId, currencyCode = code);
         if functions.ccxtruthy(network == nothing)
             throw(ArgumentsRequired(string(self.id, " requires a network argument")));
         end
@@ -4353,7 +4393,7 @@ function parseCurrency(self::Bitget, rawCurrency)
             Symbol("withdraw") => withdrawable,
             Symbol("deposit") => rechargeable,
             Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
-            Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chain, "withdrawMinScale")))
+            Symbol("precision") => self.parseNumber(self.parsePrecision(precision = safeString(chain, "withdrawMinScale")))
         );
         j += 1
     end
@@ -4389,7 +4429,25 @@ function parseCurrency(self::Bitget, rawCurrency)
 ))
 
 end
-function fetchMarketLeverageTiers(self::Bitget, symbol, params=Dict())
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+see: https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever
+see: https://www.bitget.com/api-doc/margin/cross/account/Cross-Tier-Data
+see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Tier-Data
+see: https://www.bitget.com/api-doc/uta/public/Get-Position-Tier-Data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: for spot margin 'cross' or 'isolated', default is 'isolated'
+- `params.code`::string, optional: required for cross spot margin
+- `params.productType`::string, optional: *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+function fetchMarketLeverageTiers(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4399,9 +4457,9 @@ function fetchMarketLeverageTiers(self::Bitget, symbol, params=Dict())
     marginMode = nothing;
     productType = nothing;
     uta = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchMarketLeverageTiers", params, "isolated");
-    (productType, params) = self.handleProductTypeAndParams(market, params);
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchMarketLeverageTiers", false));
+    (marginMode, params) = self.handleMarginModeAndParams("fetchMarketLeverageTiers", params = params, defaultValue = "isolated");
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchMarketLeverageTiers", defaultValue = false));
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(productType == "SPOT")
             if functions.ccxtruthy(marginMode != nothing)
@@ -4434,10 +4492,10 @@ function fetchMarketLeverageTiers(self::Bitget, symbol, params=Dict())
 
     end
     result = safeValue(response, "data", []);
-    return self.parseMarketLeverageTiers(result, market)
+    return self.parseMarketLeverageTiers(result, market = market)
 
 end
-function parseMarketLeverageTiers(self::Bitget, info, market=nothing)
+function parseMarketLeverageTiers(self::Bitget, info; market=nothing)
     tiers = [];
     minNotional = 0;
     i = 0
@@ -4453,7 +4511,7 @@ function parseMarketLeverageTiers(self::Bitget, info, market=nothing)
         marketId = safeString(item, "symbol");
         push!(tiers, Dict{Symbol, Any}(
     Symbol("tier") => safeInteger2(item, "level", "tier"),
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("currency") => self.safeCurrencyCode(currencyId),
     Symbol("minNotional") => minNotional,
     Symbol("maxNotional") => maxNotional,
@@ -4467,14 +4525,30 @@ function parseMarketLeverageTiers(self::Bitget, info, market=nothing)
     return tiers
 
 end
-function fetchDeposits(self::Bitget, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all deposits made to an account
+see: https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in milliseconds
+- `params.idLessThan`::string, optional: return records with id less than the provided value
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Bitget; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", nothing, since, limit, params, "idLessThan", "idLessThan", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", symbol = nothing, since = since, limit = limit, params = params, cursorReceived = "idLessThan", cursorSent = "idLessThan", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     if functions.ccxtruthy(since == nothing)
         since = milliseconds() - 7776000000;
@@ -4493,12 +4567,27 @@ function fetchDeposits(self::Bitget, code=nothing, since=nothing, limit=nothing,
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.privateSpotGetV2SpotWalletDepositRecords(extend(request, params)));
-    rawTransactions = self.safeList(response, "data", []);
-    return self.parseTransactions(rawTransactions, nothing, since, limit)
+    rawTransactions = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(rawTransactions, currency = nothing, since = since, limit = limit)
 
 end
-function withdraw(self::Bitget, code, amount, address, tag=nothing, params=Dict())
-    self.checkAddress(address);
+"""
+make a withdrawal
+see: https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.chain`::string, optional: the blockchain network the withdrawal is taking place on
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Bitget, code, amount, address; tag=nothing, params=Dict())
+    self.checkAddress(address = address);
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
     if functions.ccxtruthy(networkCode == nothing)
@@ -4508,12 +4597,12 @@ function withdraw(self::Bitget, code, amount, address, tag=nothing, params=Dict(
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
-    networkId = self.networkCodeToId(networkCode, code);
+    networkId = self.networkCodeToId(networkCode, currencyCode = code);
     request = Dict{Symbol, Any}(
         Symbol("coin") => get(currency, Symbol("id"), nothing),
         Symbol("address") => address,
         Symbol("chain") => networkId,
-        Symbol("size") => self.currencyToPrecision(code, amount, networkCode),
+        Symbol("size") => self.currencyToPrecision(code, amount, networkCode = networkCode),
         Symbol("transferType") => "on_chain"
     );
     if functions.ccxtruthy(tag != nothing)
@@ -4521,10 +4610,10 @@ function withdraw(self::Bitget, code, amount, address, tag=nothing, params=Dict(
     end
     response = Base.fetch(self.privateSpotPostV2SpotWalletWithdrawal(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    result = self.parseTransaction(data, currency);
+    result = self.parseTransaction(data, currency = currency);
     result[Symbol("type")] = "withdrawal";
     withdrawOptions = safeValue(self.options, "withdraw", Dict{Symbol, Any}());
-    fillResponseFromRequest = self.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+    fillResponseFromRequest = self.safeBool(withdrawOptions, "fillResponseFromRequest", defaultValue = true);
     if functions.ccxtruthy(fillResponseFromRequest)
         result[Symbol("currency")] = code;
         result[Symbol("amount")] = amount;
@@ -4536,14 +4625,30 @@ function withdraw(self::Bitget, code, amount, address, tag=nothing, params=Dict(
     return result
 
 end
-function fetchWithdrawals(self::Bitget, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all withdrawals made from an account
+see: https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in milliseconds
+- `params.idLessThan`::string, optional: return records with id less than the provided value
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Bitget; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", nothing, since, limit, params, "idLessThan", "idLessThan", nothing, 100))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", symbol = nothing, since = since, limit = limit, params = params, cursorReceived = "idLessThan", cursorSent = "idLessThan", cursorIncrement = nothing, maxEntriesPerRequest = 100))
     end
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -4564,13 +4669,13 @@ function fetchWithdrawals(self::Bitget, code=nothing, since=nothing, limit=nothi
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privateSpotGetV2SpotWalletWithdrawalRecords(extend(request, params)));
-    rawTransactions = self.safeList(response, "data", []);
-    return self.parseTransactions(rawTransactions, currency, since, limit)
+    rawTransactions = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(rawTransactions, currency = currency, since = since, limit = limit)
 
 end
-function parseTransaction(self::Bitget, transaction, currency=nothing)
+function parseTransaction(self::Bitget, transaction; currency=nothing)
     currencyId = safeString(transaction, "coin");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     timestamp = safeInteger(transaction, "cTime");
     networkId = safeString(transaction, "chain");
     status = safeString(transaction, "status");
@@ -4595,7 +4700,7 @@ function parseTransaction(self::Bitget, transaction, currency=nothing)
     Symbol("txid") => safeString(transaction, "tradeId"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("network") => self.networkIdToCode(networkId, code),
+    Symbol("network") => self.networkIdToCode(networkId = networkId, currencyCode = code),
     Symbol("addressFrom") => safeString(transaction, "fromAddress"),
     Symbol("address") => safeString(transaction, "toAddress"),
     Symbol("addressTo") => safeString(transaction, "toAddress"),
@@ -4624,7 +4729,18 @@ function parseTransactionStatus(self::Bitget, status)
     return safeString(statuses, status, status)
 
 end
-function fetchDepositAddress(self::Bitget, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bitget, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4635,20 +4751,20 @@ function fetchDepositAddress(self::Bitget, code, params=Dict())
         Symbol("coin") => get(currency, Symbol("id"), nothing)
     );
     if functions.ccxtruthy(networkCode != nothing)
-        request[Symbol("chain")] = self.networkCodeToId(networkCode, code);
+        request[Symbol("chain")] = self.networkCodeToId(networkCode, currencyCode = code);
     end
     response = Base.fetch(self.privateSpotGetV2SpotWalletDepositAddress(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseDepositAddress(data, currency)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseDepositAddress(data, currency = currency)
 
 end
-function parseDepositAddress(self::Bitget, depositAddress, currency=nothing)
+function parseDepositAddress(self::Bitget, depositAddress; currency=nothing)
     currencyId = safeString(depositAddress, "coin");
     networkId = safeString(depositAddress, "chain");
-    parsedCurrency = self.safeCurrencyCode(currencyId, currency);
+    parsedCurrency = self.safeCurrencyCode(currencyId, currency = currency);
     network = nothing;
     if functions.ccxtruthy(networkId != nothing)
-        network = self.networkIdToCode(networkId, parsedCurrency);
+        network = self.networkIdToCode(networkId = networkId, currencyCode = parsedCurrency);
     end
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
@@ -4659,7 +4775,22 @@ function parseDepositAddress(self::Bitget, depositAddress, currency=nothing)
 )
 
 end
-function fetchOrderBook(self::Bitget, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.bitget.com/api-doc/spot/market/Get-Orderbook
+see: https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
+see: https://www.bitget.com/api-doc/uta/public/OrderBook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bitget, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4671,10 +4802,10 @@ function fetchOrderBook(self::Bitget, symbol, limit=nothing, params=Dict())
         request[Symbol("limit")] = limit;
     end
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     response = nothing;
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchOrderBook", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchOrderBook", defaultValue = false));
     if functions.ccxtruthy(uta)
         request[Symbol("category")] = productType;
         response = Base.fetch(self.publicUtaGetV3MarketOrderbook(extend(request, params)));
@@ -4688,10 +4819,10 @@ function fetchOrderBook(self::Bitget, symbol, limit=nothing, params=Dict())
     bidsKey = functions.ccxtruthy(uta) ? "b" : "bids";
     asksKey = functions.ccxtruthy(uta) ? "a" : "asks";
     timestamp = safeInteger(data, "ts");
-    return self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp, bidsKey, asksKey)
+    return self.parseOrderBook(data, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = bidsKey, asksKey = asksKey)
 
 end
-function parseTicker(self::Bitget, ticker, market=nothing)
+function parseTicker(self::Bitget, ticker; market=nothing)
     marketId = safeString(ticker, "symbol");
     close = safeString2(ticker, "lastPr", "lastPrice");
     timestamp = self.safeIntegerOmitZero(ticker, "ts");
@@ -4708,7 +4839,7 @@ function parseTicker(self::Bitget, ticker, market=nothing)
         percentage = stringMul(change24h, "100");
     end
     return self.safeTicker(Dict{Symbol, Any}(
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, marketType),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = marketType),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("high") => safeString2(ticker, "high24h", "highPrice24h"),
@@ -4730,10 +4861,24 @@ function parseTicker(self::Bitget, ticker, market=nothing)
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("markPrice") => markPrice,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bitget, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.bitget.com/api-doc/spot/market/Get-Tickers
+see: https://www.bitget.com/api-doc/contract/market/Get-Ticker
+see: https://www.bitget.com/api-doc/uta/public/Tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4742,10 +4887,10 @@ function fetchTicker(self::Bitget, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     response = nothing;
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchTicker", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchTicker", defaultValue = false));
     if functions.ccxtruthy(uta)
         request[Symbol("category")] = productType;
         response = Base.fetch(self.publicUtaGetV3MarketTickers(extend(request, params)));
@@ -4755,11 +4900,22 @@ function fetchTicker(self::Bitget, symbol, params=Dict())
         request[Symbol("productType")] = productType;
         response = Base.fetch(self.publicMixGetV2MixMarketTicker(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTicker(get(data, 1, nothing), market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTicker(get(data, 1, nothing), market = market)
 
 end
-function fetchMarkPrice(self::Bitget, symbol, params=Dict())
+"""
+fetches the mark price for a specific market
+see: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchMarkPrice(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4772,15 +4928,31 @@ function fetchMarkPrice(self::Bitget, symbol, params=Dict())
         throw(NotSupported(string(self.id, " fetchMarkPrice() is not supported for spot markets")));
     else
         productType = nothing;
-        (productType, params) = self.handleProductTypeAndParams(market, params);
+        (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
         request[Symbol("productType")] = productType;
         response = Base.fetch(self.publicMixGetV2MixMarketSymbolPrice(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTicker(get(data, 1, nothing), market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTicker(get(data, 1, nothing), market = market)
 
 end
-function fetchTickers(self::Bitget, symbols=nothing, params=Dict())
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.bitget.com/api-doc/spot/market/Get-Tickers
+see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+see: https://www.bitget.com/api-doc/uta/public/Tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.subType`::string, optional: *contract only* 'linear', 'inverse'
+- `params.productType`::string, optional: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTickers(self::Bitget; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4792,12 +4964,12 @@ function fetchTickers(self::Bitget, symbols=nothing, params=Dict())
     response = nothing;
     request = Dict{Symbol, Any}();
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTickers", market = market, params = params);
     passedSubType = safeString(params, "subType");
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchTickers", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchTickers", defaultValue = false));
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(symbols != nothing)
             symbolsLength = length(symbols);
@@ -4813,13 +4985,13 @@ function fetchTickers(self::Bitget, symbols=nothing, params=Dict())
         request[Symbol("productType")] = productType;
         response = Base.fetch(self.publicMixGetV2MixMarketTickers(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTickers(data, symbols)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTickers(data, symbols = symbols)
 
 end
-function parseTrade(self::Bitget, trade, market=nothing)
+function parseTrade(self::Bitget, trade; market=nothing)
     marketId = safeString(trade, "symbol");
-    symbol = self.safeSymbol(marketId, market);
+    symbol = self.safeSymbol(marketId, market = market);
     timestamp = safeIntegerN(trade, ["cTime", "ts", "createdTime"]);
     fee = nothing;
     feeDetail = safeValue(trade, "feeDetail");
@@ -4854,24 +5026,44 @@ function parseTrade(self::Bitget, trade, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Bitget, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.bitget.com/api-doc/spot/market/Get-Recent-Trades
+see: https://www.bitget.com/api-doc/spot/market/Get-Market-Trades
+see: https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
+see: https://www.bitget.com/api-doc/contract/market/Get-Fills-History
+see: https://www.bitget.com/api-doc/uta/public/Fills
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.until`::int, optional: *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bitget, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "idLessThan", "idLessThan"))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchTrades", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "idLessThan", cursorSent = "idLessThan"))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchTrades", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchTrades", defaultValue = false));
     if functions.ccxtruthy(limit != nothing)
         if functions.ccxtruthy(uta)
             request[Symbol("limit")] = min(limit, 100);
@@ -4884,11 +5076,11 @@ function fetchTrades(self::Bitget, symbol, since=nothing, limit=nothing, params=
     options = safeValue(self.options, "fetchTrades", Dict{Symbol, Any}());
     response = nothing;
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(productType == "SPOT")
             marginMode = nothing;
-            (marginMode, params) = self.handleMarginModeAndParams("fetchTrades", params);
+            (marginMode, params) = self.handleMarginModeAndParams("fetchTrades", params = params);
             if functions.ccxtruthy(marginMode != nothing)
                 productType = "MARGIN";
             end
@@ -4925,11 +5117,23 @@ function fetchTrades(self::Bitget, symbol, since=nothing, limit=nothing, params=
             response = Base.fetch(self.publicMixGetV2MixMarketFills(extend(request, params)));
         end
     end
-    data = self.safeList(response, "data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFee(self::Bitget, symbol, params=Dict())
+"""
+fetch the trading fees for a market
+see: https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchTradingFee(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -4938,7 +5142,7 @@ function fetchTradingFee(self::Bitget, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchTradingFee", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchTradingFee", params = params);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         if functions.ccxtruthy(marginMode != nothing)
             request[Symbol("businessType")] = "margin";
@@ -4950,20 +5154,34 @@ function fetchTradingFee(self::Bitget, symbol, params=Dict())
     end
     response = Base.fetch(self.privateCommonGetV2CommonTradeRate(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    return self.parseTradingFee(data, market)
+    return self.parseTradingFee(data, market = market)
 
 end
-function fetchTradingFees(self::Bitget, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://www.bitget.com/api-doc/spot/market/Get-Symbols
+see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+see: https://www.bitget.com/api-doc/margin/common/support-currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.productType`::string, optional: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.margin`::bool, optional: set to true for spot margin
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Bitget; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = nothing;
     marginMode = nothing;
     marketType = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchTradingFees", params);
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTradingFees", nothing, params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchTradingFees", params = params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchTradingFees", market = nothing, params = params);
     if functions.ccxtruthy(marketType == "spot")
-        margin = self.safeBool(params, "margin", false);
+        margin = self.safeBool(params, "margin", defaultValue = false);
         params = omit(params, "margin");
         if functions.ccxtruthy(@functions.ccxt_or((marginMode != nothing), margin))
             response = Base.fetch(self.publicMarginGetV2MarginCurrencies(params));
@@ -4972,7 +5190,7 @@ function fetchTradingFees(self::Bitget, params=Dict())
         end
     elseif functions.ccxtruthy(@functions.ccxt_or((marketType == "swap"), (marketType == "future")))
         productType = nothing;
-        (productType, params) = self.handleProductTypeAndParams(nothing, params);
+        (productType, params) = self.handleProductTypeAndParams(market = nothing, params = params);
         params[Symbol("productType")] = productType;
         response = Base.fetch(self.publicMixGetV2MixMarketContracts(params));
     else
@@ -4984,20 +5202,20 @@ function fetchTradingFees(self::Bitget, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
         marketId = safeString(entry, "symbol");
-        symbol = self.safeSymbol(marketId, nothing, nothing, marketType);
+        symbol = self.safeSymbol(marketId, market = nothing, delimiter = nothing, marketType = marketType);
         market = self.market(symbol);
-        fee = self.parseTradingFee(entry, market);
+        fee = self.parseTradingFee(entry, market = market);
         result[Symbol(symbol)] = fee;
         i += 1
     end
     return result
 
 end
-function parseTradingFee(self::Bitget, data, market=nothing)
+function parseTradingFee(self::Bitget, data; market=nothing)
     marketId = safeString(data, "symbol");
     return Dict{Symbol, Any}(
     Symbol("info") => data,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("maker") => self.safeNumber(data, "makerFeeRate"),
     Symbol("taker") => self.safeNumber(data, "takerFeeRate"),
     Symbol("percentage") => nothing,
@@ -5005,26 +5223,52 @@ function parseTradingFee(self::Bitget, data, market=nothing)
 )
 
 end
-function parseOHLCV(self::Bitget, ohlcv, market=nothing)
+function parseOHLCV(self::Bitget, ohlcv; market=nothing)
     inverse = self.safeBool(market, "inverse");
     volumeIndex = functions.ccxtruthy(inverse) ? 6 : 5;
     return [safeInteger(ohlcv, 0), self.safeNumber(ohlcv, 1), self.safeNumber(ohlcv, 2), self.safeNumber(ohlcv, 3), self.safeNumber(ohlcv, 4), self.safeNumber(ohlcv, volumeIndex)]
 
 end
-function fetchOHLCV(self::Bitget, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.bitget.com/api-doc/spot/market/Get-Candle-Data
+see: https://www.bitget.com/api-doc/spot/market/Get-History-Candle-Data
+see: https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
+see: https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
+see: https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
+see: https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
+see: https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.useHistoryEndpoint`::bool, optional: whether to force to use historical endpoint (it has max limit of 200)
+- `params.useHistoryEndpointForPagination`::bool, optional: whether to force to use historical endpoint for pagination (default true)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.price`::string, optional: *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+function fetchOHLCV(self::Bitget, symbol; timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     defaultLimit = 100;
     maxLimitForRecentEndpoint = 1000;
     maxLimitForHistoryEndpoint = 200;
-    useHistoryEndpoint = self.safeBool(params, "useHistoryEndpoint", false);
-    useHistoryEndpointForPagination = self.safeBool(params, "useHistoryEndpointForPagination", true);
+    useHistoryEndpoint = self.safeBool(params, "useHistoryEndpoint", defaultValue = false);
+    useHistoryEndpointForPagination = self.safeBool(params, "useHistoryEndpointForPagination", defaultValue = true);
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
         limitForPagination = functions.ccxtruthy(useHistoryEndpointForPagination) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
-            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, limitForPagination))
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol = symbol, since = since, limit = limit, timeframe = timeframe, params = params, maxEntriesPerRequest = limitForPagination))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -5034,7 +5278,7 @@ function fetchOHLCV(self::Bitget, symbol, timeframe="1m", since=nothing, limit=n
     timeframes = nothing;
     timeframesOption = self.handleOption("fetchOHLCV", "timeframes");
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchOHLCV", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchOHLCV", defaultValue = false));
     if functions.ccxtruthy(uta)
         timeframes = get(timeframesOption, Symbol("uta"), nothing);
         request[Symbol("interval")] = safeString(timeframes, timeframe, timeframe);
@@ -5052,10 +5296,10 @@ function fetchOHLCV(self::Bitget, symbol, timeframe="1m", since=nothing, limit=n
     untilDefined = until != nothing;
     params = omit(params, ["until"]);
     key = functions.ccxtruthy(get(market, Symbol("spot"), nothing)) ? "spot" : "swap";
-    ohlcOptions = self.safeDict(get(self.options, Symbol("fetchOHLCV"), nothing), key, Dict{Symbol, Any}());
-    maxLimitPerTimeframe = self.safeDict(ohlcOptions, "maxLimitPerTimeframe", Dict{Symbol, Any}());
+    ohlcOptions = self.safeDict(get(self.options, Symbol("fetchOHLCV"), nothing), key, defaultValue = Dict{Symbol, Any}());
+    maxLimitPerTimeframe = self.safeDict(ohlcOptions, "maxLimitPerTimeframe", defaultValue = Dict{Symbol, Any}());
     maxLimitForThisTimeframe = safeInteger(maxLimitPerTimeframe, timeframe, limit);
-    recentEndpointDaysMap = self.safeDict(get(self.options, Symbol("fetchOHLCV"), nothing), "maxRecentDaysPerTimeframe", Dict{Symbol, Any}());
+    recentEndpointDaysMap = self.safeDict(get(self.options, Symbol("fetchOHLCV"), nothing), "maxRecentDaysPerTimeframe", defaultValue = Dict{Symbol, Any}());
     recentEndpointAvailableDays = safeInteger(recentEndpointDaysMap, timeframe);
     recentEndpointBoundaryTs = now - (recentEndpointAvailableDays - 1) * msInDay;
     if functions.ccxtruthy(limitDefined)
@@ -5108,7 +5352,7 @@ function fetchOHLCV(self::Bitget, symbol, timeframe="1m", since=nothing, limit=n
     productType = nothing;
     priceType = nothing;
     (priceType, params) = self.handleParamString(params, "price");
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(priceType != nothing)
             if functions.ccxtruthy(priceType == "mark")
@@ -5166,12 +5410,32 @@ function fetchOHLCV(self::Bitget, symbol, timeframe="1m", since=nothing, limit=n
     if functions.ccxtruthy(functions.ccxt_isArray(response))
         candles = response;
     else
-        candles = self.safeList(response, "data", []);
+        candles = self.safeList(response, "data", defaultValue = []);
     end
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    return self.parseOHLCVs(candles, market = market, timeframe = timeframe, since = since, limit = limit)
 
 end
-function fetchBalance(self::Bitget, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
+see: https://www.bitget.com/api-doc/contract/account/Get-Account-List
+see: https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
+see: https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
+see: https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
+see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
+see: https://www.bitget.com/api-doc/uta/account/Get-Account
+see: https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.productType`::string, optional: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.uta`::string, optional: set to true for the unified trading account (uta), defaults to false
+- `params.type`::string, optional: 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bitget; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5180,23 +5444,23 @@ function fetchBalance(self::Bitget, params=Dict())
     marginMode = nothing;
     response = nothing;
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchBalance", false));
-    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params);
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchBalance", defaultValue = false));
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", market = nothing, params = params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params = params);
     if functions.ccxtruthy(uta)
         assets = nothing;
         if functions.ccxtruthy(marketType == "funding")
             response = Base.fetch(self.privateUtaGetV3AccountFundingAssets(extend(request, params)));
-            assets = self.safeList(response, "data", []);
+            assets = self.safeList(response, "data", defaultValue = []);
         else
             response = Base.fetch(self.privateUtaGetV3AccountAssets(extend(request, params)));
-            results = self.safeDict(response, "data", Dict{Symbol, Any}());
-            assets = self.safeList(results, "assets", []);
+            results = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+            assets = self.safeList(results, "assets", defaultValue = []);
         end
             return self.parseUtaBalance(assets)
     elseif functions.ccxtruthy(@functions.ccxt_or((marketType == "swap"), (marketType == "future")))
         productType = nothing;
-        (productType, params) = self.handleProductTypeAndParams(nothing, params);
+        (productType, params) = self.handleProductTypeAndParams(market = nothing, params = params);
         request[Symbol("productType")] = productType;
         response = Base.fetch(self.privateMixGetV2MixAccountAccounts(extend(request, params)));
     else
@@ -5299,7 +5563,7 @@ function parseOrderStatus(self::Bitget, status)
     return safeString(statuses, status, status)
 
 end
-function parseOrder(self::Bitget, order, market=nothing)
+function parseOrder(self::Bitget, order; market=nothing)
     errorMessage = safeString(order, "errorMsg");
     if functions.ccxtruthy(errorMessage != nothing)
             return self.safeOrder(Dict{Symbol, Any}(
@@ -5307,7 +5571,7 @@ function parseOrder(self::Bitget, order, market=nothing)
     Symbol("id") => safeString(order, "orderId"),
     Symbol("clientOrderId") => safeString2(order, "clientOrderId", "clientOid"),
     Symbol("status") => "rejected"
-), market)
+), market = market)
     end
     posSide = safeString(order, "posSide");
     isContractOrder = (posSide != nothing);
@@ -5316,7 +5580,7 @@ function parseOrder(self::Bitget, order, market=nothing)
         marketType = get(market, Symbol("type"), nothing);
     end
     marketId = safeString(order, "symbol");
-    market = self.safeMarket(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = marketType);
     timestamp = safeIntegerN(order, ["cTime", "ctime", "createdTime"]);
     updateTimestamp = safeInteger2(order, "uTime", "updatedTime");
     rawStatus = safeStringN(order, ["status", "state", "orderStatus", "planStatus"]);
@@ -5331,7 +5595,7 @@ function parseOrder(self::Bitget, order, market=nothing)
     feeDetail = safeValue(order, "feeDetail");
     uta = safeString(order, "category") != nothing;
     if functions.ccxtruthy(uta)
-        feeResult = self.safeDict(feeDetail, 0, Dict{Symbol, Any}());
+        feeResult = self.safeDict(feeDetail, 0, defaultValue = Dict{Symbol, Any}());
         utaFee = safeString(feeResult, "fee");
         fee = Dict{Symbol, Any}(
             Symbol("cost") => self.parseNumber(stringNeg(utaFee)),
@@ -5425,10 +5689,24 @@ function parseOrder(self::Bitget, order, market=nothing)
     Symbol("status") => self.parseOrderStatus(rawStatus),
     Symbol("fee") => fee,
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
-function createMarketBuyOrderWithCost(self::Bitget, symbol, cost, params=Dict())
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.bitget.com/api-doc/spot/trade/Place-Order
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createMarketBuyOrderWithCost(self::Bitget, symbol, cost; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5439,15 +5717,62 @@ function createMarketBuyOrderWithCost(self::Bitget, symbol, cost, params=Dict())
     req = Dict{Symbol, Any}(
         Symbol("createMarketBuyOrderRequiresPrice") => false
     );
-    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, extend(req, params)))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, price = nothing, params = extend(req, params)))
 
 end
-function createOrder(self::Bitget, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://www.bitget.com/api-doc/spot/trade/Place-Order
+see: https://www.bitget.com/api-doc/spot/plan/Place-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Place-Order
+see: https://www.bitget.com/api-doc/contract/plan/Place-Tpsl-Order
+see: https://www.bitget.com/api-doc/contract/plan/Place-Plan-Order
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
+see: https://www.bitget.com/api-doc/uta/trade/Place-Order
+see: https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *spot only* how much you want to trade in units of the quote currency, for market buy orders only
+- `params.triggerPrice`::float, optional: *swap only* The price at which a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: *swap only* The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: *swap only* The price at which a take profit order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: *swap only* take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: *swap only* stop loss trigger price
+- `params.timeInForce`::string, optional: "GTC", "IOC", "FOK", or "PO"
+- `params.marginMode`::string, optional: 'isolated' or 'cross' for spot margin trading
+- `params.loanType`::string, optional: *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
+- `params.holdSide`::string, optional: *contract stopLossPrice, takeProfitPrice only* Two-way position: ('long' or 'short'), one-way position: ('buy' or 'sell')
+- `params.stopLoss.price`::float, optional: *swap only* the execution price for a stop loss attached to a trigger order
+- `params.takeProfit.price`::float, optional: *swap only* the execution price for a take profit attached to a trigger order
+- `params.stopLoss.type`::string, optional: *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+- `params.takeProfit.type`::string, optional: *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+- `params.trailingPercent`::string, optional: *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
+- `params.trailingTriggerPrice`::string, optional: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+- `params.triggerType`::string, optional: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+- `params.oneWayMode`::bool, optional: *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+- `params.hedged`::bool, optional: *swap and future only* true for hedged mode, false for one way mode, default is false
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.posSide`::string, optional: *uta only* hedged two-way position side, long or short
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bitget, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    marginParams = self.handleMarginModeAndParams("createOrder", params);
+    marginParams = self.handleMarginModeAndParams("createOrder", params = params);
     marginMode = get(marginParams, 1, nothing);
     triggerPrice = safeValue2(params, "stopPrice", "triggerPrice");
     stopLossTriggerPrice = safeValue(params, "stopLossPrice");
@@ -5460,16 +5785,16 @@ function createOrder(self::Bitget, symbol, type_var, side, amount, price=nothing
     isStopLossOrTakeProfitTrigger = @functions.ccxt_or(isStopLossTriggerOrder, isTakeProfitTriggerOrder);
     response = nothing;
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "createOrder", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "createOrder", defaultValue = false));
     if functions.ccxtruthy(uta)
-        request = self.createUtaOrderRequest(symbol, type_var, side, amount, price, params);
+        request = self.createUtaOrderRequest(symbol, type_var, side, amount, price = price, params = params);
         if functions.ccxtruthy(isStopLossOrTakeProfitTrigger)
             response = Base.fetch(self.privateUtaPostV3TradePlaceStrategyOrder(request));
         else
             response = Base.fetch(self.privateUtaPostV3TradePlaceOrder(request));
         end
     else
-        request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
+        request = self.createOrderRequest(symbol, type_var, side, amount, price = price, params = params);
         if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
             if functions.ccxtruthy(isTriggerOrder)
                 response = Base.fetch(self.privateSpotPostV2SpotTradePlacePlanOrder(request));
@@ -5493,11 +5818,11 @@ function createOrder(self::Bitget, symbol, type_var, side, amount, price=nothing
             end
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function createUtaOrderRequest(self::Bitget, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createUtaOrderRequest(self::Bitget, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -5506,10 +5831,10 @@ function createUtaOrderRequest(self::Bitget, symbol, type_var, side, amount, pri
     end
     market = self.market(symbol);
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     if functions.ccxtruthy(productType == "SPOT")
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
+        (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
         if functions.ccxtruthy(marginMode != nothing)
             productType = "MARGIN";
         end
@@ -5587,7 +5912,7 @@ function createUtaOrderRequest(self::Bitget, symbol, type_var, side, amount, pri
         request[Symbol("orderType")] = type_var;
         exchangeSpecificTifParam = safeString(params, "timeInForce");
         postOnly = nothing;
-        (postOnly, params) = self.handlePostOnly(isMarketOrder, exchangeSpecificTifParam == "post_only", params);
+        (postOnly, params) = self.handlePostOnly(isMarketOrder, exchangeSpecificTifParam == "post_only", params = params);
         timeInForce = nothing;
         (timeInForce, params) = self.handleOptionAndParams(params, "createOrder", "timeInForce");
         if functions.ccxtruthy(timeInForce != nothing)
@@ -5606,9 +5931,9 @@ function createUtaOrderRequest(self::Bitget, symbol, type_var, side, amount, pri
 
         end
     end
-    reduceOnly = self.safeBool(params, "reduceOnly", false);
+    reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
     hedged = nothing;
-    (hedged, params) = self.handleParamBool(params, "hedged", false);
+    (hedged, params) = self.handleParamBool(params, "hedged", defaultValue = false);
     if functions.ccxtruthy(reduceOnly)
         if functions.ccxtruthy(@functions.ccxt_or(hedged, isStopLossOrTakeProfitTrigger))
             reduceOnlyPosSide = functions.ccxtruthy((side == "sell")) ? "long" : "short";
@@ -5626,7 +5951,7 @@ function createUtaOrderRequest(self::Bitget, symbol, type_var, side, amount, pri
     return extend(request, params)
 
 end
-function createOrderRequest(self::Bitget, symbol, type_var, side, amount, price=nothing, params=Dict())
+function createOrderRequest(self::Bitget, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(type_var == nothing)
         throw(ArgumentsRequired(string(self.id, " requires a type argument")));
     end
@@ -5636,14 +5961,14 @@ function createOrderRequest(self::Bitget, symbol, type_var, side, amount, price=
     market = self.market(symbol);
     marketType = nothing;
     marginMode = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("createOrder", market, params);
-    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params);
+    (marketType, params) = self.handleMarketTypeAndParams("createOrder", market = market, params = params);
+    (marginMode, params) = self.handleMarginModeAndParams("createOrder", params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("orderType") => type_var
     );
     hedged = nothing;
-    (hedged, params) = self.handleParamBool(params, "hedged", false);
+    (hedged, params) = self.handleParamBool(params, "hedged", defaultValue = false);
     oneWayMode = nothing;
     (oneWayMode, params) = self.handleParamBool(params, "oneWayMode");
     if functions.ccxtruthy(oneWayMode != nothing)
@@ -5672,11 +5997,11 @@ function createOrderRequest(self::Bitget, symbol, type_var, side, amount, price=
         request[Symbol("price")] = self.priceToPrecision(symbol, price);
     end
     triggerPriceType = safeString2(params, "triggerPriceType", "triggerType", "mark_price");
-    reduceOnly = self.safeBool(params, "reduceOnly", false);
+    reduceOnly = self.safeBool(params, "reduceOnly", defaultValue = false);
     clientOrderId = safeString2(params, "clientOid", "clientOrderId");
     exchangeSpecificTifParam = safeString2(params, "force", "timeInForce");
     postOnly = nothing;
-    (postOnly, params) = self.handlePostOnly(isMarketOrder, exchangeSpecificTifParam == "post_only", params);
+    (postOnly, params) = self.handlePostOnly(isMarketOrder, exchangeSpecificTifParam == "post_only", params = params);
     timeInForce = nothing;
     (timeInForce, params) = self.handleOptionAndParams(params, "createOrder", "timeInForce");
     if functions.ccxtruthy(timeInForce != nothing)
@@ -5699,7 +6024,7 @@ function createOrderRequest(self::Bitget, symbol, type_var, side, amount, price=
         request[Symbol("marginCoin")] = get(market, Symbol("settleId"), nothing);
         request[Symbol("size")] = self.amountToPrecision(symbol, amount);
         productType = nothing;
-        (productType, params) = self.handleProductTypeAndParams(market, params);
+        (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
         request[Symbol("productType")] = productType;
         if functions.ccxtruthy(clientOrderId != nothing)
             request[Symbol("clientOid")] = clientOrderId;
@@ -5814,7 +6139,7 @@ function createOrderRequest(self::Bitget, symbol, type_var, side, amount, price=
         quantity = nothing;
         planType = nothing;
         createMarketBuyOrderRequiresPrice = true;
-        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+        (createMarketBuyOrderRequiresPrice, params) = self.handleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", defaultValue = true);
         if functions.ccxtruthy(@functions.ccxt_and(isMarketOrder, (side == "buy")))
             planType = "total";
             cost = self.safeNumber(params, "cost");
@@ -5866,7 +6191,7 @@ function createOrderRequest(self::Bitget, symbol, type_var, side, amount, price=
     return extend(request, params)
 
 end
-function createUtaOrders(self::Bitget, orders, params=Dict())
+function createUtaOrders(self::Bitget, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -5889,7 +6214,7 @@ function createUtaOrders(self::Bitget, orders, params=Dict())
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
         orderParams = safeValue(rawOrder, "params", Dict{Symbol, Any}());
-        marginResult = self.handleMarginModeAndParams("createOrders", orderParams);
+        marginResult = self.handleMarginModeAndParams("createOrders", params = orderParams);
         currentMarginMode = get(marginResult, 1, nothing);
         if functions.ccxtruthy(currentMarginMode != nothing)
             if functions.ccxtruthy(marginMode == nothing)
@@ -5900,24 +6225,40 @@ function createUtaOrders(self::Bitget, orders, params=Dict())
                 end
             end
         end
-        orderRequest = self.createUtaOrderRequest(marketId, type_var, side, amount, price, orderParams);
+        orderRequest = self.createUtaOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
     market = self.market(symbol);
     response = Base.fetch(self.privateUtaPostV3TradePlaceBatch(ordersRequests));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market)
 
 end
-function createOrders(self::Bitget, orders, params=Dict())
+"""
+create a list of trade orders (all orders should be of the same symbol)
+see: https://www.bitget.com/api-doc/spot/trade/Batch-Place-Orders
+see: https://www.bitget.com/api-doc/contract/trade/Batch-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order
+see: https://www.bitget.com/api-doc/uta/trade/Place-Batch
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the api endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrders(self::Bitget, orders; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "createOrders", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "createOrders", defaultValue = false));
     if functions.ccxtruthy(uta)
-            return Base.fetch(self.createUtaOrders(orders, params))
+            return Base.fetch(self.createUtaOrders(orders, params = params))
     end
     ordersRequests = [];
     symbol = nothing;
@@ -5938,7 +6279,7 @@ function createOrders(self::Bitget, orders, params=Dict())
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
         orderParams = safeValue(rawOrder, "params", Dict{Symbol, Any}());
-        marginResult = self.handleMarginModeAndParams("createOrders", orderParams);
+        marginResult = self.handleMarginModeAndParams("createOrders", params = orderParams);
         currentMarginMode = get(marginResult, 1, nothing);
         if functions.ccxtruthy(currentMarginMode != nothing)
             if functions.ccxtruthy(marginMode == nothing)
@@ -5949,7 +6290,7 @@ function createOrders(self::Bitget, orders, params=Dict())
                 end
             end
         end
-        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price, orderParams);
+        orderRequest = self.createOrderRequest(marketId, type_var, side, amount, price = price, params = orderParams);
         push!(ordersRequests, orderRequest);
         i += 1
     end
@@ -5967,7 +6308,7 @@ function createOrders(self::Bitget, orders, params=Dict())
         request[Symbol("marginMode")] = marginModeRequest;
         request[Symbol("marginCoin")] = get(market, Symbol("settleId"), nothing);
         productType = nothing;
-        (productType, params) = self.handleProductTypeAndParams(market, params);
+        (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
         request[Symbol("productType")] = productType;
         response = Base.fetch(self.privateMixPostV2MixOrderBatchPlaceOrder(request));
     elseif functions.ccxtruthy(marginMode == "isolated")
@@ -5984,10 +6325,47 @@ function createOrders(self::Bitget, orders, params=Dict())
     failure = safeValue(data, "failureList", []);
     orderInfo = safeValue(data, "successList", []);
     both = arrayConcat(orderInfo, failure);
-    return self.parseOrders(both, market)
+    return self.parseOrders(both, market = market)
 
 end
-function editOrder(self::Bitget, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+"""
+edit a trade order
+see: https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+see: https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
+see: https://www.bitget.com/api-doc/contract/trade/Modify-Order
+see: https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
+see: https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
+see: https://www.bitget.com/api-doc/uta/trade/Modify-Order
+see: https://www.bitget.com/api-doc/uta/strategy/Modify-Strategy-Order
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price that a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: *swap only* The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: *swap only* The price at which a take profit order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: *swap only* take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: *swap only* stop loss trigger price
+- `params.stopLoss.price`::float, optional: *swap only* the execution price for a stop loss attached to a trigger order
+- `params.takeProfit.price`::float, optional: *swap only* the execution price for a take profit attached to a trigger order
+- `params.stopLoss.type`::string, optional: *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+- `params.takeProfit.type`::string, optional: *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+- `params.trailingPercent`::string, optional: *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
+- `params.trailingTriggerPrice`::string, optional: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+- `params.newTriggerType`::string, optional: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function editOrder(self::Bitget, id, symbol, type_var, side; amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6021,8 +6399,8 @@ function editOrder(self::Bitget, id, symbol, type_var, side, amount=nothing, pri
     response = nothing;
     productType = nothing;
     uta = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "editOrder", false));
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "editOrder", defaultValue = false));
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(amount != nothing)
             request[Symbol("qty")] = self.amountToPrecision(symbol, amount);
@@ -6060,7 +6438,7 @@ function editOrder(self::Bitget, id, symbol, type_var, side, amount=nothing, pri
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         cost = safeString(params, "cost");
         params = omit(params, "cost");
-        editMarketBuyOrderRequiresPrice = self.safeBool(self.options, "editMarketBuyOrderRequiresPrice", true);
+        editMarketBuyOrderRequiresPrice = self.safeBool(self.options, "editMarketBuyOrderRequiresPrice", defaultValue = true);
         if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((@functions.ccxt_or(editMarketBuyOrderRequiresPrice, (cost != nothing))), isMarketOrder), (side == "buy")))
             if functions.ccxtruthy(@functions.ccxt_and(price == nothing, cost == nothing))
                 throw(InvalidOrder(string(self.id, " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")));
@@ -6161,11 +6539,36 @@ function editOrder(self::Bitget, id, symbol, type_var, side, amount=nothing, pri
 
         end
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOrder(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(data, market = market)
 
 end
-function cancelOrder(self::Bitget, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.bitget.com/api-doc/spot/trade/Cancel-Order
+see: https://www.bitget.com/api-doc/spot/plan/Cancel-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Cancel-Order
+see: https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
+see: https://www.bitget.com/api-doc/uta/trade/Cancel-Order
+see: https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'isolated' or 'cross' for spot margin trading
+- `params.trigger`::bool, optional: set to true for canceling trigger orders
+- `params.planType`::string, optional: *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
+- `params.trailing`::bool, optional: set to true if you want to cancel a trailing order
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.clientOrderId`::string, optional: the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bitget, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
@@ -6175,7 +6578,7 @@ function cancelOrder(self::Bitget, id, symbol=nothing, params=Dict())
     market = self.market(symbol);
     marginMode = nothing;
     response = Dict{Symbol, Any}();
-    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params);
+    (marginMode, params) = self.handleMarginModeAndParams("cancelOrder", params = params);
     request = Dict{Symbol, Any}();
     trailing = safeValue(params, "trailing");
     trigger = safeValue2(params, "stop", "trigger");
@@ -6184,7 +6587,7 @@ function cancelOrder(self::Bitget, id, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "cancelOrder", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "cancelOrder", defaultValue = false));
     isPlanOrder = @functions.ccxt_or(trigger, trailing);
     isContract = @functions.ccxt_or(get(market, Symbol("swap"), nothing), get(market, Symbol("future"), nothing));
     isContractTriggerEndpoint = @functions.ccxt_and(@functions.ccxt_and(isContract, isPlanOrder), !functions.ccxtruthy(uta));
@@ -6216,7 +6619,7 @@ function cancelOrder(self::Bitget, id, symbol=nothing, params=Dict())
         end
     elseif functions.ccxtruthy(@functions.ccxt_or((get(market, Symbol("swap"), nothing)), (get(market, Symbol("future"), nothing))))
         productType = nothing;
-        (productType, params) = self.handleProductTypeAndParams(market, params);
+        (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
         request[Symbol("productType")] = productType;
         if functions.ccxtruthy(trailing)
             planType = safeString(params, "planType", "track_plan");
@@ -6251,7 +6654,7 @@ function cancelOrder(self::Bitget, id, symbol=nothing, params=Dict())
     order = Dict{Symbol, Any}();
     if functions.ccxtruthy(isContractTriggerEndpoint)
         orderInfo = safeValue(data, "successList", []);
-        order = self.safeDict(orderInfo, 0, Dict{Symbol, Any}());
+        order = self.safeDict(orderInfo, 0, defaultValue = Dict{Symbol, Any}());
     else
         if functions.ccxtruthy(@functions.ccxt_and(uta, trigger))
             order = response;
@@ -6259,10 +6662,10 @@ function cancelOrder(self::Bitget, id, symbol=nothing, params=Dict())
             order = data;
         end
     end
-    return self.parseOrder(order, market)
+    return self.parseOrder(order, market = market)
 
 end
-function cancelUtaOrders(self::Bitget, ids, symbol=nothing, params=Dict())
+function cancelUtaOrders(self::Bitget, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -6271,7 +6674,7 @@ function cancelUtaOrders(self::Bitget, ids, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     requestList = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(ids)))
@@ -6285,11 +6688,31 @@ function cancelUtaOrders(self::Bitget, ids, symbol=nothing, params=Dict())
         i += 1
     end
     response = Base.fetch(self.privateUtaPostV3TradeCancelBatch(requestList));
-    data = self.safeList(response, "data", []);
-    return self.parseOrders(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(data, market = market)
 
 end
-function cancelOrders(self::Bitget, ids, symbol=nothing, params=Dict())
+"""
+cancel multiple orders
+see: https://www.bitget.com/api-doc/spot/trade/Batch-Cancel-Orders
+see: https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
+see: https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+see: https://www.bitget.com/api-doc/uta/trade/Cancel-Batch
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'isolated' or 'cross' for spot margin trading
+- `params.trigger`::bool, optional: *contract only* set to true for canceling trigger orders
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrders(self::Bitget, ids; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
@@ -6298,12 +6721,12 @@ function cancelOrders(self::Bitget, ids, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "cancelOrders", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "cancelOrders", defaultValue = false));
     if functions.ccxtruthy(uta)
-            return Base.fetch(self.cancelUtaOrders(ids, symbol, params))
+            return Base.fetch(self.cancelUtaOrders(ids, symbol = symbol, params = params))
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("cancelOrders", params);
+    (marginMode, params) = self.handleMarginModeAndParams("cancelOrders", params = params);
     trigger = safeValue2(params, "stop", "trigger");
     params = omit(params, ["stop", "trigger"]);
     orderIdList = [];
@@ -6337,7 +6760,7 @@ function cancelOrders(self::Bitget, ids, symbol=nothing, params=Dict())
         end
     else
         productType = nothing;
-        (productType, params) = self.handleProductTypeAndParams(market, params);
+        (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
         request[Symbol("productType")] = productType;
         if functions.ccxtruthy(trigger)
             response = Base.fetch(self.privateMixPostV2MixOrderCancelPlanOrder(extend(request, params)));
@@ -6346,11 +6769,29 @@ function cancelOrders(self::Bitget, ids, symbol=nothing, params=Dict())
         end
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "successList", []);
-    return self.parseOrders(orders, market)
+    orders = self.safeList(data, "successList", defaultValue = []);
+    return self.parseOrders(orders, market = market)
 
 end
-function cancelAllOrders(self::Bitget, symbol=nothing, params=Dict())
+"""
+cancel all open orders
+see: https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+see: https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'isolated' or 'cross' for spot margin trading
+- `params.trigger`::bool, optional: *contract only* set to true for canceling trigger orders
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelAllOrders(self::Bitget; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
@@ -6359,9 +6800,9 @@ function cancelAllOrders(self::Bitget, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("cancelAllOrders", params);
+    (marginMode, params) = self.handleMarginModeAndParams("cancelAllOrders", params = params);
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
@@ -6369,7 +6810,7 @@ function cancelAllOrders(self::Bitget, symbol=nothing, params=Dict())
     params = omit(params, ["stop", "trigger"]);
     response = nothing;
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "cancelAllOrders", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "cancelAllOrders", defaultValue = false));
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(productType == "SPOT")
             if functions.ccxtruthy(marginMode != nothing)
@@ -6395,7 +6836,7 @@ function cancelAllOrders(self::Bitget, symbol=nothing, params=Dict())
             marketId = safeString(responseData, "symbol");
             return [self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
-    Symbol("symbol") => self.safeSymbol(marketId, nothing, nothing, "spot"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = nothing, delimiter = nothing, marketType = "spot"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp)
 ))]
@@ -6420,7 +6861,23 @@ function cancelAllOrders(self::Bitget, symbol=nothing, params=Dict())
     return self.parseOrders(responseList)
 
 end
-function fetchOrder(self::Bitget, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
+see: https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+see: https://www.bitget.com/api-doc/uta/trade/Get-Order-Details
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.clientOrderId`::string, optional: the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bitget, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
@@ -6438,7 +6895,7 @@ function fetchOrder(self::Bitget, id, symbol=nothing, params=Dict())
     end
     response = nothing;
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchOrder", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchOrder", defaultValue = false));
     if functions.ccxtruthy(uta)
         response = Base.fetch(self.privateUtaGetV3TradeOrderInfo(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
@@ -6447,7 +6904,7 @@ function fetchOrder(self::Bitget, id, symbol=nothing, params=Dict())
         if functions.ccxtruthy(@functions.ccxt_or(get(market, Symbol("swap"), nothing), get(market, Symbol("future"), nothing)))
             request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
             productType = nothing;
-            (productType, params) = self.handleProductTypeAndParams(market, params);
+            (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
             request[Symbol("productType")] = productType;
             response = Base.fetch(self.privateMixGetV2MixOrderDetail(extend(request, params)));
         else
@@ -6461,19 +6918,45 @@ function fetchOrder(self::Bitget, id, symbol=nothing, params=Dict())
     data = self.safeDict(response, "data");
     if functions.ccxtruthy((data != nothing))
         if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(data)))
-                return self.parseOrder(data, market)
+                return self.parseOrder(data, market = market)
         end
     end
-    dataList = self.safeList(response, "data", []);
+    dataList = self.safeList(response, "data", defaultValue = []);
     dataListLength = length(dataList);
     if functions.ccxtruthy(dataListLength == 0)
         throw(OrderNotFound(string(self.id, " fetchOrder() could not find order id ", id, " in ", json(response))));
     end
-    first_var = self.safeDict(dataList, 0, Dict{Symbol, Any}());
-    return self.parseOrder(first_var, market)
+    first_var = self.safeDict(dataList, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseOrder(first_var, market = market)
 
 end
-function fetchOpenOrders(self::Bitget, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://www.bitget.com/api-doc/spot/trade/Get-Unfilled-Orders
+see: https://www.bitget.com/api-doc/spot/plan/Get-Current-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Get-Orders-Pending
+see: https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending
+see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders
+see: https://www.bitget.com/api-doc/uta/strategy/Get-Unfilled-Strategy-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.planType`::string, optional: *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.isPlan`::string, optional: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bitget; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6481,9 +6964,9 @@ function fetchOpenOrders(self::Bitget, symbol=nothing, since=nothing, limit=noth
     type_var = nothing;
     request = Dict{Symbol, Any}();
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchOpenOrders", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchOpenOrders", params = params);
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchOpenOrders", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchOpenOrders", defaultValue = false));
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
@@ -6511,7 +6994,7 @@ function fetchOpenOrders(self::Bitget, symbol=nothing, since=nothing, limit=noth
             cursorReceived = "endId";
             cursorSent = "idLessThan";
         end
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, cursorReceived, cursorSent))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOpenOrders", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = cursorReceived, cursorSent = cursorSent))
     end
     response = nothing;
     trailing = self.safeBool(params, "trailing");
@@ -6533,7 +7016,7 @@ function fetchOpenOrders(self::Bitget, symbol=nothing, since=nothing, limit=noth
         end
     end
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     params = omit(params, ["type", "stop", "trigger", "trailing"]);
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(type_var == "spot")
@@ -6583,44 +7066,121 @@ function fetchOpenOrders(self::Bitget, symbol=nothing, since=nothing, limit=noth
     if functions.ccxtruthy(uta)
         result = nothing;
         if functions.ccxtruthy(trigger)
-            result = self.safeList(response, "data", []);
+            result = self.safeList(response, "data", defaultValue = []);
         else
-            result = self.safeList(data, "list", []);
+            result = self.safeList(data, "list", defaultValue = []);
         end
-            return self.parseOrders(result, market, since, limit)
+            return self.parseOrders(result, market = market, since = since, limit = limit)
     elseif functions.ccxtruthy(type_var == "spot")
         if functions.ccxtruthy(@functions.ccxt_or((marginMode != nothing), trigger))
-            resultList = self.safeList(data, "orderList", []);
-                return self.parseOrders(resultList, market, since, limit)
+            resultList = self.safeList(data, "orderList", defaultValue = []);
+                return self.parseOrders(resultList, market = market, since = since, limit = limit)
         end
     else
-        result = self.safeList(data, "entrustedList", []);
-        return self.parseOrders(result, market, since, limit)
+        result = self.safeList(data, "entrustedList", defaultValue = []);
+        return self.parseOrders(result, market = market, since = since, limit = limit)
     end
-    return self.parseOrders(data, market, since, limit)
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Bitget, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+see: https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+see: https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+see: https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+
+# Arguments
+- `symbol`::string: unified market symbol of the closed orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of closed orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.planType`::string, optional: *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.isPlan`::string, optional: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Bitget; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, params));
+    orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = params));
     return filterBy(orders, "status", "closed")
 
 end
-function fetchCanceledOrders(self::Bitget, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled orders made by the user
+see: https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+see: https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+see: https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+see: https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+
+# Arguments
+- `symbol`::string: unified market symbol of the canceled orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of canceled orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.planType`::string, optional: *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.isPlan`::string, optional: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledOrders(self::Bitget; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, params));
+    orders = Base.fetch(self.fetchCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = params));
     return filterBy(orders, "status", "canceled")
 
 end
-function fetchCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple canceled and closed orders made by the user
+see: https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+see: https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+see: https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+see: https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+see: https://www.bitget.com/api-doc/uta/strategy/Get-History-Strategy-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.planType`::string, optional: *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.isPlan`::string, optional: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchCanceledAndClosedOrders(self::Bitget; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchCanceledAndClosedOrders", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchCanceledAndClosedOrders", defaultValue = false));
     if functions.ccxtruthy(uta)
-            return Base.fetch(self.fetchUtaCanceledAndClosedOrders(symbol, since, limit, params))
+            return Base.fetch(self.fetchUtaCanceledAndClosedOrders(symbol = symbol, since = since, limit = limit, params = params))
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -6632,9 +7192,9 @@ function fetchCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=nothin
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market = market, params = params);
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchCanceledAndClosedOrders", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchCanceledAndClosedOrders", params = params);
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
@@ -6646,7 +7206,7 @@ function fetchCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=nothin
         else
             cursorReceived = "endId";
         end
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, cursorReceived, "idLessThan"))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = cursorReceived, cursorSent = "idLessThan"))
     end
     response = nothing;
     trailing = self.safeBool(params, "trailing");
@@ -6697,7 +7257,7 @@ function fetchCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=nothin
         end
     else
         productType = nothing;
-        (productType, params) = self.handleProductTypeAndParams(market, params);
+        (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
         request[Symbol("productType")] = productType;
         planTypeDefined = safeString(params, "planType") != nothing;
         if functions.ccxtruthy(trailing)
@@ -6715,19 +7275,19 @@ function fetchCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=nothin
     data = safeValue(response, "data", Dict{Symbol, Any}());
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(@functions.ccxt_or((marginMode != nothing), trigger))
-                return self.parseOrders(safeValue(data, "orderList", []), market, since, limit)
+                return self.parseOrders(safeValue(data, "orderList", []), market = market, since = since, limit = limit)
         end
     else
-        return self.parseOrders(safeValue(data, "entrustedList", []), market, since, limit)
+        return self.parseOrders(safeValue(data, "entrustedList", []), market = market, since = since, limit = limit)
     end
     if functions.ccxtruthy(isa(response, AbstractString))
         response = functions.ccxt_json_parse(response);
     end
-    orders = self.safeList(response, "data", []);
-    return self.parseOrders(orders, market, since, limit)
+    orders = self.safeList(response, "data", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchUtaCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+function fetchUtaCanceledAndClosedOrders(self::Bitget; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6736,10 +7296,10 @@ function fetchUtaCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=not
         market = self.market(symbol);
     end
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     if functions.ccxtruthy(productType == "SPOT")
         marginMode = nothing;
-        (marginMode, params) = self.handleMarginModeAndParams("fetchCanceledAndClosedOrders", params);
+        (marginMode, params) = self.handleMarginModeAndParams("fetchCanceledAndClosedOrders", params = params);
         if functions.ccxtruthy(marginMode != nothing)
             productType = "MARGIN";
         end
@@ -6750,7 +7310,7 @@ function fetchUtaCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=not
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "cursor", "cursor"))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor"))
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     if functions.ccxtruthy(since != nothing)
@@ -6767,12 +7327,30 @@ function fetchUtaCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=not
     else
         response = Base.fetch(self.privateUtaGetV3TradeHistoryOrders(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    orders = self.safeList(data, "list", []);
-    return self.parseOrders(orders, market, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    orders = self.safeList(data, "list", defaultValue = []);
+    return self.parseOrders(orders, market = market, since = since, limit = limit)
 
 end
-function fetchLedger(self::Bitget, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
+see: https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.symbol`::string, optional: *contract only* unified market symbol
+- `params.productType`::string, optional: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+function fetchLedger(self::Bitget; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -6783,7 +7361,7 @@ function fetchLedger(self::Bitget, code=nothing, since=nothing, limit=nothing, p
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchLedger", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchLedger", market = market, params = params);
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
@@ -6791,7 +7369,7 @@ function fetchLedger(self::Bitget, code=nothing, since=nothing, limit=nothing, p
         if functions.ccxtruthy(marketType != "spot")
             cursorReceived = "endId";
         end
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchLedger", symbol, since, limit, params, cursorReceived, "idLessThan"))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchLedger", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = cursorReceived, cursorSent = "idLessThan"))
     end
     currency = nothing;
     request = Dict{Symbol, Any}();
@@ -6814,22 +7392,22 @@ function fetchLedger(self::Bitget, code=nothing, since=nothing, limit=nothing, p
             request[Symbol("symbol")] = safeString(market, "id");
         end
         productType = nothing;
-        (productType, params) = self.handleProductTypeAndParams(market, params);
+        (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
         request[Symbol("productType")] = productType;
         response = Base.fetch(self.privateMixGetV2MixAccountBill(extend(request, params)));
     end
     data = safeValue(response, "data");
     if functions.ccxtruthy(@functions.ccxt_or((marketType == "swap"), (marketType == "future")))
         bills = safeValue(data, "bills", []);
-            return self.parseLedger(bills, currency, since, limit)
+            return self.parseLedger(bills, currency = currency, since = since, limit = limit)
     end
-    return self.parseLedger(data, currency, since, limit)
+    return self.parseLedger(data, currency = currency, since = since, limit = limit)
 
 end
-function parseLedgerEntry(self::Bitget, item, currency=nothing)
+function parseLedgerEntry(self::Bitget, item; currency=nothing)
     currencyId = safeString(item, "coin");
-    code = self.safeCurrencyCode(currencyId, currency);
-    currency = self.safeCurrency(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    currency = self.safeCurrency(currencyId, currency = currency);
     timestamp = safeInteger(item, "cTime");
     after = self.safeNumber(item, "balance");
     fee = self.safeNumber2(item, "fees", "fee");
@@ -6858,7 +7436,7 @@ function parseLedgerEntry(self::Bitget, item, currency=nothing)
         Symbol("currency") => code,
         Symbol("cost") => fee
     )
-), currency)
+), currency = currency)
 
 end
 function parseLedgerType(self::Bitget, type_var)
@@ -6907,9 +7485,29 @@ function parseLedgerType(self::Bitget, type_var)
     return safeString(types, type_var, type_var)
 
 end
-function fetchMyTrades(self::Bitget, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://www.bitget.com/api-doc/spot/trade/Get-Fills
+see: https://www.bitget.com/api-doc/contract/trade/Get-Order-Fills
+see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-Fills
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Transaction-Details
+see: https://www.bitget.com/api-doc/uta/trade/Get-Order-Fills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bitget; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchMyTrades", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchMyTrades", defaultValue = false));
     if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(uta), (symbol == nothing)))
         throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
     end
@@ -6928,7 +7526,7 @@ function fetchMyTrades(self::Bitget, symbol=nothing, since=nothing, limit=nothin
     paginate = false;
     marginMode = nothing;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
-    (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchMyTrades", params = params);
     if functions.ccxtruthy(paginate)
         cursorReceived = nothing;
         cursorSent = nothing;
@@ -6944,7 +7542,7 @@ function fetchMyTrades(self::Bitget, symbol=nothing, since=nothing, limit=nothin
             cursorReceived = "endId";
             cursorSent = "idLessThan";
         end
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, cursorReceived, cursorSent))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = cursorReceived, cursorSent = cursorSent))
     end
     response = nothing;
     if functions.ccxtruthy(uta)
@@ -6966,72 +7564,104 @@ function fetchMyTrades(self::Bitget, symbol=nothing, since=nothing, limit=nothin
             end
         else
             productType = nothing;
-            (productType, params) = self.handleProductTypeAndParams(market, params);
+            (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
             request[Symbol("productType")] = productType;
             response = Base.fetch(self.privateMixGetV2MixOrderFills(extend(request, params)));
         end
     end
     data = safeValue(response, "data");
     if functions.ccxtruthy(uta)
-        fills = self.safeList(data, "list", []);
-            return self.parseTrades(fills, market, since, limit)
+        fills = self.safeList(data, "list", defaultValue = []);
+            return self.parseTrades(fills, market = market, since = since, limit = limit)
     elseif functions.ccxtruthy((@functions.ccxt_or(get(market, Symbol("swap"), nothing), (get(market, Symbol("future"), nothing)))))
-        fills = self.safeList(data, "fillList", []);
-        return self.parseTrades(fills, market, since, limit)
+        fills = self.safeList(data, "fillList", defaultValue = []);
+        return self.parseTrades(fills, market = market, since = since, limit = limit)
     else
         if functions.ccxtruthy(marginMode != nothing)
-            fills = self.safeList(data, "fills", []);
-                return self.parseTrades(fills, market, since, limit)
+            fills = self.safeList(data, "fills", defaultValue = []);
+                return self.parseTrades(fills, market = market, since = since, limit = limit)
         end
 
     end
-    return self.parseTrades(data, market, since, limit)
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function fetchPosition(self::Bitget, symbol, params=Dict())
+"""
+fetch data on a single open contract trade position
+see: https://www.bitget.com/api-doc/contract/position/get-single-position
+see: https://www.bitget.com/api-doc/uta/trade/Get-Position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPosition(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = nothing;
     uta = nothing;
     result = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchPosition", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchPosition", defaultValue = false));
     if functions.ccxtruthy(uta)
         request[Symbol("category")] = productType;
         response = Base.fetch(self.privateUtaGetV3PositionCurrentPosition(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        result = self.safeList(data, "list", []);
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        result = self.safeList(data, "list", defaultValue = []);
     else
         request[Symbol("marginCoin")] = get(market, Symbol("settleId"), nothing);
         request[Symbol("productType")] = productType;
         response = Base.fetch(self.privateMixGetV2MixPositionSinglePosition(extend(request, params)));
-        result = self.safeList(response, "data", []);
+        result = self.safeList(response, "data", defaultValue = []);
     end
-    first_var = self.safeDict(result, 0, Dict{Symbol, Any}());
-    return self.parsePosition(first_var, market)
+    first_var = self.safeDict(result, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parsePosition(first_var, market = market)
 
 end
-function fetchPositions(self::Bitget, symbols=nothing, params=Dict())
+"""
+fetch all open positions
+see: https://www.bitget.com/api-doc/contract/position/get-all-position
+see: https://www.bitget.com/api-doc/contract/position/Get-History-Position
+see: https://www.bitget.com/api-doc/uta/trade/Get-Position
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginCoin`::string, optional: the settle currency of the positions, needs to match the productType
+- `params.productType`::string, optional: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.useHistoryEndpoint`::bool, optional: default false, when true  will use the historic endpoint to fetch positions
+- `params.method`::string, optional: either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositions(self::Bitget; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchPositions", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchPositions", nothing, nothing, nothing, params, "endId", "idLessThan"))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchPositions", symbol = nothing, since = nothing, limit = nothing, params = params, cursorReceived = "endId", cursorSent = "idLessThan"))
     end
     method = nothing;
-    useHistoryEndpoint = self.safeBool(params, "useHistoryEndpoint", false);
+    useHistoryEndpoint = self.safeBool(params, "useHistoryEndpoint", defaultValue = false);
     if functions.ccxtruthy(useHistoryEndpoint)
         method = "privateMixGetV2MixPositionHistoryPosition";
     else
-        (method, params) = self.handleOptionAndParams(params, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition");
+        (method, params) = self.handleOptionAndParams(params, "fetchPositions", "method", defaultValue = "privateMixGetV2MixPositionAllPosition");
     end
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
@@ -7041,12 +7671,12 @@ function fetchPositions(self::Bitget, symbols=nothing, params=Dict())
         end
     end
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}();
     response = nothing;
     isHistory = false;
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchPositions", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchPositions", defaultValue = false));
     if functions.ccxtruthy(uta)
         request[Symbol("category")] = productType;
         response = Base.fetch(self.privateUtaGetV3PositionCurrentPosition(extend(request, params)));
@@ -7086,24 +7716,24 @@ function fetchPositions(self::Bitget, symbols=nothing, params=Dict())
     end
     position = [];
     if functions.ccxtruthy(@functions.ccxt_or(uta, isHistory))
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        position = self.safeList(data, "list", []);
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        position = self.safeList(data, "list", defaultValue = []);
     else
-        position = self.safeList(response, "data", []);
+        position = self.safeList(response, "data", defaultValue = []);
     end
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(position)))
-        push!(result, self.parsePosition(get(position, i + 1, nothing), market));
+        push!(result, self.parsePosition(get(position, i + 1, nothing), market = market));
         i += 1
     end
-    symbols = self.marketSymbols(symbols);
-    return self.filterByArrayPositions(result, "symbol", symbols, false)
+    symbols = self.marketSymbols(symbols = symbols);
+    return self.filterByArrayPositions(result, "symbol", values = symbols, indexed = false)
 
 end
-function parsePosition(self::Bitget, position, market=nothing)
+function parsePosition(self::Bitget, position; market=nothing)
     marketId = safeString(position, "symbol");
-    market = self.safeMarket(marketId, market, nothing, "contract");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = nothing, marketType = "contract");
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeIntegerN(position, ["cTime", "ctime", "createdTime"]);
     marginMode = safeString(position, "marginMode");
@@ -7196,7 +7826,23 @@ function parsePosition(self::Bitget, position, market=nothing)
 ))
 
 end
-function fetchFundingRateHistory(self::Bitget, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical funding rate prices
+see: https://www.bitget.com/api-doc/contract/market/Get-History-Funding-Rate
+see: https://www.bitget.com/api-doc/uta/public/Get-History-Funding-Rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of funding rate structures to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+function fetchFundingRateHistory(self::Bitget; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
@@ -7211,35 +7857,35 @@ function fetchFundingRateHistory(self::Bitget, symbol=nothing, since=nothing, li
     uta = nothing;
     response = nothing;
     result = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchFundingRateHistory", false));
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchFundingRateHistory", defaultValue = false));
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(limit != nothing)
             request[Symbol("limit")] = limit;
         end
         request[Symbol("category")] = productType;
         response = Base.fetch(self.publicUtaGetV3MarketHistoryFundRate(extend(request, params)));
-        data = self.safeDict(response, "data", Dict{Symbol, Any}());
-        result = self.safeList(data, "resultList", []);
+        data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+        result = self.safeList(data, "resultList", defaultValue = []);
     else
         paginate = false;
         (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
         if functions.ccxtruthy(paginate)
-                return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "pageNo", 100))
+                return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol = symbol, since = since, limit = limit, params = params, pageKey = "pageNo", maxEntriesPerRequest = 100))
         end
         if functions.ccxtruthy(limit != nothing)
             request[Symbol("pageSize")] = limit;
         end
         request[Symbol("productType")] = productType;
         response = Base.fetch(self.publicMixGetV2MixMarketHistoryFundRate(extend(request, params)));
-        result = self.safeList(response, "data", []);
+        result = self.safeList(response, "data", defaultValue = []);
     end
     rates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
         entry = get(result, i + 1, nothing);
         marketId = safeString(entry, "symbol");
-        symbolInner = self.safeSymbol(marketId, market);
+        symbolInner = self.safeSymbol(marketId, market = market);
         timestamp = safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
@@ -7251,10 +7897,25 @@ function fetchFundingRateHistory(self::Bitget, symbol=nothing, since=nothing, li
         i += 1
     end
     sorted = sortBy(rates, "timestamp");
-    return self.filterBySymbolSinceLimit(sorted, get(market, Symbol("symbol"), nothing), since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = get(market, Symbol("symbol"), nothing), since = since, limit = limit)
 
 end
-function fetchFundingRate(self::Bitget, symbol, params=Dict())
+"""
+fetch the current funding rate
+see: https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+see: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+see: https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.method`::string, optional: either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingRate(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7263,30 +7924,44 @@ function fetchFundingRate(self::Bitget, symbol, params=Dict())
         throw(BadSymbol(string(self.id, " fetchFundingRate() supports swap contracts only")));
     end
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     uta = nothing;
     response = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchFundingRate", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchFundingRate", defaultValue = false));
     if functions.ccxtruthy(uta)
         response = Base.fetch(self.publicUtaGetV3MarketCurrentFundRate(extend(request, params)));
     else
         request[Symbol("productType")] = productType;
         method = nothing;
-        (method, params) = self.handleOptionAndParams(params, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate");
+        (method, params) = self.handleOptionAndParams(params, "fetchFundingRate", "method", defaultValue = "publicMixGetV2MixMarketCurrentFundRate");
         if functions.ccxtruthy(method == "publicMixGetV2MixMarketCurrentFundRate")
             response = Base.fetch(self.publicMixGetV2MixMarketCurrentFundRate(extend(request, params)));
         elseif functions.ccxtruthy(method == "publicMixGetV2MixMarketFundingTime")
             response = Base.fetch(self.publicMixGetV2MixMarketFundingTime(extend(request, params)));
         end
     end
-    data = self.safeList(response, "data", []);
-    return self.parseFundingRate(get(data, 1, nothing), market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseFundingRate(get(data, 1, nothing), market = market)
 
 end
-function fetchFundingRates(self::Bitget, symbols=nothing, params=Dict())
+"""
+fetch the current funding rates for all markets
+see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: *contract only* 'linear', 'inverse'
+- `params.productType`::string, optional: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.method`::string, optional: either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
+
+# Returns
+- a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+function fetchFundingRates(self::Bitget; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7297,9 +7972,9 @@ function fetchFundingRates(self::Bitget, symbols=nothing, params=Dict())
     end
     request = Dict{Symbol, Any}();
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     method = "publicMixGetV2MixMarketTickers";
-    (method, params) = self.handleOptionAndParams(params, "fetchFundingRates", "method", method);
+    (method, params) = self.handleOptionAndParams(params, "fetchFundingRates", "method", defaultValue = method);
     response = nothing;
     request[Symbol("productType")] = productType;
     if functions.ccxtruthy(method == "publicMixGetV2MixMarketTickers")
@@ -7307,24 +7982,36 @@ function fetchFundingRates(self::Bitget, symbols=nothing, params=Dict())
     elseif functions.ccxtruthy(method == "publicMixGetV2MixMarketCurrentFundRate")
         response = Base.fetch(self.publicMixGetV2MixMarketCurrentFundRate(extend(request, params)));
     end
-    symbols = self.marketSymbols(symbols);
-    data = self.safeList(response, "data", []);
-    return self.parseFundingRates(data, symbols)
+    symbols = self.marketSymbols(symbols = symbols);
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseFundingRates(data, symbols = symbols)
 
 end
-function fetchFundingIntervals(self::Bitget, symbols=nothing, params=Dict())
+"""
+fetch the funding rate interval for multiple markets
+see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.productType`::string, optional: 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingIntervals(self::Bitget; symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     params = extend(Dict{Symbol, Any}(
     Symbol("method") => "publicMixGetV2MixMarketCurrentFundRate"
 ), params);
-    return Base.fetch(self.fetchFundingRates(symbols, params))
+    return Base.fetch(self.fetchFundingRates(symbols = symbols, params = params))
 
 end
-function parseFundingRate(self::Bitget, contract, market=nothing)
+function parseFundingRate(self::Bitget, contract; market=nothing)
     marketId = safeString(contract, "symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, "swap");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap");
     fundingTimestamp = safeInteger2(contract, "nextFundingTime", "nextUpdate");
     interval = safeString2(contract, "ratePeriod", "fundingRateInterval");
     timestamp = safeInteger(contract, "ts");
@@ -7356,7 +8043,22 @@ function parseFundingRate(self::Bitget, contract, market=nothing)
 )
 
 end
-function fetchFundingHistory(self::Bitget, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the funding history
+see: https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the starting timestamp in milliseconds
+- `limit`::int, optional: the number of entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch funding history for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+function fetchFundingHistory(self::Bitget; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7364,21 +8066,21 @@ function fetchFundingHistory(self::Bitget, symbol=nothing, since=nothing, limit=
         throw(ArgumentsRequired(string(self.id, " fetchFundingHistory() requires a symbol argument")));
     end
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchFundingHistory", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchFundingHistory", defaultValue = false));
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate");
     if functions.ccxtruthy(paginate)
         if functions.ccxtruthy(uta)
-                return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor"))
+                return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "cursor", cursorSent = "cursor"))
         end
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "endId", "idLessThan"))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "endId", cursorSent = "idLessThan"))
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
         throw(BadSymbol(string(self.id, " fetchFundingHistory() supports swap contracts only")));
     end
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}();
     (request, params) = self.handleUntilOption("endTime", request, params);
     if functions.ccxtruthy(since != nothing)
@@ -7400,20 +8102,20 @@ function fetchFundingHistory(self::Bitget, symbol=nothing, since=nothing, limit=
         response = Base.fetch(self.privateMixGetV2MixAccountBill(extend(request, params)));
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    bills = self.safeList2(data, "bills", "list", []);
+    bills = self.safeList2(data, "bills", "list", defaultValue = []);
     if functions.ccxtruthy(uta)
-        bills = self.filterByArray(bills, "type", ["CONTRACT_MAIN_SETTLE_FEE_USER_IN", "CONTRACT_MAIN_SETTLE_FEE_USER_OUT"], false);
+        bills = self.filterByArray(bills, "type", values = ["CONTRACT_MAIN_SETTLE_FEE_USER_IN", "CONTRACT_MAIN_SETTLE_FEE_USER_OUT"], indexed = false);
     end
-    return self.parseFundingHistories(bills, market, since, limit)
+    return self.parseFundingHistories(bills, market = market, since = since, limit = limit)
 
 end
-function parseFundingHistory(self::Bitget, contract, market=nothing)
+function parseFundingHistory(self::Bitget, contract; market=nothing)
     marketId = safeString(contract, "symbol");
     currencyId = safeString(contract, "coin");
     timestamp = safeInteger2(contract, "cTime", "ts");
     return Dict{Symbol, Any}(
     Symbol("info") => contract,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "swap"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "swap"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("code") => self.safeCurrencyCode(currencyId),
@@ -7422,12 +8124,12 @@ function parseFundingHistory(self::Bitget, contract, market=nothing)
 )
 
 end
-function parseFundingHistories(self::Bitget, contracts, market=nothing, since=nothing, limit=nothing)
+function parseFundingHistories(self::Bitget, contracts; market=nothing, since=nothing, limit=nothing)
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(contracts)))
         contract = get(contracts, i + 1, nothing);
-        push!(result, self.parseFundingHistory(contract, market));
+        push!(result, self.parseFundingHistory(contract, market = market));
         i += 1
     end
     sorted = sortBy(result, "timestamp");
@@ -7435,17 +8137,17 @@ function parseFundingHistories(self::Bitget, contracts, market=nothing, since=no
     if functions.ccxtruthy(market != nothing)
         symbol = get(market, Symbol("symbol"), nothing);
     end
-    return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+    return self.filterBySymbolSinceLimit(sorted, symbol = symbol, since = since, limit = limit)
 
 end
-function modifyMarginHelper(self::Bitget, symbol, amount, type_var, params=Dict())
+function modifyMarginHelper(self::Bitget, symbol, amount, type_var; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     holdSide = safeString(params, "holdSide");
     market = self.market(symbol);
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("marginCoin") => get(market, Symbol("settleId"), nothing),
@@ -7455,13 +8157,13 @@ function modifyMarginHelper(self::Bitget, symbol, amount, type_var, params=Dict(
     );
     params = omit(params, "holdSide");
     response = Base.fetch(self.privateMixPostV2MixAccountSetMargin(extend(request, params)));
-    return extend(self.parseMarginModification(response, market), Dict{Symbol, Any}(
+    return extend(self.parseMarginModification(response, market = market), Dict{Symbol, Any}(
     Symbol("amount") => self.parseNumber(amount),
     Symbol("type") => type_var
 ))
 
 end
-function parseMarginModification(self::Bitget, data, market=nothing)
+function parseMarginModification(self::Bitget, data; market=nothing)
     errorCode = safeString(data, "code");
     status = functions.ccxtruthy((errorCode == "00000")) ? "ok" : "failed";
     return Dict{Symbol, Any}(
@@ -7478,7 +8180,19 @@ function parseMarginModification(self::Bitget, data, market=nothing)
 )
 
 end
-function reduceMargin(self::Bitget, symbol, amount, params=Dict())
+"""
+remove margin from a position
+see: https://www.bitget.com/api-doc/contract/account/Change-Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function reduceMargin(self::Bitget, symbol, amount; params=Dict())
     if functions.ccxtruthy(functions.ccxt_gt(amount, 0))
         throw(BadRequest(string(self.id, " reduceMargin() amount parameter must be a negative value")));
     end
@@ -7486,35 +8200,58 @@ function reduceMargin(self::Bitget, symbol, amount, params=Dict())
     if functions.ccxtruthy(holdSide == nothing)
         throw(ArgumentsRequired(string(self.id, " reduceMargin() requires a holdSide parameter, either long or short")));
     end
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params))
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "reduce", params = params))
 
 end
-function addMargin(self::Bitget, symbol, amount, params=Dict())
+"""
+add margin
+see: https://www.bitget.com/api-doc/contract/account/Change-Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+function addMargin(self::Bitget, symbol, amount; params=Dict())
     holdSide = safeString(params, "holdSide");
     if functions.ccxtruthy(holdSide == nothing)
         throw(ArgumentsRequired(string(self.id, " addMargin() requires a holdSide parameter, either long or short")));
     end
-    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params))
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, "add", params = params))
 
 end
-function fetchLeverage(self::Bitget, symbol, params=Dict())
+"""
+fetch the set leverage for a market
+see: https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+function fetchLeverage(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("marginCoin") => get(market, Symbol("settleId"), nothing),
         Symbol("productType") => productType
     );
     response = Base.fetch(self.privateMixGetV2MixAccountAccount(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseLeverage(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseLeverage(data, market = market)
 
 end
-function parseLeverage(self::Bitget, leverage, market=nothing)
+function parseLeverage(self::Bitget, leverage; market=nothing)
     isCrossMarginMode = safeString(leverage, "marginMode") == "crossed";
     longLevKey = functions.ccxtruthy(isCrossMarginMode) ? "crossedMarginLeverage" : "isolatedLongLever";
     shortLevKey = functions.ccxtruthy(isCrossMarginMode) ? "crossedMarginLeverage" : "isolatedShortLever";
@@ -7527,7 +8264,23 @@ function parseLeverage(self::Bitget, leverage, market=nothing)
 )
 
 end
-function setLeverage(self::Bitget, leverage, symbol=nothing, params=Dict())
+"""
+set the level of leverage for a market
+see: https://www.bitget.com/api-doc/contract/account/Change-Leverage
+see: https://www.bitget.com/api-doc/uta/account/Change-Leverage
+
+# Arguments
+- `leverage`::int: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.holdSide`::string, optional: *isolated only* position direction, 'long' or 'short'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.posSide`::bool, optional: required for uta isolated margin, long or short
+
+# Returns
+- response from the exchange
+"""
+function setLeverage(self::Bitget, leverage; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
@@ -7536,18 +8289,18 @@ function setLeverage(self::Bitget, leverage, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("leverage") => numberToString(leverage)
     );
     uta = nothing;
     response = Dict{Symbol, Any}();
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "setLeverage", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "setLeverage", defaultValue = false));
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(productType == "SPOT")
             marginMode = nothing;
-            (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params);
+            (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params = params);
             if functions.ccxtruthy(marginMode != nothing)
                 productType = "MARGIN";
             end
@@ -7563,7 +8316,19 @@ function setLeverage(self::Bitget, leverage, symbol=nothing, params=Dict())
     return response
 
 end
-function setMarginMode(self::Bitget, marginMode, symbol=nothing, params=Dict())
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.bitget.com/api-doc/contract/account/Change-Margin-Mode
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+function setMarginMode(self::Bitget, marginMode; symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol argument")));
     end
@@ -7579,7 +8344,7 @@ function setMarginMode(self::Bitget, marginMode, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("marginCoin") => get(market, Symbol("settleId"), nothing),
@@ -7590,7 +8355,22 @@ function setMarginMode(self::Bitget, marginMode, symbol=nothing, params=Dict())
     return response
 
 end
-function setPositionMode(self::Bitget, hedged, symbol=nothing, params=Dict())
+"""
+set hedged to true or false for a market
+see: https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
+see: https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.productType`::string, optional: required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- response from the exchange
+"""
+function setPositionMode(self::Bitget, hedged; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7603,8 +8383,8 @@ function setPositionMode(self::Bitget, hedged, symbol=nothing, params=Dict())
     productType = nothing;
     uta = nothing;
     response = Dict{Symbol, Any}();
-    (productType, params) = self.handleProductTypeAndParams(market, params);
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "setPositionMode", false));
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "setPositionMode", defaultValue = false));
     if functions.ccxtruthy(uta)
         request[Symbol("holdMode")] = posMode;
         response = Base.fetch(self.privateUtaPostV3AccountSetHoldMode(extend(request, params)));
@@ -7616,7 +8396,20 @@ function setPositionMode(self::Bitget, hedged, symbol=nothing, params=Dict())
     return response
 
 end
-function fetchOpenInterest(self::Bitget, symbol, params=Dict())
+"""
+retrieves the open interest of a contract trading pair
+see: https://www.bitget.com/api-doc/contract/market/Get-Open-Interest
+see: https://www.bitget.com/api-doc/uta/public/Get-Open-Interest
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+function fetchOpenInterest(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7625,13 +8418,13 @@ function fetchOpenInterest(self::Bitget, symbol, params=Dict())
         throw(BadRequest(string(self.id, " fetchOpenInterest() supports contract markets only")));
     end
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     uta = nothing;
     response = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchOpenInterest", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchOpenInterest", defaultValue = false));
     if functions.ccxtruthy(uta)
         request[Symbol("category")] = productType;
         response = Base.fetch(self.publicUtaGetV3MarketOpenInterest(extend(request, params)));
@@ -7639,25 +8432,39 @@ function fetchOpenInterest(self::Bitget, symbol, params=Dict())
         request[Symbol("productType")] = productType;
         response = Base.fetch(self.publicMixGetV2MixMarketOpenInterest(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseOpenInterest(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseOpenInterest(data, market = market)
 
 end
-function parseOpenInterest(self::Bitget, interest, market=nothing)
-    data = self.safeList2(interest, "openInterestList", "list", []);
+function parseOpenInterest(self::Bitget, interest; market=nothing)
+    data = self.safeList2(interest, "openInterestList", "list", defaultValue = []);
     timestamp = safeInteger(interest, "ts");
     marketId = safeString(get(data, 1, nothing), "symbol");
     return self.safeOpenInterest(Dict{Symbol, Any}(
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("openInterestAmount") => self.safeNumber2(get(data, 1, nothing), "size", "openInterest"),
     Symbol("openInterestValue") => nothing,
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("info") => interest
-), market)
+), market = market)
 
 end
-function fetchTransfers(self::Bitget, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch a history of internal transfers made on an account
+see: https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function fetchTransfers(self::Bitget; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchTransfers() requires a code argument")));
     end
@@ -7665,7 +8472,7 @@ function fetchTransfers(self::Bitget, code=nothing, since=nothing, limit=nothing
         Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchTransfers", nothing, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchTransfers", market = nothing, params = params);
     fromAccount = safeString(params, "fromAccount", type_var);
     params = omit(params, "fromAccount");
     accountsByType = safeValue(self.options, "accountsByType", Dict{Symbol, Any}());
@@ -7683,16 +8490,34 @@ function fetchTransfers(self::Bitget, code=nothing, since=nothing, limit=nothing
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.privateSpotGetV2SpotAccountTransferRecords(extend(request, params)));
-    data = self.safeList(response, "data", []);
-    return self.parseTransfers(data, currency, since, limit)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransfers(data, currency = currency, since = since, limit = limit)
 
 end
-function transfer(self::Bitget, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+see: https://www.bitget.com/api-doc/uta/account/transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true to transfer via the unified trading account v3 endpoint
+- `params.symbol`::string, optional: unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
+- `params.clientOid`::string, optional: custom id
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Bitget, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "transfer", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "transfer", defaultValue = false));
     currency = self.currency(code);
     accountsByType = safeValue(self.options, "accountsByType", Dict{Symbol, Any}());
     fromType = safeString(accountsByType, fromAccount);
@@ -7718,10 +8543,10 @@ function transfer(self::Bitget, code, amount, fromAccount, toAccount, params=Dic
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
     data[Symbol("ts")] = safeInteger(response, "requestTime");
-    return self.parseTransfer(data, currency)
+    return self.parseTransfer(data, currency = currency)
 
 end
-function parseTransfer(self::Bitget, transfer, currency=nothing)
+function parseTransfer(self::Bitget, transfer; currency=nothing)
     timestamp = safeInteger(transfer, "ts");
     status = safeStringLower(transfer, "status");
     currencyId = safeString(transfer, "coin");
@@ -7735,7 +8560,7 @@ function parseTransfer(self::Bitget, transfer, currency=nothing)
     Symbol("id") => safeString(transfer, "transferId"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(transfer, "size"),
     Symbol("fromAccount") => fromAccount,
     Symbol("toAccount") => toAccount,
@@ -7750,7 +8575,7 @@ function parseTransferStatus(self::Bitget, status)
     return safeString(statuses, status, status)
 
 end
-function parseDepositWithdrawFee(self::Bitget, fee, currency=nothing)
+function parseDepositWithdrawFee(self::Bitget, fee; currency=nothing)
     chains = safeValue(fee, "chains", []);
     chainsLength = length(chains);
     result = Dict{Symbol, Any}(
@@ -7770,7 +8595,7 @@ function parseDepositWithdrawFee(self::Bitget, fee, currency=nothing)
         chain = get(chains, i + 1, nothing);
         networkId = safeString(chain, "chain");
         currencyCode = safeString(currency, "code");
-        networkCode = self.networkIdToCode(networkId, currencyCode);
+        networkCode = self.networkIdToCode(networkId = networkId, currencyCode = currencyCode);
         if functions.ccxtruthy(networkCode != nothing)
             result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
                 Symbol("deposit") => Dict{Symbol, Any}(
@@ -7792,16 +8617,39 @@ function parseDepositWithdrawFee(self::Bitget, fee, currency=nothing)
     return result
 
 end
-function fetchDepositWithdrawFees(self::Bitget, codes=nothing, params=Dict())
+"""
+fetch deposit and withdraw fees
+see: https://www.bitget.com/api-doc/spot/market/Get-Coin-List
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+function fetchDepositWithdrawFees(self::Bitget; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.publicSpotGetV2SpotPublicCoins(params));
-    data = self.safeList(response, "data", []);
-    return self.parseDepositWithdrawFees(data, codes, "coin")
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseDepositWithdrawFees(data, codes = codes, currencyIdKey = "coin")
 
 end
-function borrowCrossMargin(self::Bitget, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://www.bitget.com/api-doc/margin/cross/account/Cross-Borrow
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::string: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowCrossMargin(self::Bitget, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7812,10 +8660,23 @@ function borrowCrossMargin(self::Bitget, code, amount, params=Dict())
     );
     response = Base.fetch(self.privateMarginPostV2MarginCrossedAccountBorrow(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginLoan(data, currency)
+    return self.parseMarginLoan(data, currency = currency)
 
 end
-function borrowIsolatedMargin(self::Bitget, symbol, code, amount, params=Dict())
+"""
+create a loan to borrow margin
+see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Borrow
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::string: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function borrowIsolatedMargin(self::Bitget, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7828,10 +8689,23 @@ function borrowIsolatedMargin(self::Bitget, symbol, code, amount, params=Dict())
     );
     response = Base.fetch(self.privateMarginPostV2MarginIsolatedAccountBorrow(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginLoan(data, currency, market)
+    return self.parseMarginLoan(data, currency = currency, market = market)
 
 end
-function repayIsolatedMargin(self::Bitget, symbol, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Repay
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `code`::string: unified currency code of the currency to repay
+- `amount`::string: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayIsolatedMargin(self::Bitget, symbol, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7844,10 +8718,22 @@ function repayIsolatedMargin(self::Bitget, symbol, code, amount, params=Dict())
     );
     response = Base.fetch(self.privateMarginPostV2MarginIsolatedAccountRepay(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginLoan(data, currency, market)
+    return self.parseMarginLoan(data, currency = currency, market = market)
 
 end
-function repayCrossMargin(self::Bitget, code, amount, params=Dict())
+"""
+repay borrowed margin and interest
+see: https://www.bitget.com/api-doc/margin/cross/account/Cross-Repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::string: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+function repayCrossMargin(self::Bitget, code, amount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7858,19 +8744,19 @@ function repayCrossMargin(self::Bitget, code, amount, params=Dict())
     );
     response = Base.fetch(self.privateMarginPostV2MarginCrossedAccountRepay(extend(request, params)));
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginLoan(data, currency)
+    return self.parseMarginLoan(data, currency = currency)
 
 end
-function parseMarginLoan(self::Bitget, info, currency=nothing, market=nothing)
+function parseMarginLoan(self::Bitget, info; currency=nothing, market=nothing)
     currencyId = safeString(info, "coin");
     marketId = safeString(info, "symbol");
     symbol = nothing;
     if functions.ccxtruthy(marketId != nothing)
-        symbol = self.safeSymbol(marketId, market, nothing, "spot");
+        symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "spot");
     end
     return Dict{Symbol, Any}(
     Symbol("id") => safeString2(info, "loanId", "repayId"),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber2(info, "borrowAmount", "repayAmount"),
     Symbol("symbol") => symbol,
     Symbol("timestamp") => nothing,
@@ -7879,21 +8765,38 @@ function parseMarginLoan(self::Bitget, info, currency=nothing, market=nothing)
 )
 
 end
-function fetchMyLiquidations(self::Bitget, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+retrieves the users liquidated positions
+see: https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Liquidation-Records
+see: https://www.bitget.com/api-doc/margin/isolated/record/Get-Isolated-Liquidation-Records
+
+# Arguments
+- `symbol`::string, optional: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the bitget api endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+- `params.marginMode`::string, optional: 'cross' or 'isolated' default value is 'cross'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+function fetchMyLiquidations(self::Bitget; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyLiquidations", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "minId", "idLessThan"))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyLiquidations", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "minId", cursorSent = "idLessThan"))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
     type_var = nothing;
-    (type_var, params) = self.handleMarketTypeAndParams("fetchMyLiquidations", market, params);
+    (type_var, params) = self.handleMarketTypeAndParams("fetchMyLiquidations", market = market, params = params);
     if functions.ccxtruthy(type_var != "spot")
         throw(NotSupported(string(self.id, " fetchMyLiquidations() supports spot margin markets only")));
     end
@@ -7909,7 +8812,7 @@ function fetchMyLiquidations(self::Bitget, symbol=nothing, since=nothing, limit=
     end
     response = nothing;
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchMyLiquidations", params, "cross");
+    (marginMode, params) = self.handleMarginModeAndParams("fetchMyLiquidations", params = params, defaultValue = "cross");
     if functions.ccxtruthy(marginMode == "isolated")
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchMyLiquidations() requires a symbol argument")));
@@ -7920,11 +8823,11 @@ function fetchMyLiquidations(self::Bitget, symbol=nothing, since=nothing, limit=
         response = Base.fetch(self.privateMarginGetV2MarginCrossedLiquidationHistory(extend(request, params)));
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    liquidations = self.safeList(data, "resultList", []);
-    return self.parseLiquidations(liquidations, market, since, limit)
+    liquidations = self.safeList(data, "resultList", defaultValue = []);
+    return self.parseLiquidations(liquidations, market = market, since = since, limit = limit)
 
 end
-function parseLiquidation(self::Bitget, liquidation, market=nothing)
+function parseLiquidation(self::Bitget, liquidation; market=nothing)
     marketId = safeString(liquidation, "symbol");
     timestamp = safeInteger(liquidation, "liqEndTime");
     liquidationFee = safeString2(liquidation, "LiqFee", "liqFee");
@@ -7932,7 +8835,7 @@ function parseLiquidation(self::Bitget, liquidation, market=nothing)
     quoteValueString = stringAdd(liquidationFee, totalDebt);
     return self.safeLiquidation(Dict{Symbol, Any}(
     Symbol("info") => liquidation,
-    Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market),
     Symbol("contracts") => nothing,
     Symbol("contractSize") => nothing,
     Symbol("price") => nothing,
@@ -7943,7 +8846,18 @@ function parseLiquidation(self::Bitget, liquidation, market=nothing)
 ))
 
 end
-function fetchIsolatedBorrowRate(self::Bitget, symbol, params=Dict())
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
+"""
+function fetchIsolatedBorrowRate(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7956,12 +8870,12 @@ function fetchIsolatedBorrowRate(self::Bitget, symbol, params=Dict())
     data = safeValue(response, "data", []);
     first_var = safeValue(data, 0, Dict{Symbol, Any}());
     first_var[Symbol("timestamp")] = timestamp;
-    return self.parseIsolatedBorrowRate(first_var, market)
+    return self.parseIsolatedBorrowRate(first_var, market = market)
 
 end
-function parseIsolatedBorrowRate(self::Bitget, info, market=nothing)
+function parseIsolatedBorrowRate(self::Bitget, info; market=nothing)
     marketId = safeString(info, "symbol");
-    symbol = self.safeSymbol(marketId, market, nothing, "spot");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "spot");
     baseId = safeString(info, "baseCoin");
     quoteId = safeString(info, "quoteCoin");
     timestamp = safeInteger(info, "timestamp");
@@ -7978,7 +8892,20 @@ function parseIsolatedBorrowRate(self::Bitget, info, market=nothing)
 )
 
 end
-function fetchCrossBorrowRate(self::Bitget, code, params=Dict())
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable
+see: https://www.bitget.com/api-doc/uta/public/Get-Margin-Loans
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+"""
+function fetchCrossBorrowRate(self::Bitget, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -7989,10 +8916,10 @@ function fetchCrossBorrowRate(self::Bitget, code, params=Dict())
     uta = nothing;
     response = nothing;
     result = Dict{Symbol, Any}();
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchCrossBorrowRate", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchCrossBorrowRate", defaultValue = false));
     if functions.ccxtruthy(uta)
         response = Base.fetch(self.publicUtaGetV3MarketMarginLoans(extend(request, params)));
-        result = self.safeDict(response, "data", Dict{Symbol, Any}());
+        result = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     else
         response = Base.fetch(self.privateMarginGetV2MarginCrossedInterestRateAndLimit(extend(request, params)));
         data = safeValue(response, "data", []);
@@ -8000,14 +8927,14 @@ function fetchCrossBorrowRate(self::Bitget, code, params=Dict())
     end
     timestamp = safeInteger(response, "requestTime");
     result[Symbol("timestamp")] = timestamp;
-    return self.parseBorrowRate(result, currency)
+    return self.parseBorrowRate(result, currency = currency)
 
 end
-function parseBorrowRate(self::Bitget, info, currency=nothing)
+function parseBorrowRate(self::Bitget, info; currency=nothing)
     currencyId = safeString(info, "coin");
     timestamp = safeInteger(info, "timestamp");
     return Dict{Symbol, Any}(
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("rate") => self.safeNumber2(info, "dailyInterestRate", "dailyInterest"),
     Symbol("period") => 86400000,
     Symbol("timestamp") => timestamp,
@@ -8016,14 +8943,30 @@ function parseBorrowRate(self::Bitget, info, currency=nothing)
 )
 
 end
-function fetchBorrowInterest(self::Bitget, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Interest-Records
+see: https://www.bitget.com/api-doc/margin/isolated/record/Get-Isolated-Interest-Records
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `symbol`::string, optional: unified market symbol when fetching interest in isolated markets
+- `since`::int, optional: the earliest time in ms to fetch borrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+function fetchBorrowInterest(self::Bitget; code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchBorrowInterest", "paginate");
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchBorrowInterest", symbol, since, limit, params, "minId", "idLessThan"))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchBorrowInterest", symbol = symbol, since = since, limit = limit, params = params, cursorReceived = "minId", cursorSent = "idLessThan"))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -8045,7 +8988,7 @@ function fetchBorrowInterest(self::Bitget, code=nothing, symbol=nothing, since=n
     end
     response = nothing;
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchBorrowInterest", params, "cross");
+    (marginMode, params) = self.handleMarginModeAndParams("fetchBorrowInterest", params = params, defaultValue = "cross");
     if functions.ccxtruthy(marginMode == "isolated")
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchBorrowInterest() requires a symbol argument")));
@@ -8057,13 +9000,13 @@ function fetchBorrowInterest(self::Bitget, code=nothing, symbol=nothing, since=n
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
     rows = safeValue(data, "resultList", []);
-    interest = self.parseBorrowInterests(rows, market);
-    return self.filterByCurrencySinceLimit(interest, code, since, limit)
+    interest = self.parseBorrowInterests(rows, market = market);
+    return self.filterByCurrencySinceLimit(interest, code = code, since = since, limit = limit)
 
 end
-function parseBorrowInterest(self::Bitget, info, market=nothing)
+function parseBorrowInterest(self::Bitget, info; market=nothing)
     marketId = safeString(info, "symbol");
-    market = self.safeMarket(marketId, market);
+    market = self.safeMarket(marketId = marketId, market = market);
     marginMode = functions.ccxtruthy((marketId != nothing)) ? "isolated" : "cross";
     timestamp = safeInteger(info, "cTime");
     return Dict{Symbol, Any}(
@@ -8079,7 +9022,21 @@ function parseBorrowInterest(self::Bitget, info, market=nothing)
 )
 
 end
-function closePosition(self::Bitget, symbol, side=nothing, params=Dict())
+"""
+closes an open position for a market
+see: https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+see: https://www.bitget.com/api-doc/uta/trade/Close-All-Positions
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `side`::string, optional: one-way mode: 'buy' or 'sell', hedge-mode: 'long' or 'short'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function closePosition(self::Bitget, symbol; side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8090,8 +9047,8 @@ function closePosition(self::Bitget, symbol, side=nothing, params=Dict())
     productType = nothing;
     uta = nothing;
     response = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "closePosition", false));
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "closePosition", defaultValue = false));
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(side != nothing)
             request[Symbol("posSide")] = side;
@@ -8106,11 +9063,24 @@ function closePosition(self::Bitget, symbol, side=nothing, params=Dict())
         response = Base.fetch(self.privateMixPostV2MixOrderClosePositions(extend(request, params)));
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    order = self.safeList2(data, "successList", "list", []);
-    return self.parseOrder(get(order, 1, nothing), market)
+    order = self.safeList2(data, "successList", "list", defaultValue = []);
+    return self.parseOrder(get(order, 1, nothing), market = market)
 
 end
-function closeAllPositions(self::Bitget, params=Dict())
+"""
+closes all open positions for a market type
+see: https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+see: https://www.bitget.com/api-doc/uta/trade/Close-All-Positions
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.productType`::string, optional: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function closeAllPositions(self::Bitget; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8118,8 +9088,8 @@ function closeAllPositions(self::Bitget, params=Dict())
     productType = nothing;
     uta = nothing;
     response = nothing;
-    (productType, params) = self.handleProductTypeAndParams(nothing, params);
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "closeAllPositions", false));
+    (productType, params) = self.handleProductTypeAndParams(market = nothing, params = params);
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "closeAllPositions", defaultValue = false));
     if functions.ccxtruthy(uta)
         request[Symbol("category")] = productType;
         response = Base.fetch(self.privateUtaPostV3TradeClosePositions(extend(request, params)));
@@ -8128,28 +9098,39 @@ function closeAllPositions(self::Bitget, params=Dict())
         response = Base.fetch(self.privateMixPostV2MixOrderClosePositions(extend(request, params)));
     end
     data = safeValue(response, "data", Dict{Symbol, Any}());
-    orderInfo = self.safeList2(data, "successList", "list", []);
-    return self.parsePositions(orderInfo, nothing, params)
+    orderInfo = self.safeList2(data, "successList", "list", defaultValue = []);
+    return self.parsePositions(orderInfo, symbols = nothing, params = params)
 
 end
-function fetchMarginMode(self::Bitget, symbol, params=Dict())
+"""
+fetches the margin mode of a trading pair
+see: https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+function fetchMarginMode(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("marginCoin") => get(market, Symbol("settleId"), nothing),
         Symbol("productType") => productType
     );
     response = Base.fetch(self.privateMixGetV2MixAccountAccount(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    return self.parseMarginMode(data, market)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    return self.parseMarginMode(data, market = market)
 
 end
-function parseMarginMode(self::Bitget, marginMode, market=nothing)
+function parseMarginMode(self::Bitget, marginMode; market=nothing)
     marginType = safeString(marginMode, "marginMode");
     marginType = functions.ccxtruthy((marginType == "crossed")) ? "cross" : marginType;
     return Dict{Symbol, Any}(
@@ -8159,7 +9140,24 @@ function parseMarginMode(self::Bitget, marginMode, market=nothing)
 )
 
 end
-function fetchPositionsHistory(self::Bitget, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches historical positions
+see: https://www.bitget.com/api-doc/contract/position/Get-History-Position
+see: https://www.bitget.com/api-doc/uta/trade/Get-Position-History
+
+# Arguments
+- `symbols`::array, optional: unified contract symbols
+- `since`::int, optional: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+- `limit`::int, optional: the maximum amount of records to fetch, default=20, max=100
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+- `params.productType`::string, optional: USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+function fetchPositionsHistory(self::Bitget; symbols=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8182,21 +9180,34 @@ function fetchPositionsHistory(self::Bitget, symbols=nothing, since=nothing, lim
         request[Symbol("limit")] = limit;
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
-    (productType, params) = self.handleProductTypeAndParams(market, params);
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchPositionsHistory", false));
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchPositionsHistory", defaultValue = false));
     if functions.ccxtruthy(uta)
         request[Symbol("category")] = productType;
         response = Base.fetch(self.privateUtaGetV3PositionHistoryPosition(extend(request, params)));
     else
         response = Base.fetch(self.privateMixGetV2MixPositionHistoryPosition(extend(request, params)));
     end
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    responseList = self.safeList(data, "list", []);
-    positions = self.parsePositions(responseList, symbols, params);
-    return self.filterBySinceLimit(positions, since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    responseList = self.safeList(data, "list", defaultValue = []);
+    positions = self.parsePositions(responseList, symbols = symbols, params = params);
+    return self.filterBySinceLimit(positions, since = since, limit = limit)
 
 end
-function fetchConvertQuote(self::Bitget, fromCode, toCode, amount=nothing, params=Dict())
+"""
+fetch a quote for converting from one currency to another
+see: https://www.bitget.com/api-doc/common/convert/Get-Quoted-Price
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertQuote(self::Bitget, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8206,15 +9217,31 @@ function fetchConvertQuote(self::Bitget, fromCode, toCode, amount=nothing, param
         Symbol("fromCoinSize") => numberToString(amount)
     );
     response = Base.fetch(self.privateConvertGetV2ConvertQuotedPrice(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     fromCurrencyId = safeString(data, "fromCoin", fromCode);
     fromCurrency = self.currency(fromCurrencyId);
     toCurrencyId = safeString(data, "toCoin", toCode);
     toCurrency = self.currency(toCurrencyId);
-    return self.parseConversion(data, fromCurrency, toCurrency)
+    return self.parseConversion(data, fromCurrency = fromCurrency, toCurrency = toCurrency)
 
 end
-function createConvertTrade(self::Bitget, id, fromCode, toCode, amount=nothing, params=Dict())
+"""
+convert from one currency to another
+see: https://www.bitget.com/api-doc/common/convert/Trade
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string: the price of the conversion, obtained from fetchConvertQuote()
+- `params.toAmount`::string: the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function createConvertTrade(self::Bitget, id, fromCode, toCode; amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8236,13 +9263,26 @@ function createConvertTrade(self::Bitget, id, fromCode, toCode, amount=nothing, 
         Symbol("cnvtPrice") => price
     );
     response = Base.fetch(self.privateConvertPostV2ConvertTrade(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
     toCurrencyId = safeString(data, "toCoin", toCode);
     toCurrency = self.currency(toCurrencyId);
-    return self.parseConversion(data, nothing, toCurrency)
+    return self.parseConversion(data, fromCurrency = nothing, toCurrency = toCurrency)
 
 end
-function fetchConvertTradeHistory(self::Bitget, code=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch the users history of conversion trades
+see: https://www.bitget.com/api-doc/common/convert/Get-Convert-Record
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+function fetchConvertTradeHistory(self::Bitget; code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8265,17 +9305,17 @@ function fetchConvertTradeHistory(self::Bitget, code=nothing, since=nothing, lim
     end
     params = omit(params, "until");
     response = Base.fetch(self.privateConvertGetV2ConvertConvertRecord(extend(request, params)));
-    data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    dataList = self.safeList(data, "dataList", []);
-    return self.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit)
+    data = self.safeDict(response, "data", defaultValue = Dict{Symbol, Any}());
+    dataList = self.safeList(data, "dataList", defaultValue = []);
+    return self.parseConversions(dataList, code = code, fromCurrencyKey = "fromCoin", toCurrencyKey = "toCoin", since = since, limit = limit)
 
 end
-function parseConversion(self::Bitget, conversion, fromCurrency=nothing, toCurrency=nothing)
+function parseConversion(self::Bitget, conversion; fromCurrency=nothing, toCurrency=nothing)
     timestamp = safeInteger(conversion, "ts");
     fromCoin = safeString(conversion, "fromCoin");
-    fromCode = self.safeCurrencyCode(fromCoin, fromCurrency);
+    fromCode = self.safeCurrencyCode(fromCoin, currency = fromCurrency);
     to = safeString(conversion, "toCoin");
-    toCode = self.safeCurrencyCode(to, toCurrency);
+    toCode = self.safeCurrencyCode(to, currency = toCurrency);
     return Dict{Symbol, Any}(
     Symbol("info") => conversion,
     Symbol("timestamp") => timestamp,
@@ -8290,13 +9330,23 @@ function parseConversion(self::Bitget, conversion, fromCurrency=nothing, toCurre
 )
 
 end
-function fetchConvertCurrencies(self::Bitget, params=Dict())
+"""
+fetches all available currencies that can be converted
+see: https://www.bitget.com/api-doc/common/convert/Get-Convert-Currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+function fetchConvertCurrencies(self::Bitget; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateConvertGetV2ConvertCurrencies(params));
     result = Dict{Symbol, Any}();
-    data = self.safeList(response, "data", []);
+    data = self.safeList(response, "data", defaultValue = []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         entry = get(data, i + 1, nothing);
@@ -8337,31 +9387,59 @@ function fetchConvertCurrencies(self::Bitget, params=Dict())
     return result
 
 end
-function fetchFundingInterval(self::Bitget, symbol, params=Dict())
+"""
+fetch the current funding rate interval
+see: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+see: https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+function fetchFundingInterval(self::Bitget, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     productType = nothing;
-    (productType, params) = self.handleProductTypeAndParams(market, params);
+    (productType, params) = self.handleProductTypeAndParams(market = market, params = params);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = nothing;
     uta = nothing;
-    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchFundingInterval", false));
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "fetchFundingInterval", defaultValue = false));
     if functions.ccxtruthy(uta)
         response = Base.fetch(self.publicUtaGetV3MarketCurrentFundRate(extend(request, params)));
     else
         request[Symbol("productType")] = productType;
         response = Base.fetch(self.publicMixGetV2MixMarketFundingTime(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
-    return self.parseFundingRate(first_var, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    first_var = self.safeDict(data, 0, defaultValue = Dict{Symbol, Any}());
+    return self.parseFundingRate(first_var, market = market)
 
 end
-function fetchLongShortRatioHistory(self::Bitget, symbol=nothing, timeframe=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches the long short ratio history for a unified market symbol
+see: https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+see: https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the long short ratio for
+- `timeframe`::string, optional: the period for the ratio
+- `since`::int, optional: the earliest time in ms to fetch ratios for
+- `limit`::int, optional: the maximum number of long short ratio structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
+"""
+function fetchLongShortRatioHistory(self::Bitget; symbol=nothing, timeframe=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -8378,16 +9456,16 @@ function fetchLongShortRatioHistory(self::Bitget, symbol=nothing, timeframe=noth
     else
         response = Base.fetch(self.publicMarginGetV2MarginMarketLongShortRatio(extend(request, params)));
     end
-    data = self.safeList(response, "data", []);
-    return self.parseLongShortRatioHistory(data, market)
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseLongShortRatioHistory(data, market = market)
 
 end
-function parseLongShortRatio(self::Bitget, info, market=nothing)
+function parseLongShortRatio(self::Bitget, info; market=nothing)
     marketId = safeString(info, "symbol");
     timestamp = self.safeIntegerOmitZero(info, "ts");
     return Dict{Symbol, Any}(
     Symbol("info") => info,
-    Symbol("symbol") => self.safeSymbol(marketId, market, nothing, "contract"),
+    Symbol("symbol") => self.safeSymbol(marketId, market = market, delimiter = nothing, marketType = "contract"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("timeframe") => nothing,
@@ -8421,7 +9499,7 @@ function nonce(self::Bitget, )
     return milliseconds() - get(self.options, Symbol("timeDifference"), nothing)
 
 end
-function sign(self::Bitget, path, api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bitget, path; api=[], method="GET", params=Dict(), headers=nothing, body=nothing)
     signed = get(api, 1, nothing) == "private";
     endpoint = get(api, 2, nothing);
     pathPart = "/api";
@@ -8467,7 +9545,7 @@ function sign(self::Bitget, path, api=[], method="GET", params=Dict(), headers=n
             headers[Symbol("Content-Type")] = "application/json";
         end
     end
-    sandboxMode = self.safeBool2(self.options, "sandboxMode", "sandbox", false);
+    sandboxMode = self.safeBool2(self.options, "sandboxMode", "sandbox", defaultValue = false);
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(sandboxMode, (path != "v2/public/time")), (path != "v3/market/current-fund-rate")))
         if functions.ccxtruthy(headers == nothing)
             headers = Dict{Symbol, Any}();
@@ -8492,2551 +9570,2551 @@ Base.getproperty(self::Bitget, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicCommonGetV2PublicAnnoucements(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/public/annoucements", ["public", "common"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/public/annoucements"; api=["public", "common"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicCommonGetV2PublicTime(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/public/time", ["public", "common"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/public/time"; api=["public", "common"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1NoticeQueryAllNotices(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/notice/queryAllNotices", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/notice/queryAllNotices"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1PublicTime(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/time", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/public/time"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1PublicCurrencies(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/public/currencies"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1PublicProducts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/products", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/public/products"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1PublicProduct(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/product", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/public/product"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1MarketTicker(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/ticker", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/market/ticker"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1MarketTickers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/tickers", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/market/tickers"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1MarketFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/fills", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/market/fills"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1MarketFillsHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/fills-history", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/market/fills-history"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1MarketCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/candles", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/market/candles"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1MarketDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/depth", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/market/depth"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1MarketSpotVipLevel(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/spot-vip-level", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/market/spot-vip-level"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1MarketMergeDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/merge-depth", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/market/merge-depth"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1MarketHistoryCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/history-candles", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/market/history-candles"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1PublicLoanCoinInfos(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/loan/coinInfos", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/public/loan/coinInfos"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetSpotV1PublicLoanHourInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/loan/hour-interest", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/public/loan/hour-interest"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SpotPublicCoins(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/public/coins", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/public/coins"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SpotPublicSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/public/symbols", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/public/symbols"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SpotMarketVipFeeRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/vip-fee-rate", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/market/vip-fee-rate"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SpotMarketTickers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/tickers", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/market/tickers"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SpotMarketMergeDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/merge-depth", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/market/merge-depth"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SpotMarketOrderbook(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/orderbook", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/market/orderbook"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SpotMarketCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/candles", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/market/candles"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SpotMarketHistoryCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/history-candles", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/market/history-candles"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SpotMarketFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/fills", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/market/fills"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicSpotGetV2SpotMarketFillsHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/fills-history", ["public", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/market/fills-history"; api=["public", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketContracts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/contracts", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/contracts"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/depth", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/depth"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketTicker(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/ticker", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/ticker"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketTickers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/tickers", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/tickers"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketContractVipLevel(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/contract-vip-level", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/contract-vip-level"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/fills", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/fills"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketFillsHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/fills-history", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/fills-history"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/candles"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketIndex(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/index", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/index"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketFundingTime(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/funding-time", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/funding-time"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketHistoryFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/history-fundRate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/history-fundRate"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketCurrentFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/current-fundRate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/current-fundRate"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketOpenInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/open-interest", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/open-interest"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketMarkPrice(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/mark-price", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/mark-price"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketSymbolLeverage(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/symbol-leverage", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/symbol-leverage"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketQueryPositionLever(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/queryPositionLever", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/queryPositionLever"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketOpenLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/open-limit", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/open-limit"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketHistoryCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/history-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/history-candles"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketHistoryIndexCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/history-index-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/history-index-candles"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketHistoryMarkCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/history-mark-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/history-mark-candles"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetMixV1MarketMergeDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/merge-depth", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/market/merge-depth"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketVipFeeRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/vip-fee-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/vip-fee-rate"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketUnionInterestRateHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/union-interest-rate-history", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/union-interest-rate-history"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketExchangeRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/exchange-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/exchange-rate"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketDiscountRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/discount-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/discount-rate"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketMergeDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/merge-depth", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/merge-depth"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketTicker(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/ticker", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/ticker"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketTickers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/tickers", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/tickers"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/fills", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/fills"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketFillsHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/fills-history", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/fills-history"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/candles"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketHistoryCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/history-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/history-candles"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketHistoryIndexCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/history-index-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/history-index-candles"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketHistoryMarkCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/history-mark-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/history-mark-candles"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketOpenInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/open-interest", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/open-interest"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketFundingTime(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/funding-time", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/funding-time"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketSymbolPrice(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/symbol-price", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/symbol-price"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketHistoryFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/history-fund-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/history-fund-rate"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketCurrentFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/current-fund-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/current-fund-rate"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketOiLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/oi-limit", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/oi-limit"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketContracts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/contracts", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/contracts"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketQueryPositionLever(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/query-position-lever", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/query-position-lever"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMixGetV2MixMarketAccountLongShort(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/account-long-short", ["public", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/account-long-short"; api=["public", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarginGetMarginV1CrossPublicInterestRateAndLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/public/interestRateAndLimit", ["public", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/public/interestRateAndLimit"; api=["public", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/public/interestRateAndLimit", ["public", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/public/interestRateAndLimit"; api=["public", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarginGetMarginV1CrossPublicTierData(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/public/tierData", ["public", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/public/tierData"; api=["public", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarginGetMarginV1IsolatedPublicTierData(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/public/tierData", ["public", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/public/tierData"; api=["public", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarginGetMarginV1PublicCurrencies(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/public/currencies", ["public", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/public/currencies"; api=["public", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarginGetV2MarginCurrencies(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/currencies", ["public", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/currencies"; api=["public", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicMarginGetV2MarginMarketLongShortRatio(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/market/long-short-ratio", ["public", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/market/long-short-ratio"; api=["public", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicEarnGetV2EarnLoanPublicCoinInfos(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/public/coinInfos", ["public", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/public/coinInfos"; api=["public", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicEarnGetV2EarnLoanPublicHourInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/public/hour-interest", ["public", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/public/hour-interest"; api=["public", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketInstruments(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/instruments", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/instruments"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketTickers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/tickers", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/tickers"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketOrderbook(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/orderbook", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/orderbook"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/fills", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/fills"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketProofOfReserves(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/proof-of-reserves", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/proof-of-reserves"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketOpenInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/open-interest", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/open-interest"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/candles", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/candles"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketHistoryCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/history-candles", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/history-candles"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketCurrentFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/current-fund-rate", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/current-fund-rate"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketHistoryFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/history-fund-rate", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/history-fund-rate"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketRiskReserve(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/risk-reserve", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/risk-reserve"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketDiscountRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/discount-rate", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/discount-rate"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketMarginLoans(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/margin-loans", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/margin-loans"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketPositionTier(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/position-tier", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/position-tier"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketOiLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/oi-limit", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/oi-limit"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicUtaGetV3MarketIndexComponents(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/index-components", ["public", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/market/index-components"; api=["public", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1WalletDepositAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/deposit-address", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/wallet/deposit-address"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1WalletWithdrawalList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/withdrawal-list", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/wallet/withdrawal-list"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1WalletDepositList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/deposit-list", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/wallet/deposit-list"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1AccountGetInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/getInfo", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/account/getInfo"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1AccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/account/assets"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1AccountAssetsLite(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/assets-lite", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/account/assets-lite"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1AccountTransferRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/transferRecords", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/account/transferRecords"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1ConvertCurrencies(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/convert/currencies", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/convert/currencies"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1ConvertConvertRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/convert/convert-record", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/convert/convert-record"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1LoanOngoingOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/ongoing-orders", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/loan/ongoing-orders"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1LoanRepayHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/repay-history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/loan/repay-history"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1LoanReviseHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/revise-history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/loan/revise-history"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1LoanBorrowHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/borrow-history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/loan/borrow-history"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetSpotV1LoanDebts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/debts", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/loan/debts"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotTradeOrderInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/orderInfo", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/orderInfo"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotTradeUnfilledOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/unfilled-orders", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/unfilled-orders"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotTradeHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/history-orders", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/history-orders"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotTradeFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/fills", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/fills"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotTradeCurrentPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/current-plan-order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/current-plan-order"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotTradeHistoryPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/history-plan-order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/history-plan-order"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotAccountInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/info", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/account/info"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/account/assets"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotAccountSubaccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/subaccount-assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/account/subaccount-assets"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotAccountBills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/bills", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/account/bills"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotAccountTransferRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/transferRecords", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/account/transferRecords"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2AccountFundingAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/account/funding-assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/funding-assets"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2AccountBotAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/account/bot-assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/bot-assets"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2AccountAllAccountBalance(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/account/all-account-balance", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/account/all-account-balance"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotWalletDepositAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/deposit-address", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/wallet/deposit-address"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotWalletDepositRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/deposit-records", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/wallet/deposit-records"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotWalletWithdrawalRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/withdrawal-records", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/wallet/withdrawal-records"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotGetV2SpotAccountUpgradeStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/upgrade-status", ["private", "spot"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/account/upgrade-status"; api=["private", "spot"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1WalletTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/wallet/transfer"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1WalletTransferV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/transfer-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/wallet/transfer-v2"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1WalletSubTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/subTransfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/wallet/subTransfer"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1WalletWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/withdrawal", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/wallet/withdrawal"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1WalletWithdrawalV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/withdrawal-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/wallet/withdrawal-v2"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1WalletWithdrawalInner(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/withdrawal-inner", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/wallet/withdrawal-inner"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1WalletWithdrawalInnerV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/withdrawal-inner-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/wallet/withdrawal-inner-v2"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1AccountSubAccountSpotAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/sub-account-spot-assets", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/account/sub-account-spot-assets"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1AccountBills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/bills", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/account/bills"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/orders"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeBatchOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/batch-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/batch-orders"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/cancel-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/cancel-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeCancelOrderV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/cancel-order-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/cancel-order-v2"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeCancelSymbolOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/cancel-symbol-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/cancel-symbol-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeCancelBatchOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/cancel-batch-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/cancel-batch-orders"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeCancelBatchOrdersV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/cancel-batch-orders-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/cancel-batch-orders-v2"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeOrderInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/orderInfo", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/orderInfo"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeOpenOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/open-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/open-orders"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/history", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/history"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TradeFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/fills", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trade/fills"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1PlanPlacePlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/placePlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/plan/placePlan"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1PlanModifyPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/modifyPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/plan/modifyPlan"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1PlanCancelPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/cancelPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/plan/cancelPlan"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1PlanCurrentPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/currentPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/plan/currentPlan"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1PlanHistoryPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/historyPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/plan/historyPlan"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1PlanBatchCancelPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/batchCancelPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/plan/batchCancelPlan"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1ConvertQuotedPrice(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/convert/quoted-price", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/convert/quoted-price"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1ConvertTrade(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/convert/trade", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/convert/trade"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1LoanBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/borrow", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/loan/borrow"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1LoanRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/repay", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/loan/repay"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1LoanRevisePledge(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/revise-pledge", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/loan/revise-pledge"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderOrderCurrentList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/orderCurrentList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/order/orderCurrentList"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderOrderHistoryList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/orderHistoryList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/order/orderHistoryList"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderCloseTrackingOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/closeTrackingOrder", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/order/closeTrackingOrder"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderUpdateTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/updateTpsl", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/order/updateTpsl"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderFollowerEndOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/followerEndOrder", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/order/followerEndOrder"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderSpotInfoList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/spotInfoList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/order/spotInfoList"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceConfigGetTraderSettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/config/getTraderSettings", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/config/getTraderSettings"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceConfigGetFollowerSettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/config/getFollowerSettings", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/config/getFollowerSettings"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceUserMyTraders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/user/myTraders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/user/myTraders"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceConfigSetFollowerConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/config/setFollowerConfig", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/config/setFollowerConfig"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceUserMyFollowers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/user/myFollowers", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/user/myFollowers"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceConfigSetProductCode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/config/setProductCode", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/config/setProductCode"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceUserRemoveTrader(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/user/removeTrader", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/user/removeTrader"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceGetRemovableFollower(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/getRemovableFollower", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/getRemovableFollower"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceUserRemoveFollower(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/user/removeFollower", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/user/removeFollower"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceProfitTotalProfitInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/profit/totalProfitInfo", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/profit/totalProfitInfo"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceProfitTotalProfitList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/profit/totalProfitList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/profit/totalProfitList"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceProfitProfitHisList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/profit/profitHisList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/profit/profitHisList"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceProfitProfitHisDetailList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/profit/profitHisDetailList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/profit/profitHisDetailList"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceProfitWaitProfitDetailList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/profit/waitProfitDetailList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/profit/waitProfitDetailList"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostSpotV1TraceUserGetTraderInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/user/getTraderInfo", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "spot/v1/trace/user/getTraderInfo"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotTradePlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/place-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/place-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotTradeCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/cancel-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/cancel-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotTradeBatchOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/batch-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/batch-orders"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotTradeBatchCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/batch-cancel-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/batch-cancel-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotTradeCancelSymbolOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/cancel-symbol-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/cancel-symbol-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotTradePlacePlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/place-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/place-plan-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotTradeModifyPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/modify-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/modify-plan-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotTradeCancelPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/cancel-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/cancel-plan-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotTradeCancelReplaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/cancel-replace-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/cancel-replace-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotTradeBatchCancelPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/batch-cancel-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/trade/batch-cancel-plan-order"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotWalletTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/wallet/transfer"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotWalletSubaccountTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/subaccount-transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/wallet/subaccount-transfer"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotWalletWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/withdrawal", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/wallet/withdrawal"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotWalletCancelWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/cancel-withdrawal", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/wallet/cancel-withdrawal"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotWalletModifyDepositAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/modify-deposit-account", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/wallet/modify-deposit-account"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateSpotPostV2SpotAccountUpgrade(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/upgrade", ["private", "spot"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/spot/account/upgrade"; api=["private", "spot"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1AccountAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/account", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/account/account"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1AccountAccounts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/accounts", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/account/accounts"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1PositionSinglePosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/position/singlePosition", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/position/singlePosition"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1PositionSinglePositionV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/position/singlePosition-v2", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/position/singlePosition-v2"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1PositionAllPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/position/allPosition", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/position/allPosition"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1PositionAllPositionV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/position/allPosition-v2", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/position/allPosition-v2"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1PositionHistoryPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/position/history-position", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/position/history-position"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1AccountAccountBill(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/accountBill", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/account/accountBill"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1AccountAccountBusinessBill(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/accountBusinessBill", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/account/accountBusinessBill"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1OrderCurrent(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/current", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/current"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1OrderMarginCoinCurrent(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/marginCoinCurrent", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/marginCoinCurrent"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1OrderHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/history", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/history"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1OrderHistoryProductType(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/historyProductType", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/historyProductType"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1OrderDetail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/detail", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/detail"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1OrderFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/fills", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/fills"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1OrderAllFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/allFills", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/allFills"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1PlanCurrentPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/currentPlan", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/currentPlan"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1PlanHistoryPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/historyPlan", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/historyPlan"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceCurrentTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/currentTrack", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/currentTrack"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceFollowerOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerOrder", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/followerOrder"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceFollowerHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerHistoryOrders", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/followerHistoryOrders"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceHistoryTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/historyTrack", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/historyTrack"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceSummary(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/summary", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/summary"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceProfitSettleTokenIdGroup(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/profitSettleTokenIdGroup", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/profitSettleTokenIdGroup"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceProfitDateGroupList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/profitDateGroupList", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/profitDateGroupList"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TradeProfitDateList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trade/profitDateList", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trade/profitDateList"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceWaitProfitDateList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/waitProfitDateList", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/waitProfitDateList"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceTraderSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/traderSymbols", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/traderSymbols"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceTraderList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/traderList", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/traderList"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceTraderDetail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/traderDetail", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/traderDetail"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetMixV1TraceQueryTraceConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/queryTraceConfig", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/queryTraceConfig"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/account", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/account"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountAccounts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/accounts", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/accounts"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountSubAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/sub-account-assets", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/sub-account-assets"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountInterestHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/interest-history", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/interest-history"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountMaxOpen(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/max-open", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/max-open"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountLiqPrice(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/liq-price", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/liq-price"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountOpenCount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/open-count", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/open-count"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountBill(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/bill", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/bill"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountTransferLimits(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/transfer-limits", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/transfer-limits"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountUnionConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/union-config", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/union-config"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountSwitchUnionUsdt(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/switch-union-usdt", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/switch-union-usdt"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixAccountIsolatedSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/isolated-symbols", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/isolated-symbols"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixMarketQueryPositionLever(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/query-position-lever", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/query-position-lever"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixPositionSinglePosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/position/single-position", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/position/single-position"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixPositionAllPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/position/all-position", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/position/all-position"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixPositionAdlRank(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/position/adlRank", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/position/adlRank"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixPositionHistoryPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/position/history-position", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/position/history-position"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixOrderDetail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/detail", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/detail"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixOrderFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/fills", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/fills"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixOrderFillHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/fill-history", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/fill-history"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixOrderOrdersPending(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/orders-pending", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/orders-pending"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixOrderOrdersHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/orders-history", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/orders-history"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixOrderPlanSubOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/plan-sub-order", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/plan-sub-order"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixOrderOrdersPlanPending(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/orders-plan-pending", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/orders-plan-pending"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixOrderOrdersPlanHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/orders-plan-history", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/orders-plan-history"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixGetV2MixMarketPositionLongShort(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/position-long-short", ["private", "mix"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/market/position-long-short"; api=["private", "mix"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1AccountSubAccountContractAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/sub-account-contract-assets", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/account/sub-account-contract-assets"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1AccountOpenCount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/open-count", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/account/open-count"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1AccountSetLeverage(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/setLeverage", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/account/setLeverage"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1AccountSetMargin(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/setMargin", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/account/setMargin"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1AccountSetMarginMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/setMarginMode", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/account/setMarginMode"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1AccountSetPositionMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/setPositionMode", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/account/setPositionMode"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1OrderPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/placeOrder", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/placeOrder"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1OrderBatchOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/batch-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/batch-orders"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1OrderCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/cancel-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/cancel-order"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1OrderCancelBatchOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/cancel-batch-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/cancel-batch-orders"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1OrderModifyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/modifyOrder", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/modifyOrder"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1OrderCancelSymbolOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/cancel-symbol-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/cancel-symbol-orders"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1OrderCancelAllOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/cancel-all-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/cancel-all-orders"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1OrderCloseAllPositions(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/close-all-positions", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/order/close-all-positions"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1PlanPlacePlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/placePlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/placePlan"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1PlanModifyPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/modifyPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/modifyPlan"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1PlanModifyPlanPreset(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/modifyPlanPreset", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/modifyPlanPreset"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1PlanPlaceTPSL(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/placeTPSL", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/placeTPSL"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1PlanPlaceTrailStop(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/placeTrailStop", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/placeTrailStop"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1PlanPlacePositionsTPSL(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/placePositionsTPSL", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/placePositionsTPSL"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1PlanModifyTPSLPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/modifyTPSLPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/modifyTPSLPlan"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1PlanCancelPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/cancelPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/cancelPlan"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1PlanCancelSymbolPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/cancelSymbolPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/cancelSymbolPlan"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1PlanCancelAllPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/cancelAllPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/plan/cancelAllPlan"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceCloseTrackOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/closeTrackOrder", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/closeTrackOrder"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceModifyTPSL(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/modifyTPSL", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/modifyTPSL"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceCloseTrackOrderBySymbol(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/closeTrackOrderBySymbol", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/closeTrackOrderBySymbol"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceSetUpCopySymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/setUpCopySymbols", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/setUpCopySymbols"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceFollowerSetBatchTraceConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerSetBatchTraceConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/followerSetBatchTraceConfig"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceFollowerCloseByTrackingNo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerCloseByTrackingNo", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/followerCloseByTrackingNo"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceFollowerCloseByAll(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerCloseByAll", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/followerCloseByAll"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceFollowerSetTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerSetTpsl", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/followerSetTpsl"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceCancelCopyTrader(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/cancelCopyTrader", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/cancelCopyTrader"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceTraderUpdateConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/traderUpdateConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/traderUpdateConfig"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceMyTraderList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/myTraderList", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/myTraderList"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceMyFollowerList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/myFollowerList", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/myFollowerList"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceRemoveFollower(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/removeFollower", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/removeFollower"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TracePublicGetFollowerConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/public/getFollowerConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/public/getFollowerConfig"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceReportOrderHistoryList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/report/order/historyList", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/report/order/historyList"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceReportOrderCurrentList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/report/order/currentList", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/report/order/currentList"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceQueryTraderTpslRatioConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/queryTraderTpslRatioConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/queryTraderTpslRatioConfig"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostMixV1TraceTraderUpdateTpslRatioConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/traderUpdateTpslRatioConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "mix/v1/trace/traderUpdateTpslRatioConfig"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixAccountSetAutoMargin(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-auto-margin", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/set-auto-margin"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixAccountSetLeverage(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-leverage", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/set-leverage"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixAccountSetAllLeverage(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-all-leverage", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/set-all-leverage"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixAccountSetMargin(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-margin", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/set-margin"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixAccountSetAssetMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-asset-mode", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/set-asset-mode"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixAccountSetMarginMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-margin-mode", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/set-margin-mode"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixAccountUnionConvert(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/union-convert", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/union-convert"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixAccountSetPositionMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-position-mode", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/account/set-position-mode"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/place-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/place-order"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderClickBackhand(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/click-backhand", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/click-backhand"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderBatchPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/batch-place-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/batch-place-order"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderModifyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/modify-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/modify-order"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/cancel-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/cancel-order"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderBatchCancelOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/batch-cancel-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/batch-cancel-orders"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderClosePositions(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/close-positions", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/close-positions"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderCancelAllOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/cancel-all-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/cancel-all-orders"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderPlaceTpslOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/place-tpsl-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/place-tpsl-order"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderPlacePosTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/place-pos-tpsl", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/place-pos-tpsl"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderPlacePlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/place-plan-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/place-plan-order"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderModifyTpslOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/modify-tpsl-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/modify-tpsl-order"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderModifyPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/modify-plan-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/modify-plan-order"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMixPostV2MixOrderCancelPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/cancel-plan-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/mix/order/cancel-plan-order"; api=["private", "mix"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetUserV1FeeQuery(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/fee/query", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v1/fee/query"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetUserV1SubVirtualList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-list", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v1/sub/virtual-list"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetUserV1SubVirtualApiList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-api-list", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v1/sub/virtual-api-list"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetUserV1TaxSpotRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/tax/spot-record", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v1/tax/spot-record"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetUserV1TaxFutureRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/tax/future-record", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v1/tax/future-record"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetUserV1TaxMarginRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/tax/margin-record", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v1/tax/margin-record"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetUserV1TaxP2pRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/tax/p2p-record", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "user/v1/tax/p2p-record"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetV2UserVirtualSubaccountList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/virtual-subaccount-list", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user/virtual-subaccount-list"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserGetV2UserVirtualSubaccountApikeyList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/virtual-subaccount-apikey-list", ["private", "user"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/user/virtual-subaccount-apikey-list"; api=["private", "user"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostUserV1SubVirtualCreate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-create", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v1/sub/virtual-create"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostUserV1SubVirtualModify(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-modify", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v1/sub/virtual-modify"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostUserV1SubVirtualApiBatchCreate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-api-batch-create", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v1/sub/virtual-api-batch-create"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostUserV1SubVirtualApiCreate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-api-create", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v1/sub/virtual-api-create"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostUserV1SubVirtualApiModify(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-api-modify", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "user/v1/sub/virtual-api-modify"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostV2UserCreateVirtualSubaccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/create-virtual-subaccount", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/user/create-virtual-subaccount"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostV2UserModifyVirtualSubaccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/modify-virtual-subaccount", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/user/modify-virtual-subaccount"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostV2UserBatchCreateSubaccountAndApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/batch-create-subaccount-and-apikey", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/user/batch-create-subaccount-and-apikey"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostV2UserCreateVirtualSubaccountApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/create-virtual-subaccount-apikey", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/user/create-virtual-subaccount-apikey"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUserPostV2UserModifyVirtualSubaccountApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/modify-virtual-subaccount-apikey", ["private", "user"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/user/modify-virtual-subaccount-apikey"; api=["private", "user"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateP2pGetP2pV1MerchantMerchantList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "p2p/v1/merchant/merchantList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
+    return request(self, "p2p/v1/merchant/merchantList"; api=["private", "p2p"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateP2pGetP2pV1MerchantMerchantInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "p2p/v1/merchant/merchantInfo", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
+    return request(self, "p2p/v1/merchant/merchantInfo"; api=["private", "p2p"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateP2pGetP2pV1MerchantAdvList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "p2p/v1/merchant/advList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
+    return request(self, "p2p/v1/merchant/advList"; api=["private", "p2p"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateP2pGetP2pV1MerchantOrderList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "p2p/v1/merchant/orderList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
+    return request(self, "p2p/v1/merchant/orderList"; api=["private", "p2p"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateP2pGetV2P2pMerchantList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/p2p/merchantList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/p2p/merchantList"; api=["private", "p2p"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateP2pGetV2P2pMerchantInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/p2p/merchantInfo", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/p2p/merchantInfo"; api=["private", "p2p"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateP2pGetV2P2pOrderList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/p2p/orderList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/p2p/orderList"; api=["private", "p2p"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateP2pGetV2P2pAdvList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/p2p/advList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/p2p/advList"; api=["private", "p2p"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetBrokerV1AccountInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/info", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/info"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-list", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-list"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubEmail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-email", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-email"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubSpotAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-spot-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-spot-assets"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubFutureAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-future-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-future-assets"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubaccountTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/subaccount-transfer", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/subaccount-transfer"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubaccountDeposit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/subaccount-deposit", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/subaccount-deposit"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubaccountWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/subaccount-withdrawal", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/subaccount-withdrawal"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubApiList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-api-list", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-api-list"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetV2BrokerAccountInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/info", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/info"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetV2BrokerAccountSubaccountList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-list", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/subaccount-list"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetV2BrokerAccountSubaccountEmail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-email", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/subaccount-email"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetV2BrokerAccountSubaccountSpotAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-spot-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/subaccount-spot-assets"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetV2BrokerAccountSubaccountFutureAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-future-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/subaccount-future-assets"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerGetV2BrokerManageSubaccountApikeyList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/manage/subaccount-apikey-list", ["private", "broker"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/manage/subaccount-apikey-list"; api=["private", "broker"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubCreate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-create", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-create"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubModify(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-modify", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-modify"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubModifyEmail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-modify-email", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-modify-email"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-address", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-address"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-withdrawal", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-withdrawal"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubAutoTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-auto-transfer", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-auto-transfer"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubApiCreate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-api-create", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-api-create"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubApiModify(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-api-modify", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "broker/v1/account/sub-api-modify"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostV2BrokerAccountModifySubaccountEmail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/modify-subaccount-email", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/modify-subaccount-email"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostV2BrokerAccountCreateSubaccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/create-subaccount", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/create-subaccount"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostV2BrokerAccountModifySubaccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/modify-subaccount", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/modify-subaccount"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostV2BrokerAccountSubaccountAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-address", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/subaccount-address"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostV2BrokerAccountSubaccountWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-withdrawal", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/subaccount-withdrawal"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostV2BrokerAccountSetSubaccountAutotransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/set-subaccount-autotransfer", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/account/set-subaccount-autotransfer"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostV2BrokerManageCreateSubaccountApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/manage/create-subaccount-apikey", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/manage/create-subaccount-apikey"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateBrokerPostV2BrokerManageModifySubaccountApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/manage/modify-subaccount-apikey", ["private", "broker"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/broker/manage/modify-subaccount-apikey"; api=["private", "broker"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossAccountRiskRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/riskRate", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/account/riskRate"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossAccountMaxTransferOutAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/maxTransferOutAmount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/account/maxTransferOutAmount"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/maxTransferOutAmount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/account/maxTransferOutAmount"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1IsolatedOrderOpenOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/openOrders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/order/openOrders"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1IsolatedOrderHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/order/history"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1IsolatedOrderFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/order/fills"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1IsolatedLoanList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/loan/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/loan/list"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1IsolatedRepayList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/repay/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/repay/list"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1IsolatedInterestList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/interest/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/interest/list"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1IsolatedLiquidationList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/liquidation/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/liquidation/list"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1IsolatedFinList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/fin/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/fin/list"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossOrderOpenOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/openOrders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/order/openOrders"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossOrderHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/order/history"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossOrderFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/order/fills"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossLoanList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/loan/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/loan/list"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossRepayList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/repay/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/repay/list"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossInterestList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/interest/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/interest/list"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossLiquidationList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/liquidation/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/liquidation/list"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossFinList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/fin/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/fin/list"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1CrossAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/account/assets"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetMarginV1IsolatedAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/account/assets"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedBorrowHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/borrow-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/borrow-history"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedRepayHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/repay-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/repay-history"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedInterestHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/interest-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/interest-history"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedLiquidationHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/liquidation-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/liquidation-history"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedFinancialRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/financial-records", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/financial-records"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/account/assets"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedAccountRiskRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/risk-rate", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/account/risk-rate"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedAccountMaxBorrowableAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/max-borrowable-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/account/max-borrowable-amount"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedAccountMaxTransferOutAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/max-transfer-out-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/account/max-transfer-out-amount"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedInterestRateAndLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/interest-rate-and-limit", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/interest-rate-and-limit"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedTierData(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/tier-data", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/tier-data"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedOpenOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/open-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/open-orders"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/history-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/history-orders"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginCrossedFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/fills"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedBorrowHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/borrow-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/borrow-history"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedRepayHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/repay-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/repay-history"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedInterestHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/interest-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/interest-history"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedLiquidationHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/liquidation-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/liquidation-history"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedFinancialRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/financial-records", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/financial-records"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/account/assets"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedAccountRiskRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/risk-rate", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/account/risk-rate"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/max-borrowable-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/account/max-borrowable-amount"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/max-transfer-out-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/account/max-transfer-out-amount"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedInterestRateAndLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/interest-rate-and-limit", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/interest-rate-and-limit"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedTierData(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/tier-data", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/tier-data"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedOpenOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/open-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/open-orders"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/history-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/history-orders"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginGetV2MarginIsolatedFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/fills"; api=["private", "margin"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1CrossAccountBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/account/borrow"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/account/borrow"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1CrossAccountRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/account/repay"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/account/repay"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountRiskRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/riskRate", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/account/riskRate"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1CrossAccountMaxBorrowableAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/maxBorrowableAmount", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/account/maxBorrowableAmount"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/maxBorrowableAmount", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/account/maxBorrowableAmount"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountFlashRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/flashRepay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/account/flashRepay"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/queryFlashRepayStatus", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/account/queryFlashRepayStatus"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1CrossAccountFlashRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/flashRepay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/account/flashRepay"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1CrossAccountQueryFlashRepayStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/queryFlashRepayStatus", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/account/queryFlashRepayStatus"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1IsolatedOrderPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/placeOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/order/placeOrder"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1IsolatedOrderBatchPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/batchPlaceOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/order/batchPlaceOrder"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1IsolatedOrderCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/cancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/order/cancelOrder"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/batchCancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/isolated/order/batchCancelOrder"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1CrossOrderPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/placeOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/order/placeOrder"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1CrossOrderBatchPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/batchPlaceOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/order/batchPlaceOrder"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1CrossOrderCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/cancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/order/cancelOrder"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostMarginV1CrossOrderBatchCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/batchCancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "margin/v1/cross/order/batchCancelOrder"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginCrossedAccountBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/account/borrow"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginCrossedAccountRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/account/repay"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginCrossedAccountFlashRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/flash-repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/account/flash-repay"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/query-flash-repay-status", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/account/query-flash-repay-status"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginCrossedPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/place-order"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginCrossedBatchPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/batch-place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/batch-place-order"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginCrossedCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/cancel-order"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginCrossedBatchCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/batch-cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/crossed/batch-cancel-order"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginIsolatedAccountBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/account/borrow"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginIsolatedAccountRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/account/repay"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginIsolatedAccountFlashRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/flash-repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/account/flash-repay"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/query-flash-repay-status", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/account/query-flash-repay-status"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginIsolatedPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/place-order"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginIsolatedBatchPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/batch-place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/batch-place-order"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginIsolatedCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/cancel-order"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateMarginPostV2MarginIsolatedBatchCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/batch-cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/margin/isolated/batch-cancel-order"; api=["private", "margin"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixTraderOrderCurrentTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/order-current-track", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/order-current-track"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixTraderOrderHistoryTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/order-history-track", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/order-history-track"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixTraderOrderTotalDetail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/order-total-detail", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/order-total-detail"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixTraderProfitHistorySummarys(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/profit-history-summarys", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/profit-history-summarys"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixTraderProfitHistoryDetails(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/profit-history-details", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/profit-history-details"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixTraderProfitDetails(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/profit-details", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/profit-details"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixTraderProfitsGroupCoinDate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/profits-group-coin-date", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/profits-group-coin-date"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixTraderConfigQuerySymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/config-query-symbols", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/config-query-symbols"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixTraderConfigQueryFollowers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/config-query-followers", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/config-query-followers"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixFollowerQueryCurrentOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/query-current-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-follower/query-current-orders"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixFollowerQueryHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/query-history-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-follower/query-history-orders"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixFollowerQuerySettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/query-settings", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-follower/query-settings"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixFollowerQueryTraders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/query-traders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-follower/query-traders"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixFollowerQueryQuantityLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/query-quantity-limit", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-follower/query-quantity-limit"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixBrokerQueryTraders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-broker/query-traders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-broker/query-traders"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixBrokerQueryHistoryTraces(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-broker/query-history-traces", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-broker/query-history-traces"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopyMixBrokerQueryCurrentTraces(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-broker/query-current-traces", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-broker/query-current-traces"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotTraderProfitSummarys(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/profit-summarys", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/profit-summarys"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotTraderProfitHistoryDetails(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/profit-history-details", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/profit-history-details"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotTraderProfitDetails(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/profit-details", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/profit-details"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotTraderOrderTotalDetail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/order-total-detail", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/order-total-detail"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotTraderOrderHistoryTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/order-history-track", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/order-history-track"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotTraderOrderCurrentTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/order-current-track", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/order-current-track"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotTraderConfigQuerySettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/config-query-settings", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/config-query-settings"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotTraderConfigQueryFollowers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/config-query-followers", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/config-query-followers"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotFollowerQueryTraders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/query-traders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-follower/query-traders"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotFollowerQueryTraderSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/query-trader-symbols", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-follower/query-trader-symbols"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotFollowerQuerySettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/query-settings", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-follower/query-settings"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotFollowerQueryHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/query-history-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-follower/query-history-orders"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyGetV2CopySpotFollowerQueryCurrentOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/query-current-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-follower/query-current-orders"; api=["private", "copy"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopyMixTraderOrderModifyTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/order-modify-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/order-modify-tpsl"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopyMixTraderOrderClosePositions(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/order-close-positions", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/order-close-positions"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopyMixTraderConfigSettingSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/config-setting-symbols", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/config-setting-symbols"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopyMixTraderConfigSettingBase(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/config-setting-base", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/config-setting-base"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopyMixTraderConfigRemoveFollower(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/config-remove-follower", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-trader/config-remove-follower"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopyMixFollowerSettingTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/setting-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-follower/setting-tpsl"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopyMixFollowerSettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/settings", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-follower/settings"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopyMixFollowerClosePositions(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/close-positions", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-follower/close-positions"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopyMixFollowerCancelTrader(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/cancel-trader", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/mix-follower/cancel-trader"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopySpotTraderOrderModifyTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/order-modify-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/order-modify-tpsl"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopySpotTraderOrderCloseTracking(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/order-close-tracking", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/order-close-tracking"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopySpotTraderConfigSettingSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/config-setting-symbols", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/config-setting-symbols"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopySpotTraderConfigRemoveFollower(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/config-remove-follower", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-trader/config-remove-follower"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopySpotFollowerStopOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/stop-order", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-follower/stop-order"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopySpotFollowerSettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/settings", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-follower/settings"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopySpotFollowerSettingTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/setting-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-follower/setting-tpsl"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopySpotFollowerOrderCloseTracking(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/order-close-tracking", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-follower/order-close-tracking"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCopyPostV2CopySpotFollowerCancelTrader(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/cancel-trader", ["private", "copy"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/copy/spot-follower/cancel-trader"; api=["private", "copy"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTaxGetV2TaxSpotRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/tax/spot-record", ["private", "tax"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/tax/spot-record"; api=["private", "tax"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTaxGetV2TaxFutureRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/tax/future-record", ["private", "tax"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/tax/future-record"; api=["private", "tax"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTaxGetV2TaxMarginRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/tax/margin-record", ["private", "tax"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/tax/margin-record"; api=["private", "tax"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateTaxGetV2TaxP2pRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/tax/p2p-record", ["private", "tax"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/tax/p2p-record"; api=["private", "tax"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateConvertGetV2ConvertCurrencies(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/currencies", ["private", "convert"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/convert/currencies"; api=["private", "convert"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateConvertGetV2ConvertQuotedPrice(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/quoted-price", ["private", "convert"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/convert/quoted-price"; api=["private", "convert"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateConvertGetV2ConvertConvertRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/convert-record", ["private", "convert"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/convert/convert-record"; api=["private", "convert"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateConvertGetV2ConvertBgbConvertCoinList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/bgb-convert-coin-list", ["private", "convert"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/convert/bgb-convert-coin-list"; api=["private", "convert"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateConvertGetV2ConvertBgbConvertRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/bgb-convert-records", ["private", "convert"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/convert/bgb-convert-records"; api=["private", "convert"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateConvertPostV2ConvertTrade(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/trade", ["private", "convert"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/convert/trade"; api=["private", "convert"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateConvertPostV2ConvertBgbConvert(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/bgb-convert", ["private", "convert"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/convert/bgb-convert"; api=["private", "convert"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSavingsProduct(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/product", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/savings/product"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSavingsAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/account", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/savings/account"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSavingsAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/assets", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/savings/assets"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSavingsRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/records", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/savings/records"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSavingsSubscribeInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/subscribe-info", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/savings/subscribe-info"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSavingsSubscribeResult(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/subscribe-result", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/savings/subscribe-result"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSavingsRedeemResult(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/redeem-result", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/savings/redeem-result"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSharkfinProduct(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/product", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/sharkfin/product"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSharkfinAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/account", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/sharkfin/account"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSharkfinAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/assets", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/sharkfin/assets"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSharkfinRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/records", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/sharkfin/records"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSharkfinSubscribeInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/subscribe-info", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/sharkfin/subscribe-info"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnSharkfinSubscribeResult(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/subscribe-result", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/sharkfin/subscribe-result"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnLoanOngoingOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/ongoing-orders", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/ongoing-orders"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnLoanRepayHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/repay-history", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/repay-history"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnLoanReviseHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/revise-history", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/revise-history"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnLoanBorrowHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/borrow-history", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/borrow-history"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnLoanDebts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/debts", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/debts"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnLoanReduces(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/reduces", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/reduces"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnGetV2EarnAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/account/assets", ["private", "earn"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/account/assets"; api=["private", "earn"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnPostV2EarnSavingsSubscribe(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/subscribe", ["private", "earn"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/savings/subscribe"; api=["private", "earn"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnPostV2EarnSavingsRedeem(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/redeem", ["private", "earn"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/savings/redeem"; api=["private", "earn"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnPostV2EarnSharkfinSubscribe(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/subscribe", ["private", "earn"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/sharkfin/subscribe"; api=["private", "earn"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnPostV2EarnLoanBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/borrow", ["private", "earn"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/borrow"; api=["private", "earn"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnPostV2EarnLoanRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/repay", ["private", "earn"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/repay"; api=["private", "earn"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateEarnPostV2EarnLoanRevisePledge(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/revise-pledge", ["private", "earn"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v2/earn/loan/revise-pledge"; api=["private", "earn"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateCommonGetV2CommonTradeRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/common/trade-rate", ["private", "common"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v2/common/trade-rate"; api=["private", "common"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/assets", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/assets"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountFundingAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/funding-assets", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/funding-assets"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountSettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/settings", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/settings"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountFinancialRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/financial-records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/financial-records"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountRepayableCoins(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/repayable-coins", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/repayable-coins"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountPaymentCoins(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/payment-coins", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/payment-coins"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountConvertRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/convert-records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/convert-records"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountDeductInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/deduct-info", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/deduct-info"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountFeeRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/fee-rate", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/fee-rate"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountSwitchStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/switch-status", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/switch-status"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountMaxTransferable(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/max-transferable", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/max-transferable"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountOpenInterestLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/open-interest-limit", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/open-interest-limit"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountSubUnifiedAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-unified-assets", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/sub-unified-assets"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountTransferableCoins(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/transferable-coins", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/transferable-coins"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountSubTransferRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-transfer-record", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/sub-transfer-record"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountDepositAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/deposit-address", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/deposit-address"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountSubDepositAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-deposit-address", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/sub-deposit-address"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountDepositRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/deposit-records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/deposit-records"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountSubDepositRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-deposit-records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/sub-deposit-records"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3AccountWithdrawalRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/withdrawal-records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/account/withdrawal-records"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3BrokerSubList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/sub-list", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/sub-list"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3BrokerAllSubDepositWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/all-sub-deposit-withdrawal", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/all-sub-deposit-withdrawal"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3BrokerCommission(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/commission", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/commission"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3BrokerQuerySubApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/query-sub-apikey", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/query-sub-apikey"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3InsLoanTransfered(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/transfered", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ins-loan/transfered"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3InsLoanSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/symbols", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ins-loan/symbols"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3InsLoanRiskUnit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/risk-unit", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ins-loan/risk-unit"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3InsLoanRepaidHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/repaid-history", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ins-loan/repaid-history"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3InsLoanProductInfos(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/product-infos", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ins-loan/product-infos"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3InsLoanLoanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/loan-order", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ins-loan/loan-order"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3InsLoanLtvConvert(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/ltv-convert", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ins-loan/ltv-convert"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3InsLoanEnsureCoinsConvert(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/ensure-coins-convert", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/ins-loan/ensure-coins-convert"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3LoanCoins(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/coins", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/coins"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3LoanInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/interest", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/interest"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3LoanBorrowOngoing(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/borrow-ongoing", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/borrow-ongoing"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3LoanBorrowHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/borrow-history", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/borrow-history"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3LoanRepayHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/repay-history", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/repay-history"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3LoanPledgeRateHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/pledge-rate-history", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/pledge-rate-history"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3LoanDebts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/debts", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/debts"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3LoanReduces(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/reduces", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/reduces"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3PositionCurrentPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/position/current-position", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/position/current-position"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3PositionHistoryPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/position/history-position", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/position/history-position"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3PositionAdlRank(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/position/adlRank", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/position/adlRank"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3TaxRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/tax/records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/tax/records"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3TradeOrderInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order-info", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/order-info"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3TradeUnfilledOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/unfilled-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/unfilled-orders"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3TradeUnfilledStrategyOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/unfilled-strategy-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/unfilled-strategy-orders"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3TradeHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/history-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/history-orders"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3TradeHistoryStrategyOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/history-strategy-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/history-strategy-orders"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3TradeFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/fills", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/fills"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3UserSubList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/sub-list", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/user/sub-list"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaGetV3UserSubApiList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/sub-api-list", ["private", "uta"], "GET", params, nothing, nothing, Dict())
+    return request(self, "v3/user/sub-api-list"; api=["private", "uta"], method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountSetLeverage(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/set-leverage", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/set-leverage"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountSetHoldMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/set-hold-mode", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/set-hold-mode"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/repay", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/repay"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountSwitchDeduct(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/switch-deduct", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/switch-deduct"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountDepositAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/deposit-account", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/deposit-account"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountSwitch(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/switch", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/switch"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountAdjustAccountMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/adjust-account-mode", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/adjust-account-mode"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/transfer", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/transfer"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountSubTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-transfer", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/sub-transfer"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountSubMasterTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-master-transfer", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/sub-master-transfer"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountMaxOpenAvailable(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/max-open-available", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/max-open-available"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3AccountWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/withdrawal", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/account/withdrawal"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3BrokerCreateSub(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/create-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/create-sub"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3BrokerModifySub(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/modify-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/modify-sub"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3BrokerSubWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/sub-withdrawal", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/sub-withdrawal"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3BrokerSubDepositAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/sub-deposit-address", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/sub-deposit-address"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3BrokerCreateSubApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/create-sub-apikey", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/create-sub-apikey"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3BrokerModifySubApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/modify-sub-apikey", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/modify-sub-apikey"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3BrokerDeleteSubApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/delete-sub-apikey", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/broker/delete-sub-apikey"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3InsLoanBindUid(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/bind-uid", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/ins-loan/bind-uid"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3LoanBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/borrow", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/borrow"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3LoanRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/repay", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/repay"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3LoanRevisePledge(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/revise-pledge", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/loan/revise-pledge"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradePlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/place-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/place-order"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradePlaceStrategyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/place-strategy-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/place-strategy-order"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradeModifyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/modify-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/modify-order"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradeModifyStrategyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/modify-strategy-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/modify-strategy-order"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradeCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/cancel-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/cancel-order"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradeCancelStrategyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/cancel-strategy-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/cancel-strategy-order"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradePlaceBatch(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/place-batch", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/place-batch"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradeBatchModifyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/batch-modify-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/batch-modify-order"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradeCancelBatch(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/cancel-batch", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/cancel-batch"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradeCancelSymbolOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/cancel-symbol-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/cancel-symbol-order"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradeClosePositions(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/close-positions", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/close-positions"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3TradeCountdownCancelAll(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/countdown-cancel-all", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/trade/countdown-cancel-all"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3UserCreateSub(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/create-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/user/create-sub"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3UserFreezeSub(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/freeze-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/user/freeze-sub"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3UserCreateSubApi(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/create-sub-api", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/user/create-sub-api"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3UserUpdateSubApi(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/update-sub-api", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/user/update-sub-api"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateUtaPostV3UserDeleteSubApi(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/delete-sub-api", ["private", "uta"], "POST", params, nothing, nothing, Dict())
+    return request(self, "v3/user/delete-sub-api"; api=["private", "uta"], method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bitget(; kwargs...)
@@ -11100,3 +12178,1287 @@ function Bitget(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bitget_setSandboxMode() end
+"""
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+"""
+__ccxt_doc_Bitget_setSandboxMode
+
+function __ccxt_doc_Bitget_enableDemoTrading() end
+"""
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+"""
+__ccxt_doc_Bitget_enableDemoTrading
+
+function __ccxt_doc_Bitget_fetchTime() end
+"""
+fetches the current integer timestamp in milliseconds from the exchange server
+see: https://www.bitget.com/api-doc/common/public/Get-Server-Time
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- the current integer timestamp in milliseconds from the exchange server
+"""
+__ccxt_doc_Bitget_fetchTime
+
+function __ccxt_doc_Bitget_fetchMarkets() end
+"""
+retrieves data on all markets for bitget
+see: https://www.bitget.com/api-doc/spot/market/Get-Symbols
+see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+see: https://www.bitget.com/api-doc/margin/common/support-currencies
+see: https://www.bitget.com/api-doc/uta/public/Instruments
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Bitget_fetchMarkets
+
+function __ccxt_doc_Bitget_fetchCurrencies() end
+"""
+fetches all available currencies on an exchange
+see: https://www.bitget.com/api-doc/spot/market/Get-Coin-List
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bitget_fetchCurrencies
+
+function __ccxt_doc_Bitget_fetchMarketLeverageTiers() end
+"""
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+see: https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever
+see: https://www.bitget.com/api-doc/margin/cross/account/Cross-Tier-Data
+see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Tier-Data
+see: https://www.bitget.com/api-doc/uta/public/Get-Position-Tier-Data
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: for spot margin 'cross' or 'isolated', default is 'isolated'
+- `params.code`::string, optional: required for cross spot margin
+- `params.productType`::string, optional: *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+"""
+__ccxt_doc_Bitget_fetchMarketLeverageTiers
+
+function __ccxt_doc_Bitget_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in milliseconds
+- `params.idLessThan`::string, optional: return records with id less than the provided value
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitget_fetchDeposits
+
+function __ccxt_doc_Bitget_withdraw() end
+"""
+make a withdrawal
+see: https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.chain`::string, optional: the blockchain network the withdrawal is taking place on
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitget_withdraw
+
+function __ccxt_doc_Bitget_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in milliseconds
+- `params.idLessThan`::string, optional: return records with id less than the provided value
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Bitget_fetchWithdrawals
+
+function __ccxt_doc_Bitget_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bitget_fetchDepositAddress
+
+function __ccxt_doc_Bitget_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://www.bitget.com/api-doc/spot/market/Get-Orderbook
+see: https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
+see: https://www.bitget.com/api-doc/uta/public/OrderBook
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bitget_fetchOrderBook
+
+function __ccxt_doc_Bitget_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://www.bitget.com/api-doc/spot/market/Get-Tickers
+see: https://www.bitget.com/api-doc/contract/market/Get-Ticker
+see: https://www.bitget.com/api-doc/uta/public/Tickers
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitget_fetchTicker
+
+function __ccxt_doc_Bitget_fetchMarkPrice() end
+"""
+fetches the mark price for a specific market
+see: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitget_fetchMarkPrice
+
+function __ccxt_doc_Bitget_fetchTickers() end
+"""
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+see: https://www.bitget.com/api-doc/spot/market/Get-Tickers
+see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+see: https://www.bitget.com/api-doc/uta/public/Tickers
+
+# Arguments
+- `symbols`::any: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.subType`::string, optional: *contract only* 'linear', 'inverse'
+- `params.productType`::string, optional: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+
+# Returns
+- a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bitget_fetchTickers
+
+function __ccxt_doc_Bitget_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://www.bitget.com/api-doc/spot/market/Get-Recent-Trades
+see: https://www.bitget.com/api-doc/spot/market/Get-Market-Trades
+see: https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
+see: https://www.bitget.com/api-doc/contract/market/Get-Fills-History
+see: https://www.bitget.com/api-doc/uta/public/Fills
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.until`::int, optional: *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
+- `params.paginate`::bool, optional: *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bitget_fetchTrades
+
+function __ccxt_doc_Bitget_fetchTradingFee() end
+"""
+fetch the trading fees for a market
+see: https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+
+# Returns
+- a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitget_fetchTradingFee
+
+function __ccxt_doc_Bitget_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://www.bitget.com/api-doc/spot/market/Get-Symbols
+see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+see: https://www.bitget.com/api-doc/margin/common/support-currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.productType`::string, optional: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.margin`::bool, optional: set to true for spot margin
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Bitget_fetchTradingFees
+
+function __ccxt_doc_Bitget_fetchOHLCV() end
+"""
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+see: https://www.bitget.com/api-doc/spot/market/Get-Candle-Data
+see: https://www.bitget.com/api-doc/spot/market/Get-History-Candle-Data
+see: https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
+see: https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
+see: https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
+see: https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
+see: https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch OHLCV data for
+- `timeframe`::string: the length of time each candle represents
+- `since`::int, optional: timestamp in ms of the earliest candle to fetch
+- `limit`::int, optional: the maximum amount of candles to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.until`::int, optional: timestamp in ms of the latest candle to fetch
+- `params.useHistoryEndpoint`::bool, optional: whether to force to use historical endpoint (it has max limit of 200)
+- `params.useHistoryEndpointForPagination`::bool, optional: whether to force to use historical endpoint for pagination (default true)
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.price`::string, optional: *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
+
+# Returns
+- A list of candles ordered as timestamp, open, high, low, close, volume
+"""
+__ccxt_doc_Bitget_fetchOHLCV
+
+function __ccxt_doc_Bitget_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
+see: https://www.bitget.com/api-doc/contract/account/Get-Account-List
+see: https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
+see: https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
+see: https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
+see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
+see: https://www.bitget.com/api-doc/uta/account/Get-Account
+see: https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.productType`::string, optional: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.uta`::string, optional: set to true for the unified trading account (uta), defaults to false
+- `params.type`::string, optional: 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bitget_fetchBalance
+
+function __ccxt_doc_Bitget_createMarketBuyOrderWithCost() end
+"""
+create a market buy order by providing the symbol and cost
+see: https://www.bitget.com/api-doc/spot/trade/Place-Order
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `cost`::float: how much you want to trade in units of the quote currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_createMarketBuyOrderWithCost
+
+function __ccxt_doc_Bitget_createOrder() end
+"""
+create a trade order
+see: https://www.bitget.com/api-doc/spot/trade/Place-Order
+see: https://www.bitget.com/api-doc/spot/plan/Place-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Place-Order
+see: https://www.bitget.com/api-doc/contract/plan/Place-Tpsl-Order
+see: https://www.bitget.com/api-doc/contract/plan/Place-Plan-Order
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
+see: https://www.bitget.com/api-doc/uta/trade/Place-Order
+see: https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.cost`::float, optional: *spot only* how much you want to trade in units of the quote currency, for market buy orders only
+- `params.triggerPrice`::float, optional: *swap only* The price at which a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: *swap only* The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: *swap only* The price at which a take profit order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: *swap only* take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: *swap only* stop loss trigger price
+- `params.timeInForce`::string, optional: "GTC", "IOC", "FOK", or "PO"
+- `params.marginMode`::string, optional: 'isolated' or 'cross' for spot margin trading
+- `params.loanType`::string, optional: *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
+- `params.holdSide`::string, optional: *contract stopLossPrice, takeProfitPrice only* Two-way position: ('long' or 'short'), one-way position: ('buy' or 'sell')
+- `params.stopLoss.price`::float, optional: *swap only* the execution price for a stop loss attached to a trigger order
+- `params.takeProfit.price`::float, optional: *swap only* the execution price for a take profit attached to a trigger order
+- `params.stopLoss.type`::string, optional: *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+- `params.takeProfit.type`::string, optional: *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+- `params.trailingPercent`::string, optional: *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
+- `params.trailingTriggerPrice`::string, optional: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+- `params.triggerType`::string, optional: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+- `params.oneWayMode`::bool, optional: *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+- `params.hedged`::bool, optional: *swap and future only* true for hedged mode, false for one way mode, default is false
+- `params.reduceOnly`::bool, optional: true or false whether the order is reduce-only
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.posSide`::string, optional: *uta only* hedged two-way position side, long or short
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_createOrder
+
+function __ccxt_doc_Bitget_createOrders() end
+"""
+create a list of trade orders (all orders should be of the same symbol)
+see: https://www.bitget.com/api-doc/spot/trade/Batch-Place-Orders
+see: https://www.bitget.com/api-doc/contract/trade/Batch-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order
+see: https://www.bitget.com/api-doc/uta/trade/Place-Batch
+
+# Arguments
+- `orders`::array: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+- `params`::object, optional: extra parameters specific to the api endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_createOrders
+
+function __ccxt_doc_Bitget_editOrder() end
+"""
+edit a trade order
+see: https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+see: https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
+see: https://www.bitget.com/api-doc/contract/trade/Modify-Order
+see: https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
+see: https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
+see: https://www.bitget.com/api-doc/uta/trade/Modify-Order
+see: https://www.bitget.com/api-doc/uta/strategy/Modify-Strategy-Order
+
+# Arguments
+- `id`::string: cancel order id
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much you want to trade in units of the base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.triggerPrice`::float, optional: the price that a trigger order is triggered at
+- `params.stopLossPrice`::float, optional: *swap only* The price at which a stop loss order is triggered at
+- `params.takeProfitPrice`::float, optional: *swap only* The price at which a take profit order is triggered at
+- `params.takeProfit`::object, optional: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+- `params.takeProfit.triggerPrice`::float, optional: *swap only* take profit trigger price
+- `params.stopLoss`::object, optional: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+- `params.stopLoss.triggerPrice`::float, optional: *swap only* stop loss trigger price
+- `params.stopLoss.price`::float, optional: *swap only* the execution price for a stop loss attached to a trigger order
+- `params.takeProfit.price`::float, optional: *swap only* the execution price for a take profit attached to a trigger order
+- `params.stopLoss.type`::string, optional: *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+- `params.takeProfit.type`::string, optional: *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+- `params.trailingPercent`::string, optional: *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
+- `params.trailingTriggerPrice`::string, optional: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+- `params.newTriggerType`::string, optional: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_editOrder
+
+function __ccxt_doc_Bitget_cancelOrder() end
+"""
+cancels an open order
+see: https://www.bitget.com/api-doc/spot/trade/Cancel-Order
+see: https://www.bitget.com/api-doc/spot/plan/Cancel-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Cancel-Order
+see: https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
+see: https://www.bitget.com/api-doc/uta/trade/Cancel-Order
+see: https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'isolated' or 'cross' for spot margin trading
+- `params.trigger`::bool, optional: set to true for canceling trigger orders
+- `params.planType`::string, optional: *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
+- `params.trailing`::bool, optional: set to true if you want to cancel a trailing order
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.clientOrderId`::string, optional: the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_cancelOrder
+
+function __ccxt_doc_Bitget_cancelOrders() end
+"""
+cancel multiple orders
+see: https://www.bitget.com/api-doc/spot/trade/Batch-Cancel-Orders
+see: https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
+see: https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+see: https://www.bitget.com/api-doc/uta/trade/Cancel-Batch
+
+# Arguments
+- `ids`::array: order ids
+- `symbol`::string: unified market symbol, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'isolated' or 'cross' for spot margin trading
+- `params.trigger`::bool, optional: *contract only* set to true for canceling trigger orders
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_cancelOrders
+
+function __ccxt_doc_Bitget_cancelAllOrders() end
+"""
+cancel all open orders
+see: https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+see: https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
+see: https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginMode`::string, optional: 'isolated' or 'cross' for spot margin trading
+- `params.trigger`::bool, optional: *contract only* set to true for canceling trigger orders
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_cancelAllOrders
+
+function __ccxt_doc_Bitget_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
+see: https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+see: https://www.bitget.com/api-doc/uta/trade/Get-Order-Details
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.clientOrderId`::string, optional: the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_fetchOrder
+
+function __ccxt_doc_Bitget_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://www.bitget.com/api-doc/spot/trade/Get-Unfilled-Orders
+see: https://www.bitget.com/api-doc/spot/plan/Get-Current-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Get-Orders-Pending
+see: https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending
+see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders
+see: https://www.bitget.com/api-doc/uta/strategy/Get-Unfilled-Strategy-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.planType`::string, optional: *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.isPlan`::string, optional: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_fetchOpenOrders
+
+function __ccxt_doc_Bitget_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+see: https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+see: https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+see: https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+see: https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+
+# Arguments
+- `symbol`::string: unified market symbol of the closed orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of closed orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.planType`::string, optional: *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.isPlan`::string, optional: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_fetchClosedOrders
+
+function __ccxt_doc_Bitget_fetchCanceledOrders() end
+"""
+fetches information on multiple canceled orders made by the user
+see: https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+see: https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+see: https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+see: https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+
+# Arguments
+- `symbol`::string: unified market symbol of the canceled orders
+- `since`::int, optional: timestamp in ms of the earliest order
+- `limit`::int, optional: the max number of canceled orders to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.planType`::string, optional: *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.isPlan`::string, optional: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_fetchCanceledOrders
+
+function __ccxt_doc_Bitget_fetchCanceledAndClosedOrders() end
+"""
+fetches information on multiple canceled and closed orders made by the user
+see: https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+see: https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+see: https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+see: https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+see: https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+see: https://www.bitget.com/api-doc/uta/strategy/Get-History-Strategy-Orders
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch orders for
+- `params.planType`::string, optional: *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+- `params.trigger`::bool, optional: set to true for fetching trigger orders
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.isPlan`::string, optional: *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+- `params.trailing`::bool, optional: set to true if you want to fetch trailing orders
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_fetchCanceledAndClosedOrders
+
+function __ccxt_doc_Bitget_fetchLedger() end
+"""
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+see: https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
+see: https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+
+# Arguments
+- `code`::string, optional: unified currency code, default is undefined
+- `since`::int, optional: timestamp in ms of the earliest ledger entry, default is undefined
+- `limit`::int, optional: max number of ledger entries to return, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: end time in ms
+- `params.symbol`::string, optional: *contract only* unified market symbol
+- `params.productType`::string, optional: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+"""
+__ccxt_doc_Bitget_fetchLedger
+
+function __ccxt_doc_Bitget_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://www.bitget.com/api-doc/spot/trade/Get-Fills
+see: https://www.bitget.com/api-doc/contract/trade/Get-Order-Fills
+see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-Fills
+see: https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Transaction-Details
+see: https://www.bitget.com/api-doc/uta/trade/Get-Order-Fills
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch trades for
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bitget_fetchMyTrades
+
+function __ccxt_doc_Bitget_fetchPosition() end
+"""
+fetch data on a single open contract trade position
+see: https://www.bitget.com/api-doc/contract/position/get-single-position
+see: https://www.bitget.com/api-doc/uta/trade/Get-Position
+
+# Arguments
+- `symbol`::string: unified market symbol of the market the position is held in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bitget_fetchPosition
+
+function __ccxt_doc_Bitget_fetchPositions() end
+"""
+fetch all open positions
+see: https://www.bitget.com/api-doc/contract/position/get-all-position
+see: https://www.bitget.com/api-doc/contract/position/Get-History-Position
+see: https://www.bitget.com/api-doc/uta/trade/Get-Position
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.marginCoin`::string, optional: the settle currency of the positions, needs to match the productType
+- `params.productType`::string, optional: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+- `params.useHistoryEndpoint`::bool, optional: default false, when true  will use the historic endpoint to fetch positions
+- `params.method`::string, optional: either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bitget_fetchPositions
+
+function __ccxt_doc_Bitget_fetchFundingRateHistory() end
+"""
+fetches historical funding rate prices
+see: https://www.bitget.com/api-doc/contract/market/Get-History-Funding-Rate
+see: https://www.bitget.com/api-doc/uta/public/Get-History-Funding-Rate
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the funding rate history for
+- `since`::int, optional: timestamp in ms of the earliest funding rate to fetch
+- `limit`::int, optional: the maximum amount of funding rate structures to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+"""
+__ccxt_doc_Bitget_fetchFundingRateHistory
+
+function __ccxt_doc_Bitget_fetchFundingRate() end
+"""
+fetch the current funding rate
+see: https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+see: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+see: https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.method`::string, optional: either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Bitget_fetchFundingRate
+
+function __ccxt_doc_Bitget_fetchFundingRates() end
+"""
+fetch the current funding rates for all markets
+see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.subType`::string, optional: *contract only* 'linear', 'inverse'
+- `params.productType`::string, optional: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.method`::string, optional: either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
+
+# Returns
+- a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+"""
+__ccxt_doc_Bitget_fetchFundingRates
+
+function __ccxt_doc_Bitget_fetchFundingIntervals() end
+"""
+fetch the funding rate interval for multiple markets
+see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+
+# Arguments
+- `symbols`::array, optional: list of unified market symbols
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.productType`::string, optional: 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+
+# Returns
+- a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Bitget_fetchFundingIntervals
+
+function __ccxt_doc_Bitget_fetchFundingHistory() end
+"""
+fetch the funding history
+see: https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the starting timestamp in milliseconds
+- `limit`::int, optional: the number of entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch funding history for
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+"""
+__ccxt_doc_Bitget_fetchFundingHistory
+
+function __ccxt_doc_Bitget_reduceMargin() end
+"""
+remove margin from a position
+see: https://www.bitget.com/api-doc/contract/account/Change-Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to remove
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Bitget_reduceMargin
+
+function __ccxt_doc_Bitget_addMargin() end
+"""
+add margin
+see: https://www.bitget.com/api-doc/contract/account/Change-Margin
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `amount`::float: the amount of margin to add
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+"""
+__ccxt_doc_Bitget_addMargin
+
+function __ccxt_doc_Bitget_fetchLeverage() end
+"""
+fetch the set leverage for a market
+see: https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+"""
+__ccxt_doc_Bitget_fetchLeverage
+
+function __ccxt_doc_Bitget_setLeverage() end
+"""
+set the level of leverage for a market
+see: https://www.bitget.com/api-doc/contract/account/Change-Leverage
+see: https://www.bitget.com/api-doc/uta/account/Change-Leverage
+
+# Arguments
+- `leverage`::int: the rate of leverage
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.holdSide`::string, optional: *isolated only* position direction, 'long' or 'short'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+- `params.posSide`::bool, optional: required for uta isolated margin, long or short
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bitget_setLeverage
+
+function __ccxt_doc_Bitget_setMarginMode() end
+"""
+set margin mode to 'cross' or 'isolated'
+see: https://www.bitget.com/api-doc/contract/account/Change-Margin-Mode
+
+# Arguments
+- `marginMode`::string: 'cross' or 'isolated'
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bitget_setMarginMode
+
+function __ccxt_doc_Bitget_setPositionMode() end
+"""
+set hedged to true or false for a market
+see: https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
+see: https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
+
+# Arguments
+- `hedged`::bool: set to true to use dualSidePosition
+- `symbol`::string: not used by setPositionMode ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.productType`::string, optional: required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- response from the exchange
+"""
+__ccxt_doc_Bitget_setPositionMode
+
+function __ccxt_doc_Bitget_fetchOpenInterest() end
+"""
+retrieves the open interest of a contract trading pair
+see: https://www.bitget.com/api-doc/contract/market/Get-Open-Interest
+see: https://www.bitget.com/api-doc/uta/public/Get-Open-Interest
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `params`::object, optional: exchange specific parameters
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+"""
+__ccxt_doc_Bitget_fetchOpenInterest
+
+function __ccxt_doc_Bitget_fetchTransfers() end
+"""
+fetch a history of internal transfers made on an account
+see: https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords
+
+# Arguments
+- `code`::string: unified currency code of the currency transferred
+- `since`::int, optional: the earliest time in ms to fetch transfers for
+- `limit`::int, optional: the maximum number of transfers structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: the latest time in ms to fetch entries for
+
+# Returns
+- a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bitget_fetchTransfers
+
+function __ccxt_doc_Bitget_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+see: https://www.bitget.com/api-doc/uta/account/transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true to transfer via the unified trading account v3 endpoint
+- `params.symbol`::string, optional: unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
+- `params.clientOid`::string, optional: custom id
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Bitget_transfer
+
+function __ccxt_doc_Bitget_fetchDepositWithdrawFees() end
+"""
+fetch deposit and withdraw fees
+see: https://www.bitget.com/api-doc/spot/market/Get-Coin-List
+
+# Arguments
+- `codes`::any: list of unified currency codes
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+"""
+__ccxt_doc_Bitget_fetchDepositWithdrawFees
+
+function __ccxt_doc_Bitget_borrowCrossMargin() end
+"""
+create a loan to borrow margin
+see: https://www.bitget.com/api-doc/margin/cross/account/Cross-Borrow
+
+# Arguments
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::string: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Bitget_borrowCrossMargin
+
+function __ccxt_doc_Bitget_borrowIsolatedMargin() end
+"""
+create a loan to borrow margin
+see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Borrow
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `code`::string: unified currency code of the currency to borrow
+- `amount`::string: the amount to borrow
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Bitget_borrowIsolatedMargin
+
+function __ccxt_doc_Bitget_repayIsolatedMargin() end
+"""
+repay borrowed margin and interest
+see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Repay
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `code`::string: unified currency code of the currency to repay
+- `amount`::string: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Bitget_repayIsolatedMargin
+
+function __ccxt_doc_Bitget_repayCrossMargin() end
+"""
+repay borrowed margin and interest
+see: https://www.bitget.com/api-doc/margin/cross/account/Cross-Repay
+
+# Arguments
+- `code`::string: unified currency code of the currency to repay
+- `amount`::string: the amount to repay
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+"""
+__ccxt_doc_Bitget_repayCrossMargin
+
+function __ccxt_doc_Bitget_fetchMyLiquidations() end
+"""
+retrieves the users liquidated positions
+see: https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Liquidation-Records
+see: https://www.bitget.com/api-doc/margin/isolated/record/Get-Isolated-Liquidation-Records
+
+# Arguments
+- `symbol`::string, optional: unified CCXT market symbol
+- `since`::int, optional: the earliest time in ms to fetch liquidations for
+- `limit`::int, optional: the maximum number of liquidation structures to retrieve
+- `params`::object, optional: exchange specific parameters for the bitget api endpoint
+- `params.until`::int, optional: timestamp in ms of the latest liquidation
+- `params.marginMode`::string, optional: 'cross' or 'isolated' default value is 'cross'
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+"""
+__ccxt_doc_Bitget_fetchMyLiquidations
+
+function __ccxt_doc_Bitget_fetchIsolatedBorrowRate() end
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
+"""
+__ccxt_doc_Bitget_fetchIsolatedBorrowRate
+
+function __ccxt_doc_Bitget_fetchCrossBorrowRate() end
+"""
+fetch the rate of interest to borrow a currency for margin trading
+see: https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable
+see: https://www.bitget.com/api-doc/uta/public/Get-Margin-Loans
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+"""
+__ccxt_doc_Bitget_fetchCrossBorrowRate
+
+function __ccxt_doc_Bitget_fetchBorrowInterest() end
+"""
+fetch the interest owed by the user for borrowing currency for margin trading
+see: https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Interest-Records
+see: https://www.bitget.com/api-doc/margin/isolated/record/Get-Isolated-Interest-Records
+
+# Arguments
+- `code`::string, optional: unified currency code
+- `symbol`::string, optional: unified market symbol when fetching interest in isolated markets
+- `since`::int, optional: the earliest time in ms to fetch borrow interest for
+- `limit`::int, optional: the maximum number of structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.paginate`::bool, optional: default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+
+# Returns
+- a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+"""
+__ccxt_doc_Bitget_fetchBorrowInterest
+
+function __ccxt_doc_Bitget_closePosition() end
+"""
+closes an open position for a market
+see: https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+see: https://www.bitget.com/api-doc/uta/trade/Close-All-Positions
+
+# Arguments
+- `symbol`::string: unified CCXT market symbol
+- `side`::string, optional: one-way mode: 'buy' or 'sell', hedge-mode: 'long' or 'short'
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bitget_closePosition
+
+function __ccxt_doc_Bitget_closeAllPositions() end
+"""
+closes all open positions for a market type
+see: https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+see: https://www.bitget.com/api-doc/uta/trade/Close-All-Positions
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.productType`::string, optional: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bitget_closeAllPositions
+
+function __ccxt_doc_Bitget_fetchMarginMode() end
+"""
+fetches the margin mode of a trading pair
+see: https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the margin mode for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+"""
+__ccxt_doc_Bitget_fetchMarginMode
+
+function __ccxt_doc_Bitget_fetchPositionsHistory() end
+"""
+fetches historical positions
+see: https://www.bitget.com/api-doc/contract/position/Get-History-Position
+see: https://www.bitget.com/api-doc/uta/trade/Get-Position-History
+
+# Arguments
+- `symbols`::array, optional: unified contract symbols
+- `since`::int, optional: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+- `limit`::int, optional: the maximum amount of records to fetch, default=20, max=100
+- `params`::object: extra parameters specific to the exchange API endpoint
+- `params.until`::int, optional: timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+- `params.productType`::string, optional: USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+"""
+__ccxt_doc_Bitget_fetchPositionsHistory
+
+function __ccxt_doc_Bitget_fetchConvertQuote() end
+"""
+fetch a quote for converting from one currency to another
+see: https://www.bitget.com/api-doc/common/convert/Get-Quoted-Price
+
+# Arguments
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float, optional: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Bitget_fetchConvertQuote
+
+function __ccxt_doc_Bitget_createConvertTrade() end
+"""
+convert from one currency to another
+see: https://www.bitget.com/api-doc/common/convert/Trade
+
+# Arguments
+- `id`::string: the id of the trade that you want to make
+- `fromCode`::string: the currency that you want to sell and convert from
+- `toCode`::string: the currency that you want to buy and convert into
+- `amount`::float: how much you want to trade in units of the from currency
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.price`::string: the price of the conversion, obtained from fetchConvertQuote()
+- `params.toAmount`::string: the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
+
+# Returns
+- a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Bitget_createConvertTrade
+
+function __ccxt_doc_Bitget_fetchConvertTradeHistory() end
+"""
+fetch the users history of conversion trades
+see: https://www.bitget.com/api-doc/common/convert/Get-Convert-Record
+
+# Arguments
+- `code`::string, optional: the unified currency code
+- `since`::int, optional: the earliest time in ms to fetch conversions for
+- `limit`::int, optional: the maximum number of conversion structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+"""
+__ccxt_doc_Bitget_fetchConvertTradeHistory
+
+function __ccxt_doc_Bitget_fetchConvertCurrencies() end
+"""
+fetches all available currencies that can be converted
+see: https://www.bitget.com/api-doc/common/convert/Get-Convert-Currencies
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an associative dictionary of currencies
+"""
+__ccxt_doc_Bitget_fetchConvertCurrencies
+
+function __ccxt_doc_Bitget_fetchFundingInterval() end
+"""
+fetch the current funding rate interval
+see: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+see: https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+- `params.uta`::bool, optional: set to true for the unified trading account (uta), defaults to false
+
+# Returns
+- a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+"""
+__ccxt_doc_Bitget_fetchFundingInterval
+
+function __ccxt_doc_Bitget_fetchLongShortRatioHistory() end
+"""
+fetches the long short ratio history for a unified market symbol
+see: https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+see: https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the long short ratio for
+- `timeframe`::string, optional: the period for the ratio
+- `since`::int, optional: the earliest time in ms to fetch ratios for
+- `limit`::int, optional: the maximum number of long short ratio structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
+"""
+__ccxt_doc_Bitget_fetchLongShortRatioHistory

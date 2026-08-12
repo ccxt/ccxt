@@ -444,7 +444,16 @@ function describe(self::Independentreserve, )
 ))
 
 end
-function fetchMarkets(self::Independentreserve, params=Dict())
+"""
+retrieves data on all markets for independentreserve
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+function fetchMarkets(self::Independentreserve; params=Dict())
     baseCurrenciesPromise = self.publicGetGetValidPrimaryCurrencyCodes(params);
     quoteCurrenciesPromise = self.publicGetGetValidSecondaryCurrencyCodes(params);
     limitsPromise = self.publicGetGetOrderMinimumVolumes(params);
@@ -538,7 +547,16 @@ function parseBalance(self::Independentreserve, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Independentreserve, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Independentreserve; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -546,7 +564,18 @@ function fetchBalance(self::Independentreserve, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Independentreserve, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Independentreserve, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -557,10 +586,10 @@ function fetchOrderBook(self::Independentreserve, symbol, limit=nothing, params=
     );
     response = Base.fetch(self.publicGetGetOrderBook(extend(request, params)));
     timestamp = self.parse8601(safeString(response, "CreatedTimestampUtc"));
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp, "BuyOrders", "SellOrders", "Price", "Volume")
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = timestamp, bidsKey = "BuyOrders", asksKey = "SellOrders", priceKey = "Price", amountKey = "Volume")
 
 end
-function parseTicker(self::Independentreserve, ticker, market=nothing)
+function parseTicker(self::Independentreserve, ticker; market=nothing)
     timestamp = self.parse8601(safeString(ticker, "CreatedTimestampUtc"));
     baseId = safeString(ticker, "PrimaryCurrencyCode");
     quoteId = safeString(ticker, "SecondaryCurrencyCode");
@@ -568,7 +597,7 @@ function parseTicker(self::Independentreserve, ticker, market=nothing)
     if functions.ccxtruthy(@functions.ccxt_and((baseId != nothing), (quoteId != nothing)))
         defaultMarketId = string(baseId, "/", quoteId);
     end
-    market = self.safeMarket(defaultMarketId, market, "/");
+    market = self.safeMarket(marketId = defaultMarketId, market = market, delimiter = "/");
     symbol = get(market, Symbol("symbol"), nothing);
     last_var = safeString(ticker, "LastPrice");
     return self.safeTicker(Dict{Symbol, Any}(
@@ -592,10 +621,20 @@ function parseTicker(self::Independentreserve, ticker, market=nothing)
     Symbol("baseVolume") => safeString(ticker, "DayVolumeXbtInSecondaryCurrrency"),
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Independentreserve, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Independentreserve, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -605,10 +644,10 @@ function fetchTicker(self::Independentreserve, symbol, params=Dict())
         Symbol("secondaryCurrencyCode") => get(market, Symbol("quoteId"), nothing)
     );
     response = Base.fetch(self.publicGetGetMarketSummary(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function parseOrder(self::Independentreserve, order, market=nothing)
+function parseOrder(self::Independentreserve, order; market=nothing)
     symbol = nothing;
     baseId = safeString(order, "PrimaryCurrencyCode");
     quoteId = safeString(order, "SecondaryCurrencyCode");
@@ -670,7 +709,7 @@ function parseOrder(self::Independentreserve, order, market=nothing)
         Symbol("currency") => base
     ),
     Symbol("trades") => nothing
-), market)
+), market = market)
 
 end
 function parseOrderStatus(self::Independentreserve, status)
@@ -697,7 +736,18 @@ function parseTimeInForce(self::Independentreserve, timeInForce)
     return safeString(timeInForces, timeInForce, timeInForce)
 
 end
-function fetchOrder(self::Independentreserve, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Independentreserve, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -708,10 +758,22 @@ function fetchOrder(self::Independentreserve, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function fetchOpenOrders(self::Independentreserve, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Independentreserve; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -728,11 +790,23 @@ function fetchOpenOrders(self::Independentreserve, symbol=nothing, since=nothing
     request[Symbol("pageIndex")] = 1;
     request[Symbol("pageSize")] = limit;
     response = Base.fetch(self.privatePostGetOpenOrders(extend(request, params)));
-    data = self.safeList(response, "Data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "Data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchClosedOrders(self::Independentreserve, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetches information on multiple closed orders made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchClosedOrders(self::Independentreserve; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -749,11 +823,23 @@ function fetchClosedOrders(self::Independentreserve, symbol=nothing, since=nothi
     request[Symbol("pageIndex")] = 1;
     request[Symbol("pageSize")] = limit;
     response = Base.fetch(self.privatePostGetClosedOrders(extend(request, params)));
-    data = self.safeList(response, "Data", []);
-    return self.parseOrders(data, market, since, limit)
+    data = self.safeList(response, "Data", defaultValue = []);
+    return self.parseOrders(data, market = market, since = since, limit = limit)
 
 end
-function fetchMyTrades(self::Independentreserve, symbol=nothing, since=nothing, limit=50, params=Dict())
+"""
+fetch all trades made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Independentreserve; symbol=nothing, since=nothing, limit=50, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -770,11 +856,11 @@ function fetchMyTrades(self::Independentreserve, symbol=nothing, since=nothing, 
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    data = self.safeList(response, "Data", []);
-    return self.parseTrades(data, market, since, limit)
+    data = self.safeList(response, "Data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
 
 end
-function parseTrade(self::Independentreserve, trade, market=nothing)
+function parseTrade(self::Independentreserve, trade; market=nothing)
     timestamp = self.parse8601(get(trade, Symbol("TradeTimestampUtc"), nothing));
     id = safeString(trade, "TradeGuid");
     orderId = safeString(trade, "OrderGuid");
@@ -789,7 +875,7 @@ function parseTrade(self::Independentreserve, trade, market=nothing)
     if functions.ccxtruthy(@functions.ccxt_and((baseId != nothing), (quoteId != nothing)))
         marketId = string(baseId, "/", quoteId);
     end
-    symbol = self.safeSymbol(marketId, market, "/");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "/");
     side = safeString(trade, "OrderType");
     if functions.ccxtruthy(side != nothing)
         if functions.ccxtruthy(findfirst("Bid", side) !== nothing)
@@ -812,10 +898,22 @@ function parseTrade(self::Independentreserve, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => cost,
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Independentreserve, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Independentreserve, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -826,11 +924,20 @@ function fetchTrades(self::Independentreserve, symbol, since=nothing, limit=noth
         Symbol("numberOfRecentTradesToRetrieve") => 50
     );
     response = Base.fetch(self.publicGetGetRecentTrades(extend(request, params)));
-    trades = self.safeList(response, "Trades", []);
-    return self.parseTrades(trades, market, since, limit)
+    trades = self.safeList(response, "Trades", defaultValue = []);
+    return self.parseTrades(trades, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFees(self::Independentreserve, params=Dict())
+"""
+fetch the trading fees for multiple markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Independentreserve; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -871,7 +978,21 @@ function fetchTradingFees(self::Independentreserve, params=Dict())
     return result
 
 end
-function createOrder(self::Independentreserve, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Independentreserve, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -893,10 +1014,22 @@ function createOrder(self::Independentreserve, symbol, type_var, side, amount, p
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("id") => get(response, Symbol("OrderGuid"), nothing)
-), market)
+), market = market)
 
 end
-function cancelOrder(self::Independentreserve, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://www.independentreserve.com/features/api#CancelOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Independentreserve, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -907,7 +1040,18 @@ function cancelOrder(self::Independentreserve, id, symbol=nothing, params=Dict()
     return self.parseOrder(response)
 
 end
-function fetchDepositAddress(self::Independentreserve, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Independentreserve, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -919,9 +1063,9 @@ function fetchDepositAddress(self::Independentreserve, code, params=Dict())
     return self.parseDepositAddress(response)
 
 end
-function parseDepositAddress(self::Independentreserve, depositAddress, currency=nothing)
+function parseDepositAddress(self::Independentreserve, depositAddress; currency=nothing)
     address = safeString(depositAddress, "DepositAddress");
-    self.checkAddress(address);
+    self.checkAddress(address = address);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => safeString(currency, "code"),
@@ -931,7 +1075,22 @@ function parseDepositAddress(self::Independentreserve, depositAddress, currency=
 )
 
 end
-function withdraw(self::Independentreserve, code, amount, address, tag=nothing, params=Dict())
+"""
+make a withdrawal
+see: https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.comment`::object, optional: withdrawal comment, should not exceed 500 characters
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function withdraw(self::Independentreserve, code, amount, address; tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -951,17 +1110,17 @@ function withdraw(self::Independentreserve, code, amount, address, tag=nothing, 
         throw(BadRequest(string(self.id, " withdraw () does not accept params[\"networkCode\"]")));
     end
     response = Base.fetch(self.privatePostWithdrawDigitalCurrency(extend(request, params)));
-    return self.parseTransaction(response, currency)
+    return self.parseTransaction(response, currency = currency)
 
 end
-function parseTransaction(self::Independentreserve, transaction, currency=nothing)
+function parseTransaction(self::Independentreserve, transaction; currency=nothing)
     amount = self.safeDict(transaction, "Amount");
     destination = self.safeDict(transaction, "Destination");
     currencyId = safeString(transaction, "PrimaryCurrencyCode");
     datetime = safeString(transaction, "CreatedTimestampUtc");
     address = safeString(destination, "Address");
     tag = safeString(destination, "Tag");
-    code = self.safeCurrencyCode(currencyId, currency);
+    code = self.safeCurrencyCode(currencyId, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("info") => transaction,
     Symbol("id") => safeString(transaction, "TransactionGuid"),
@@ -990,7 +1149,7 @@ function parseTransaction(self::Independentreserve, transaction, currency=nothin
 )
 
 end
-function sign(self::Independentreserve, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Independentreserve, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", path);
     if functions.ccxtruthy(api == "public")
         if functions.ccxtruthy(length(objectKeys(params)))
@@ -1040,159 +1199,159 @@ Base.getproperty(self::Independentreserve, name::Symbol) = ccxt_getproperty(self
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetGetValidPrimaryCurrencyCodes(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetValidPrimaryCurrencyCodes", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetValidPrimaryCurrencyCodes"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetValidSecondaryCurrencyCodes(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetValidSecondaryCurrencyCodes", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetValidSecondaryCurrencyCodes"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetValidLimitOrderTypes(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetValidLimitOrderTypes", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetValidLimitOrderTypes"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetValidMarketOrderTypes(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetValidMarketOrderTypes", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetValidMarketOrderTypes"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetValidOrderTypes(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetValidOrderTypes", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetValidOrderTypes"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetValidTransactionTypes(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetValidTransactionTypes", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetValidTransactionTypes"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetMarketSummary(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetMarketSummary", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetMarketSummary"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetOrderBook(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetOrderBook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOrderBook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetAllOrders(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetAllOrders", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetAllOrders"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetTradeHistorySummary(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetTradeHistorySummary", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetTradeHistorySummary"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetRecentTrades(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetRecentTrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetRecentTrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetFxRates(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetFxRates", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetFxRates"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetOrderMinimumVolumes(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetOrderMinimumVolumes", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetOrderMinimumVolumes"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetCryptoWithdrawalFees(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetCryptoWithdrawalFees", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetCryptoWithdrawalFees"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetCryptoWithdrawalFees2(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetCryptoWithdrawalFees2", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetCryptoWithdrawalFees2"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetNetworks(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetNetworks", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetNetworks"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetGetPrimaryCurrencyConfig2(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetPrimaryCurrencyConfig2", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "GetPrimaryCurrencyConfig2"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOpenOrders(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetOpenOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetOpenOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetClosedOrders(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetClosedOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetClosedOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetClosedFilledOrders(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetClosedFilledOrders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetClosedFilledOrders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetOrderDetails(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetOrderDetails", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetOrderDetails"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetAccounts(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetAccounts", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetAccounts"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetTransactions(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetTransactions", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetTransactions"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetFiatBankAccounts(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetFiatBankAccounts", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetFiatBankAccounts"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetDigitalCurrencyDepositAddress(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetDigitalCurrencyDepositAddress", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetDigitalCurrencyDepositAddress"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetDigitalCurrencyDepositAddress2(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetDigitalCurrencyDepositAddress2", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetDigitalCurrencyDepositAddress2"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetDigitalCurrencyDepositAddresses(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetDigitalCurrencyDepositAddresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetDigitalCurrencyDepositAddresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetDigitalCurrencyDepositAddresses2(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetDigitalCurrencyDepositAddresses2", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetDigitalCurrencyDepositAddresses2"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetTrades(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetTrades", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetTrades"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetBrokerageFees(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetBrokerageFees", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetBrokerageFees"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostGetDigitalCurrencyWithdrawal(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "GetDigitalCurrencyWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "GetDigitalCurrencyWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPlaceLimitOrder(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "PlaceLimitOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "PlaceLimitOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPlaceMarketOrder(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "PlaceMarketOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "PlaceMarketOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostCancelOrder(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "CancelOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "CancelOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostSynchDigitalCurrencyDepositAddressWithBlockchain(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "SynchDigitalCurrencyDepositAddressWithBlockchain", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "SynchDigitalCurrencyDepositAddressWithBlockchain"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostRequestFiatWithdrawal(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "RequestFiatWithdrawal", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "RequestFiatWithdrawal"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawFiatCurrency(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "WithdrawFiatCurrency", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "WithdrawFiatCurrency"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawDigitalCurrency(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "WithdrawDigitalCurrency", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "WithdrawDigitalCurrency"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostWithdrawCrypto(self::Independentreserve, params=Dict(), context=Dict())
-    return request(self, "WithdrawCrypto", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "WithdrawCrypto"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Independentreserve(; kwargs...)
@@ -1256,3 +1415,206 @@ function Independentreserve(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Independentreserve_fetchMarkets() end
+"""
+retrieves data on all markets for independentreserve
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an array of objects representing market data
+"""
+__ccxt_doc_Independentreserve_fetchMarkets
+
+function __ccxt_doc_Independentreserve_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Independentreserve_fetchBalance
+
+function __ccxt_doc_Independentreserve_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Independentreserve_fetchOrderBook
+
+function __ccxt_doc_Independentreserve_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Independentreserve_fetchTicker
+
+function __ccxt_doc_Independentreserve_fetchOrder() end
+"""
+fetches information on an order made by the user
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Independentreserve_fetchOrder
+
+function __ccxt_doc_Independentreserve_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Independentreserve_fetchOpenOrders
+
+function __ccxt_doc_Independentreserve_fetchClosedOrders() end
+"""
+fetches information on multiple closed orders made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol of the market orders were made in
+- `since`::int, optional: the earliest time in ms to fetch orders for
+- `limit`::int, optional: the maximum number of order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Independentreserve_fetchClosedOrders
+
+function __ccxt_doc_Independentreserve_fetchMyTrades() end
+"""
+fetch all trades made by the user
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Independentreserve_fetchMyTrades
+
+function __ccxt_doc_Independentreserve_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Independentreserve_fetchTrades
+
+function __ccxt_doc_Independentreserve_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Independentreserve_fetchTradingFees
+
+function __ccxt_doc_Independentreserve_createOrder() end
+"""
+create a trade order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Independentreserve_createOrder
+
+function __ccxt_doc_Independentreserve_cancelOrder() end
+"""
+cancels an open order
+see: https://www.independentreserve.com/features/api#CancelOrder
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: unified symbol of the market the order was made in
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Independentreserve_cancelOrder
+
+function __ccxt_doc_Independentreserve_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Independentreserve_fetchDepositAddress
+
+function __ccxt_doc_Independentreserve_withdraw() end
+"""
+make a withdrawal
+see: https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: the amount to withdraw
+- `address`::string: the address to withdraw to
+- `tag`::string:
+- `params`::object, optional: extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS
+- `params.comment`::object, optional: withdrawal comment, should not exceed 500 characters
+
+# Returns
+- a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Independentreserve_withdraw

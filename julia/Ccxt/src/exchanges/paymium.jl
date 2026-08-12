@@ -180,7 +180,7 @@ function describe(self::Paymium, )
         )
     ),
     Symbol("markets") => Dict{Symbol, Any}(
-        Symbol("BTC/EUR") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("BTC/EUR") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "eur",
     Symbol("symbol") => "BTC/EUR",
     Symbol("base") => "BTC",
@@ -266,7 +266,17 @@ function parseBalance(self::Paymium, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Paymium, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://paymium.github.io/api-documentation/#tag/User/operation/get-user-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Paymium; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -274,7 +284,19 @@ function fetchBalance(self::Paymium, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Paymium, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Paymium, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -283,11 +305,11 @@ function fetchOrderBook(self::Paymium, symbol, limit=nothing, params=Dict())
         Symbol("currency") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetDataCurrencyDepth(extend(request, params)));
-    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), nothing, "bids", "asks", "price", "amount")
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp = nothing, bidsKey = "bids", asksKey = "asks", priceKey = "price", amountKey = "amount")
 
 end
-function parseTicker(self::Paymium, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Paymium, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     timestamp = safeTimestamp(ticker, "at");
     vwap = safeString(ticker, "vwap");
     baseVolume = safeString(ticker, "volume");
@@ -314,10 +336,21 @@ function parseTicker(self::Paymium, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => quoteVolume,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Paymium, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Paymium, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -326,13 +359,13 @@ function fetchTicker(self::Paymium, symbol, params=Dict())
         Symbol("currency") => get(market, Symbol("id"), nothing)
     );
     ticker = Base.fetch(self.publicGetDataCurrencyTicker(extend(request, params)));
-    return self.parseTicker(ticker, market)
+    return self.parseTicker(ticker, market = market)
 
 end
-function parseTrade(self::Paymium, trade, market=nothing)
+function parseTrade(self::Paymium, trade; market=nothing)
     timestamp = safeTimestamp(trade, "created_at_int");
     id = safeString(trade, "uuid");
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     side = safeString(trade, "side");
     price = safeString(trade, "price");
     amountField = string("traded_", lowercase(get(market, Symbol("base"), nothing)));
@@ -351,10 +384,23 @@ function parseTrade(self::Paymium, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => nothing,
     Symbol("fee") => nothing
-), market)
+), market = market)
 
 end
-function fetchTrades(self::Paymium, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Paymium, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -363,10 +409,21 @@ function fetchTrades(self::Paymium, symbol, since=nothing, limit=nothing, params
         Symbol("currency") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetDataCurrencyTrades(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(response, market = market, since = since, limit = limit)
 
 end
-function createDepositAddress(self::Paymium, code, params=Dict())
+"""
+create a currency deposit address
+see: https://paymium.github.io/api-documentation/#tag/User/operation/create-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function createDepositAddress(self::Paymium, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -374,7 +431,18 @@ function createDepositAddress(self::Paymium, code, params=Dict())
     return self.parseDepositAddress(response)
 
 end
-function fetchDepositAddress(self::Paymium, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Paymium, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -385,27 +453,53 @@ function fetchDepositAddress(self::Paymium, code, params=Dict())
     return self.parseDepositAddress(response)
 
 end
-function fetchDepositAddresses(self::Paymium, codes=nothing, params=Dict())
+"""
+fetch deposit addresses for multiple currencies and chain types
+see: https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-addresses
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddresses(self::Paymium; codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetUserAddresses(params));
-    return self.parseDepositAddresses(response, codes)
+    return self.parseDepositAddresses(response, codes = codes)
 
 end
-function parseDepositAddress(self::Paymium, depositAddress, currency=nothing)
+function parseDepositAddress(self::Paymium, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
     currencyId = safeString(depositAddress, "currency");
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("network") => nothing,
     Symbol("address") => address,
     Symbol("tag") => nothing
 )
 
 end
-function createOrder(self::Paymium, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://paymium.github.io/api-documentation/#tag/Order/operation/create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Paymium, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -423,10 +517,22 @@ function createOrder(self::Paymium, symbol, type_var, side, amount, price=nothin
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("id") => safeString(response, "uuid")
-), market)
+), market = market)
 
 end
-function cancelOrder(self::Paymium, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Paymium, id; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("uuid") => id
     );
@@ -436,7 +542,21 @@ function cancelOrder(self::Paymium, id, symbol=nothing, params=Dict())
 ))
 
 end
-function transfer(self::Paymium, code, amount, fromAccount, toAccount, params=Dict())
+"""
+transfer currency internally between wallets on the same account
+see: https://paymium.github.io/api-documentation/#tag/Transfer/operation/create-email-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+function transfer(self::Paymium, code, amount, fromAccount, toAccount; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -453,10 +573,10 @@ function transfer(self::Paymium, code, amount, fromAccount, toAccount, params=Di
         Symbol("email") => toAccount
     );
     response = Base.fetch(self.privatePostUserEmailTransfers(extend(request, params)));
-    return self.parseTransfer(response, currency)
+    return self.parseTransfer(response, currency = currency)
 
 end
-function parseTransfer(self::Paymium, transfer, currency=nothing)
+function parseTransfer(self::Paymium, transfer; currency=nothing)
     currencyId = safeString(transfer, "currency");
     updatedAt = safeString(transfer, "updated_at");
     timetstamp = self.parseDate(updatedAt);
@@ -468,7 +588,7 @@ function parseTransfer(self::Paymium, transfer, currency=nothing)
     Symbol("id") => safeString(transfer, "uuid"),
     Symbol("timestamp") => timetstamp,
     Symbol("datetime") => self.iso8601(timetstamp),
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
+    Symbol("currency") => self.safeCurrencyCode(currencyId, currency = currency),
     Symbol("amount") => self.safeNumber(transfer, "amount"),
     Symbol("fromAccount") => nothing,
     Symbol("toAccount") => safeString(firstOperation, "address"),
@@ -483,7 +603,7 @@ function parseTransferStatus(self::Paymium, status)
     return safeString(statuses, status, status)
 
 end
-function sign(self::Paymium, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Paymium, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol("rest"), nothing), "/", self.version, "/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
     if functions.ccxtruthy(api == "public")
@@ -539,99 +659,99 @@ Base.getproperty(self::Paymium, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetCountries(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "countries", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "countries"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetCurrencies(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "currencies", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "currencies"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDataCurrencyTicker(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "data/{currency}/ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "data/{currency}/ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDataCurrencyTrades(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "data/{currency}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "data/{currency}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetDataCurrencyDepth(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "data/{currency}/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "data/{currency}/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetBitcoinChartsIdTrades(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "bitcoin_charts/{id}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "bitcoin_charts/{id}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetBitcoinChartsIdDepth(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "bitcoin_charts/{id}/depth", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "bitcoin_charts/{id}/depth"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUser(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserAddresses(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/addresses", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/addresses"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserAddressesAddress(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/addresses/{address}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/addresses/{address}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserOrders(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/orders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/orders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserOrdersUuid(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/orders/{uuid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/orders/{uuid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetUserPriceAlerts(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/price_alerts", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "user/price_alerts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetMerchantGetPaymentUuid(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "merchant/get_payment/{uuid}", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "merchant/get_payment/{uuid}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserAddresses(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/addresses", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/addresses"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserOrders(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/orders", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserWithdrawals(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/withdrawals", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/withdrawals"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserEmailTransfers(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/email_transfers", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/email_transfers"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserPaymentRequests(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/payment_requests", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/payment_requests"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostUserPriceAlerts(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/price_alerts", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "user/price_alerts"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMerchantCreatePayment(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "merchant/create_payment", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "merchant/create_payment"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteUserOrdersUuid(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/orders/{uuid}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "user/orders/{uuid}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteUserOrdersUuidCancel(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/orders/{uuid}/cancel", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "user/orders/{uuid}/cancel"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateDeleteUserPriceAlertsId(self::Paymium, params=Dict(), context=Dict())
-    return request(self, "user/price_alerts/{id}", "private", "DELETE", params, nothing, nothing, Dict())
+    return request(self, "user/price_alerts/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Paymium(; kwargs...)
@@ -695,3 +815,155 @@ function Paymium(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Paymium_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://paymium.github.io/api-documentation/#tag/User/operation/get-user-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Paymium_fetchBalance
+
+function __ccxt_doc_Paymium_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Paymium_fetchOrderBook
+
+function __ccxt_doc_Paymium_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Paymium_fetchTicker
+
+function __ccxt_doc_Paymium_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Paymium_fetchTrades
+
+function __ccxt_doc_Paymium_createDepositAddress() end
+"""
+create a currency deposit address
+see: https://paymium.github.io/api-documentation/#tag/User/operation/create-deposit-address
+
+# Arguments
+- `code`::string: unified currency code of the currency for the deposit address
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Paymium_createDepositAddress
+
+function __ccxt_doc_Paymium_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-address
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Paymium_fetchDepositAddress
+
+function __ccxt_doc_Paymium_fetchDepositAddresses() end
+"""
+fetch deposit addresses for multiple currencies and chain types
+see: https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-addresses
+
+# Arguments
+- `codes`::any: list of unified currency codes, default is undefined
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Paymium_fetchDepositAddresses
+
+function __ccxt_doc_Paymium_createOrder() end
+"""
+create a trade order
+see: https://paymium.github.io/api-documentation/#tag/Order/operation/create-order
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paymium_createOrder
+
+function __ccxt_doc_Paymium_cancelOrder() end
+"""
+cancels an open order
+see: https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Paymium_cancelOrder
+
+function __ccxt_doc_Paymium_transfer() end
+"""
+transfer currency internally between wallets on the same account
+see: https://paymium.github.io/api-documentation/#tag/Transfer/operation/create-email-transfer
+
+# Arguments
+- `code`::string: unified currency code
+- `amount`::float: amount to transfer
+- `fromAccount`::string: account to transfer from
+- `toAccount`::string: account to transfer to
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+"""
+__ccxt_doc_Paymium_transfer

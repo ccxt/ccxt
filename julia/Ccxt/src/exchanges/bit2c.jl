@@ -240,7 +240,7 @@ function describe(self::Bit2c, )
         )
     ),
     Symbol("markets") => Dict{Symbol, Any}(
-        Symbol("BTC/NIS") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("BTC/NIS") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "BtcNis",
     Symbol("symbol") => "BTC/NIS",
     Symbol("base") => "BTC",
@@ -250,7 +250,7 @@ function describe(self::Bit2c, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("ETH/NIS") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("ETH/NIS") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "EthNis",
     Symbol("symbol") => "ETH/NIS",
     Symbol("base") => "ETH",
@@ -260,7 +260,7 @@ function describe(self::Bit2c, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("LTC/NIS") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("LTC/NIS") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "LtcNis",
     Symbol("symbol") => "LTC/NIS",
     Symbol("base") => "LTC",
@@ -270,7 +270,7 @@ function describe(self::Bit2c, )
     Symbol("type") => "spot",
     Symbol("spot") => true
 )),
-        Symbol("USDC/NIS") => self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("USDC/NIS") => self.safeMarketStructure(market = Dict{Symbol, Any}(
     Symbol("id") => "UsdcNis",
     Symbol("symbol") => "USDC/NIS",
     Symbol("base") => "USDC",
@@ -394,7 +394,17 @@ function parseBalance(self::Bit2c, response)
     return self.safeBalance(result)
 
 end
-function fetchBalance(self::Bit2c, params=Dict())
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://bit2c.co.il/home/api#balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Bit2c; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -402,7 +412,19 @@ function fetchBalance(self::Bit2c, params=Dict())
     return self.parseBalance(response)
 
 end
-function fetchOrderBook(self::Bit2c, symbol, limit=nothing, params=Dict())
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://bit2c.co.il/home/api#orderb
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Bit2c, symbol; limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -414,8 +436,8 @@ function fetchOrderBook(self::Bit2c, symbol, limit=nothing, params=Dict())
     return self.parseOrderBook(orderbook, symbol)
 
 end
-function parseTicker(self::Bit2c, ticker, market=nothing)
-    symbol = self.safeSymbol(nothing, market);
+function parseTicker(self::Bit2c, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
     averagePrice = safeString(ticker, "av");
     baseVolume = safeString(ticker, "a");
     last_var = safeString(ticker, "ll");
@@ -440,10 +462,21 @@ function parseTicker(self::Bit2c, ticker, market=nothing)
     Symbol("baseVolume") => baseVolume,
     Symbol("quoteVolume") => nothing,
     Symbol("info") => ticker
-), market)
+), market = market)
 
 end
-function fetchTicker(self::Bit2c, symbol, params=Dict())
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://bit2c.co.il/home/api#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Bit2c, symbol; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -452,16 +485,30 @@ function fetchTicker(self::Bit2c, symbol, params=Dict())
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetExchangesPairTicker(extend(request, params)));
-    return self.parseTicker(response, market)
+    return self.parseTicker(response, market = market)
 
 end
-function fetchTrades(self::Bit2c, symbol, since=nothing, limit=nothing, params=Dict())
+"""
+get the list of most recent trades for a particular symbol
+see: https://bit2c.co.il/home/api#transactions
+see: https://bit2c.co.il/home/api#trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Bit2c, symbol; since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     optionValue = safeString(self.options, "fetchTradesMethod");
-    method = self.handleOption("fetchTrades", "method", optionValue);
+    method = self.handleOption("fetchTrades", "method", defaultValue = optionValue);
     request = Dict{Symbol, Any}(
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
@@ -485,10 +532,20 @@ function fetchTrades(self::Bit2c, symbol, since=nothing, limit=nothing, params=D
         end
         responseList = toArray(response);
     end
-    return self.parseTrades(responseList, market, since, limit)
+    return self.parseTrades(responseList, market = market, since = since, limit = limit)
 
 end
-function fetchTradingFees(self::Bit2c, params=Dict())
+"""
+fetch the trading fees for multiple markets
+see: https://bit2c.co.il/home/api#balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Bit2c; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -518,7 +575,22 @@ function fetchTradingFees(self::Bit2c, params=Dict())
     return result
 
 end
-function createOrder(self::Bit2c, symbol, type_var, side, amount, price=nothing, params=Dict())
+"""
+create a trade order
+see: https://bit2c.co.il/home/api#addo
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Bit2c, symbol, type_var, side, amount; price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -538,10 +610,22 @@ function createOrder(self::Bit2c, symbol, type_var, side, amount, price=nothing,
         request[Symbol("IsBid")] =         (side == "buy");
     end
     response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function cancelOrder(self::Bit2c, id, symbol=nothing, params=Dict())
+"""
+cancels an open order
+see: https://bit2c.co.il/home/api#cancelo
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: Not used by bit2c cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Bit2c, id; symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("id") => id
     );
@@ -549,7 +633,20 @@ function cancelOrder(self::Bit2c, id, symbol=nothing, params=Dict())
     return self.parseOrder(response)
 
 end
-function fetchOpenOrders(self::Bit2c, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all unfilled currently open orders
+see: https://bit2c.co.il/home/api#geto
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Bit2c; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument")));
     end
@@ -563,11 +660,23 @@ function fetchOpenOrders(self::Bit2c, symbol=nothing, since=nothing, limit=nothi
     response = Base.fetch(self.privateGetOrderMyOrders(extend(request, params)));
     orders = safeValue(response, get(market, Symbol("id"), nothing), Dict{Symbol, Any}());
     asks = safeValue(orders, "ask", []);
-    bids = self.safeList(orders, "bid", []);
-    return self.parseOrders(arrayConcat(asks, bids), market, since, limit)
+    bids = self.safeList(orders, "bid", defaultValue = []);
+    return self.parseOrders(arrayConcat(asks, bids), market = market, since = since, limit = limit)
 
 end
-function fetchOrder(self::Bit2c, id, symbol=nothing, params=Dict())
+"""
+fetches information on an order made by the user
+see: https://bit2c.co.il/home/api#getoid
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOrder(self::Bit2c, id; symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -576,10 +685,10 @@ function fetchOrder(self::Bit2c, id, symbol=nothing, params=Dict())
         Symbol("id") => id
     );
     response = Base.fetch(self.privateGetOrderGetById(extend(request, params)));
-    return self.parseOrder(response, market)
+    return self.parseOrder(response, market = market)
 
 end
-function parseOrder(self::Bit2c, order, market=nothing)
+function parseOrder(self::Bit2c, order; market=nothing)
     orderUnified = nothing;
     isNewOrder = false;
     if functions.ccxtruthy(ccxt_in("NewOrder", order))
@@ -589,7 +698,7 @@ function parseOrder(self::Bit2c, order, market=nothing)
         orderUnified = order;
     end
     id = safeString(orderUnified, "id");
-    symbol = self.safeSymbol(nothing, market);
+    symbol = self.safeSymbol(nothing, market = market);
     timestamp = safeIntegerProduct(orderUnified, "created", 1000);
     status = nothing;
     if functions.ccxtruthy(isNewOrder)
@@ -651,10 +760,23 @@ function parseOrder(self::Bit2c, order, market=nothing)
     Symbol("fee") => nothing,
     Symbol("info") => order,
     Symbol("average") => nothing
-), market)
+), market = market)
 
 end
-function fetchMyTrades(self::Bit2c, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+"""
+fetch all trades made by the user
+see: https://bit2c.co.il/home/api#orderh
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Bit2c; symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -677,7 +799,7 @@ function fetchMyTrades(self::Bit2c, symbol=nothing, since=nothing, limit=nothing
     if functions.ccxtruthy(response != nothing)
         responseList = toArray(response);
     end
-    return self.parseTrades(responseList, market, since, limit)
+    return self.parseTrades(responseList, market = market, since = since, limit = limit)
 
 end
 function removeCommaFromValue(self::Bit2c, str)
@@ -691,7 +813,7 @@ function removeCommaFromValue(self::Bit2c, str)
     return newString
 
 end
-function parseTrade(self::Bit2c, trade, market=nothing)
+function parseTrade(self::Bit2c, trade; market=nothing)
     price = nothing;
     amount = nothing;
     orderId = nothing;
@@ -706,8 +828,8 @@ function parseTrade(self::Bit2c, trade, market=nothing)
         amount = safeString(trade, "firstAmount");
         reference_parts = split(reference, "|");
         marketId = safeString(trade, "pair");
-        market = self.safeMarket(marketId, market);
-        market = self.safeMarket(get(reference_parts, 1, nothing), market);
+        market = self.safeMarket(marketId = marketId, market = market);
+        market = self.safeMarket(marketId = get(reference_parts, 1, nothing), market = market);
         isMaker = safeValue(trade, "isMaker");
         makerOrTaker = functions.ccxtruthy(isMaker) ? "maker" : "taker";
         orderId = functions.ccxtruthy(isMaker) ? get(reference_parts, 3, nothing) : get(reference_parts, 2, nothing);
@@ -738,7 +860,7 @@ function parseTrade(self::Bit2c, trade, market=nothing)
             end
         end
     end
-    market = self.safeMarket(nothing, market);
+    market = self.safeMarket(marketId = nothing, market = market);
     return self.safeTrade(Dict{Symbol, Any}(
     Symbol("info") => trade,
     Symbol("id") => id,
@@ -753,14 +875,25 @@ function parseTrade(self::Bit2c, trade, market=nothing)
     Symbol("amount") => amount,
     Symbol("cost") => nothing,
     Symbol("fee") => fee
-), market)
+), market = market)
 
 end
 function isFiat(self::Bit2c, code)
     return code == "NIS"
 
 end
-function fetchDepositAddress(self::Bit2c, code, params=Dict())
+"""
+fetch the deposit address for a currency associated with this account
+see: https://bit2c.co.il/home/api#addc
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+function fetchDepositAddress(self::Bit2c, code; params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -772,13 +905,13 @@ function fetchDepositAddress(self::Bit2c, code, params=Dict())
         Symbol("Coin") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privatePostFundsAddCoinFundsRequest(extend(request, params)));
-    return self.parseDepositAddress(response, currency)
+    return self.parseDepositAddress(response, currency = currency)
 
 end
-function parseDepositAddress(self::Bit2c, depositAddress, currency=nothing)
+function parseDepositAddress(self::Bit2c, depositAddress; currency=nothing)
     address = safeString(depositAddress, "address");
-    self.checkAddress(address);
-    code = self.safeCurrencyCode(nothing, currency);
+    self.checkAddress(address = address);
+    code = self.safeCurrencyCode(nothing, currency = currency);
     return Dict{Symbol, Any}(
     Symbol("info") => depositAddress,
     Symbol("currency") => code,
@@ -792,7 +925,7 @@ function nonce(self::Bit2c, )
     return milliseconds()
 
 end
-function sign(self::Bit2c, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+function sign(self::Bit2c, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol("rest"), nothing), "/", self.implodeParams(path, params));
     if functions.ccxtruthy(api == "public")
         url += ".json";
@@ -849,95 +982,95 @@ Base.getproperty(self::Bit2c, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetExchangesPairTicker(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Exchanges/{pair}/Ticker", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "Exchanges/{pair}/Ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetExchangesPairOrderbook(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Exchanges/{pair}/orderbook", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "Exchanges/{pair}/orderbook"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetExchangesPairTrades(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Exchanges/{pair}/trades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "Exchanges/{pair}/trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function publicGetExchangesPairLasttrades(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Exchanges/{pair}/lasttrades", "public", "GET", params, nothing, nothing, Dict())
+    return request(self, "Exchanges/{pair}/lasttrades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostMerchantCreateCheckout(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Merchant/CreateCheckout", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Merchant/CreateCheckout"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostFundsAddCoinFundsRequest(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Funds/AddCoinFundsRequest", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Funds/AddCoinFundsRequest"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderAddFund(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/AddFund", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Order/AddFund"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderAddOrder(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/AddOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Order/AddOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderGetById(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/GetById", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Order/GetById"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderAddOrderMarketPriceBuy(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/AddOrderMarketPriceBuy", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Order/AddOrderMarketPriceBuy"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderAddOrderMarketPriceSell(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/AddOrderMarketPriceSell", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Order/AddOrderMarketPriceSell"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderCancelOrder(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/CancelOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Order/CancelOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderAddCoinFundsRequest(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/AddCoinFundsRequest", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Order/AddCoinFundsRequest"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostOrderAddStopOrder(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/AddStopOrder", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Order/AddStopOrder"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPaymentGetMyId(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Payment/GetMyId", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Payment/GetMyId"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPaymentSend(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Payment/Send", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Payment/Send"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privatePostPaymentPay(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Payment/Pay", "private", "POST", params, nothing, nothing, Dict())
+    return request(self, "Payment/Pay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountBalance(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Account/Balance", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "Account/Balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetAccountBalanceV2(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Account/Balance/v2", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "Account/Balance/v2"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderMyOrders(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/MyOrders", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "Order/MyOrders"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderGetById(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/GetById", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "Order/GetById"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderAccountHistory(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/AccountHistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "Order/AccountHistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function privateGetOrderOrderHistory(self::Bit2c, params=Dict(), context=Dict())
-    return request(self, "Order/OrderHistory", "private", "GET", params, nothing, nothing, Dict())
+    return request(self, "Order/OrderHistory"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
 end
 
 function Bit2c(; kwargs...)
@@ -1001,3 +1134,171 @@ function Bit2c(; kwargs...)
     inst.loadExchangeSpecificFiles()
     return inst
 end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Bit2c_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://bit2c.co.il/home/api#balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Bit2c_fetchBalance
+
+function __ccxt_doc_Bit2c_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://bit2c.co.il/home/api#orderb
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Bit2c_fetchOrderBook
+
+function __ccxt_doc_Bit2c_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://bit2c.co.il/home/api#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Bit2c_fetchTicker
+
+function __ccxt_doc_Bit2c_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://bit2c.co.il/home/api#transactions
+see: https://bit2c.co.il/home/api#trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Bit2c_fetchTrades
+
+function __ccxt_doc_Bit2c_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://bit2c.co.il/home/api#balance
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Bit2c_fetchTradingFees
+
+function __ccxt_doc_Bit2c_createOrder() end
+"""
+create a trade order
+see: https://bit2c.co.il/home/api#addo
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bit2c_createOrder
+
+function __ccxt_doc_Bit2c_cancelOrder() end
+"""
+cancels an open order
+see: https://bit2c.co.il/home/api#cancelo
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: Not used by bit2c cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bit2c_cancelOrder
+
+function __ccxt_doc_Bit2c_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://bit2c.co.il/home/api#geto
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of open order structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bit2c_fetchOpenOrders
+
+function __ccxt_doc_Bit2c_fetchOrder() end
+"""
+fetches information on an order made by the user
+see: https://bit2c.co.il/home/api#getoid
+
+# Arguments
+- `id`::string: the order id
+- `symbol`::string: unified market symbol
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Bit2c_fetchOrder
+
+function __ccxt_doc_Bit2c_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://bit2c.co.il/home/api#orderh
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Bit2c_fetchMyTrades
+
+function __ccxt_doc_Bit2c_fetchDepositAddress() end
+"""
+fetch the deposit address for a currency associated with this account
+see: https://bit2c.co.il/home/api#addc
+
+# Arguments
+- `code`::string: unified currency code
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+"""
+__ccxt_doc_Bit2c_fetchDepositAddress
